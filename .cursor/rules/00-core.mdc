@@ -1,0 +1,55 @@
+---
+description: Core project rules for the restaurant SaaS. Always applied.
+alwaysApply: true
+---
+# Restaurant SaaS — core rules
+
+Multi-tenant SaaS for restaurants: public digital menu, cashier (POS), kitchen display (KDS),
+owner dashboard, reports, subscriptions. Read `docs/product.md`, `docs/architecture.md`, `docs/data-model.md`, `docs/api-conventions.md` and `docs/roadmap.md`
+before any non-trivial task. The current milestone is the first unchecked item in the roadmap.
+
+## Stack (do not change without asking)
+- pnpm + Turborepo monorepo, TypeScript strict everywhere
+- `apps/web`: Next.js (App Router) + Tailwind — menu page, dashboard, cashier and kitchen PWAs
+- `apps/api`: Fastify + Drizzle ORM + PostgreSQL + Socket.io (long-running server, not serverless)
+- `packages/shared`: Zod schemas and types shared by web and api
+- Tests: Vitest (unit/integration against a real Postgres), Playwright (e2e)
+
+## Commands
+- `pnpm dev` — run everything locally (needs `docker compose up -d` for Postgres/Redis)
+- `pnpm lint && pnpm typecheck && pnpm test` — must pass before you say a task is done
+- `pnpm db:generate` — create a migration from schema changes; `pnpm db:migrate` — apply locally
+
+## Non-negotiable rules
+1. **Tenant isolation.** Every tenant table has `org_id` (operational tables also `branch_id`).
+   Never read `org_id` from the request body or URL; take it from the authenticated context.
+   All queries go through the repository helpers that scope by org. RLS policies exist on every
+   tenant table; a new tenant table needs a policy in the same migration.
+2. **Money** is integer minor units (`bigint`) plus a currency code. Never use floats.
+3. **Orders are never deleted.** Cancel/void are states. Order items snapshot product name and
+   price at order time. Catalog rows use soft delete (`deleted_at`).
+4. **Order state changes** only through `apps/api/src/modules/ordering/state-machine.ts`.
+   Every change writes an `order_events` row and an `outbox_events` row in the same transaction.
+5. **Idempotency.** Order creation requires `client_order_id` (UUIDv7 from the device), unique
+   on `(branch_id, client_order_id)`; a repeat returns the existing order.
+6. **Time.** Store `timestamptz` in UTC. Reports group by `business_date`, computed per branch
+   timezone and `day_start_hour`.
+7. **Permissions** are checked on the server for every endpoint (`requirePermission('orders.cancel')`)
+   plus branch scope plus plan entitlement (`can(org, 'feature.key')`). Never check plan names in code.
+8. **Migrations** are additive (expand/contract). Never drop or rename a column in the same
+   release that stops using it. Never edit a migration that has been merged.
+9. **i18n/RTL.** No hard-coded user-facing strings; use the translation files (ar, en). Layouts
+   use logical CSS properties so RTL works.
+10. **Secrets** never go in code, logs or commits. Do not read `.env*` files.
+
+## Module boundaries (modular monolith)
+`apps/api/src/modules/{identity,tenancy,catalog,ordering,kitchen,reporting,billing,notifications,admin}`.
+A module only touches its own tables. Other modules call its exported service or react to its
+outbox events. Do not import another module's repository directly.
+
+## How to work
+- Start non-trivial tasks with a short plan (files to touch, schema changes, tests) and wait for
+  approval when the plan changes the schema, the API contract, or a rule above.
+- One feature per branch and PR. Keep PRs small. Write tests with the feature, not after.
+- When you are unsure what a restaurant needs, ask; do not invent product behavior.
+- If you notice a rule here is wrong or missing, propose the edit to `.cursor/rules/00-core.mdc`.
