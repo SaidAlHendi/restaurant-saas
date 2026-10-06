@@ -6,14 +6,8 @@ const tsconfigRootDir = eslintTsconfigRootDir(import.meta.url);
 const typedFiles = ['**/*.{ts,tsx}'];
 
 export default [
-  { ignores: ['dist/**'] },
+  { ignores: ['dist/**', 'scripts/**'] },
   ...react,
-  {
-    files: ['src/components/button/button.tsx'],
-    rules: {
-      'react-refresh/only-export-components': 'off',
-    },
-  },
   {
     files: typedFiles,
     languageOptions: {

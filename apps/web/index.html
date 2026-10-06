@@ -4,6 +4,20 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Restaurant SaaS</title>
+    <script>
+      // Apply the saved theme (or the OS preference) before first paint. Same logic as
+      // packages/ui/src/hooks/use-theme.ts, key "app.theme".
+      (function () {
+        var theme;
+        try {
+          theme = localStorage.getItem('app.theme');
+        } catch (e) {}
+        if (theme !== 'cupcake' && theme !== 'forest') {
+          theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'forest' : 'cupcake';
+        }
+        document.documentElement.dataset.theme = theme;
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -8,3 +8,8 @@ build
 *.log
 coverage
 .DS_Store
+
+# local scripts and build caches
+.tmp-*
+*.tsbuildinfo
+.verify-pipeline.log

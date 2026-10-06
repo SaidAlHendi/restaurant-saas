@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { RouterProvider } from 'react-router-dom';
 
+import { AppProviders } from './app/AppProviders.js';
 import { store } from './app/store.js';
 import { router } from './app/router.js';
 import { initI18n } from './lib/i18n.js';
@@ -17,7 +18,9 @@ void initI18n().then(() => {
   createRoot(root).render(
     <StrictMode>
       <Provider store={store}>
-        <RouterProvider router={router} />
+        <AppProviders>
+          <RouterProvider router={router} />
+        </AppProviders>
       </Provider>
     </StrictMode>,
   );
