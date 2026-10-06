@@ -126,12 +126,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
     }
 
     if (process.env['NODE_ENV'] === 'development') {
-      // eslint-disable-next-line no-console -- surface root cause when pino only logs "status code 500"
       console.error(exception);
     }
 
+    const exposeCause =
+      process.env['NODE_ENV'] === 'development' || process.env['NODE_ENV'] === 'test';
     const devDetails =
-      process.env['NODE_ENV'] === 'development' && exception instanceof Error
+      exposeCause && exception instanceof Error
         ? { cause: exception.message, name: exception.name }
         : {};
 

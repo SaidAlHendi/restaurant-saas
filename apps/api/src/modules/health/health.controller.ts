@@ -7,12 +7,10 @@ import { PostgresHealthIndicator, RedisHealthIndicator } from './health.indicato
 
 function indicatorIsUp(result: HealthIndicatorResult): boolean {
   const entry = Object.values(result)[0];
-  return (
-    typeof entry === 'object' &&
-    entry !== null &&
-    'status' in entry &&
-    entry.status === 'up'
-  );
+  if (entry === undefined || typeof entry !== 'object') {
+    return false;
+  }
+  return 'status' in entry && entry.status === 'up';
 }
 
 @Public()

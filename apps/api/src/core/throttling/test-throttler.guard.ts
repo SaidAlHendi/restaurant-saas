@@ -12,7 +12,6 @@ export class TestThrottlerGuard extends ThrottlerGuard {
       return await super.canActivate(context);
     } catch (error) {
       if (process.env['NODE_ENV'] === 'development') {
-        // eslint-disable-next-line no-console -- Redis misconfig should not brick local dev
         console.error('Throttler storage failed; allowing request in development', error);
         return true;
       }

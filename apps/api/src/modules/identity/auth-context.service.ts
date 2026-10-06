@@ -36,6 +36,9 @@ export class AuthContextService {
     if (!session || session.revokedAt || session.expiresAt < new Date()) {
       throw new UnauthorizedError('SESSION_INVALID', 'Session is not active');
     }
+    if (session.orgId !== payload.org) {
+      throw new UnauthorizedError('SESSION_INVALID', 'Session is not active');
+    }
 
     return this.db.transaction(async (tx) => {
       await tx.execute(setOrgLocal(payload.org));

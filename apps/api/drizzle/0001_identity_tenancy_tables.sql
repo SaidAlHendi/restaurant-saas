@@ -34,6 +34,7 @@ ALTER TABLE "users" ADD CONSTRAINT "users_last_org_id_organizations_id_fk" FOREI
 CREATE TABLE "auth_sessions" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"user_id" uuid NOT NULL,
+	"org_id" uuid NOT NULL,
 	"token_hash" text NOT NULL,
 	"family_id" uuid NOT NULL,
 	"expires_at" timestamptz NOT NULL,
@@ -45,6 +46,7 @@ CREATE TABLE "auth_sessions" (
 );
 --> statement-breakpoint
 ALTER TABLE "auth_sessions" ADD CONSTRAINT "auth_sessions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "auth_sessions" ADD CONSTRAINT "auth_sessions_org_id_organizations_id_fk" FOREIGN KEY ("org_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE TABLE "roles" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"org_id" uuid,

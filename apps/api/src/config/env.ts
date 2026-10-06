@@ -22,6 +22,25 @@ const envSchema = z.object({
 
 export type Env = z.infer<typeof envSchema>;
 
+const DEFAULT_TEST_DATABASE_URL =
+  'postgresql://app_user:app_user_dev@localhost:5432/restaurant_saas_test';
+
+/** E2e must never use dev DATABASE_URL from `.env` when NODE_ENV is test. */
+function withTestDatabaseUrls(raw: Record<string, string | undefined>): Record<string, string | undefined> {
+  if (raw['NODE_ENV'] !== 'test') {
+    return raw;
+  }
+  const databaseUrl = raw['DATABASE_URL_TEST'] ?? DEFAULT_TEST_DATABASE_URL;
+  const migrationUrl =
+    raw['DATABASE_MIGRATION_URL_TEST'] ??
+    databaseUrl.replace('app_user:app_user_dev', 'app_owner:app_owner_dev');
+  return {
+    ...raw,
+    DATABASE_URL: databaseUrl,
+    DATABASE_MIGRATION_URL: migrationUrl,
+  };
+}
+
 let cached: Env | undefined;
 
 export function loadEnv(overrides?: Record<string, string | undefined>): Env {
@@ -29,7 +48,7 @@ export function loadEnv(overrides?: Record<string, string | undefined>): Env {
     return cached;
   }
   loadDotenvFromMonorepoRoot();
-  const parsed = envSchema.safeParse({ ...process.env, ...overrides });
+  const parsed = envSchema.safeParse(withTestDatabaseUrls({ ...process.env, ...overrides }));
   if (!parsed.success) {
     const message = parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ');
     throw new Error(

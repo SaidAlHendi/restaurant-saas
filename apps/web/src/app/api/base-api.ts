@@ -11,7 +11,7 @@ import { refreshResponseSchema } from '@app/shared';
 import type { RootState } from '../store.js';
 import { setAccessToken, clearSession } from '../../features/session/session.slice.js';
 import { selectAccessToken, selectCurrentBranchId } from '../../features/session/session.selectors.js';
-import { refreshMutex } from '../../lib/refresh-mutex.js';
+import { runAuthRefresh } from '../../lib/auth-refresh-lock.js';
 
 function apiBaseUrl(): string {
   const fromEnv = import.meta.env.VITE_API_URL;
@@ -76,7 +76,7 @@ const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
     return result;
   }
 
-  const newToken = await refreshMutex.run(() => performRefresh(api));
+  const newToken = await runAuthRefresh(() => performRefresh(api));
   if (!newToken) {
     return result;
   }

@@ -25,9 +25,11 @@ INSERT INTO public.role_permissions (role_id, permission_key, org_id) VALUES
   ('00000000-0000-4000-8000-000000000102', 'menu.manage', NULL),
   ('00000000-0000-4000-8000-000000000102', 'reports.read', NULL),
   ('00000000-0000-4000-8000-000000000103', 'branches.read', NULL),
-  ('00000000-0000-4000-8000-000000000103', 'orders.create', NULL),
-  ('00000000-0000-4000-8000-000000000104', 'orders.create', NULL)
+  ('00000000-0000-4000-8000-000000000103', 'orders.create', NULL)
 ON CONFLICT (role_id, permission_key) DO NOTHING;
+
+DELETE FROM public.role_permissions
+WHERE role_id = '00000000-0000-4000-8000-000000000104';
 
 ALTER TABLE public.roles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.roles FORCE ROW LEVEL SECURITY;

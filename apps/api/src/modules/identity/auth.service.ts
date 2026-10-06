@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, type OnModuleInit } from '@nestjs/common';
 import * as argon2 from 'argon2';
 import type { Request, Response } from 'express';
 
@@ -25,8 +25,12 @@ import {
 import { IdentityRepository } from './identity.repository';
 import { TenancyRepository } from '../tenancy/tenancy.repository';
 
+type Tx = Parameters<Parameters<DrizzleDb['transaction']>[0]>[0];
+
 @Injectable()
-export class AuthService {
+export class AuthService implements OnModuleInit {
+  private timingMitigationPasswordHash = '';
+
   constructor(
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly identityRepo: IdentityRepository,
@@ -34,6 +38,19 @@ export class AuthService {
     private readonly jwt: JwtAccessService,
     private readonly refreshTokens: RefreshTokenService,
   ) {}
+
+  async onModuleInit(): Promise<void> {
+    await this.ensureTimingMitigationHash();
+  }
+
+  private async ensureTimingMitigationHash(): Promise<string> {
+    if (this.timingMitigationPasswordHash.length === 0) {
+      this.timingMitigationPasswordHash = await argon2.hash('local-timing-mitigation-v1', {
+        type: argon2.argon2id,
+      });
+    }
+    return this.timingMitigationPasswordHash;
+  }
 
   async signup(body: SignupBody, req: Request, res: Response) {
     const email = body.email.toLowerCase();
@@ -47,8 +64,7 @@ export class AuthService {
     const familyId = newUuidV7();
 
     const baseSlug = slugifyBase(body.restaurantName) || 'restaurant';
-    let slug = baseSlug;
-    let suffix = 0;
+    const branchBaseSlug = slugifyBase(body.restaurantName) || 'main';
 
     const result = await this.db.transaction(async (tx) => {
       const existing = await this.identityRepo.findUserByEmail(tx, email);
@@ -64,62 +80,22 @@ export class AuthService {
         locale: body.defaultLocale,
       });
 
-      while (await this.tenancyRepo.isOrgSlugTakenForSignup(tx, slug)) {
-        suffix += 1;
-        slug = slugWithSuffix(baseSlug, suffix);
-        if (suffix > 50) {
-          throw new ValidationError('Could not allocate a unique organization slug');
-        }
-      }
+      const org = await this.insertOrganizationUniqueSlug(tx, newOrgId, baseSlug, {
+        name: body.restaurantName,
+        country: body.country,
+        defaultCurrency: body.currency,
+        defaultLocale: body.defaultLocale,
+        locales: [body.defaultLocale],
+        status: 'trial',
+      });
+
+      const branch = await this.insertBranchUniqueSlug(tx, newOrgId, branchId, branchBaseSlug, {
+        name: body.restaurantName,
+        timezone: body.timezone,
+        currency: body.currency,
+      });
 
       await tx.execute(setOrgLocal(newOrgId));
-
-      let org;
-      try {
-        org = await this.tenancyRepo.insertOrganization(tx, {
-          id: newOrgId,
-          name: body.restaurantName,
-          slug,
-          country: body.country,
-          defaultCurrency: body.currency,
-          defaultLocale: body.defaultLocale,
-          locales: [body.defaultLocale],
-          status: 'trial',
-        });
-      } catch (err: unknown) {
-        if (isPgUniqueViolation(err)) {
-          throw new ValidationError('Organization slug already taken');
-        }
-        throw err;
-      }
-
-      const branchBaseSlug = slugifyBase(body.restaurantName) || 'main';
-      let branchSlug = branchBaseSlug;
-      let branchSuffix = 0;
-      let branch;
-      for (let attempt = 0; attempt < 50; attempt += 1) {
-        try {
-          branch = await this.tenancyRepo.insertBranch(tx, {
-            id: branchId,
-            orgId: newOrgId,
-            name: body.restaurantName,
-            slug: branchSlug,
-            timezone: body.timezone,
-            currency: body.currency,
-          });
-          break;
-        } catch (err: unknown) {
-          if (!isPgUniqueViolation(err)) {
-            throw err;
-          }
-          branchSuffix += 1;
-          branchSlug = slugWithSuffix(branchBaseSlug, branchSuffix);
-        }
-      }
-      if (!branch) {
-        throw new ValidationError('Could not allocate a unique branch slug');
-      }
-
       await this.tenancyRepo.insertMembership(tx, {
         id: membershipId,
         orgId: newOrgId,
@@ -162,11 +138,9 @@ export class AuthService {
   async login(body: LoginBody, req: Request, res: Response) {
     const email = body.email.toLowerCase();
     const user = await this.db.transaction(async (tx) => this.identityRepo.findUserByEmail(tx, email));
-    if (!user) {
-      throw new UnauthorizedError('INVALID_CREDENTIALS', LOGIN_INVALID_MESSAGE);
-    }
-    const valid = await argon2.verify(user.passwordHash, body.password);
-    if (!valid) {
+    const hashToVerify = user?.passwordHash ?? (await this.ensureTimingMitigationHash());
+    const valid = await argon2.verify(hashToVerify, body.password);
+    if (!user || !valid) {
       throw new UnauthorizedError('INVALID_CREDENTIALS', LOGIN_INVALID_MESSAGE);
     }
 
@@ -237,32 +211,35 @@ export class AuthService {
       throw new UnauthorizedError('REFRESH_INVALID', 'Session expired');
     }
 
-    const orgId = await this.resolveLoginOrgId(user.id, user.lastOrgId);
-    const membership = await this.db.transaction(async (tx) => {
-      await tx.execute(setOrgLocal(orgId));
-      return this.identityRepo.findMembershipForUserOrg(tx, user.id, orgId);
-    });
-    if (!membership || membership.status !== 'active') {
-      this.refreshTokens.clearCookie(res);
-      throw new UnauthorizedError('MEMBERSHIP_DISABLED', 'Membership is not active');
-    }
+    const orgId = await this.resolveRefreshOrgId(user.id, session.orgId, user.lastOrgId);
 
     const newSessionId = newUuidV7();
     const newRaw = this.refreshTokens.generateRawToken();
     const newHash = this.refreshTokens.hashToken(newRaw);
 
-    await this.db.transaction(async (tx) => {
-      await this.identityRepo.revokeSession(tx, session.id, newSessionId);
-      await this.identityRepo.insertSession(tx, {
-        id: newSessionId,
-        userId: session.userId,
-        tokenHash: newHash,
-        familyId: session.familyId,
-        expiresAt: this.refreshTokens.expiresAt(),
-        userAgent: req.headers['user-agent']?.slice(0, 512),
-        ip: req.ip,
-      });
-    });
+    const rotated = await this.db.transaction(async (tx) =>
+      this.identityRepo.rotateRefreshSession(tx, {
+        currentSessionId: session.id,
+        newSession: {
+          id: newSessionId,
+          userId: session.userId,
+          orgId,
+          tokenHash: newHash,
+          familyId: session.familyId,
+          expiresAt: this.refreshTokens.expiresAt(),
+          userAgent: req.headers['user-agent']?.slice(0, 512),
+          ip: req.ip,
+        },
+      }),
+    );
+
+    if (!rotated) {
+      await this.db.transaction(async (tx) =>
+        this.identityRepo.revokeSessionFamily(tx, session.familyId),
+      );
+      this.refreshTokens.clearCookie(res);
+      throw new UnauthorizedError('REFRESH_REUSE', 'Refresh token reuse detected');
+    }
 
     const accessToken = this.jwt.sign({ sub: user.id, org: orgId, sid: newSessionId });
     this.refreshTokens.setCookie(res, newRaw);
@@ -283,7 +260,13 @@ export class AuthService {
     this.refreshTokens.clearCookie(res);
   }
 
-  async switchOrg(userId: string, body: SwitchOrgBody, req: Request, res: Response) {
+  async switchOrg(
+    userId: string,
+    currentSessionId: string,
+    body: SwitchOrgBody,
+    req: Request,
+    res: Response,
+  ) {
     const membership = await this.db.transaction(async (tx) => {
       await tx.execute(setOrgLocal(body.orgId));
       return this.identityRepo.findMembershipForUserOrg(tx, userId, body.orgId);
@@ -292,23 +275,40 @@ export class AuthService {
       throw new ForbiddenError('Not a member of this organization');
     }
 
-    await this.db.transaction(async (tx) => {
+    const session = await this.db.transaction(async (tx) =>
+      this.identityRepo.findSessionById(tx, currentSessionId),
+    );
+    if (!session || session.userId !== userId || session.revokedAt || session.expiresAt < new Date()) {
+      throw new UnauthorizedError('SESSION_INVALID', 'Session is not active');
+    }
+
+    const newSessionId = newUuidV7();
+    const newRaw = this.refreshTokens.generateRawToken();
+    const newHash = this.refreshTokens.hashToken(newRaw);
+
+    const rotated = await this.db.transaction(async (tx) => {
       await this.identityRepo.updateUserLastOrg(tx, userId, body.orgId);
+      return this.identityRepo.rotateRefreshSession(tx, {
+        currentSessionId: session.id,
+        newSession: {
+          id: newSessionId,
+          userId,
+          orgId: body.orgId,
+          tokenHash: newHash,
+          familyId: session.familyId,
+          expiresAt: this.refreshTokens.expiresAt(),
+          userAgent: req.headers['user-agent']?.slice(0, 512),
+          ip: req.ip,
+        },
+      });
     });
 
-    const sessionId = newUuidV7();
-    const familyId = newUuidV7();
-    const accessToken = await this.db.transaction(async (tx) => {
-      const { accessToken: token } = await this.createSession(tx, {
-        userId,
-        orgId: body.orgId,
-        sessionId,
-        familyId,
-        req,
-        res,
-      });
-      return token;
-    });
+    if (!rotated) {
+      throw new UnauthorizedError('SESSION_INVALID', 'Session is not active');
+    }
+
+    const accessToken = this.jwt.sign({ sub: userId, org: body.orgId, sid: newSessionId });
+    this.refreshTokens.setCookie(res, newRaw);
 
     const org = await this.db.transaction(async (tx) => {
       await tx.execute(setOrgLocal(body.orgId));
@@ -324,8 +324,55 @@ export class AuthService {
     };
   }
 
+  private async insertOrganizationUniqueSlug(
+    tx: Tx,
+    orgId: string,
+    baseSlug: string,
+    row: Omit<Parameters<TenancyRepository['insertOrganization']>[1], 'id' | 'slug'>,
+  ) {
+    for (let suffix = 0; suffix <= 50; suffix += 1) {
+      const slug = suffix === 0 ? baseSlug : slugWithSuffix(baseSlug, suffix);
+      try {
+        return await tx.transaction(async (sp) => {
+          await sp.execute(setOrgLocal(orgId));
+          return this.tenancyRepo.insertOrganization(sp, { ...row, id: orgId, slug });
+        });
+      } catch (err: unknown) {
+        if (isPgUniqueViolation(err, 'organizations_slug_unique') || isPgUniqueViolation(err)) {
+          continue;
+        }
+        throw err;
+      }
+    }
+    throw new ValidationError('Could not allocate a unique organization slug');
+  }
+
+  private async insertBranchUniqueSlug(
+    tx: Tx,
+    orgId: string,
+    branchId: string,
+    baseSlug: string,
+    row: Omit<Parameters<TenancyRepository['insertBranch']>[1], 'id' | 'slug' | 'orgId'>,
+  ) {
+    for (let suffix = 0; suffix <= 50; suffix += 1) {
+      const slug = suffix === 0 ? baseSlug : slugWithSuffix(baseSlug, suffix);
+      try {
+        return await tx.transaction(async (sp) => {
+          await sp.execute(setOrgLocal(orgId));
+          return this.tenancyRepo.insertBranch(sp, { ...row, id: branchId, orgId, slug });
+        });
+      } catch (err: unknown) {
+        if (isPgUniqueViolation(err, 'branches_org_slug_unique') || isPgUniqueViolation(err)) {
+          continue;
+        }
+        throw err;
+      }
+    }
+    throw new ValidationError('Could not allocate a unique branch slug');
+  }
+
   private async createSession(
-    tx: Parameters<Parameters<DrizzleDb['transaction']>[0]>[0],
+    tx: Tx,
     input: {
       userId: string;
       orgId: string;
@@ -340,6 +387,7 @@ export class AuthService {
     await this.identityRepo.insertSession(tx, {
       id: input.sessionId,
       userId: input.userId,
+      orgId: input.orgId,
       tokenHash: hash,
       familyId: input.familyId,
       expiresAt: this.refreshTokens.expiresAt(),
@@ -354,6 +402,21 @@ export class AuthService {
     });
     this.refreshTokens.setCookie(input.res, raw);
     return { accessToken };
+  }
+
+  private async resolveRefreshOrgId(
+    userId: string,
+    sessionOrgId: string,
+    lastOrgId: string | null,
+  ): Promise<string> {
+    const activeForSessionOrg = await this.db.transaction(async (tx) => {
+      await tx.execute(setOrgLocal(sessionOrgId));
+      return this.identityRepo.findMembershipForUserOrg(tx, userId, sessionOrgId);
+    });
+    if (activeForSessionOrg?.status === 'active') {
+      return sessionOrgId;
+    }
+    return this.resolveLoginOrgId(userId, lastOrgId);
   }
 
   private async resolveLoginOrgId(userId: string, lastOrgId: string | null): Promise<string> {

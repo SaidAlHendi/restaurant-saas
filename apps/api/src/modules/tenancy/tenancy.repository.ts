@@ -1,4 +1,4 @@
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { Injectable } from '@nestjs/common';
 
 import { users } from '../../core/db/schema/identity';
@@ -12,6 +12,14 @@ import {
 } from '../../core/db/schema/tenancy';
 import type { DrizzleTx } from '../../core/db/with-org';
 
+function firstInsertedRow<T>(rows: T[]): T {
+  const row = rows[0];
+  if (row === undefined) {
+    throw new Error('Insert did not return a row');
+  }
+  return row;
+}
+
 @Injectable()
 export class TenancyRepository {
   async listBranches(tx: DrizzleTx, orgId: string) {
@@ -24,28 +32,8 @@ export class TenancyRepository {
   }
 
   async insertBranch(tx: DrizzleTx, row: typeof branches.$inferInsert) {
-    await tx.insert(branches).values(row);
-    const branch = await this.findBranchById(tx, row.id);
-    if (branch) {
-      return branch;
-    }
-    return {
-      id: row.id,
-      orgId: row.orgId,
-      name: row.name,
-      slug: row.slug,
-      timezone: row.timezone,
-      currency: row.currency,
-      taxRateBp: row.taxRateBp ?? 0,
-      taxInclusive: row.taxInclusive ?? false,
-      dayStartHour: row.dayStartHour ?? 4,
-      address: row.address ?? null,
-      receiptHeader: row.receiptHeader ?? null,
-      receiptFooter: row.receiptFooter ?? null,
-      isActive: row.isActive ?? true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+    const inserted = await tx.insert(branches).values(row).returning();
+    return firstInsertedRow(inserted);
   }
 
   async updateBranch(tx: DrizzleTx, branchId: string, patch: Partial<typeof branches.$inferInsert>) {
@@ -100,53 +88,14 @@ export class TenancyRepository {
     return rows[0];
   }
 
-  async orgSlugExists(tx: DrizzleTx, slug: string): Promise<boolean> {
-    const rows = await tx
-      .select({ id: organizations.id })
-      .from(organizations)
-      .where(eq(organizations.slug, slug))
-      .limit(1);
-    return rows.length > 0;
-  }
-
-  /** Global slug check during signup (uses RLS policy organizations_select_signup_slug). */
-  async isOrgSlugTakenForSignup(tx: DrizzleTx, slug: string): Promise<boolean> {
-    await tx.execute(sql`SELECT set_config('app.signup_slug_check', 'true', true)`);
-    try {
-      return await this.orgSlugExists(tx, slug);
-    } finally {
-      await tx.execute(sql`SELECT set_config('app.signup_slug_check', '', true)`);
-    }
-  }
-
   async insertOrganization(tx: DrizzleTx, row: typeof organizations.$inferInsert) {
-    await tx.insert(organizations).values(row);
-    const org = await this.findOrganizationById(tx, row.id);
-    if (org) {
-      return org;
-    }
-    return {
-      id: row.id,
-      name: row.name,
-      slug: row.slug,
-      country: row.country,
-      defaultCurrency: row.defaultCurrency,
-      defaultLocale: row.defaultLocale,
-      locales: row.locales,
-      logoKey: row.logoKey ?? null,
-      status: row.status ?? 'trial',
-      createdAt: new Date(),
-    };
+    const inserted = await tx.insert(organizations).values(row).returning();
+    return firstInsertedRow(inserted);
   }
 
   async insertMembership(tx: DrizzleTx, row: typeof memberships.$inferInsert) {
-    await tx.insert(memberships).values(row);
-    const rows = await tx
-      .select()
-      .from(memberships)
-      .where(eq(memberships.id, row.id))
-      .limit(1);
-    return rows[0] ?? row;
+    const inserted = await tx.insert(memberships).values(row).returning();
+    return firstInsertedRow(inserted);
   }
 
   async findOrganizationById(tx: DrizzleTx, orgId: string) {

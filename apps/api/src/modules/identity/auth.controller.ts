@@ -48,6 +48,6 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    return this.auth.switchOrg(ctx.userId, body, req, res);
+    return this.auth.switchOrg(ctx.userId, ctx.sessionId, body, req, res);
   }
 }

@@ -7,9 +7,14 @@ ROLES_SQL="${ROOT}/infra/postgres/init/01-roles.sql"
 
 POSTGRES_CONTAINER="${POSTGRES_CONTAINER:-postgres-dev}"
 POSTGRES_USER="${POSTGRES_USER:-postgres}"
-POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-rootpass}"
 POSTGRES_HOST="${POSTGRES_HOST:-localhost}"
 POSTGRES_PORT="${POSTGRES_PORT:-5432}"
+
+if [[ -z "${POSTGRES_PASSWORD:-}" ]]; then
+  echo "POSTGRES_PASSWORD is required (no default). Example:" >&2
+  echo "  POSTGRES_PASSWORD=yourpass ./scripts/bootstrap-postgres.sh" >&2
+  exit 1
+fi
 
 DATABASES=(restaurant_saas restaurant_saas_test)
 

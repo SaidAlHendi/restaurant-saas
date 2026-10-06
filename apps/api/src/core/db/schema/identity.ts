@@ -1,5 +1,7 @@
 import { boolean, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
+import { organizations } from './tenancy';
+
 export const platformRoleEnum = pgEnum('platform_role', ['super', 'support', 'billing']);
 
 export const users = pgTable('users', {
@@ -21,6 +23,9 @@ export const authSessions = pgTable('auth_sessions', {
   userId: uuid('user_id')
     .notNull()
     .references(() => users.id),
+  orgId: uuid('org_id')
+    .notNull()
+    .references(() => organizations.id, { onDelete: 'cascade' }),
   tokenHash: text('token_hash').notNull(),
   familyId: uuid('family_id').notNull(),
   expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),

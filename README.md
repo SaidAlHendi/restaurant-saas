@@ -16,7 +16,11 @@ Multi-tenant SaaS for restaurants: public digital menu, cashier (POS), kitchen d
 - pnpm 10 (`corepack enable`)
 - **PostgreSQL + Redis** on your machine (see below)
 
-## Local Postgres + Redis (recommended)
+## Local Postgres + Redis
+
+You can use either setup below (not both on the same ports).
+
+### Option A — shared local Postgres (recommended)
 
 Use an **existing** stack so this repo does not start duplicate containers on `5432` / `6379`.
 
@@ -31,12 +35,21 @@ docker compose ps   # in ~/docker/local-db — postgres on 5432, redis on 6379
 ```bash
 cp .env.example .env
 chmod +x scripts/bootstrap-postgres.sh
-./scripts/bootstrap-postgres.sh
-# defaults: container postgres-dev, user postgres, password rootpass
-# override: POSTGRES_CONTAINER=... POSTGRES_PASSWORD=... ./scripts/bootstrap-postgres.sh
+POSTGRES_PASSWORD=your-postgres-password ./scripts/bootstrap-postgres.sh
+# optional: POSTGRES_CONTAINER=... POSTGRES_USER=... POSTGRES_HOST=... POSTGRES_PORT=...
 ```
 
 That creates `restaurant_saas` and `restaurant_saas_test` and applies `infra/postgres/init/01-roles.sql` to each.
+
+### Option B — bundled compose profile
+
+If you do not have a shared Postgres yet:
+
+```bash
+docker compose --profile bundled up -d
+```
+
+Then point `.env` at the bundled URLs from `.env.example` (Postgres on **5432**, test DB on **5433** in CI; bundled layout may differ — see `docker-compose.yml`).
 
 Then:
 
@@ -61,15 +74,7 @@ pnpm dev
 
 Health checks: `GET /v1/health`, `GET /v1/ready`.
 
-### No shared Postgres yet?
-
-Only then use the **bundled** compose profile (separate Postgres on 5432 and a second instance on 5433 for tests):
-
-```bash
-docker compose --profile bundled up -d
-```
-
-CI still uses its own GitHub Actions Postgres service (port 5433); that is unrelated to your local `postgres-dev`.
+CI uses its own GitHub Actions Postgres service (port 5433); that is unrelated to your local `postgres-dev`.
 
 ## Scripts
 

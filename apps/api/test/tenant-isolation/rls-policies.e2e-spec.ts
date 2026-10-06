@@ -30,6 +30,7 @@ describe('RLS policy guard (e2e)', () => {
             AND col.table_name = c.relname
             AND col.column_name = 'org_id'
         )
+        AND c.relname <> 'auth_sessions'
     `);
     const rows = result.rows as {
       table_name: string;

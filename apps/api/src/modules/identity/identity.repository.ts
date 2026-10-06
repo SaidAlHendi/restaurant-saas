@@ -1,9 +1,8 @@
-import { and, eq, isNull, sql } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import { Injectable } from '@nestjs/common';
 
 import { authSessions, users } from '../../core/db/schema/identity';
 import {
-  branches,
   memberships,
   organizations,
   rolePermissions,
@@ -58,13 +57,8 @@ export class IdentityRepository {
   }
 
   async insertSession(tx: DrizzleTx, row: typeof authSessions.$inferInsert) {
-    await tx.insert(authSessions).values(row);
-    const rows = await tx
-      .select()
-      .from(authSessions)
-      .where(eq(authSessions.id, row.id))
-      .limit(1);
-    return rows[0] ?? { ...row, createdAt: new Date(), revokedAt: null, replacedBy: null };
+    const inserted = await tx.insert(authSessions).values(row).returning();
+    return firstInsertedRow(inserted);
   }
 
   async findSessionByHash(tx: DrizzleTx, tokenHash: string) {
@@ -74,6 +68,44 @@ export class IdentityRepository {
       .where(eq(authSessions.tokenHash, tokenHash))
       .limit(1);
     return rows[0];
+  }
+
+  async findSessionById(tx: DrizzleTx, sessionId: string) {
+    const rows = await tx
+      .select()
+      .from(authSessions)
+      .where(eq(authSessions.id, sessionId))
+      .limit(1);
+    return rows[0];
+  }
+
+  /**
+   * Atomically revoke the current refresh session and insert its replacement.
+   * Returns false when the row was already rotated (reuse / race).
+   */
+  async rotateRefreshSession(
+    tx: DrizzleTx,
+    input: {
+      currentSessionId: string;
+      newSession: typeof authSessions.$inferInsert;
+    },
+  ): Promise<boolean> {
+    const updated = await tx
+      .update(authSessions)
+      .set({ revokedAt: new Date(), replacedBy: input.newSession.id })
+      .where(
+        and(
+          eq(authSessions.id, input.currentSessionId),
+          isNull(authSessions.revokedAt),
+          isNull(authSessions.replacedBy),
+        ),
+      )
+      .returning({ id: authSessions.id });
+    if (updated.length === 0) {
+      return false;
+    }
+    await this.insertSession(tx, input.newSession);
+    return true;
   }
 
   async revokeSession(tx: DrizzleTx, sessionId: string, replacedBy?: string) {
@@ -125,35 +157,5 @@ export class IdentityRepository {
   async findRoleById(tx: DrizzleTx, roleId: string) {
     const rows = await tx.select().from(roles).where(eq(roles.id, roleId)).limit(1);
     return rows[0];
-  }
-
-  async orgSlugExists(tx: DrizzleTx, slug: string): Promise<boolean> {
-    const rows = await tx
-      .select({ id: organizations.id })
-      .from(organizations)
-      .where(eq(organizations.slug, slug))
-      .limit(1);
-    return rows.length > 0;
-  }
-
-  async insertOrganization(tx: DrizzleTx, row: typeof organizations.$inferInsert) {
-    const inserted = await tx.insert(organizations).values(row).returning();
-    return firstInsertedRow(inserted);
-  }
-
-  async insertBranch(tx: DrizzleTx, row: typeof branches.$inferInsert) {
-    const inserted = await tx.insert(branches).values(row).returning();
-    return firstInsertedRow(inserted);
-  }
-
-  async insertMembership(tx: DrizzleTx, row: typeof memberships.$inferInsert) {
-    const inserted = await tx.insert(memberships).values(row).returning();
-    return firstInsertedRow(inserted);
-  }
-
-  async countOrganizations(tx: DrizzleTx): Promise<number> {
-    const result = await tx.execute(sql`SELECT count(*)::int AS c FROM organizations`);
-    const row = result.rows[0] as { c: number };
-    return row.c;
   }
 }
