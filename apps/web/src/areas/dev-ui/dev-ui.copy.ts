@@ -5,7 +5,56 @@ export interface DevUiCopy {
   title: string;
   subtitle: string;
   toolbar: { toLight: string; toDark: string; arabic: string; sideBySide: string };
-  sections: { buttons: string; iconButtons: string; textFields: string; choices: string };
+  sections: {
+    buttons: string;
+    iconButtons: string;
+    textFields: string;
+    choices: string;
+    selects: string;
+    overlays: string;
+  };
+  overlays: {
+    branch: string;
+    branchPlaceholder: string;
+    branches: string[];
+    touchSelect: string;
+    product: string;
+    productPlaceholder: string;
+    productSearch: string;
+    productEmpty: string;
+    products: { value: string; label: string; keywords: string[] }[];
+    popoverTrigger: string;
+    popoverTitle: string;
+    popoverBody: string;
+    menuTrigger: string;
+    menuLabel: string;
+    menuEdit: string;
+    menuDuplicate: string;
+    menuShowArchived: string;
+    menuSortBy: string;
+    menuSortName: string;
+    menuSortPrice: string;
+    menuMore: string;
+    menuExport: string;
+    menuDelete: string;
+    tooltipTrigger: string;
+    tooltipText: string;
+    dialogTrigger: string;
+    dialogTitle: string;
+    dialogDescription: string;
+    save: string;
+    close: string;
+    confirmTrigger: string;
+    confirmTitle: string;
+    confirmDescription: string;
+    confirmAction: string;
+    confirmCancel: string;
+    sheetStart: string;
+    sheetEnd: string;
+    sheetBottom: string;
+    sheetTitle: string;
+    sheetDescription: string;
+  };
   buttons: {
     primary: string;
     secondary: string;
@@ -61,6 +110,56 @@ const en: DevUiCopy = {
     iconButtons: 'IconButton',
     textFields: 'Input, Textarea, Label',
     choices: 'Checkbox, Switch, RadioGroup',
+    selects: 'Select, Combobox',
+    overlays: 'Popover, DropdownMenu, Tooltip, Dialog, ConfirmDialog, Sheet',
+  },
+  overlays: {
+    branch: 'Branch',
+    branchPlaceholder: 'Choose a branch',
+    branches: ['Riyadh – Olaya', 'Riyadh – Malqa', 'Jeddah – Tahlia'],
+    touchSelect: 'Touch size (POS)',
+    product: 'Product (searchable)',
+    productPlaceholder: 'Choose a product',
+    productSearch: 'Search products…',
+    productEmpty: 'No product found.',
+    products: [
+      { value: 'shawarma', label: 'Chicken shawarma', keywords: ['شاورما دجاج'] },
+      { value: 'falafel', label: 'Falafel wrap', keywords: ['فلافل'] },
+      { value: 'hummus', label: 'Hummus plate', keywords: ['حمص'] },
+      { value: 'mutabbal', label: 'Mutabbal', keywords: ['متبل'] },
+      { value: 'lemonade', label: 'Mint lemonade', keywords: ['ليمون بالنعناع'] },
+    ],
+    popoverTrigger: 'Opening hours',
+    popoverTitle: 'Today',
+    popoverBody: '9:00 AM – 11:30 PM. Kitchen closes 30 minutes earlier.',
+    menuTrigger: 'Actions',
+    menuLabel: 'Product',
+    menuEdit: 'Edit',
+    menuDuplicate: 'Duplicate',
+    menuShowArchived: 'Show archived',
+    menuSortBy: 'Sort by',
+    menuSortName: 'Name',
+    menuSortPrice: 'Price',
+    menuMore: 'More',
+    menuExport: 'Export CSV',
+    menuDelete: 'Delete',
+    tooltipTrigger: 'Hover or focus me',
+    tooltipText: 'Prices include VAT',
+    dialogTrigger: 'Edit product',
+    dialogTitle: 'Edit product',
+    dialogDescription: 'Change the name and kitchen notes, then save.',
+    save: 'Save',
+    close: 'Close',
+    confirmTrigger: 'Cancel order #42',
+    confirmTitle: 'Cancel order #42?',
+    confirmDescription: 'The kitchen will be told to stop preparing it. This cannot be undone.',
+    confirmAction: 'Cancel order',
+    confirmCancel: 'Keep order',
+    sheetStart: 'Sheet: start',
+    sheetEnd: 'Sheet: end',
+    sheetBottom: 'Sheet: bottom',
+    sheetTitle: 'Order #42',
+    sheetDescription: '2 × Chicken shawarma, 1 × Mint lemonade',
   },
   buttons: {
     primary: 'Save',
@@ -117,6 +216,56 @@ const ar: DevUiCopy = {
     iconButtons: 'أزرار الأيقونات',
     textFields: 'حقول النص والعناوين',
     choices: 'مربعات الاختيار والمفاتيح وأزرار الراديو',
+    selects: 'القوائم المنسدلة والبحث',
+    overlays: 'النوافذ المنبثقة والقوائم والتلميحات والحوارات واللوحات',
+  },
+  overlays: {
+    branch: 'الفرع',
+    branchPlaceholder: 'اختر فرعاً',
+    branches: ['الرياض – العليا', 'الرياض – الملقا', 'جدة – التحلية'],
+    touchSelect: 'حجم اللمس (الكاشير)',
+    product: 'المنتج (مع بحث)',
+    productPlaceholder: 'اختر منتجاً',
+    productSearch: 'ابحث عن منتج…',
+    productEmpty: 'لا يوجد منتج.',
+    products: [
+      { value: 'shawarma', label: 'شاورما دجاج', keywords: ['Chicken shawarma'] },
+      { value: 'falafel', label: 'لفافة فلافل', keywords: ['Falafel'] },
+      { value: 'hummus', label: 'صحن حمص', keywords: ['Hummus'] },
+      { value: 'mutabbal', label: 'متبل', keywords: ['Mutabbal'] },
+      { value: 'lemonade', label: 'ليمون بالنعناع', keywords: ['Lemonade'] },
+    ],
+    popoverTrigger: 'ساعات العمل',
+    popoverTitle: 'اليوم',
+    popoverBody: '٩:٠٠ ص – ١١:٣٠ م. يغلق المطبخ قبل ٣٠ دقيقة.',
+    menuTrigger: 'إجراءات',
+    menuLabel: 'المنتج',
+    menuEdit: 'تعديل',
+    menuDuplicate: 'نسخ',
+    menuShowArchived: 'إظهار المؤرشف',
+    menuSortBy: 'ترتيب حسب',
+    menuSortName: 'الاسم',
+    menuSortPrice: 'السعر',
+    menuMore: 'المزيد',
+    menuExport: 'تصدير CSV',
+    menuDelete: 'حذف',
+    tooltipTrigger: 'مرّر أو ركّز هنا',
+    tooltipText: 'الأسعار شاملة الضريبة',
+    dialogTrigger: 'تعديل المنتج',
+    dialogTitle: 'تعديل المنتج',
+    dialogDescription: 'غيّر الاسم وملاحظات المطبخ ثم احفظ.',
+    save: 'حفظ',
+    close: 'إغلاق',
+    confirmTrigger: 'إلغاء الطلب #٤٢',
+    confirmTitle: 'إلغاء الطلب #٤٢؟',
+    confirmDescription: 'سيتم إبلاغ المطبخ بإيقاف التحضير. لا يمكن التراجع.',
+    confirmAction: 'إلغاء الطلب',
+    confirmCancel: 'إبقاء الطلب',
+    sheetStart: 'لوحة: البداية',
+    sheetEnd: 'لوحة: النهاية',
+    sheetBottom: 'لوحة: الأسفل',
+    sheetTitle: 'الطلب #٤٢',
+    sheetDescription: '٢ × شاورما دجاج، ١ × ليمون بالنعناع',
   },
   buttons: {
     primary: 'حفظ',

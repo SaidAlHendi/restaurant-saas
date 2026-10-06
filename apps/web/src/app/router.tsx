@@ -14,6 +14,7 @@ const devRoutes: RouteObject[] = import.meta.env.DEV
   ? [
       {
         path: '/dev/ui',
+        HydrateFallback: () => null,
         lazy: async () => ({ Component: (await import('../areas/dev-ui/DevUiPage.js')).default }),
       },
     ]

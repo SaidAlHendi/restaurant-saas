@@ -16,5 +16,7 @@ describe('App root', () => {
       </I18nextProvider>,
     );
     expect(screen.getByRole('heading', { name: /restaurant saas/i })).toBeInTheDocument();
+    // Wait for the lazy dashboard area so it does not render after the test environment is torn down.
+    expect(await screen.findByText('Dashboard')).toBeInTheDocument();
   });
 });
