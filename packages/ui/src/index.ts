@@ -20,6 +20,12 @@ export * from './components/sheet/index.js';
 export * from './components/form/index.js';
 export * from './components/money-input/index.js';
 export * from './components/number-input/index.js';
+export * from './components/search-input/index.js';
+export * from './components/pagination/index.js';
+export * from './components/table/index.js';
+export * from './components/data-table/index.js';
+export * from './components/badge/index.js';
+export * from './components/skeleton/index.js';
 
 // Hooks
 export * from './hooks/use-theme.js';
@@ -28,6 +34,10 @@ export * from './hooks/use-combobox.js';
 export * from './hooks/use-form-field.js';
 export * from './hooks/use-money-input.js';
 export * from './hooks/use-number-input.js';
+export * from './hooks/use-debounced-value.js';
+export * from './hooks/use-search-input.js';
+export * from './hooks/use-pagination.js';
+export * from './hooks/use-data-table.js';
 
 // Lib
 export { cn } from './lib/cn.js';

@@ -13,6 +13,41 @@ export interface DevUiCopy {
     selects: string;
     overlays: string;
     forms: string;
+    data: string;
+    badges: string;
+  };
+  data: {
+    search: string;
+    searchPlaceholder: string;
+    clear: string;
+    columns: string;
+    state: string;
+    stateData: string;
+    stateLoading: string;
+    stateEmpty: string;
+    stateError: string;
+    order: string;
+    customer: string;
+    type: string;
+    status: string;
+    total: string;
+    actions: string;
+    sortBy: string;
+    view: string;
+    cancel: string;
+    emptyTitle: string;
+    errorText: string;
+    retry: string;
+    customers: string[];
+    types: string[];
+    statuses: Record<'new' | 'preparing' | 'ready' | 'completed' | 'cancelled', string>;
+    pagination: string;
+    previous: string;
+    next: string;
+    page: string;
+    morePages: string;
+    cursorSummary: string;
+    badgeVariants: string;
   };
   forms: {
     formTitle: string;
@@ -138,6 +173,47 @@ const en: DevUiCopy = {
     selects: 'Select, Combobox',
     overlays: 'Popover, DropdownMenu, Tooltip, Dialog, ConfirmDialog, Sheet',
     forms: 'Form, MoneyInput, NumberInput',
+    data: 'SearchInput, DataTable, Pagination',
+    badges: 'Badge',
+  },
+  data: {
+    search: 'Search orders',
+    searchPlaceholder: 'Search by order number or customer',
+    clear: 'Clear search',
+    columns: 'Columns',
+    state: 'State',
+    stateData: 'Data',
+    stateLoading: 'Loading',
+    stateEmpty: 'Empty',
+    stateError: 'Error',
+    order: 'Order',
+    customer: 'Customer',
+    type: 'Type',
+    status: 'Status',
+    total: 'Total',
+    actions: 'Actions',
+    sortBy: 'Sort by',
+    view: 'View order',
+    cancel: 'Cancel order',
+    emptyTitle: 'No orders match your search.',
+    errorText: 'Could not load orders. Check the connection and try again.',
+    retry: 'Retry',
+    customers: ['Ahmed', 'Sara', 'Walk-in', 'Omar', 'Lina', 'Table 4'],
+    types: ['Dine-in', 'Takeaway', 'Delivery'],
+    statuses: {
+      new: 'New',
+      preparing: 'Preparing',
+      ready: 'Ready',
+      completed: 'Completed',
+      cancelled: 'Cancelled',
+    },
+    pagination: 'Pagination',
+    previous: 'Previous',
+    next: 'Next',
+    page: 'Page',
+    morePages: 'More pages',
+    cursorSummary: 'Cursor pagination (no total count)',
+    badgeVariants: 'Badge variants',
   },
   forms: {
     formTitle: 'Product form (react-hook-form + zod)',
@@ -274,6 +350,47 @@ const ar: DevUiCopy = {
     selects: 'القوائم المنسدلة والبحث',
     overlays: 'النوافذ المنبثقة والقوائم والتلميحات والحوارات واللوحات',
     forms: 'النماذج وحقول المبالغ والأرقام',
+    data: 'البحث والجداول والتنقل بين الصفحات',
+    badges: 'الشارات',
+  },
+  data: {
+    search: 'بحث في الطلبات',
+    searchPlaceholder: 'ابحث برقم الطلب أو اسم العميل',
+    clear: 'مسح البحث',
+    columns: 'الأعمدة',
+    state: 'الحالة',
+    stateData: 'بيانات',
+    stateLoading: 'تحميل',
+    stateEmpty: 'فارغ',
+    stateError: 'خطأ',
+    order: 'الطلب',
+    customer: 'العميل',
+    type: 'النوع',
+    status: 'الحالة',
+    total: 'الإجمالي',
+    actions: 'إجراءات',
+    sortBy: 'ترتيب حسب',
+    view: 'عرض الطلب',
+    cancel: 'إلغاء الطلب',
+    emptyTitle: 'لا توجد طلبات تطابق البحث.',
+    errorText: 'تعذّر تحميل الطلبات. تحقق من الاتصال وحاول مرة أخرى.',
+    retry: 'إعادة المحاولة',
+    customers: ['أحمد', 'سارة', 'زبون مباشر', 'عمر', 'لينا', 'طاولة ٤'],
+    types: ['محلي', 'سفري', 'توصيل'],
+    statuses: {
+      new: 'جديد',
+      preparing: 'قيد التحضير',
+      ready: 'جاهز',
+      completed: 'مكتمل',
+      cancelled: 'ملغي',
+    },
+    pagination: 'التنقل بين الصفحات',
+    previous: 'السابق',
+    next: 'التالي',
+    page: 'صفحة',
+    morePages: 'صفحات أخرى',
+    cursorSummary: 'تنقل بالمؤشر (بدون عدد إجمالي)',
+    badgeVariants: 'أنواع الشارات',
   },
   forms: {
     formTitle: 'نموذج منتج (react-hook-form + zod)',
@@ -368,7 +485,12 @@ const ar: DevUiCopy = {
     next: 'التالي',
     back: 'السابق',
   },
-  iconButtons: { add: 'إضافة صنف', delete: 'حذف الصنف', settings: 'الإعدادات', next: 'الصفحة التالية' },
+  iconButtons: {
+    add: 'إضافة صنف',
+    delete: 'حذف الصنف',
+    settings: 'الإعدادات',
+    next: 'الصفحة التالية',
+  },
   fields: {
     name: 'اسم المنتج',
     namePlaceholder: 'شاورما دجاج',

@@ -1,6 +1,12 @@
 import { useState, type ChangeEvent } from 'react';
 
-import { currencyDigits, currencySymbol, formatMinor, minorToText, parseMinor } from '../lib/number.js';
+import {
+  currencyDigits,
+  currencySymbol,
+  formatMinor,
+  minorToText,
+  parseMinor,
+} from '../lib/number.js';
 
 export interface UseMoneyInputOptions {
   /** Amount in minor units (halalas, fils, cents); null when empty. */
@@ -28,11 +34,7 @@ export function useMoneyInput({
   const [draft, setDraft] = useState<string | null>(null);
 
   const isEditing = draft !== null;
-  const text = isEditing
-    ? draft
-    : value === null
-      ? ''
-      : formatMinor(value, digits, locale);
+  const text = isEditing ? draft : value === null ? '' : formatMinor(value, digits, locale);
 
   const onFocus = () => {
     setDraft(value === null ? '' : minorToText(value, digits));

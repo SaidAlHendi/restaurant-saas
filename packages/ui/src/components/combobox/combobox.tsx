@@ -74,7 +74,10 @@ export function Combobox({
                   onSelect={select}
                 >
                   <CheckIcon
-                    className={cn('text-foreground', value === option.value ? 'opacity-100' : 'opacity-0')}
+                    className={cn(
+                      'text-foreground',
+                      value === option.value ? 'opacity-100' : 'opacity-0',
+                    )}
                     aria-hidden
                   />
                   {option.label}

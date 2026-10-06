@@ -3,8 +3,7 @@ import { MoonIcon, SunIcon } from 'lucide-react';
 import type { Theme } from '../../hooks/use-theme.js';
 import { IconButton, type IconButtonProps } from '../icon-button/icon-button.js';
 
-export interface ThemeToggleProps
-  extends Omit<IconButtonProps, 'label' | 'icon' | 'onClick'> {
+export interface ThemeToggleProps extends Omit<IconButtonProps, 'label' | 'icon' | 'onClick'> {
   theme: Theme;
   onThemeChange: (theme: Theme) => void;
   /** Already translated: the label says what clicking will switch to. */

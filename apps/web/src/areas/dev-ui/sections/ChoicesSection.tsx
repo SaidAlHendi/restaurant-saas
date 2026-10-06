@@ -37,10 +37,18 @@ export function ChoicesSection({ copy, idPrefix }: { copy: DevUiCopy; idPrefix: 
         </div>
       </ShowcaseRow>
       <ShowcaseRow label={`RadioGroup — ${c.orderType}`}>
-        <RadioGroup defaultValue="dine-in" className="flex flex-wrap gap-6" aria-label={c.orderType}>
+        <RadioGroup
+          defaultValue="dine-in"
+          className="flex flex-wrap gap-6"
+          aria-label={c.orderType}
+        >
           {(['dine-in', 'takeaway', 'delivery'] as const).map((value) => (
             <div key={value} className="flex items-center gap-2">
-              <RadioGroupItem value={value} id={id(`type-${value}`)} disabled={value === 'delivery'} />
+              <RadioGroupItem
+                value={value}
+                id={id(`type-${value}`)}
+                disabled={value === 'delivery'}
+              />
               <Label htmlFor={id(`type-${value}`)}>
                 {value === 'dine-in' ? c.dineIn : value === 'takeaway' ? c.takeaway : c.delivery}
               </Label>

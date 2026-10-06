@@ -11,7 +11,8 @@ const iconSizes = {
 } as const;
 
 export interface IconButtonProps
-  extends Omit<React.ComponentProps<'button'>, 'children' | 'aria-label'>,
+  extends
+    Omit<React.ComponentProps<'button'>, 'children' | 'aria-label'>,
     Omit<ButtonVariantProps, 'size'> {
   /** Accessible name (already translated). Required because the button has no visible text. */
   label: string;

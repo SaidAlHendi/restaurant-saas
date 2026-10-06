@@ -44,7 +44,8 @@ describe('UI-only ESLint rule', () => {
   });
 
   it('allows UI imports in components', async () => {
-    const code = "import { Button } from '@app/ui'; import { useTranslation } from 'react-i18next';";
+    const code =
+      "import { Button } from '@app/ui'; import { useTranslation } from 'react-i18next';";
     expect(await ruleIdsFor(code, component)).toEqual([]);
   });
 

@@ -7,7 +7,8 @@ import { fieldBase } from '../../lib/styles.js';
 import { IconButton } from '../icon-button/icon-button.js';
 
 export interface NumberInputProps
-  extends UseNumberInputOptions,
+  extends
+    UseNumberInputOptions,
     Omit<
       React.ComponentProps<'input'>,
       'value' | 'defaultValue' | 'onChange' | 'type' | 'size' | 'min' | 'max' | 'step'

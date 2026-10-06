@@ -6,9 +6,6 @@ settings:
 
 catalogs:
   default:
-    '@tailwindcss/vite':
-      specifier: 4.1.11
-      version: 4.1.11
     react:
       specifier: 19.1.0
       version: 19.1.0
@@ -447,7 +444,7 @@ importers:
         specifier: workspace:*
         version: link:../config/typescript-config
       '@hookform/resolvers':
-        specifier: ^5.9.1
+        specifier: ^5.2.1
         version: 5.9.1(@sinclair/typebox@0.34.52)(@standard-schema/spec@1.1.0)(ajv@8.20.0)(react-hook-form@7.89.0(@types/react@19.3.0)(react@19.1.0))(valibot@1.5.0(typescript@5.8.3))(zod@4.4.3)
       '@testing-library/dom':
         specifier: ^10.4.2
@@ -477,7 +474,7 @@ importers:
         specifier: ^26.1.0
         version: 26.1.0
       react-hook-form:
-        specifier: ^7.89.0
+        specifier: ^7.62.0
         version: 7.89.0(@types/react@19.3.0)(react@19.1.0)
       tailwindcss:
         specifier: 'catalog:'

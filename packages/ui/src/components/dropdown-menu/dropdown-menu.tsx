@@ -38,8 +38,9 @@ export function DropdownMenuContent({
   );
 }
 
-export interface DropdownMenuItemProps
-  extends React.ComponentProps<typeof DropdownMenuPrimitive.Item> {
+export interface DropdownMenuItemProps extends React.ComponentProps<
+  typeof DropdownMenuPrimitive.Item
+> {
   /** Indent to line up with checkbox/radio items. */
   inset?: boolean;
   variant?: 'default' | 'destructive';

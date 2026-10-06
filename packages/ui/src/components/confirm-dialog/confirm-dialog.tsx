@@ -41,7 +41,9 @@ export function ConfirmDialog({
         if (!isConfirming) onOpenChange?.(next);
       }}
     >
-      {trigger ? <AlertDialogPrimitive.Trigger asChild>{trigger}</AlertDialogPrimitive.Trigger> : null}
+      {trigger ? (
+        <AlertDialogPrimitive.Trigger asChild>{trigger}</AlertDialogPrimitive.Trigger>
+      ) : null}
       <AlertDialogPrimitive.Portal>
         <AlertDialogPrimitive.Overlay data-slot="confirm-dialog-overlay" className={overlay} />
         <AlertDialogPrimitive.Content

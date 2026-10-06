@@ -5,7 +5,8 @@ import { cn } from '../../lib/cn.js';
 import { fieldBase, fieldInvalid } from '../../lib/styles.js';
 
 export interface MoneyInputProps
-  extends UseMoneyInputOptions,
+  extends
+    UseMoneyInputOptions,
     Omit<React.ComponentProps<'input'>, 'value' | 'defaultValue' | 'onChange' | 'type' | 'size'> {
   size?: 'md' | 'touch';
 }

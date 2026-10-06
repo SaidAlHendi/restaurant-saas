@@ -8,8 +8,7 @@ import { buttonVariants, type ButtonVariantProps } from './button-variants.js';
 export type ButtonSize = 'sm' | 'md' | 'lg' | 'touch';
 
 export interface ButtonProps
-  extends React.ComponentProps<'button'>,
-    Omit<ButtonVariantProps, 'size'> {
+  extends React.ComponentProps<'button'>, Omit<ButtonVariantProps, 'size'> {
   size?: ButtonSize;
   /** Render the child element (e.g. a router Link) with button styles. */
   asChild?: boolean;
