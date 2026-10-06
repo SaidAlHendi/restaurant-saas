@@ -33,11 +33,15 @@ jobs:
           --health-retries 10
 
     env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5433/restaurant_saas_test
-      DATABASE_URL_TEST: postgresql://postgres:postgres@localhost:5433/restaurant_saas_test
+      DATABASE_URL: postgresql://app_user:app_user_dev@localhost:5433/restaurant_saas_test
+      DATABASE_MIGRATION_URL: postgresql://app_owner:app_owner_dev@localhost:5433/restaurant_saas_test
+      DATABASE_URL_TEST: postgresql://app_user:app_user_dev@localhost:5433/restaurant_saas_test
       REDIS_URL: redis://localhost:6379
       NODE_ENV: test
       APP_ROLE: api
+      JWT_ACCESS_SECRET: ci-test-jwt-access-secret-min-32-chars-long
+      COOKIE_SECURE: 'false'
+      SEED_PASSWORD: ci-seed-password-123456
 
     steps:
       - uses: actions/checkout@v4
@@ -54,8 +58,14 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile=false
 
+      - name: Init DB roles
+        run: psql postgresql://postgres:postgres@localhost:5433/restaurant_saas_test -f infra/postgres/init/01-roles.sql
+
       - name: Migrate
         run: pnpm db:migrate
+
+      - name: Seed
+        run: pnpm db:seed
 
       - name: Lint
         run: pnpm lint

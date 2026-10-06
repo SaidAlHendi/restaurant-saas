@@ -5,9 +5,11 @@
     "outDir": "dist",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@app/shared": ["../../packages/shared/dist/index.d.ts"]
     },
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "incremental": false
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist", "test"]

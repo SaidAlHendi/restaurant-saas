@@ -9,6 +9,7 @@ const config: Config = {
   setupFiles: ['<rootDir>/env.setup.ts'],
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
+    '^@app/shared$': '<rootDir>/../../../packages/shared/src/index.ts',
   },
   transform: {
     '^.+\\.ts$': [

@@ -8,6 +8,7 @@ import { RouterProvider } from 'react-router-dom';
 import { AppProviders } from './app/AppProviders.js';
 import { store } from './app/store.js';
 import { router } from './app/router.js';
+import { SessionBootstrap } from './features/session/SessionBootstrap.js';
 import { initI18n } from './lib/i18n.js';
 
 void initI18n().then(() => {
@@ -18,9 +19,11 @@ void initI18n().then(() => {
   createRoot(root).render(
     <StrictMode>
       <Provider store={store}>
-        <AppProviders>
-          <RouterProvider router={router} />
-        </AppProviders>
+        <SessionBootstrap>
+          <AppProviders>
+            <RouterProvider router={router} />
+          </AppProviders>
+        </SessionBootstrap>
       </Provider>
     </StrictMode>,
   );

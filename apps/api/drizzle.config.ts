@@ -5,6 +5,8 @@ export default defineConfig({
   out: './drizzle',
   dialect: 'postgresql',
   dbCredentials: {
-    url: process.env['DATABASE_URL'] ?? 'postgresql://postgres:postgres@localhost:5432/restaurant_saas',
+    url:
+      process.env['DATABASE_MIGRATION_URL'] ??
+      'postgresql://app_owner:app_owner_dev@localhost:5432/restaurant_saas',
   },
 });

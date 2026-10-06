@@ -1,2 +1,2 @@
-/** Drizzle schema files will be added per module in later milestones. */
-export {};
+export * from './identity';
+export * from './tenancy';

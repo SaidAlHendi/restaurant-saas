@@ -21,5 +21,7 @@ export default defineConfig({
   ],
   server: {
     port: 5173,
+    /** WSL: reachable from Windows browser at http://localhost:5173 */
+    host: true,
   },
 });

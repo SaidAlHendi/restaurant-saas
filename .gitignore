@@ -1,15 +1,21 @@
-node_modules
-dist
-build
-.turbo
+# Dependencies
+node_modules/
+**/node_modules/
+
+dist/
+build/
+.turbo/
+coverage/
+
+# Environment
 .env
 .env.*
 !.env.example
+
 *.log
-coverage
 .DS_Store
 
-# local scripts and build caches
+# Local scripts and build caches
 .tmp-*
 *.tsbuildinfo
 .verify-pipeline.log

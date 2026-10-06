@@ -17,8 +17,12 @@ export class NotFoundError extends AppError {
 }
 
 export class ForbiddenError extends AppError {
-  constructor(message = 'Forbidden', details: Record<string, unknown> = {}) {
-    super('FORBIDDEN', message, 403, details);
+  constructor(
+    message = 'Forbidden',
+    details: Record<string, unknown> = {},
+    code = 'FORBIDDEN',
+  ) {
+    super(code, message, 403, details);
   }
 }
 
@@ -37,5 +41,21 @@ export class BusinessRuleError extends AppError {
 export class ValidationError extends AppError {
   constructor(message = 'Validation failed', details: Record<string, unknown> = {}) {
     super('VALIDATION_ERROR', message, 400, details);
+  }
+}
+
+export class UnauthorizedError extends AppError {
+  constructor(
+    code = 'UNAUTHORIZED',
+    message = 'Unauthorized',
+    details: Record<string, unknown> = {},
+  ) {
+    super(code, message, 401, details);
+  }
+}
+
+export class TooManyRequestsError extends AppError {
+  constructor(message = 'Too many requests', details: Record<string, unknown> = {}) {
+    super('RATE_LIMITED', message, 429, details);
   }
 }
