@@ -14,29 +14,56 @@ Multi-tenant SaaS for restaurants: public digital menu, cashier (POS), kitchen d
 
 - Node.js 22+
 - pnpm 10 (`corepack enable`)
-- Docker (Postgres + Redis)
+- **PostgreSQL + Redis** on your machine (see below)
 
-## Quick start
+## Local Postgres + Redis
 
-**Postgres + Redis** — either use the repo’s `docker compose up -d`, or your own stack on
-`localhost:5432` / `6379` (for example `~/docker/local-db`). Create databases `restaurant_saas`
-and `restaurant_saas_test`, then set `DATABASE_URL` / `DATABASE_URL_TEST` in `.env` (see
-`.env.example` option B for `postgres` / `rootpass`).
+You can use either setup below (not both on the same ports).
+
+### Option A — shared local Postgres (recommended)
+
+Use an **existing** stack so this repo does not start duplicate containers on `5432` / `6379`.
+
+Example: `~/docker/local-db` with `postgres-dev` and `redis-dev` already running:
+
+```bash
+docker compose ps   # in ~/docker/local-db — postgres on 5432, redis on 6379
+```
+
+**One-time database setup** from this repo:
 
 ```bash
 cp .env.example .env
-# optional if you do not already have Postgres/Redis:
-# docker compose up -d
-pnpm install
-pnpm db:migrate
-pnpm dev
+chmod +x scripts/bootstrap-postgres.sh
+POSTGRES_PASSWORD=your-postgres-password ./scripts/bootstrap-postgres.sh
+# optional: POSTGRES_CONTAINER=... POSTGRES_USER=... POSTGRES_HOST=... POSTGRES_PORT=...
 ```
 
-Create databases on an existing Postgres (once):
+That creates `restaurant_saas` and `restaurant_saas_test` and applies `infra/postgres/init/01-roles.sql` to each.
+
+### Option B — bundled compose profile
+
+If you do not have a shared Postgres yet:
 
 ```bash
-docker exec -it postgres-dev psql -U postgres -c "CREATE DATABASE restaurant_saas;"
-docker exec -it postgres-dev psql -U postgres -c "CREATE DATABASE restaurant_saas_test;"
+docker compose --profile bundled up -d
+```
+
+Then point `.env` at the bundled URLs from `.env.example` (Postgres on **5432**, test DB on **5433** in CI; bundled layout may differ — see `docker-compose.yml`).
+
+Then:
+
+```bash
+pnpm install
+pnpm db:migrate
+pnpm db:seed          # demo/other orgs (uses DATABASE_URL → restaurant_saas)
+
+# e2e uses restaurant_saas_test — migrate + seed once:
+DATABASE_MIGRATION_URL=postgresql://app_owner:app_owner_dev@localhost:5432/restaurant_saas_test \
+DATABASE_URL=postgresql://app_user:app_user_dev@localhost:5432/restaurant_saas_test \
+  pnpm db:migrate && pnpm db:seed
+
+pnpm dev
 ```
 
 | Service | URL |
@@ -47,6 +74,8 @@ docker exec -it postgres-dev psql -U postgres -c "CREATE DATABASE restaurant_saa
 
 Health checks: `GET /v1/health`, `GET /v1/ready`.
 
+CI uses its own GitHub Actions Postgres service (port 5433); that is unrelated to your local `postgres-dev`.
+
 ## Scripts
 
 ```bash
@@ -56,11 +85,11 @@ pnpm test
 pnpm build
 pnpm db:generate   # Drizzle migration from schema changes
 pnpm db:migrate
-pnpm db:seed       # no-op in scaffold milestone
+pnpm db:seed
 ```
 
 ## Docs
 
 See `docs/` for product, architecture, API conventions, data model, and roadmap.
 
-**Milestone 1 (this scaffold):** [docs/scaffold-milestone.md](docs/scaffold-milestone.md) — structure, decisions, and what was built.
+**Milestone 1 (scaffold):** [docs/scaffold-milestone.md](docs/scaffold-milestone.md)

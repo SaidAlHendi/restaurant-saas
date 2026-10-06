@@ -1,17 +1,39 @@
 import { execSync } from 'node:child_process';
 import path from 'node:path';
 
-export default function globalSetup(): void {
-  process.env['DATABASE_URL'] =
-    process.env['DATABASE_URL_TEST'] ??
-    'postgresql://postgres:postgres@localhost:5433/restaurant_saas_test';
-  process.env['REDIS_URL'] = process.env['REDIS_URL'] ?? 'redis://localhost:6379';
-  process.env['NODE_ENV'] = 'test';
-  process.env['APP_ROLE'] = 'api';
+import { loadDotenvFromMonorepoRoot } from '../src/config/load-dotenv';
 
-  execSync('pnpm exec tsx src/scripts/migrate.ts', {
-    cwd: path.join(__dirname, '..'),
-    env: process.env,
-    stdio: 'inherit',
-  });
+import { applyTestDatabaseEnv, redactDatabaseUrl, testDatabaseEnvHint } from './test-db-env';
+
+const TEST_SEED_PASSWORD = 'seed-password-123456';
+
+export default function globalSetup(): void {
+  process.env['NODE_ENV'] = 'test';
+  loadDotenvFromMonorepoRoot();
+  applyTestDatabaseEnv();
+
+  process.env['REDIS_URL'] = process.env['REDIS_URL'] ?? 'redis://localhost:6379';
+  process.env['APP_ROLE'] = 'api';
+  process.env['JWT_ACCESS_SECRET'] =
+    process.env['JWT_ACCESS_SECRET'] ?? 'test-jwt-access-secret-min-32-chars!!';
+  process.env['COOKIE_SECURE'] = process.env['COOKIE_SECURE'] ?? 'false';
+  process.env['SEED_PASSWORD'] = process.env['SEED_PASSWORD'] ?? TEST_SEED_PASSWORD;
+
+  const cwd = path.join(__dirname, '..');
+  const env = { ...process.env };
+
+  try {
+    execSync('pnpm exec tsx src/scripts/migrate.ts', { cwd, env, stdio: 'inherit' });
+    execSync('pnpm exec tsx src/scripts/seed.ts', { cwd, env, stdio: 'inherit' });
+  } catch (err: unknown) {
+    console.error('\n[e2e global-setup] migrate/seed failed.');
+    console.error(testDatabaseEnvHint());
+    const migrationUrl = env['DATABASE_MIGRATION_URL'] ?? '(unset)';
+    console.error(
+      `DATABASE_MIGRATION_URL=${
+        migrationUrl === '(unset)' ? migrationUrl : redactDatabaseUrl(migrationUrl)
+      }\n`,
+    );
+    throw err;
+  }
 }

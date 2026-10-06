@@ -6,11 +6,12 @@ Every tenant table has `org_id uuid not null references organizations` and RLS p
 Translatable text = `jsonb` like `{"ar":"…","en":"…"}`. Tax in basis points (`1500` = 15%).
 
 ## Platform & identity
-- **users**: id, email (unique, nullable for PIN-only staff), password_hash, name, locale, is_platform_admin, platform_role (`super`|`support`|`billing`|null), last_login_at
+- **users**: id, email (unique, nullable for PIN-only staff), password_hash, name, locale, is_platform_admin, platform_role (`super`|`support`|`billing`|null), last_login_at, **last_org_id** (nullable FK → organizations — login/switch-org preference)
+- **auth_sessions**: id, user_id, **org_id** (FK → organizations — active org for this refresh session), token_hash (SHA-256 of refresh cookie), family_id, expires_at, revoked_at, replaced_by, user_agent, ip, created_at — refresh rotation + reuse detection; login/signup/switch-org set org_id; refresh inherits org_id on rotate
 - **organizations**: id, name, slug (unique), country, default_currency, default_locale, locales text[], logo_key, status (`trial`|`active`|`past_due`|`suspended`|`cancelled`), created_at
 - **branches**: id, org_id, name, slug, timezone, currency, tax_rate_bp int, tax_inclusive bool, day_start_hour smallint default 4, address jsonb, receipt_header, receipt_footer, is_active
 - **roles**: id, org_id (null = system role), key (`owner`|`manager`|`cashier`|`kitchen`|custom), name, is_system
-- **role_permissions**: role_id, permission_key — PK(role_id, permission_key)
+- **role_permissions**: role_id, permission_key, **org_id** (nullable; mirrors `roles.org_id`, set by `BEFORE INSERT/UPDATE` trigger `sync_role_permissions_org_id`) — PK(role_id, permission_key)
 - **memberships**: id, org_id, user_id, role_id, pin_hash, all_branches bool, status (`active`|`invited`|`disabled`) — UNIQUE(org_id, user_id)
 - **membership_branches**: membership_id, branch_id, org_id — PK(membership_id, branch_id)
 - **devices**: id, org_id, branch_id, type (`pos`|`kds`), name, token_hash, paired_at, last_seen_at, revoked_at

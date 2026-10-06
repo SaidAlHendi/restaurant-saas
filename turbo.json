@@ -3,12 +3,19 @@
   "agentGuidance": false,
   "globalPassThroughEnv": [
     "DATABASE_URL",
-    "DATABASE_URL_TEST",
+    "E2E_DATABASE_URL",
+    "E2E_DATABASE_MIGRATION_URL",
     "REDIS_URL",
     "NODE_ENV",
     "APP_ROLE",
     "PORT",
-    "LOG_LEVEL"
+    "LOG_LEVEL",
+    "DATABASE_MIGRATION_URL",
+    "JWT_ACCESS_SECRET",
+    "JWT_ACCESS_TTL",
+    "COOKIE_SECURE",
+    "SEED_PASSWORD",
+    "CORS_ORIGINS"
   ],
   "tasks": {
     "build": {
@@ -36,6 +43,9 @@
       ]
     },
     "dev": {
+      "dependsOn": [
+        "^build"
+      ],
       "cache": false,
       "persistent": true
     },

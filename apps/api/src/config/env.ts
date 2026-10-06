@@ -7,8 +7,17 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3000),
   APP_ROLE: z.enum(['api', 'worker', 'all']).default('all'),
   DATABASE_URL: z.url(),
+  DATABASE_MIGRATION_URL: z.url(),
   REDIS_URL: z.url(),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
+  JWT_ACCESS_SECRET: z.string().min(32),
+  JWT_ACCESS_TTL: z.string().default('15m'),
+  COOKIE_SECURE: z
+    .enum(['true', 'false', '1', '0'])
+    .default('true')
+    .transform((v) => v === 'true' || v === '1'),
+  SEED_PASSWORD: z.string().min(8).optional(),
+  CORS_ORIGINS: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -24,7 +33,7 @@ export function loadEnv(overrides?: Record<string, string | undefined>): Env {
   if (!parsed.success) {
     const message = parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ');
     throw new Error(
-      `Invalid environment: ${message}. Copy .env.example to .env at the repo root and set DATABASE_URL / REDIS_URL.`,
+      `Invalid environment: ${message}. Copy .env.example to .env at the repo root and set required variables.`,
     );
   }
   cached = parsed.data;
@@ -33,5 +42,12 @@ export function loadEnv(overrides?: Record<string, string | undefined>): Env {
 
 export function resetEnvCacheForTests(): void {
   cached = undefined;
-  // env.setup.ts sets DATABASE_URL before AppModule; do not re-read .env in tests.
+}
+
+export function requireSeedPassword(): string {
+  const env = loadEnv();
+  if (!env.SEED_PASSWORD) {
+    throw new Error('SEED_PASSWORD is required to run db:seed');
+  }
+  return env.SEED_PASSWORD;
 }

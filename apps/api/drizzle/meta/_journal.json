@@ -8,6 +8,27 @@
       "when": 1759665600000,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1759665700000,
+      "tag": "0001_identity_tenancy_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1759665800000,
+      "tag": "0002_rls_and_grants",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1759665900000,
+      "tag": "0003_seed_system_roles",
+      "breakpoints": true
     }
   ]
 }

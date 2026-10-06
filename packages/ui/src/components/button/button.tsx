@@ -35,8 +35,14 @@ export function Button({
       aria-busy={isLoading || undefined}
       {...props}
     >
-      {isLoading && !asChild ? <Loader2Icon className="animate-spin" aria-hidden /> : null}
-      {children}
+      {asChild ? (
+        children
+      ) : (
+        <>
+          {isLoading ? <Loader2Icon className="animate-spin" aria-hidden /> : null}
+          {children}
+        </>
+      )}
     </Comp>
   );
 }

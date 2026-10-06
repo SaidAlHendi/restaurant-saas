@@ -8,7 +8,7 @@ import { loadEnv } from '../config/env';
 
 export async function runMigrations(): Promise<void> {
   const env = loadEnv();
-  const pool = new pg.Pool({ connectionString: env.DATABASE_URL });
+  const pool = new pg.Pool({ connectionString: env.DATABASE_MIGRATION_URL });
   const db = drizzle(pool);
   const migrationsFolder = path.join(process.cwd(), 'drizzle');
   await migrate(db, { migrationsFolder });

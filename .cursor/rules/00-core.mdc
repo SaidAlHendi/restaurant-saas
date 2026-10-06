@@ -20,7 +20,7 @@ before any non-trivial task. The current milestone is the first unchecked item i
 - Tests: Jest + Supertest for api (against a real Postgres), Vitest + Testing Library for web/site, Playwright (e2e)
 
 ## Commands
-- `pnpm dev` — run everything locally (needs `docker compose up -d` for Postgres/Redis)
+- `pnpm dev` — run everything locally (Postgres + Redis on localhost, e.g. shared `~/docker/local-db`; or `docker compose --profile bundled up -d`)
 - `pnpm lint && pnpm typecheck && pnpm test` — must pass before you say a task is done
 - `pnpm db:generate` — create a migration from schema changes; `pnpm db:migrate` — apply locally
 

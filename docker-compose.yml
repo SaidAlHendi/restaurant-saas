@@ -1,5 +1,12 @@
+# Default local dev: use your existing Postgres + Redis (e.g. ~/docker/local-db).
+# See README.md — bootstrap with scripts/bootstrap-postgres.sh
+#
+# Only if you do NOT have Postgres/Redis elsewhere:
+#   docker compose --profile bundled up -d
+
 services:
   postgres:
+    profiles: ['bundled']
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: postgres
@@ -9,6 +16,7 @@ services:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U postgres']
       interval: 5s
@@ -16,6 +24,7 @@ services:
       retries: 10
 
   postgres-test:
+    profiles: ['bundled']
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: postgres
@@ -25,8 +34,11 @@ services:
       - '5433:5432'
     tmpfs:
       - /var/lib/postgresql/data
+    volumes:
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
 
   redis:
+    profiles: ['bundled']
     image: redis:7-alpine
     platform: linux/amd64
     ports:

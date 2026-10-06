@@ -1,4 +1,7 @@
 {
+  "common": {
+    "loading": "Loading"
+  },
   "app": {
     "title": "Restaurant SaaS",
     "placeholder": "Placeholder area"
@@ -9,5 +12,44 @@
     "pos": "POS",
     "kds": "Kitchen",
     "admin": "Admin"
+  },
+  "auth": {
+    "login": {
+      "title": "Sign in",
+      "submit": "Sign in",
+      "noAccount": "No account yet?",
+      "signUpLink": "Create one",
+      "nav": "Sign in"
+    },
+    "signup": {
+      "title": "Create your restaurant",
+      "submit": "Create account",
+      "hasAccount": "Already have an account?",
+      "loginLink": "Sign in"
+    },
+    "logout": "Sign out",
+    "fields": {
+      "email": "Email",
+      "password": "Password",
+      "name": "Your name",
+      "restaurantName": "Restaurant name",
+      "defaultLocale": "Default language"
+    },
+    "locales": {
+      "en": "English",
+      "ar": "Arabic"
+    },
+    "errors": {
+      "generic": "Something went wrong. Please try again."
+    }
+  },
+  "dashboard": {
+    "welcome": "Welcome, {{name}}",
+    "subtitle": "Manage your organization and branch from here.",
+    "org": "Organization",
+    "branch": "Branch",
+    "selectOrg": "Select organization",
+    "selectBranch": "Select branch",
+    "canManageBranches": "You can create and edit branches."
   }
 }

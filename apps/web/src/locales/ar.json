@@ -1,4 +1,7 @@
 {
+  "common": {
+    "loading": "جاري التحميل"
+  },
   "app": {
     "title": "مطاعم SaaS",
     "placeholder": "منطقة مؤقتة"
@@ -9,5 +12,44 @@
     "pos": "الكاشير",
     "kds": "المطبخ",
     "admin": "الإدارة"
+  },
+  "auth": {
+    "login": {
+      "title": "تسجيل الدخول",
+      "submit": "دخول",
+      "noAccount": "ليس لديك حساب؟",
+      "signUpLink": "إنشاء حساب",
+      "nav": "دخول"
+    },
+    "signup": {
+      "title": "إنشاء مطعمك",
+      "submit": "إنشاء الحساب",
+      "hasAccount": "لديك حساب بالفعل؟",
+      "loginLink": "تسجيل الدخول"
+    },
+    "logout": "خروج",
+    "fields": {
+      "email": "البريد الإلكتروني",
+      "password": "كلمة المرور",
+      "name": "اسمك",
+      "restaurantName": "اسم المطعم",
+      "defaultLocale": "اللغة الافتراضية"
+    },
+    "locales": {
+      "en": "English",
+      "ar": "العربية"
+    },
+    "errors": {
+      "generic": "حدث خطأ. حاول مرة أخرى."
+    }
+  },
+  "dashboard": {
+    "welcome": "مرحباً، {{name}}",
+    "subtitle": "أدر مؤسستك والفرع من هنا.",
+    "org": "المؤسسة",
+    "branch": "الفرع",
+    "selectOrg": "اختر المؤسسة",
+    "selectBranch": "اختر الفرع",
+    "canManageBranches": "يمكنك إنشاء الفروع وتعديلها."
   }
 }

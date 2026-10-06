@@ -7,6 +7,7 @@ export type DrizzleTx = Parameters<Parameters<DrizzleDb['transaction']>[0]>[0];
 /**
  * Runs `fn` in a Drizzle transaction with `app.org_id` set for RLS (SET LOCAL via set_config).
  */
+/** Sets `app.org_id` only (never `app.user_id`). */
 export async function withOrg<T>(
   db: DrizzleDb,
   orgId: string,
