@@ -29,20 +29,6 @@
       "when": 1759665900000,
       "tag": "0003_seed_system_roles",
       "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1759666000000,
-      "tag": "0004_auth_sessions_org_and_cleanup",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1759666100000,
-      "tag": "0005_kitchen_system_role_permissions_cleanup",
-      "breakpoints": true
     }
   ]
 }

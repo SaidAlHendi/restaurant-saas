@@ -338,7 +338,7 @@ export class AuthService implements OnModuleInit {
           return this.tenancyRepo.insertOrganization(sp, { ...row, id: orgId, slug });
         });
       } catch (err: unknown) {
-        if (isPgUniqueViolation(err, 'organizations_slug_unique') || isPgUniqueViolation(err)) {
+        if (isPgUniqueViolation(err, 'organizations_slug_unique')) {
           continue;
         }
         throw err;
@@ -362,7 +362,7 @@ export class AuthService implements OnModuleInit {
           return this.tenancyRepo.insertBranch(sp, { ...row, id: branchId, orgId, slug });
         });
       } catch (err: unknown) {
-        if (isPgUniqueViolation(err, 'branches_org_slug_unique') || isPgUniqueViolation(err)) {
+        if (isPgUniqueViolation(err, 'branches_org_slug_unique')) {
           continue;
         }
         throw err;
