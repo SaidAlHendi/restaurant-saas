@@ -1,0 +1,57 @@
+---
+description: Local dev environment, quality gate, and lessons from past reviews. Always applied.
+alwaysApply: true
+---
+# Local environment
+
+- Postgres, Redis (and MariaDB, unused here) run in the developer's shared containers from
+  `~/docker/local-db` (container `postgres-dev` on localhost:5432, `redis-dev` on 6379). They are shared
+  with other projects: only touch the `restaurant_saas` and `restaurant_saas_test` databases.
+- Do not add or change docker-compose services for local dev. `docker compose --profile bundled up -d`
+  is the optional fallback for people without the shared containers; CI uses GitHub `services`.
+- Database roles: `app_owner` (migrations, owns schema) and `app_user` (API runtime, no BYPASSRLS).
+  Created by `infra/postgres/init/01-roles.sql`. Never connect the API as `postgres`.
+- Reset local DBs (only when asked or when a not-yet-merged migration changed):
+  drop both databases, then `POSTGRES_PASSWORD=... ./scripts/bootstrap-postgres.sh`,
+  `pnpm db:migrate`, `pnpm db:seed`. Never put a real or default password in scripts or docs.
+- Do not read `.env*`. If a command fails on a missing variable, say which variable is missing
+  and ask the developer to add it from `.env.example`.
+
+# Quality gate (how to work, not only at the end)
+
+- Run `pnpm lint && pnpm typecheck` for the package you touched after each group of files, not only
+  at the end of the task. Run the related tests before moving on.
+- Fix the root cause. Forbidden as fixes: `eslint-disable` comments, `@ts-ignore`, `@ts-expect-error`,
+  `as any`, `as unknown as X`, non-null `!` to silence errors, `.skip`/`.only`, weakening an assertion,
+  deleting a test, or changing lint/tsconfig settings. If a rule truly does not fit, stop and ask.
+- Before saying "done", paste the real output of `pnpm lint && pnpm typecheck && pnpm test && pnpm build`.
+  Never summarize it as "all green" without the output.
+- Do not mark roadmap items done; the developer ticks them when the PR is merged.
+
+# Lint/type patterns this repo enforces (write it right the first time)
+
+- Promises: no floating promises. Await them, or `void` only for fire-and-forget UI calls like
+  `void navigate('/x')`. Never leave a returned promise unhandled in event handlers.
+- No `void` as a generic argument (`no-invalid-void-type`): RTK Query endpoints without args use
+  `builder.query<Result, undefined>` and are called with `undefined`.
+- Typed env: `import.meta.env` is typed in `vite-env.d.ts`; `process.env` is read only through
+  `apps/api/src/config/env.ts` (Zod). No direct `process.env['X']` elsewhere.
+- No `any` flowing from untyped values: parse unknown JSON/errors with Zod or a type guard.
+- No unnecessary conditions or casts: if TypeScript already knows the type, do not re-check or re-cast it.
+- Only throw `Error` subclasses (React Router `Response` is the configured exception).
+- Use Zod 4 APIs: `z.email()`, `z.url()`, `z.uuid()` (not the deprecated `z.string().email()` forms).
+- No `console.*` in app code; use the Nest logger (api) or nothing (web).
+- Imports: no unused imports or variables; keep `import type` for type-only imports.
+
+# Lessons from security reviews (do not repeat)
+
+- Never add an RLS policy that is unlocked by a session setting other than `app.org_id` / `app.user_id`
+  (e.g. a "check" flag). Uniqueness checks rely on UNIQUE constraints, not on reading other tenants.
+- After a Postgres error the whole transaction is aborted: any retry inside a transaction must run each
+  attempt in a savepoint (`tx.transaction(async (sp) => ...)`), and catch only the specific constraint.
+- State that must change exactly once (refresh token rotation, order status, counters) uses one
+  conditional `UPDATE ... WHERE <expected state> RETURNING`, never read-then-write.
+- Repositories never fabricate rows. Use `.returning()`; if no row comes back, throw.
+- Tokens (access or refresh) are never stored in localStorage or sessionStorage.
+- Do not add "legacy DB" patch migrations or scripts for unmerged work: edit the unmerged migration
+  and reset the local DB instead.
