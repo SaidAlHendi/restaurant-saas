@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "noEmit": true,
+    "rootDir": "."
+  },
+  "include": [
+    "src/**/*.ts",
+    "test/**/*.ts",
+    "jest.config.ts",
+    "drizzle.config.ts",
+    "test/jest-e2e.config.ts",
+    "eslint.config.js"
+  ],
+  "exclude": ["node_modules", "dist"]
+}

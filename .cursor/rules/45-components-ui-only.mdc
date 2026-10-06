@@ -1,0 +1,24 @@
+---
+description: Frontend rules for apps/web (React + Vite SPA with Redux Toolkit and RTK Query) and apps/site (SSR public pages with SEO).
+globs: apps/web/**,apps/site/**,packages/ui/**
+alwaysApply: false
+---
+# Frontend rules
+
+Full structure and patterns: `docs/frontend-architecture.md`. UI kit and themes: `docs/ui-kit.md`. `.tsx` files are UI only (see `45-components-ui-only.mdc`).
+
+- `apps/web` is a Vite SPA. `apps/site` is server-rendered (React Router framework mode) for SEO. Never put
+  public, indexable pages in `apps/web`, and never add Redux to `apps/site`.
+- Server data in `apps/web` goes through RTK Query endpoints (`injectEndpoints` in `features/*/*.api.ts`)
+  with tags. No `fetch`/axios in components. No server data copied into slices.
+- Redux slices only for client state: session, cart, POS device/staff session, UI prefs. Use typed hooks.
+- Types come from Zod schemas in `@app/shared` (`z.infer`). Forms: react-hook-form + zodResolver with the shared schema.
+- All user-facing text via react-i18next (`locales/ar.json`, `en.json`). Set `dir`/`lang` on `<html>`.
+- Tailwind logical utilities only (`ms-*`, `me-*`, `ps-*`, `pe-*`, `start-*`, `end-*`, `text-start`).
+- Money via `formatMoney(minor, currency, locale)` (KWD/BHD/JOD/OMR have 3 decimals). Dates with the branch timezone.
+- Build screens from `@app/ui` (shadcn/ui + Tailwind) components only; no one-off styled elements, no raw colors — theme tokens only (cupcake light, forest dark).
+- POS/KDS: touch targets ≥ 48px, works at 768px landscape, confirm button disabled while sending,
+  kitchen refetches active orders on reconnect and ignores events with an older `version`.
+- Every `apps/site` page: SSR/prerender HTML, `meta()` with title, description, canonical, OG, hreflang;
+  JSON-LD (`Restaurant`, `Menu`) on menu pages; responsive images with width/height; minimal client JS.
+- Keyboard reachable, visible focus, labels on inputs.

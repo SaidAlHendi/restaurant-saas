@@ -1,0 +1,26 @@
+{
+  "name": "restaurant-saas",
+  "private": true,
+  "packageManager": "pnpm@10.14.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "db:generate": "turbo run db:generate --filter=@app/api",
+    "db:migrate": "turbo run db:migrate --filter=@app/api",
+    "db:seed": "turbo run db:seed --filter=@app/api"
+  },
+  "devDependencies": {
+    "@app/eslint-config": "workspace:*",
+    "@app/prettier-config": "workspace:*",
+    "@app/typescript-config": "workspace:*",
+    "prettier": "^3.6.2",
+    "turbo": "^2.5.5",
+    "typescript": "catalog:"
+  }
+}

@@ -1,0 +1,21 @@
+---
+description: Use when starting any new feature or roadmap item, from plan to PR.
+alwaysApply: false
+---
+# Building a feature
+
+1. Read the core rules, `docs/product.md`, `docs/architecture.md`, `docs/data-model.md`, and the roadmap item. Identify the owning module.
+2. Write a plan and show it before coding:
+   - user-visible behavior (who does what, on which screen)
+   - schema changes (tables, columns, indexes, RLS policy) and migration name
+   - API endpoints with Zod request/response schemas in `packages/shared`
+   - permissions and plan entitlement keys involved
+   - tests you will write
+   Wait for approval if the plan touches schema, API contracts, or the core rules.
+3. Create a branch `feat/<short-name>`.
+4. Implement in this order: shared schemas -> migration -> repository -> service -> route -> UI.
+5. Tests: service tests against real Postgres, one tenant-isolation test for every new
+   endpoint (org B cannot read or change org A data), e2e test for the main happy path when UI changes.
+6. Run `pnpm lint && pnpm typecheck && pnpm test`. Fix everything; do not skip tests.
+7. Add ar and en strings for all new UI text and check the screen in RTL.
+8. Tick the roadmap item, commit, open a PR with: what changed, screenshots for UI, how to test.

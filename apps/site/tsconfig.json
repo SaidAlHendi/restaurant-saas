@@ -1,0 +1,14 @@
+{
+  "extends": "@app/typescript-config/react.json",
+  "compilerOptions": {
+    "rootDirs": [".", "./.react-router/types"],
+    "types": ["vite/client", "vitest/globals"],
+    "noEmit": true
+  },
+  "include": [
+    "**/*",
+    "**/.server/**/*",
+    "**/.client/**/*",
+    ".react-router/types/**/*"
+  ]
+}
