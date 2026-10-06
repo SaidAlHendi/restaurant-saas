@@ -3,7 +3,8 @@
   "agentGuidance": false,
   "globalPassThroughEnv": [
     "DATABASE_URL",
-    "DATABASE_URL_TEST",
+    "E2E_DATABASE_URL",
+    "E2E_DATABASE_MIGRATION_URL",
     "REDIS_URL",
     "NODE_ENV",
     "APP_ROLE",

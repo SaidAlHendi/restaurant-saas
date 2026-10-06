@@ -1,8 +1,9 @@
 import { loadDotenvFromMonorepoRoot } from '../src/config/load-dotenv';
 
-import { applyTestDatabaseEnv } from './test-db-env';
+import { applyTestDatabaseEnv, captureShellTestDatabaseEnv } from './test-db-env';
 
 process.env['NODE_ENV'] = 'test';
+captureShellTestDatabaseEnv();
 loadDotenvFromMonorepoRoot();
 applyTestDatabaseEnv();
 

@@ -25,15 +25,18 @@ export type Env = z.infer<typeof envSchema>;
 const DEFAULT_TEST_DATABASE_URL =
   'postgresql://app_user:app_user_dev@localhost:5432/restaurant_saas_test';
 
-/** E2e must never use dev DATABASE_URL from `.env` when NODE_ENV is test. */
+/** E2e must not use dev DATABASE_URL from `.env` when NODE_ENV is test (see test/test-db-env.ts). */
 function withTestDatabaseUrls(raw: Record<string, string | undefined>): Record<string, string | undefined> {
   if (raw['NODE_ENV'] !== 'test') {
     return raw;
   }
-  const databaseUrl = raw['DATABASE_URL_TEST'] ?? DEFAULT_TEST_DATABASE_URL;
+  const databaseUrl = raw['DATABASE_URL']?.includes('/restaurant_saas_test')
+    ? raw['DATABASE_URL']
+    : DEFAULT_TEST_DATABASE_URL;
   const migrationUrl =
-    raw['DATABASE_MIGRATION_URL_TEST'] ??
-    databaseUrl.replace('app_user:app_user_dev', 'app_owner:app_owner_dev');
+    raw['DATABASE_MIGRATION_URL']?.includes('/restaurant_saas_test')
+      ? raw['DATABASE_MIGRATION_URL']
+      : databaseUrl.replace('app_user:app_user_dev', 'app_owner:app_owner_dev');
   return {
     ...raw,
     DATABASE_URL: databaseUrl,
