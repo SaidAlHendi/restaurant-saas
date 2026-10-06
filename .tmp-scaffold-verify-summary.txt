@@ -1,0 +1,212 @@
+EXIT_CODE: 0
+--- LAST 30 LINES (corepack_enable) ---
+Configured .env (DATABASE_URL, REDIS_URL)
+========== STEP: corepack_enable ==========
+Command: corepack enable
+EXIT_CODE: 0
+
+EXIT_CODE: 0
+--- LAST 30 LINES (corepack_prepare_pnpm) ---
+Configured .env (DATABASE_URL, REDIS_URL)
+========== STEP: corepack_enable ==========
+Command: corepack enable
+EXIT_CODE: 0
+========== STEP: corepack_prepare_pnpm ==========
+Command: corepack prepare pnpm@10.14.0 --activate
+Preparing pnpm@10.14.0 for immediate activation...
+EXIT_CODE: 0
+
+EXIT_CODE: 0
+--- LAST 30 LINES (pnpm_install) ---
+Configured .env (DATABASE_URL, REDIS_URL)
+========== STEP: corepack_enable ==========
+Command: corepack enable
+EXIT_CODE: 0
+========== STEP: corepack_prepare_pnpm ==========
+Command: corepack prepare pnpm@10.14.0 --activate
+Preparing pnpm@10.14.0 for immediate activation...
+EXIT_CODE: 0
+========== STEP: pnpm_install ==========
+Command: pnpm install
+Scope: all 9 workspace projects
+Lockfile is up to date, resolution step is skipped
+Already up to date
+
+╭ Warning ─────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│   Ignored build scripts: @parcel/watcher, @tailwindcss/oxide, esbuild,       │
+│   unrs-resolver.                                                             │
+│   Run "pnpm approve-builds" to pick which dependencies should be allowed     │
+│   to run scripts.                                                            │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+Done in 1.1s using pnpm v10.14.0
+EXIT_CODE: 0
+
+EXIT_CODE: 0
+--- LAST 30 LINES (pnpm_db_migrate) ---
+│   Run "pnpm approve-builds" to pick which dependencies should be allowed     │
+│   to run scripts.                                                            │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+Done in 1.1s using pnpm v10.14.0
+EXIT_CODE: 0
+========== STEP: pnpm_db_migrate ==========
+Command: pnpm db:migrate
+
+> restaurant-saas@ db:migrate /home/said/projects/repo/restaurant-saas
+> turbo run db:migrate --filter=@app/api
+
+
+   • turbo 2.11.7
+   • Packages in scope: @app/api
+   • Running db:migrate in 1 package
+   • Remote caching disabled
+
+@app/api:db:migrate: cache bypass, force executing c543eeeb04f299f9
+@app/api:db:migrate: 
+@app/api:db:migrate: > @app/api@0.0.0 db:migrate /home/said/projects/repo/restaurant-saas/apps/api
+@app/api:db:migrate: > tsx src/scripts/migrate.ts
+@app/api:db:migrate: 
+
+ Tasks:    1 successful, 1 total
+Cached:    0 cached, 1 total
+  Time:    851ms 
+
+EXIT_CODE: 0
+
+EXIT_CODE: 1
+--- LAST 30 LINES (pnpm_lint) ---
+@app/api:lint: Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+@app/api:lint: To eliminate this warning, add "type": "module" to /home/said/projects/repo/restaurant-saas/apps/api/package.json.
+@app/api:lint: (Use `node --trace-warnings ...` to show where the warning was created)
+@app/shared:lint: 
+@app/shared:lint: /home/said/projects/repo/restaurant-saas/packages/shared/eslint.config.js
+@app/shared:lint:   0:0  error  Parsing error: /home/said/projects/repo/restaurant-saas/packages/shared/eslint.config.js was not found by the project service. Consider either including it in the tsconfig.json or including it in allowDefaultProject
+@app/shared:lint: 
+@app/shared:lint: ✖ 1 problem (1 error, 0 warnings)
+@app/shared:lint: 
+@app/ui:lint: 
+@app/ui:lint: /home/said/projects/repo/restaurant-saas/packages/ui/eslint.config.js
+@app/ui:lint:   0:0  error  Parsing error: /home/said/projects/repo/restaurant-saas/packages/ui/eslint.config.js was not found by the project service. Consider either including it in the tsconfig.json or including it in allowDefaultProject
+@app/ui:lint: 
+@app/ui:lint: /home/said/projects/repo/restaurant-saas/packages/ui/src/components/button/button.tsx
+@app/ui:lint:   50:18  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+@app/ui:lint: 
+@app/ui:lint: ✖ 2 problems (1 error, 1 warning)
+@app/ui:lint: 
+@app/shared:lint:  ELIFECYCLE  Command failed with exit code 1.
+@app/ui:lint:  ELIFECYCLE  Command failed with exit code 1.
+@app/shared#lint:  ERROR  command (/home/said/projects/repo/restaurant-saas/packages/shared) /home/said/.nvm/versions/node/v20.20.2/bin/pnpm run lint exited (1)
+
+ Tasks:    2 successful, 7 total
+Cached:    2 cached, 7 total
+  Time:    5.148s 
+Failed:    @app/shared#lint
+
+ ERROR  run failed: command  exited (1)
+ ELIFECYCLE  Command failed with exit code 1.
+EXIT_CODE: 1
+
+EXIT_CODE: 2
+--- LAST 30 LINES (pnpm_typecheck) ---
+@app/shared:typecheck: > @app/shared@0.0.0 typecheck /home/said/projects/repo/restaurant-saas/packages/shared
+@app/shared:typecheck: > tsc -p tsconfig.json --noEmit
+@app/shared:typecheck: 
+@app/ui:typecheck: 
+@app/ui:typecheck: > @app/ui@0.0.0 typecheck /home/said/projects/repo/restaurant-saas/packages/ui
+@app/ui:typecheck: > tsc -p tsconfig.json --noEmit
+@app/ui:typecheck: 
+@app/api:typecheck: src/modules/health/health.controller.ts(2,49): error TS1479: The current file is a CommonJS module whose imports will produce 'require' calls; however, the referenced file is an ECMAScript module and cannot be imported with 'require'. Consider writing a dynamic 'import("@nestjs/terminus")' call instead.
+@app/api:typecheck:   To convert this file to an ECMAScript module, change its file extension to '.mts', or add the field `"type": "module"` to '/home/said/projects/repo/restaurant-saas/apps/api/package.json'.
+@app/api:typecheck: src/modules/health/health.indicators.ts(3,3): error TS2724: '"@nestjs/terminus"' has no exported member named 'HealthCheckError'. Did you mean 'HealthCheck'?
+@app/api:typecheck: src/modules/health/health.indicators.ts(4,3): error TS2724: '"@nestjs/terminus"' has no exported member named 'HealthIndicator'. Did you mean 'HttpHealthIndicator'?
+@app/api:typecheck: src/modules/health/health.indicators.ts(6,8): error TS1479: The current file is a CommonJS module whose imports will produce 'require' calls; however, the referenced file is an ECMAScript module and cannot be imported with 'require'. Consider writing a dynamic 'import("@nestjs/terminus")' call instead.
+@app/api:typecheck:   To convert this file to an ECMAScript module, change its file extension to '.mts', or add the field `"type": "module"` to '/home/said/projects/repo/restaurant-saas/apps/api/package.json'.
+@app/api:typecheck: src/modules/health/health.indicators.ts(22,19): error TS2339: Property 'getStatus' does not exist on type 'PostgresHealthIndicator'.
+@app/api:typecheck: src/modules/health/health.indicators.ts(26,14): error TS2339: Property 'getStatus' does not exist on type 'PostgresHealthIndicator'.
+@app/api:typecheck: src/modules/health/health.indicators.ts(45,19): error TS2339: Property 'getStatus' does not exist on type 'RedisHealthIndicator'.
+@app/api:typecheck: src/modules/health/health.indicators.ts(49,14): error TS2339: Property 'getStatus' does not exist on type 'RedisHealthIndicator'.
+@app/api:typecheck: src/modules/health/health.module.ts(2,32): error TS1479: The current file is a CommonJS module whose imports will produce 'require' calls; however, the referenced file is an ECMAScript module and cannot be imported with 'require'. Consider writing a dynamic 'import("@nestjs/terminus")' call instead.
+@app/api:typecheck:   To convert this file to an ECMAScript module, change its file extension to '.mts', or add the field `"type": "module"` to '/home/said/projects/repo/restaurant-saas/apps/api/package.json'.
+@app/api:typecheck:  ELIFECYCLE  Command failed with exit code 2.
+@app/api#typecheck:  ERROR  command (/home/said/projects/repo/restaurant-saas/apps/api) /home/said/.nvm/versions/node/v20.20.2/bin/pnpm run typecheck exited (2)
+
+ Tasks:    6 successful, 7 total
+Cached:    2 cached, 7 total
+  Time:    4.106s 
+Failed:    @app/api#typecheck
+
+ ERROR  run failed: command  exited (2)
+ ELIFECYCLE  Command failed with exit code 2.
+EXIT_CODE: 2
+
+EXIT_CODE: 1
+--- LAST 30 LINES (pnpm_test) ---
+@app/site:test:  ❯ performUnitOfWork ../../node_modules/.pnpm/react-dom@19.1.0_react@19.1.0/node_modules/react-dom/cjs/react-dom-client.development.js:15140:22
+@app/site:test:  ❯ workLoopSync ../../node_modules/.pnpm/react-dom@19.1.0_react@19.1.0/node_modules/react-dom/cjs/react-dom-client.development.js:14956:41
+@app/site:test: 
+@app/site:test: ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+@app/site:test: 
+@app/site:test: 
+@app/site:test:  Test Files  1 failed (1)
+@app/site:test:       Tests  1 failed (1)
+@app/site:test:    Start at  21:04:26
+@app/site:test:    Duration  1.81s (transform 197ms, setup 266ms, collect 197ms, tests 22ms, environment 648ms, prepare 212ms)
+@app/site:test: 
+@app/web:test:  ✓ src/App.test.tsx (1 test) 124ms
+@app/web:test: 
+@app/web:test:  Test Files  1 passed (1)
+@app/web:test:       Tests  1 passed (1)
+@app/web:test:    Start at  21:04:26
+@app/web:test:    Duration  1.96s (transform 135ms, setup 268ms, collect 226ms, tests 124ms, environment 649ms, prepare 179ms)
+@app/web:test: 
+@app/site:test:  ELIFECYCLE  Test failed. See above for more details.
+@app/api:test: No tests found, exiting with code 0
+@app/site#test:  ERROR  command (/home/said/projects/repo/restaurant-saas/apps/site) /home/said/.nvm/versions/node/v20.20.2/bin/pnpm run test exited (1)
+
+ Tasks:    4 successful, 7 total
+Cached:    2 cached, 7 total
+  Time:    3.436s 
+Failed:    @app/site#test
+
+ ERROR  run failed: command  exited (1)
+ ELIFECYCLE  Test failed. See above for more details.
+EXIT_CODE: 1
+
+EXIT_CODE: 1
+--- LAST 30 LINES (pnpm_build) ---
+@app/api:build: 
+@app/api:build: [7m26[0m         this.getStatus(key, false, { message: String(error) }),
+@app/api:build: [7m  [0m [91m             ~~~~~~~~~[0m
+@app/api:build: [96msrc/modules/health/health.indicators.ts[0m:[93m45[0m:[93m19[0m - [91merror[0m[90m TS2339: [0mProperty 'getStatus' does not exist on type 'RedisHealthIndicator'.
+@app/api:build: 
+@app/api:build: [7m45[0m       return this.getStatus(key, true);
+@app/api:build: [7m  [0m [91m                  ~~~~~~~~~[0m
+@app/api:build: [96msrc/modules/health/health.indicators.ts[0m:[93m49[0m:[93m14[0m - [91merror[0m[90m TS2339: [0mProperty 'getStatus' does not exist on type 'RedisHealthIndicator'.
+@app/api:build: 
+@app/api:build: [7m49[0m         this.getStatus(key, false, { message: String(error) }),
+@app/api:build: [7m  [0m [91m             ~~~~~~~~~[0m
+@app/api:build: [96msrc/modules/health/health.module.ts[0m:[93m2[0m:[93m32[0m - [91merror[0m[90m TS1479: [0mThe current file is a CommonJS module whose imports will produce 'require' calls; however, the referenced file is an ECMAScript module and cannot be imported with 'require'. Consider writing a dynamic 'import("@nestjs/terminus")' call instead.
+@app/api:build:   To convert this file to an ECMAScript module, change its file extension to '.mts', or add the field `"type": "module"` to '/home/said/projects/repo/restaurant-saas/apps/api/package.json'.
+@app/api:build: 
+@app/api:build: [7m2[0m import { TerminusModule } from '@nestjs/terminus';
+@app/api:build: [7m [0m [91m                               ~~~~~~~~~~~~~~~~~~[0m
+@app/api:build: 
+@app/api:build: Found 9 error(s).
+@app/api:build: 
+@app/api:build:  ELIFECYCLE  Command failed with exit code 1.
+@app/api#build:  ERROR  command (/home/said/projects/repo/restaurant-saas/apps/api) /home/said/.nvm/versions/node/v20.20.2/bin/pnpm run build exited (1)
+
+ Tasks:    2 successful, 5 total
+Cached:    2 cached, 5 total
+  Time:    5.616s 
+Failed:    @app/api#build
+
+ ERROR  run failed: command  exited (1)
+ ELIFECYCLE  Command failed with exit code 1.
+EXIT_CODE: 1
+
+OVERALL_FAILED: 1

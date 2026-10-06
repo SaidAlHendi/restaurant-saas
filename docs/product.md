@@ -33,7 +33,7 @@ Feature keys: `menu.multilang`, `menu.branding`, `menu.table_qr`, `pos.access`, 
 
 ## Screens (MVP)
 ### Public
-- Menu page `/{orgSlug}` (and `/{orgSlug}/{branchSlug}` when multi-branch): categories as sticky
+- Menu page `/{locale}/m/{orgSlug}` (and `/{locale}/m/{orgSlug}/{branchSlug}` when multi-branch), served by `apps/site` with SSR for SEO: categories as sticky
   tabs, product cards with photo, price, description; product sheet with modifiers (display only);
   language switcher. Loads in < 1s on 4G. Cached at CDN, purged on publish.
 ### Owner dashboard

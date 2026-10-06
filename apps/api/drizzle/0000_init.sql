@@ -1,0 +1,1 @@
+-- Scaffold migration (no tenant tables yet).

@@ -1,0 +1,150 @@
+/*
+ * Themes: daisyUI "cupcake" (light, default) and "forest" (dark), mapped onto shadcn/ui tokens.
+ * Source values: daisyUI v5 theme files (oklch). Apply with <html data-theme="cupcake|forest">.
+ * Components must use these tokens through Tailwind classes (bg-background, text-primary, ...),
+ * never raw colors.
+ */
+
+:root,
+[data-theme="cupcake"] {
+  color-scheme: light;
+  /* daisyUI cupcake palette */
+  --base-100: oklch(97.788% 0.004 56.375);
+  --base-200: oklch(93.982% 0.007 61.449);
+  --base-300: oklch(91.586% 0.006 53.44);
+  --base-content: oklch(23.574% 0.066 313.189);
+  --brand-primary: oklch(85% 0.138 181.071);
+  --brand-primary-content: oklch(43% 0.078 188.216);
+  --brand-secondary: oklch(89% 0.061 343.231);
+  --brand-secondary-content: oklch(45% 0.187 3.815);
+  --brand-accent: oklch(90% 0.076 70.697);
+  --brand-accent-content: oklch(47% 0.157 37.304);
+  --brand-neutral: oklch(27% 0.006 286.033);
+  --brand-neutral-content: oklch(92% 0.004 286.32);
+  --state-info: oklch(68% 0.169 237.323);
+  --state-info-content: oklch(29% 0.066 243.157);
+  --state-success: oklch(69% 0.17 162.48);
+  --state-success-content: oklch(26% 0.051 172.552);
+  --state-warning: oklch(79% 0.184 86.047);
+  --state-warning-content: oklch(28% 0.066 53.813);
+  --state-error: oklch(64% 0.246 16.439);
+  --state-error-content: oklch(27% 0.105 12.094);
+  --radius: 1rem;
+  --border-width: 2px;
+}
+
+[data-theme="forest"] {
+  color-scheme: dark;
+  /* daisyUI forest palette */
+  --base-100: oklch(20.84% 0.008 17.911);
+  --base-200: oklch(18.522% 0.007 17.911);
+  --base-300: oklch(16.203% 0.007 17.911);
+  --base-content: oklch(83.768% 0.001 17.911);
+  --brand-primary: oklch(68.628% 0.185 148.958);
+  --brand-primary-content: oklch(0% 0 0);
+  --brand-secondary: oklch(69.776% 0.135 168.327);
+  --brand-secondary-content: oklch(13.955% 0.027 168.327);
+  --brand-accent: oklch(70.628% 0.119 185.713);
+  --brand-accent-content: oklch(14.125% 0.023 185.713);
+  --brand-neutral: oklch(30.698% 0.039 171.364);
+  --brand-neutral-content: oklch(86.139% 0.007 171.364);
+  --state-info: oklch(72.06% 0.191 231.6);
+  --state-info-content: oklch(0% 0 0);
+  --state-success: oklch(64.8% 0.15 160);
+  --state-success-content: oklch(0% 0 0);
+  --state-warning: oklch(84.71% 0.199 83.87);
+  --state-warning-content: oklch(0% 0 0);
+  --state-error: oklch(71.76% 0.221 22.18);
+  --state-error-content: oklch(0% 0 0);
+  --radius: 1rem;
+  --border-width: 1px;
+}
+
+/* shadcn/ui tokens derived from the palette above (same for both themes) */
+:root,
+[data-theme] {
+  --background: var(--base-100);
+  --foreground: var(--base-content);
+  --card: var(--base-100);
+  --card-foreground: var(--base-content);
+  --popover: var(--base-100);
+  --popover-foreground: var(--base-content);
+  --primary: var(--brand-primary);
+  --primary-foreground: var(--brand-primary-content);
+  --secondary: var(--brand-secondary);
+  --secondary-foreground: var(--brand-secondary-content);
+  --accent: var(--base-200);
+  --accent-foreground: var(--base-content);
+  --muted: var(--base-200);
+  --muted-foreground: color-mix(in oklch, var(--base-content) 65%, var(--base-100));
+  --destructive: var(--state-error);
+  --destructive-foreground: var(--state-error-content);
+  --success: var(--state-success);
+  --success-foreground: var(--state-success-content);
+  --warning: var(--state-warning);
+  --warning-foreground: var(--state-warning-content);
+  --info: var(--state-info);
+  --info-foreground: var(--state-info-content);
+  --border: color-mix(in oklch, var(--base-content) 15%, var(--base-100));
+  --input: color-mix(in oklch, var(--base-content) 20%, var(--base-100));
+  --ring: var(--brand-primary);
+  --chart-1: var(--brand-primary);
+  --chart-2: var(--brand-secondary);
+  --chart-3: var(--brand-accent);
+  --chart-4: var(--state-info);
+  --chart-5: var(--state-warning);
+  --sidebar: var(--base-200);
+  --sidebar-foreground: var(--base-content);
+  --sidebar-primary: var(--brand-primary);
+  --sidebar-primary-foreground: var(--brand-primary-content);
+  --sidebar-accent: var(--base-300);
+  --sidebar-accent-foreground: var(--base-content);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
+}
+
+/* Tailwind v4: expose tokens as utilities (bg-primary, text-muted-foreground, bg-success, ...) */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: calc(var(--radius) - 6px);
+  --radius-md: calc(var(--radius) - 4px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}

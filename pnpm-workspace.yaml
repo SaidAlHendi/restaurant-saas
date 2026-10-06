@@ -1,0 +1,19 @@
+packages:
+  - apps/*
+  - packages/*
+  - packages/config/*
+
+catalog:
+  '@tailwindcss/vite': 4.1.11
+  react: 19.1.0
+  react-dom: 19.1.0
+  tailwindcss: 4.1.11
+  typescript: 5.8.3
+  vitest: 3.2.4
+  zod: 4.4.3
+
+ignoredBuiltDependencies:
+  - '@parcel/watcher'
+  - '@tailwindcss/oxide'
+  - esbuild
+  - unrs-resolver
