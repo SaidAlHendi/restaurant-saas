@@ -3,13 +3,12 @@ import path from 'node:path';
 
 import { loadDotenvFromMonorepoRoot } from '../src/config/load-dotenv';
 
-import { applyTestDatabaseEnv, captureShellTestDatabaseEnv, testDatabaseEnvHint } from './test-db-env';
+import { applyTestDatabaseEnv, redactDatabaseUrl, testDatabaseEnvHint } from './test-db-env';
 
 const TEST_SEED_PASSWORD = 'seed-password-123456';
 
 export default function globalSetup(): void {
   process.env['NODE_ENV'] = 'test';
-  captureShellTestDatabaseEnv();
   loadDotenvFromMonorepoRoot();
   applyTestDatabaseEnv();
 
@@ -29,7 +28,12 @@ export default function globalSetup(): void {
   } catch (err: unknown) {
     console.error('\n[e2e global-setup] migrate/seed failed.');
     console.error(testDatabaseEnvHint());
-    console.error(`DATABASE_MIGRATION_URL=${env['DATABASE_MIGRATION_URL'] ?? '(unset)'}\n`);
+    const migrationUrl = env['DATABASE_MIGRATION_URL'] ?? '(unset)';
+    console.error(
+      `DATABASE_MIGRATION_URL=${
+        migrationUrl === '(unset)' ? migrationUrl : redactDatabaseUrl(migrationUrl)
+      }\n`,
+    );
     throw err;
   }
 }

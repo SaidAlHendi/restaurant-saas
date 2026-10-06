@@ -35,7 +35,8 @@ jobs:
     env:
       DATABASE_URL: postgresql://app_user:app_user_dev@localhost:5433/restaurant_saas_test
       DATABASE_MIGRATION_URL: postgresql://app_owner:app_owner_dev@localhost:5433/restaurant_saas_test
-      DATABASE_URL_TEST: postgresql://app_user:app_user_dev@localhost:5433/restaurant_saas_test
+      E2E_DATABASE_URL: postgresql://app_user:app_user_dev@localhost:5433/restaurant_saas_test
+      E2E_DATABASE_MIGRATION_URL: postgresql://app_owner:app_owner_dev@localhost:5433/restaurant_saas_test
       REDIS_URL: redis://localhost:6379
       NODE_ENV: test
       APP_ROLE: api
