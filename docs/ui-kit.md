@@ -45,6 +45,16 @@ packages/ui/src/
 | Feedback | Toast (sonner), Progress |
 | Layout | PageHeader, Sidebar (dashboard), Topbar, Container, Stack/Grid helpers, ThemeToggle, LanguageSwitcher |
 
+## Status after step 1b
+Built: Button, IconButton, Input, Textarea, Label, Checkbox, Switch, RadioGroup, Select, Combobox, Command,
+Popover, DropdownMenu, Tooltip, Dialog, ConfirmDialog, Sheet, Form parts, MoneyInput, NumberInput, SearchInput,
+CursorPagination, NumberedPagination, Table, DataTable (own implementation, no TanStack), Badge + OrderStatusBadge,
+Skeleton, Card, Tabs, Spinner, EmptyState, Alert, StatCard, Toaster/toast, PageHeader, Sidebar, ThemeToggle.
+
+Not built yet (add when a feature needs them): ButtonGroup, PasswordInput, MultiSelect, DatePicker,
+DateRangePicker, FileUpload/ImageUpload, FilterBar, Avatar, Separator, Accordion, Money, DateTime, Progress,
+Topbar, Container, Stack/Grid helpers, LanguageSwitcher.
+
 ## Component API conventions
 - Controlled and uncontrolled support where shadcn supports it (`value`/`onValueChange`, `defaultValue`).
 - Every component accepts `className` and forwards `ref`; merge classes with `cn()`.

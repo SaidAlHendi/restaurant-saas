@@ -1,7 +1,7 @@
 # Roadmap (MVP)
 
 - [ ] 1. Monorepo scaffold, docker compose (Postgres, Redis), CI (lint, typecheck, test), deploy to staging
-- [ ] 1b. UI kit in packages/ui: shadcn/ui + Tailwind v4, themes cupcake/forest, first batch of components, /dev/ui showcase, ESLint UI-only rule (docs/ui-kit.md)
+- [x] 1b. UI kit in packages/ui: shadcn/ui + Tailwind v4, themes cupcake/forest, first batch of components, /dev/ui showcase, ESLint UI-only rule (docs/ui-kit.md)
 - [ ] 2. Auth, organizations, branches, memberships, roles, RLS, tenant-isolation test suite
 - [ ] 3. Catalog: categories, products, modifiers, images (resize to WebP), ar/en translations
 - [ ] 4. Public menu page (cached at CDN) + QR codes
