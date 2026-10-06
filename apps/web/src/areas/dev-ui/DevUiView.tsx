@@ -17,8 +17,9 @@ export function DevUiView({
   productForm,
   inputs,
   orders,
+  layout,
 }: DevUiPageViewModel) {
-  const shared = { copy, menu, confirm, locale, productForm, inputs, orders };
+  const shared = { copy, menu, confirm, locale, productForm, inputs, orders, layout };
   return (
     <div className="min-h-dvh bg-background text-foreground">
       <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur">

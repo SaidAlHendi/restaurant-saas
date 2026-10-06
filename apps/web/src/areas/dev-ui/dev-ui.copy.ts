@@ -15,6 +15,70 @@ export interface DevUiCopy {
     forms: string;
     data: string;
     badges: string;
+    layout: string;
+  };
+  layout: {
+    sidebarLabel: string;
+    close: string;
+    collapse: string;
+    openMenu: string;
+    brand: string;
+    groupMain: string;
+    groupSettings: string;
+    nav: {
+      dashboard: string;
+      orders: string;
+      menu: string;
+      tables: string;
+      staff: string;
+      settings: string;
+    };
+    pageTitle: string;
+    pageDescription: string;
+    breadcrumbs: string[];
+    breadcrumbLabel: string;
+    newOrder: string;
+    stats: {
+      sales: string;
+      salesValue: string;
+      salesDelta: string;
+      orders: string;
+      ordersValue: string;
+      ordersDelta: string;
+      cancelled: string;
+      cancelledValue: string;
+      cancelledDelta: string;
+      vsYesterday: string;
+    };
+    tabs: {
+      overview: string;
+      orders: string;
+      reports: string;
+      overviewText: string;
+      ordersText: string;
+      reportsText: string;
+    };
+    cardTitle: string;
+    cardDescription: string;
+    cardBody: string;
+    save: string;
+    cancel: string;
+    loading: string;
+    emptyTitle: string;
+    emptyDescription: string;
+    emptyAction: string;
+    alerts: {
+      info: string;
+      infoText: string;
+      success: string;
+      successText: string;
+      warning: string;
+      warningText: string;
+      error: string;
+      errorText: string;
+    };
+    toasts: { show: string; success: string; error: string; info: string; warning: string };
+    skeleton: string;
   };
   data: {
     search: string;
@@ -157,6 +221,75 @@ export interface DevUiCopy {
 }
 
 const en: DevUiCopy = {
+  layout: {
+    sidebarLabel: 'Main menu',
+    close: 'Close menu',
+    collapse: 'Collapse sidebar',
+    openMenu: 'Open menu',
+    brand: 'Al Bait Restaurant',
+    groupMain: 'Operations',
+    groupSettings: 'Admin',
+    nav: {
+      dashboard: 'Dashboard',
+      orders: 'Orders',
+      menu: 'Menu',
+      tables: 'Tables',
+      staff: 'Staff',
+      settings: 'Settings',
+    },
+    pageTitle: 'Dashboard',
+    pageDescription: 'Today at Riyadh – Olaya',
+    breadcrumbs: ['Home', 'Riyadh – Olaya', 'Dashboard'],
+    breadcrumbLabel: 'Breadcrumb',
+    newOrder: 'New order',
+    stats: {
+      sales: "Today's sales",
+      salesValue: 'SAR 12,480.00',
+      salesDelta: '+12%',
+      orders: 'Orders',
+      ordersValue: '186',
+      ordersDelta: '−4%',
+      cancelled: 'Cancelled',
+      cancelledValue: '3',
+      cancelledDelta: '−2',
+      vsYesterday: 'vs yesterday',
+    },
+    tabs: {
+      overview: 'Overview',
+      orders: 'Orders',
+      reports: 'Reports',
+      overviewText: 'Sales are up compared with last week.',
+      ordersText: '12 orders are waiting in the kitchen.',
+      reportsText: 'Reports are ready for download.',
+    },
+    cardTitle: 'Branch hours',
+    cardDescription: 'Shown on the public menu.',
+    cardBody: 'Saturday to Thursday, 12:00 to 00:00.',
+    save: 'Save',
+    cancel: 'Cancel',
+    loading: 'Loading',
+    emptyTitle: 'No orders yet',
+    emptyDescription: 'New orders from the cashier and QR menu will appear here.',
+    emptyAction: 'Create order',
+    alerts: {
+      info: 'Heads up',
+      infoText: 'The menu will be published tonight.',
+      success: 'Saved',
+      successText: 'Your changes are live.',
+      warning: 'Printer offline',
+      warningText: 'Kitchen tickets are queued until it reconnects.',
+      error: 'Payment failed',
+      errorText: 'The card was declined. Try another method.',
+    },
+    toasts: {
+      show: 'Show toast',
+      success: 'Order #1042 saved',
+      error: 'Could not reach the printer',
+      info: 'New order from table 7',
+      warning: 'Stock is low for Chicken shawarma',
+    },
+    skeleton: 'Skeleton',
+  },
   title: 'UI kit',
   subtitle: 'Every @app/ui component in both themes and both directions.',
   toolbar: {
@@ -175,6 +308,8 @@ const en: DevUiCopy = {
     forms: 'Form, MoneyInput, NumberInput',
     data: 'SearchInput, DataTable, Pagination',
     badges: 'Badge',
+    layout:
+      'Card, Tabs, StatCard, Alert, EmptyState, Spinner, Skeleton, Toast, PageHeader, Sidebar',
   },
   data: {
     search: 'Search orders',
@@ -334,6 +469,75 @@ const en: DevUiCopy = {
 };
 
 const ar: DevUiCopy = {
+  layout: {
+    sidebarLabel: 'القائمة الرئيسية',
+    close: 'إغلاق القائمة',
+    collapse: 'طي الشريط الجانبي',
+    openMenu: 'فتح القائمة',
+    brand: 'مطعم البيت',
+    groupMain: 'التشغيل',
+    groupSettings: 'الإدارة',
+    nav: {
+      dashboard: 'لوحة التحكم',
+      orders: 'الطلبات',
+      menu: 'المنيو',
+      tables: 'الطاولات',
+      staff: 'الموظفون',
+      settings: 'الإعدادات',
+    },
+    pageTitle: 'لوحة التحكم',
+    pageDescription: 'اليوم في فرع الرياض – العليا',
+    breadcrumbs: ['الرئيسية', 'الرياض – العليا', 'لوحة التحكم'],
+    breadcrumbLabel: 'مسار التنقل',
+    newOrder: 'طلب جديد',
+    stats: {
+      sales: 'مبيعات اليوم',
+      salesValue: '١٢٬٤٨٠٫٠٠ ر.س',
+      salesDelta: '+١٢٪',
+      orders: 'الطلبات',
+      ordersValue: '١٨٦',
+      ordersDelta: '−٤٪',
+      cancelled: 'الملغاة',
+      cancelledValue: '٣',
+      cancelledDelta: '−٢',
+      vsYesterday: 'مقارنة بالأمس',
+    },
+    tabs: {
+      overview: 'نظرة عامة',
+      orders: 'الطلبات',
+      reports: 'التقارير',
+      overviewText: 'المبيعات أعلى من الأسبوع الماضي.',
+      ordersText: '١٢ طلبًا بانتظار المطبخ.',
+      reportsText: 'التقارير جاهزة للتنزيل.',
+    },
+    cardTitle: 'ساعات عمل الفرع',
+    cardDescription: 'تظهر في المنيو العام.',
+    cardBody: 'من السبت إلى الخميس، من ١٢:٠٠ ظهرًا حتى ١٢:٠٠ منتصف الليل.',
+    save: 'حفظ',
+    cancel: 'إلغاء',
+    loading: 'جارٍ التحميل',
+    emptyTitle: 'لا توجد طلبات بعد',
+    emptyDescription: 'ستظهر هنا الطلبات الجديدة من الكاشير ومنيو QR.',
+    emptyAction: 'إنشاء طلب',
+    alerts: {
+      info: 'تنبيه',
+      infoText: 'سيُنشر المنيو الليلة.',
+      success: 'تم الحفظ',
+      successText: 'تغييراتك أصبحت فعّالة.',
+      warning: 'الطابعة غير متصلة',
+      warningText: 'تذاكر المطبخ في الانتظار حتى تعود الطابعة.',
+      error: 'فشل الدفع',
+      errorText: 'رُفضت البطاقة. جرّب طريقة أخرى.',
+    },
+    toasts: {
+      show: 'إظهار إشعار',
+      success: 'تم حفظ الطلب #1042',
+      error: 'تعذّر الوصول إلى الطابعة',
+      info: 'طلب جديد من الطاولة 7',
+      warning: 'المخزون منخفض لشاورما الدجاج',
+    },
+    skeleton: 'هيكل التحميل',
+  },
   title: 'مكتبة الواجهة',
   subtitle: 'كل مكونات ‎@app/ui‎ بالثيمين وبالاتجاهين.',
   toolbar: {
@@ -352,6 +556,7 @@ const ar: DevUiCopy = {
     forms: 'النماذج وحقول المبالغ والأرقام',
     data: 'البحث والجداول والتنقل بين الصفحات',
     badges: 'الشارات',
+    layout: 'البطاقات والتبويبات والتنبيهات والإشعارات والشريط الجانبي',
   },
   data: {
     search: 'بحث في الطلبات',

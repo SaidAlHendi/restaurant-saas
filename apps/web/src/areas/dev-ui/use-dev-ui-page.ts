@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '@app/ui';
 
 import { devUiCopy } from './dev-ui.copy.js';
+import { useLayoutDemo } from './layout-demo.js';
 import { useOrdersDemo } from './orders-demo.js';
 import { useInputsDemo, useProductFormDemo } from './product-form-demo.js';
 
@@ -35,6 +36,7 @@ export function useDevUiPage() {
   const copy = isArabic ? devUiCopy.ar : devUiCopy.en;
   const locale = isArabic ? 'ar-SA' : 'en-SA';
   const orders = useOrdersDemo(copy, locale);
+  const layout = useLayoutDemo(copy);
 
   const onArabicChange = (checked: boolean) => {
     void i18n.changeLanguage(checked ? 'ar' : 'en');
@@ -67,6 +69,7 @@ export function useDevUiPage() {
     inputs,
     locale,
     orders,
+    layout,
   };
 }
 

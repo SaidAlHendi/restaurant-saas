@@ -1,5 +1,6 @@
 import type { DevUiCopy } from './dev-ui.copy.js';
 import type { OrdersDemo } from './orders-demo.js';
+import type { LayoutDemo } from './layout-demo.js';
 import type { InputsDemo, ProductFormDemo } from './product-form-demo.js';
 import type { DevUiConfirmState, DevUiMenuState } from './use-dev-ui-page.js';
 import { ButtonsSection } from './sections/ButtonsSection.js';
@@ -7,6 +8,7 @@ import { ChoicesSection } from './sections/ChoicesSection.js';
 import { DataSection } from './sections/DataSection.js';
 import { FormsSection } from './sections/FormsSection.js';
 import { IconButtonsSection } from './sections/IconButtonsSection.js';
+import { LayoutSection } from './sections/LayoutSection.js';
 import { OverlaysSection } from './sections/OverlaysSection.js';
 import { SelectsSection } from './sections/SelectsSection.js';
 import { TextFieldsSection } from './sections/TextFieldsSection.js';
@@ -22,6 +24,7 @@ export interface ShowcaseProps {
   productForm: ProductFormDemo;
   inputs: InputsDemo;
   orders: OrdersDemo;
+  layout: LayoutDemo;
 }
 
 export function Showcase({
@@ -34,6 +37,7 @@ export function Showcase({
   productForm,
   inputs,
   orders,
+  layout,
 }: ShowcaseProps) {
   return (
     <div className="flex flex-col gap-10 p-6">
@@ -54,6 +58,7 @@ export function Showcase({
         inputs={inputs}
       />
       <DataSection copy={copy} idPrefix={idPrefix} orders={orders} />
+      <LayoutSection copy={copy} layout={layout} />
     </div>
   );
 }
