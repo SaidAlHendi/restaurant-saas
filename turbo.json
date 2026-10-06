@@ -1,6 +1,15 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "agentGuidance": false,
+  "globalPassThroughEnv": [
+    "DATABASE_URL",
+    "DATABASE_URL_TEST",
+    "REDIS_URL",
+    "NODE_ENV",
+    "APP_ROLE",
+    "PORT",
+    "LOG_LEVEL"
+  ],
   "tasks": {
     "build": {
       "dependsOn": [
