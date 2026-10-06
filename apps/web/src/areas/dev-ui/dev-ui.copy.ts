@@ -12,6 +12,31 @@ export interface DevUiCopy {
     choices: string;
     selects: string;
     overlays: string;
+    forms: string;
+  };
+  forms: {
+    formTitle: string;
+    name: string;
+    nameDescription: string;
+    price: string;
+    priceDescription: string;
+    quantity: string;
+    category: string;
+    categoryPlaceholder: string;
+    categories: string[];
+    available: string;
+    submit: string;
+    reset: string;
+    submitted: string;
+    errors: Record<string, string>;
+    moneyTitle: string;
+    sar: string;
+    kwd: string;
+    touch: string;
+    disabled: string;
+    numberTitle: string;
+    decrease: string;
+    increase: string;
   };
   overlays: {
     branch: string;
@@ -112,6 +137,36 @@ const en: DevUiCopy = {
     choices: 'Checkbox, Switch, RadioGroup',
     selects: 'Select, Combobox',
     overlays: 'Popover, DropdownMenu, Tooltip, Dialog, ConfirmDialog, Sheet',
+    forms: 'Form, MoneyInput, NumberInput',
+  },
+  forms: {
+    formTitle: 'Product form (react-hook-form + zod)',
+    name: 'Product name',
+    nameDescription: 'Shown on the public menu.',
+    price: 'Price',
+    priceDescription: 'Stored as minor units (halalas).',
+    quantity: 'Default quantity',
+    category: 'Category',
+    categoryPlaceholder: 'Choose a category',
+    categories: ['Sandwiches', 'Salads', 'Drinks'],
+    available: 'Available today',
+    submit: 'Save product',
+    reset: 'Reset',
+    submitted: 'Submitted values',
+    errors: {
+      'errors.nameTooShort': 'Name must be at least 2 characters.',
+      'errors.priceRequired': 'Enter a price.',
+      'errors.pricePositive': 'Price must be greater than zero.',
+      'errors.categoryRequired': 'Choose a category.',
+    },
+    moneyTitle: 'MoneyInput',
+    sar: 'SAR (2 decimals)',
+    kwd: 'KWD (3 decimals)',
+    touch: 'Touch size',
+    disabled: 'Disabled',
+    numberTitle: 'NumberInput',
+    decrease: 'Decrease',
+    increase: 'Increase',
   },
   overlays: {
     branch: 'Branch',
@@ -218,6 +273,36 @@ const ar: DevUiCopy = {
     choices: 'مربعات الاختيار والمفاتيح وأزرار الراديو',
     selects: 'القوائم المنسدلة والبحث',
     overlays: 'النوافذ المنبثقة والقوائم والتلميحات والحوارات واللوحات',
+    forms: 'النماذج وحقول المبالغ والأرقام',
+  },
+  forms: {
+    formTitle: 'نموذج منتج (react-hook-form + zod)',
+    name: 'اسم المنتج',
+    nameDescription: 'يظهر في المنيو العام.',
+    price: 'السعر',
+    priceDescription: 'يُحفظ بالوحدة الصغرى (هللة).',
+    quantity: 'الكمية الافتراضية',
+    category: 'التصنيف',
+    categoryPlaceholder: 'اختر تصنيفاً',
+    categories: ['سندويشات', 'سلطات', 'مشروبات'],
+    available: 'متوفر اليوم',
+    submit: 'حفظ المنتج',
+    reset: 'إعادة تعيين',
+    submitted: 'القيم المرسلة',
+    errors: {
+      'errors.nameTooShort': 'يجب أن يكون الاسم حرفين على الأقل.',
+      'errors.priceRequired': 'أدخل السعر.',
+      'errors.pricePositive': 'يجب أن يكون السعر أكبر من صفر.',
+      'errors.categoryRequired': 'اختر تصنيفاً.',
+    },
+    moneyTitle: 'حقل المبلغ',
+    sar: 'ريال (منزلتان)',
+    kwd: 'دينار كويتي (٣ منازل)',
+    touch: 'حجم اللمس',
+    disabled: 'معطّل',
+    numberTitle: 'حقل الرقم',
+    decrease: 'إنقاص',
+    increase: 'زيادة',
   },
   overlays: {
     branch: 'الفرع',

@@ -13,7 +13,11 @@ export function DevUiView({
   copy,
   menu,
   confirm,
+  locale,
+  productForm,
+  inputs,
 }: DevUiPageViewModel) {
+  const shared = { copy, menu, confirm, locale, productForm, inputs };
   return (
     <div className="min-h-dvh bg-background text-foreground">
       <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur">
@@ -42,15 +46,15 @@ export function DevUiView({
       {sideBySide ? (
         <div className="grid lg:grid-cols-2">
           <div data-theme="cupcake" className="bg-background text-foreground">
-            <Showcase copy={copy} idPrefix="cupcake" themeName="cupcake" menu={menu} confirm={confirm} />
+            <Showcase {...shared} idPrefix="cupcake" themeName="cupcake" />
           </div>
           <div data-theme="forest" className="bg-background text-foreground">
-            <Showcase copy={copy} idPrefix="forest" themeName="forest" menu={menu} confirm={confirm} />
+            <Showcase {...shared} idPrefix="forest" themeName="forest" />
           </div>
         </div>
       ) : (
         <div className="mx-auto max-w-7xl">
-          <Showcase copy={copy} idPrefix="main" themeName={theme} menu={menu} confirm={confirm} />
+          <Showcase {...shared} idPrefix="main" themeName={theme} />
         </div>
       )}
     </div>

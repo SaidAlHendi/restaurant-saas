@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '@app/ui';
 
 import { devUiCopy } from './dev-ui.copy.js';
+import { useInputsDemo, useProductFormDemo } from './product-form-demo.js';
 
 /** Fake request time for the ConfirmDialog demo. */
 const CONFIRM_DELAY_MS = 1200;
@@ -25,6 +26,9 @@ export function useDevUiPage() {
     },
     [],
   );
+
+  const productForm = useProductFormDemo();
+  const inputs = useInputsDemo();
 
   const isArabic = i18n.language === 'ar';
 
@@ -50,6 +54,9 @@ export function useDevUiPage() {
     copy: isArabic ? devUiCopy.ar : devUiCopy.en,
     menu: { showArchived, onShowArchivedChange: setShowArchived, sortBy, onSortByChange: setSortBy },
     confirm: { open: confirmOpen, onOpenChange: setConfirmOpen, isConfirming, onConfirm },
+    productForm,
+    inputs,
+    locale: isArabic ? 'ar-SA' : 'en-SA',
   };
 }
 
