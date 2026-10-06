@@ -1,9 +1,16 @@
 @import 'tailwindcss';
+@import 'tw-animate-css';
 @import './themes.css';
+
+/* Let apps that import this file also generate the classes used inside packages/ui. */
+@source '../';
+
+/* `dark:` follows the forest theme, not the OS setting. */
+@custom-variant dark (&:where([data-theme='forest'], [data-theme='forest'] *));
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground;

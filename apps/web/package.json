@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --port 5173",
     "build": "tsc -p tsconfig.json --noEmit && vite build",
-    "lint": "eslint .",
+    "lint": "eslint . && node ../../packages/ui/scripts/check-logical-classes.mjs src",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "preview": "vite preview"
@@ -17,6 +17,7 @@
     "@hookform/resolvers": "^5.2.1",
     "@reduxjs/toolkit": "^2.8.2",
     "i18next": "^25.3.2",
+    "lucide-react": "^1.52.0",
     "react": "catalog:",
     "react-dom": "catalog:",
     "react-hook-form": "^7.62.0",

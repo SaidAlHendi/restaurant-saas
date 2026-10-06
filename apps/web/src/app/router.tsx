@@ -9,6 +9,16 @@ const PosArea = lazy(() => import('../areas/pos/PosArea.js'));
 const KdsArea = lazy(() => import('../areas/kds/KdsArea.js'));
 const AdminArea = lazy(() => import('../areas/admin/AdminArea.js'));
 
+// UI kit showcase for review. `import.meta.env.DEV` is false in production builds, so Vite drops it.
+const devRoutes: RouteObject[] = import.meta.env.DEV
+  ? [
+      {
+        path: '/dev/ui',
+        lazy: async () => ({ Component: (await import('../areas/dev-ui/DevUiPage.js')).default }),
+      },
+    ]
+  : [];
+
 export const appRoutes: RouteObject[] = [
   {
     path: '/',
@@ -22,6 +32,7 @@ export const appRoutes: RouteObject[] = [
       { path: 'admin/*', element: <AdminArea /> },
     ],
   },
+  ...devRoutes,
 ];
 
 export const router = createBrowserRouter(appRoutes);

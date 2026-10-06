@@ -3,7 +3,15 @@
   "compilerOptions": {
     "allowJs": true,
     "noEmit": true,
-    "types": ["node"]
+    "types": [
+      "node",
+      "vitest/globals"
+    ]
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "eslint.config.js"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "eslint.config.js",
+    "vitest.config.ts"
+  ]
 }
