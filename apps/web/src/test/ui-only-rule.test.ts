@@ -43,6 +43,15 @@ describe('UI-only ESLint rule', () => {
     expect(ids).toContain('no-restricted-imports');
   });
 
+  it.each([
+    'src/features/menu/screens/MenuScreen.tsx',
+    'src/features/menu/sortable/SortableList.tsx',
+    'src/features/menu/MenuRoutes.tsx',
+  ])('applies to every feature .tsx folder: %s', async (filePath) => {
+    const ids = await ruleIdsFor("import { useState } from 'react';", filePath);
+    expect(ids).toContain('no-restricted-imports');
+  });
+
   it('allows UI imports in components', async () => {
     const code =
       "import { Button } from '@app/ui'; import { useTranslation } from 'react-i18next';";
