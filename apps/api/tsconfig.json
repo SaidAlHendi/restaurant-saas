@@ -5,8 +5,7 @@
     "outDir": "dist",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@app/shared": ["../../packages/shared/dist/index.d.ts"]
+      "@/*": ["src/*"]
     },
     "allowSyntheticDefaultImports": true,
     "incremental": false
