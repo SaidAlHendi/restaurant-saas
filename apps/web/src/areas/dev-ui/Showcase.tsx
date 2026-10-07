@@ -1,6 +1,7 @@
 import type { DevUiCopy } from './dev-ui.copy.js';
 import type { OrdersDemo } from './orders-demo.js';
 import type { LayoutDemo } from './layout-demo.js';
+import type { ImageUploadDemo } from './image-upload-demo.js';
 import type { InputsDemo, ProductFormDemo } from './product-form-demo.js';
 import type { DevUiConfirmState, DevUiMenuState } from './use-dev-ui-page.js';
 import { ButtonsSection } from './sections/ButtonsSection.js';
@@ -23,6 +24,7 @@ export interface ShowcaseProps {
   locale: string;
   productForm: ProductFormDemo;
   inputs: InputsDemo;
+  imageUpload: ImageUploadDemo;
   orders: OrdersDemo;
   layout: LayoutDemo;
 }
@@ -36,6 +38,7 @@ export function Showcase({
   locale,
   productForm,
   inputs,
+  imageUpload,
   orders,
   layout,
 }: ShowcaseProps) {
@@ -56,6 +59,7 @@ export function Showcase({
         locale={locale}
         productForm={productForm}
         inputs={inputs}
+        imageUpload={imageUpload}
       />
       <DataSection copy={copy} idPrefix={idPrefix} orders={orders} />
       <LayoutSection copy={copy} layout={layout} />

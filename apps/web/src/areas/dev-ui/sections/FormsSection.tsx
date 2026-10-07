@@ -9,6 +9,7 @@ import {
   FormMessage,
   Input,
   Label,
+  ImageUpload,
   MoneyInput,
   NumberInput,
   Select,
@@ -20,6 +21,7 @@ import {
 } from '@app/ui';
 
 import type { DevUiCopy } from '../dev-ui.copy.js';
+import type { ImageUploadDemo } from '../image-upload-demo.js';
 import type { InputsDemo, ProductFormDemo } from '../product-form-demo.js';
 import { ShowcaseRow, ShowcaseSection } from './ShowcaseSection.js';
 
@@ -29,9 +31,17 @@ export interface FormsSectionProps {
   locale: string;
   productForm: ProductFormDemo;
   inputs: InputsDemo;
+  imageUpload: ImageUploadDemo;
 }
 
-export function FormsSection({ copy, idPrefix, locale, productForm, inputs }: FormsSectionProps) {
+export function FormsSection({
+  copy,
+  idPrefix,
+  locale,
+  productForm,
+  inputs,
+  imageUpload,
+}: FormsSectionProps) {
   const f = copy.forms;
   const id = (name: string) => `${idPrefix}-${name}`;
   const translate = (key: string) => f.errors[key] ?? key;
@@ -216,6 +226,21 @@ export function FormsSection({ copy, idPrefix, locale, productForm, inputs }: Fo
               incrementLabel={f.increase}
             />
           </ShowcaseRow>
+
+          <p className="font-medium">{f.imageUploadTitle}</p>
+          <ImageUpload
+            previewUrl={imageUpload.previewUrl}
+            label={f.imageLabel}
+            hint={f.imageHint}
+            chooseLabel={f.imageChoose}
+            uploadingLabel={f.imageUploading}
+            removeLabel={f.imageRemove}
+            previewAlt={f.imagePreviewAlt}
+            progress={imageUpload.progress}
+            isUploading={imageUpload.isUploading}
+            onFileSelect={imageUpload.onFileSelect}
+            onRemove={imageUpload.onRemove}
+          />
         </div>
       </div>
     </ShowcaseSection>

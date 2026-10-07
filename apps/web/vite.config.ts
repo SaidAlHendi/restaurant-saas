@@ -1,9 +1,20 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
+const webRoot = path.dirname(fileURLToPath(import.meta.url));
+
 export default defineConfig({
+  resolve: {
+    // @app/shared dist is CJS (for Nest); Vite/Rollup needs ESM — bundle from source.
+    alias: {
+      '@app/shared': path.join(webRoot, '../../packages/shared/src/index.ts'),
+    },
+  },
   plugins: [
     react(),
     tailwindcss(),

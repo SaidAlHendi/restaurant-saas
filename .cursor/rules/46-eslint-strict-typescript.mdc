@@ -1,0 +1,85 @@
+---
+description: ESLint + typescript-eslint strictTypeChecked patterns for the monorepo. Read before editing .ts/.tsx.
+globs: apps/**/*.ts,apps/**/*.tsx,packages/**/*.ts,packages/**/*.tsx
+alwaysApply: false
+---
+# ESLint — strict type-checked TypeScript
+
+**Source:** `packages/config/eslint-config/base.js` extends `typescript-eslint` **`strictTypeChecked`** (all apps/packages with typed ESLint). React apps add `react.js` + `ui-only.js` where configured.
+
+**Workflow:** After each batch of files in a package, run **`pnpm lint`** in that package (or root turbo), not only at the end. Forbidden fixes: `eslint-disable`, `@ts-ignore`, `@ts-expect-error`, `as any`, non-null `!` to silence lint.
+
+## Rules that fail often (write correct code the first time)
+
+### `@typescript-eslint/restrict-template-expressions`
+
+Template literals may only embed types ESLint allows (typically **`string`**; **`number` is not allowed** in this preset).
+
+```typescript
+// BAD
+style={{ width: `${Math.min(100, progress)}%` }}
+
+// GOOD — coerce before the template
+const widthPct = String(Math.min(100, Math.max(0, progress)));
+style={{ width: `${widthPct}%` }}
+```
+
+Same for `` `${count} items` ``, `` `id-${id}` `` when `id` is number: use `String(id)` or `.toString()`.
+
+### `@typescript-eslint/no-unnecessary-condition`
+
+Do not re-check null/undefined after TypeScript (or a prior guard) already narrowed the type.
+
+```typescript
+// BAD — showProgress already implies progress was narrowed
+const showProgress = isUploading && progress != null;
+const w = showProgress && progress != null ? String(progress) : '0';
+
+// GOOD — one derived value, one guard
+const progressPercent =
+  typeof progress === 'number' ? Math.min(100, Math.max(0, progress)) : null;
+const showProgress = isUploading && progressPercent !== null;
+const widthPct = progressPercent === null ? '0' : String(progressPercent);
+```
+
+Avoid `if (x)` when `x` is always truthy/falsy per types. Remove dead branches instead of disabling the rule.
+
+### `@typescript-eslint/no-confusing-void-expression`
+
+Do not use `() => doSomething()` when `doSomething()` returns `void` — ESLint treats that as returning a void expression. Use a block:
+
+```typescript
+// BAD
+onClick={() => onOpenChange(false)}
+
+// GOOD
+onClick={() => {
+  onOpenChange(false);
+}}
+```
+
+### `@typescript-eslint/no-floating-promises`
+
+Await promises, or **`void`** only for intentional fire-and-forget (e.g. `void navigate('/x')`, `void refetch()` in a click handler). Never leave a bare `mutation()` or `fetch()` call in an handler without `void`/await.
+
+### `@typescript-eslint/no-invalid-void-type`
+
+RTK Query endpoints with **no argument** use **`undefined`**, not **`void`**: `builder.query<Result, undefined>({...})`, call with `useQuery(undefined)`.
+
+### Imports and hygiene
+
+- **`import type`** for type-only imports.
+- No unused vars/imports (`@typescript-eslint/no-unused-vars` with `_` prefix allowed).
+- No `console.*` in app code (api: Nest logger; web/site: none).
+
+### `@app/ui` extra
+
+`packages/ui` also runs **`node scripts/check-logical-classes.mjs`** — use logical Tailwind (`ms-*`, `pe-*`, `text-start`), not physical `ml-*`/`mr-*`/`text-left`.
+
+## UI-only `.tsx` (apps/web, apps/site)
+
+See `45-components-ui-only.mdc` and `ui-only.js`: feature **`components/**`** and **`pages/**`** `.tsx` must not import `useState`, RTK Query, etc. Logic lives in **`hooks/*.ts`** or non–ui-only paths (e.g. `screens/*.tsx` in a feature).
+
+## When unsure
+
+Run `pnpm lint` in the touched package and fix the reported rule by name — do not weaken ESLint config or add disables without asking.

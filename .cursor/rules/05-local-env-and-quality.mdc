@@ -38,6 +38,7 @@ alwaysApply: true
   `apps/api/src/config/env.ts` (Zod). No direct `process.env['X']` elsewhere.
 - No `any` flowing from untyped values: parse unknown JSON/errors with Zod or a type guard.
 - No unnecessary conditions or casts: if TypeScript already knows the type, do not re-check or re-cast it.
+- react-hook-form + dynamic Zod: `useForm<T, unknown, T>({ resolver: zodResolver(schema) })` — see `47-typescript-typecheck.mdc`.
 - Only throw `Error` subclasses (React Router `Response` is the configured exception).
 - Use Zod 4 APIs: `z.email()`, `z.url()`, `z.uuid()` (not the deprecated `z.string().email()` forms).
 - No `console.*` in app code; use the Nest logger (api) or nothing (web).
