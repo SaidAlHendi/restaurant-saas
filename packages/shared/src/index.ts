@@ -29,3 +29,68 @@ export type { Branch, CreateBranchBody, PatchBranchBody } from './branches/branc
 
 export { membershipListItemSchema, membershipListResponseSchema } from './memberships/membership.js';
 export type { MembershipListItem } from './memberships/membership.js';
+
+export {
+  localizedTextInputSchema,
+  moneyMinorSchema,
+  parseLocalizedText,
+  parseOptionalLocalizedText,
+  assertNoDuplicateIds,
+  LocalizedTextValidationError,
+} from './i18n/localized-text.js';
+export type { LocalizedText, OrgLocaleContext } from './i18n/localized-text.js';
+
+export {
+  categorySchema,
+  categoryListResponseSchema,
+  createCategoryBodySchema,
+  patchCategoryBodySchema,
+  reorderBodySchema,
+} from './catalog/category.js';
+export type { Category, CreateCategoryBody, PatchCategoryBody, ReorderBody } from './catalog/category.js';
+
+export {
+  productSchema,
+  productDetailSchema,
+  productListQuerySchema,
+  productListResponseSchema,
+  createProductBodySchema,
+  patchProductBodySchema,
+  reorderProductsBodySchema,
+  setProductModifierGroupsBodySchema,
+  productImageUrlsSchema,
+} from './catalog/product.js';
+export type {
+  Product,
+  ProductDetail,
+  ProductListQuery,
+  CreateProductBody,
+  PatchProductBody,
+  ReorderProductsBody,
+  SetProductModifierGroupsBody,
+} from './catalog/product.js';
+
+export {
+  modifierSchema,
+  modifierGroupSchema,
+  modifierGroupDetailSchema,
+  modifierGroupListResponseSchema,
+  createModifierGroupBodySchema,
+  patchModifierGroupBodySchema,
+  createModifierBodySchema,
+  patchModifierBodySchema,
+  reorderModifiersBodySchema,
+} from './catalog/modifier-group.js';
+export type {
+  Modifier,
+  ModifierGroup,
+  ModifierGroupDetail,
+  CreateModifierGroupBody,
+  PatchModifierGroupBody,
+  CreateModifierBody,
+  PatchModifierBody,
+  ReorderModifiersBody,
+} from './catalog/modifier-group.js';
+
+export { cursorListQuerySchema, cursorListResponseSchema } from './catalog/pagination.js';
+export type { CursorListQuery } from './catalog/pagination.js';

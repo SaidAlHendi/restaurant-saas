@@ -27,8 +27,12 @@ export class ForbiddenError extends AppError {
 }
 
 export class ConflictError extends AppError {
-  constructor(message = 'Conflict', details: Record<string, unknown> = {}) {
-    super('CONFLICT', message, 409, details);
+  constructor(
+    message = 'Conflict',
+    details: Record<string, unknown> = {},
+    code = 'CONFLICT',
+  ) {
+    super(code, message, 409, details);
   }
 }
 
@@ -39,8 +43,12 @@ export class BusinessRuleError extends AppError {
 }
 
 export class ValidationError extends AppError {
-  constructor(message = 'Validation failed', details: Record<string, unknown> = {}) {
-    super('VALIDATION_ERROR', message, 400, details);
+  constructor(
+    message = 'Validation failed',
+    details: Record<string, unknown> = {},
+    code = 'VALIDATION_ERROR',
+  ) {
+    super(code, message, 400, details);
   }
 }
 
