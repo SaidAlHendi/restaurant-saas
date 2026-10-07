@@ -8,8 +8,7 @@ const typedFiles = ['**/*.{ts,tsx}', 'vite.config.ts', 'vitest.config.ts'];
 
 /** Files that must stay UI only (props in, JSX out). */
 export const uiOnlyFiles = [
-  'src/features/**/components/**/*.tsx',
-  'src/features/**/pages/**/*.tsx',
+  'src/features/**/*.tsx',
   'src/areas/**/*.tsx',
 ];
 

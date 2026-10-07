@@ -32,11 +32,11 @@ export class ProductImageService {
     try {
       meta = await sharp(buffer, { limitInputPixels: 40_000_000 }).metadata();
     } catch {
-      throw new ValidationError('Unsupported image format');
+      throw new ValidationError('Unsupported image format', {}, 'UNSUPPORTED_IMAGE_TYPE');
     }
     const rawFormat: unknown = meta.format;
     if (typeof rawFormat !== 'string' || !ALLOWED_FORMATS.has(rawFormat)) {
-      throw new ValidationError('Unsupported image format');
+      throw new ValidationError('Unsupported image format', {}, 'UNSUPPORTED_IMAGE_TYPE');
     }
     if (meta.pages !== undefined && meta.pages > 1) {
       throw new ValidationError('Animated images are not supported');
