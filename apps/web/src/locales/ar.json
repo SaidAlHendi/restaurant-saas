@@ -76,7 +76,13 @@
       "inactive": "غير نشط"
     },
     "errors": {
-      "loadFailed": "تعذر تحميل البيانات. حاول مرة أخرى."
+      "loadFailed": "تعذر تحميل البيانات. حاول مرة أخرى.",
+      "generic": "حدث خطأ. حاول مرة أخرى.",
+      "categoryHasActiveProducts": "انقل المنتجات أو أزلها من هذا التصنيف قبل حذفه.",
+      "fileTooLarge": "حجم الملف كبير جداً.",
+      "unsupportedImageType": "اختر صورة بصيغة JPEG أو PNG أو WebP.",
+      "validation": "تحقق من النموذج وحاول مرة أخرى.",
+      "notFound": "لم يُعثر على هذا العنصر."
     },
     "categories": {
       "title": "التصنيفات",
@@ -100,6 +106,7 @@
       "searchPlaceholder": "بحث في المنتجات",
       "searchClear": "مسح البحث",
       "allCategories": "كل التصنيفات",
+      "allActive": "كل الحالات",
       "loadMore": "تحميل المزيد",
       "sortBy": "ترتيب حسب",
       "deleteConfirm": "سيُزال هذا المنتج من القائمة (حذف منطقي).",
@@ -145,6 +152,7 @@
     },
     "modifiers": {
       "add": "إضافة خيار",
+      "drag": "اسحب لإعادة الترتيب",
       "createTitle": "إضافة جديدة",
       "emptyTitle": "لا توجد إضافات في هذه المجموعة بعد.",
       "fields": {

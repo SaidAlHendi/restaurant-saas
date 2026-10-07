@@ -1,4 +1,4 @@
-import type { ComponentProps, CSSProperties, HTMLAttributes, ReactNode } from 'react';
+import type { ComponentProps, CSSProperties, HTMLAttributes, ReactNode, Ref } from 'react';
 import { GripVerticalIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 
 import {
@@ -82,7 +82,7 @@ export function CategoriesPageView({
       ) : items.length === 0 ? (
         <EmptyState title={emptyTitle} description={emptyDescription} />
       ) : (
-        <ul className="flex flex-col gap-2">{sortableRows}</ul>
+        sortableRows
       )}
       <CategoryFormDialogView
         open={formOpen}
@@ -115,7 +115,7 @@ export interface CategoryRowViewProps {
   activeLabel: string;
   inactiveLabel: string;
   dragHandleProps: HTMLAttributes<HTMLButtonElement>;
-  rowProps?: HTMLAttributes<HTMLLIElement>;
+  rowProps?: HTMLAttributes<HTMLLIElement> & { ref?: Ref<HTMLLIElement> };
   style?: CSSProperties;
   isDragging?: boolean;
   isDropTarget?: boolean;
@@ -162,12 +162,21 @@ export function CategoryRowView({
       </Badge>
       {canManage ? (
         <div className="flex items-center gap-1">
-          <IconButton icon={<PencilIcon />} label={editLabel} variant="ghost" onClick={onEdit} />
+          <IconButton
+            icon={<PencilIcon />}
+            label={editLabel}
+            variant="ghost"
+            onClick={() => {
+              onEdit();
+            }}
+          />
           <IconButton
             icon={<Trash2Icon />}
             label={deleteLabel}
             variant="ghost"
-            onClick={onDelete}
+            onClick={() => {
+              onDelete();
+            }}
           />
         </div>
       ) : null}

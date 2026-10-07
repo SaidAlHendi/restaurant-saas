@@ -20,6 +20,42 @@ describe('buildProductFormSchema', () => {
     expect(localizedFormToApi(parsed.name, org)).toEqual({ en: 'Burger', ar: 'برجر' });
   });
 
+  it('rejects negative and non-integer prices', () => {
+    const schema = buildProductFormSchema(['en'], 'en', [categoryId]);
+    expect(() =>
+      schema.parse({
+        categoryId,
+        name: { en: 'Tea' },
+        description: { en: '' },
+        priceMinor: -1,
+        isActive: true,
+        modifierGroupIds: [],
+      }),
+    ).toThrow();
+    expect(() =>
+      schema.parse({
+        categoryId,
+        name: { en: 'Tea' },
+        description: { en: '' },
+        priceMinor: 10.5,
+        isActive: true,
+        modifierGroupIds: [],
+      }),
+    ).toThrow();
+  });
+
+  it('keeps price in integer minor units', () => {
+    const parsed = buildProductFormSchema(['en'], 'en', [categoryId]).parse({
+      categoryId,
+      name: { en: 'Tea' },
+      description: { en: '' },
+      priceMinor: 1250,
+      isActive: true,
+      modifierGroupIds: [],
+    });
+    expect(parsed.priceMinor).toBe(1250);
+  });
+
   it('requires default locale name', () => {
     expect(() =>
       buildProductFormSchema(['en', 'ar'], 'en', [categoryId]).parse({

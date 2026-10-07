@@ -76,7 +76,13 @@
       "inactive": "Inactive"
     },
     "errors": {
-      "loadFailed": "Could not load data. Try again."
+      "loadFailed": "Could not load data. Try again.",
+      "generic": "Something went wrong. Try again.",
+      "categoryHasActiveProducts": "Move or remove products in this category before deleting it.",
+      "fileTooLarge": "The file is too large.",
+      "unsupportedImageType": "Choose a JPEG, PNG, or WebP image.",
+      "validation": "Check the form and try again.",
+      "notFound": "This item was not found."
     },
     "categories": {
       "title": "Categories",
@@ -100,6 +106,7 @@
       "searchPlaceholder": "Search products",
       "searchClear": "Clear search",
       "allCategories": "All categories",
+      "allActive": "All statuses",
       "loadMore": "Load more",
       "sortBy": "Sort by",
       "deleteConfirm": "This product will be removed from the menu (soft delete).",
@@ -145,6 +152,7 @@
     },
     "modifiers": {
       "add": "Add modifier",
+      "drag": "Drag to reorder",
       "createTitle": "New modifier",
       "emptyTitle": "No modifiers in this group yet.",
       "fields": {

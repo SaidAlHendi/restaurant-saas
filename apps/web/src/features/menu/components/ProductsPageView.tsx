@@ -1,10 +1,8 @@
 import type { ComponentProps } from 'react';
-import { PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 
 import {
   Alert,
   AlertDescription,
-  Badge,
   Button,
   ConfirmDialog,
   DataTable,
@@ -17,11 +15,13 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-  currencyDigits,
-  formatMinor,
+  Switch,
 } from '@app/ui';
+import { PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 
 import type { Product } from '@app/shared';
+
+import type { ProductActiveFilter } from '../product-list-filters.js';
 
 import { ProductFormSheetView } from './ProductFormSheetView.js';
 
@@ -37,16 +37,22 @@ export interface ProductsPageViewProps {
   categoryFilter: string;
   onCategoryFilterChange: (value: string) => void;
   allCategoriesLabel: string;
+  activeFilter: ProductActiveFilter;
+  onActiveFilterChange: (value: ProductActiveFilter) => void;
+  allActiveLabel: string;
+  activeOnlyLabel: string;
+  inactiveOnlyLabel: string;
   categories: { id: string; label: string }[];
   products: Product[];
   isLoading: boolean;
   errorMessage: string | null;
   labelFor: (product: Product) => string;
   categoryLabelFor: (product: Product) => string;
-  currency: string;
-  locale: string;
+  priceLabelFor: (product: Product) => string;
   activeLabel: string;
   inactiveLabel: string;
+  onToggleActive: (product: Product, isActive: boolean) => void;
+  togglingProductId: string | null;
   priceColumn: string;
   nameColumn: string;
   categoryColumn: string;
@@ -86,16 +92,22 @@ export function ProductsPageView({
   categoryFilter,
   onCategoryFilterChange,
   allCategoriesLabel,
+  activeFilter,
+  onActiveFilterChange,
+  allActiveLabel,
+  activeOnlyLabel,
+  inactiveOnlyLabel,
   categories,
   products,
   isLoading,
   errorMessage,
   labelFor,
   categoryLabelFor,
-  currency,
-  locale,
+  priceLabelFor,
   activeLabel,
   inactiveLabel,
+  onToggleActive,
+  togglingProductId,
   priceColumn,
   nameColumn,
   categoryColumn,
@@ -157,6 +169,21 @@ export function ProductsPageView({
             ))}
           </SelectContent>
         </Select>
+        <Select
+          value={activeFilter}
+          onValueChange={(value) => {
+            onActiveFilterChange(value as ProductActiveFilter);
+          }}
+        >
+          <SelectTrigger className="sm:max-w-xs">
+            <SelectValue placeholder={allActiveLabel} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{allActiveLabel}</SelectItem>
+            <SelectItem value="active">{activeOnlyLabel}</SelectItem>
+            <SelectItem value="inactive">{inactiveOnlyLabel}</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <DataTable
         columns={[
@@ -173,17 +200,26 @@ export function ProductsPageView({
           {
             id: 'price',
             header: priceColumn,
-            cell: (row) =>
-              formatMinor(row.priceMinor, currencyDigits(row.currency || currency), locale),
+            cell: (row) => priceLabelFor(row),
           },
           {
             id: 'status',
             header: statusColumn,
-            cell: (row) => (
-              <Badge variant={row.isActive ? 'default' : 'secondary'}>
-                {row.isActive ? activeLabel : inactiveLabel}
-              </Badge>
-            ),
+            cell: (row) =>
+              canManage ? (
+                <Switch
+                  checked={row.isActive}
+                  disabled={togglingProductId === row.id}
+                  aria-label={row.isActive ? activeLabel : inactiveLabel}
+                  onCheckedChange={(checked) => {
+                    onToggleActive(row, checked);
+                  }}
+                />
+              ) : (
+                <span className="text-muted-foreground text-sm">
+                  {row.isActive ? activeLabel : inactiveLabel}
+                </span>
+              ),
           },
         ]}
         data={products}

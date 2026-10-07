@@ -1,16 +1,16 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 
-import { CategoriesScreen } from './screens/categories-screen.js';
-import { ModifierGroupsScreen } from './screens/modifier-groups-screen.js';
-import { ProductsScreen } from './screens/products-screen.js';
+import { CategoriesPage } from './pages/CategoriesPage.js';
+import { ModifierGroupsPage } from './pages/ModifierGroupsPage.js';
+import { ProductsPage } from './pages/ProductsPage.js';
 
 export function MenuRoutes() {
   return (
     <Routes>
       <Route index element={<Navigate to="categories" replace />} />
-      <Route path="categories" element={<CategoriesScreen />} />
-      <Route path="products" element={<ProductsScreen />} />
-      <Route path="modifier-groups" element={<ModifierGroupsScreen />} />
+      <Route path="categories" element={<CategoriesPage />} />
+      <Route path="products" element={<ProductsPage />} />
+      <Route path="modifier-groups" element={<ModifierGroupsPage />} />
     </Routes>
   );
 }
