@@ -6,6 +6,7 @@ import { RequirePermission } from '../../core/permissions/require-permission.dec
 
 import { CategoriesService } from './categories.service';
 import { CreateCategoryBodyDto, PatchCategoryBodyDto, ReorderBodyDto } from './dto/catalog.dto';
+import { CatalogPathIdPipe } from './pipes/catalog-path-id.pipe';
 
 @Controller('v1/categories')
 export class CategoriesController {
@@ -33,7 +34,7 @@ export class CategoriesController {
   @Patch(':categoryId')
   patch(
     @Ctx() ctx: RequestContext,
-    @Param('categoryId') categoryId: string,
+    @Param('categoryId', CatalogPathIdPipe) categoryId: string,
     @Body() body: PatchCategoryBodyDto,
   ) {
     return this.categories.patch(ctx, categoryId, body);
@@ -41,7 +42,10 @@ export class CategoriesController {
 
   @RequirePermission('menu.manage')
   @Delete(':categoryId')
-  remove(@Ctx() ctx: RequestContext, @Param('categoryId') categoryId: string) {
+  remove(
+    @Ctx() ctx: RequestContext,
+    @Param('categoryId', CatalogPathIdPipe) categoryId: string,
+  ) {
     return this.categories.remove(ctx, categoryId);
   }
 }

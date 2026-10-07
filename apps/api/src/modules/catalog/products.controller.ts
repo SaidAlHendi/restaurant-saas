@@ -12,6 +12,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import type { Express } from 'express';
 import { memoryStorage } from 'multer';
 
 import { ValidationError } from '../../core/errors/app-errors';
@@ -26,6 +27,7 @@ import {
   ReorderProductsBodyDto,
   SetProductModifierGroupsBodyDto,
 } from './dto/catalog.dto';
+import { CatalogPathIdPipe } from './pipes/catalog-path-id.pipe';
 import { ProductsService } from './products.service';
 
 const upload = memoryStorage();
@@ -49,7 +51,7 @@ export class ProductsController {
 
   @RequirePermission('menu.read')
   @Get(':productId')
-  get(@Ctx() ctx: RequestContext, @Param('productId') productId: string) {
+  get(@Ctx() ctx: RequestContext, @Param('productId', CatalogPathIdPipe) productId: string) {
     return this.products.get(ctx, productId);
   }
 
@@ -63,7 +65,7 @@ export class ProductsController {
   @Patch(':productId')
   patch(
     @Ctx() ctx: RequestContext,
-    @Param('productId') productId: string,
+    @Param('productId', CatalogPathIdPipe) productId: string,
     @Body() body: PatchProductBodyDto,
   ) {
     return this.products.patch(ctx, productId, body);
@@ -71,7 +73,7 @@ export class ProductsController {
 
   @RequirePermission('menu.manage')
   @Delete(':productId')
-  remove(@Ctx() ctx: RequestContext, @Param('productId') productId: string) {
+  remove(@Ctx() ctx: RequestContext, @Param('productId', CatalogPathIdPipe) productId: string) {
     return this.products.remove(ctx, productId);
   }
 
@@ -85,7 +87,7 @@ export class ProductsController {
   )
   uploadImage(
     @Ctx() ctx: RequestContext,
-    @Param('productId') productId: string,
+    @Param('productId', CatalogPathIdPipe) productId: string,
     @UploadedFile() file: Express.Multer.File | undefined,
   ) {
     if (!file) {
@@ -96,7 +98,10 @@ export class ProductsController {
 
   @RequirePermission('menu.manage')
   @Delete(':productId/image')
-  removeImage(@Ctx() ctx: RequestContext, @Param('productId') productId: string) {
+  removeImage(
+    @Ctx() ctx: RequestContext,
+    @Param('productId', CatalogPathIdPipe) productId: string,
+  ) {
     return this.products.removeImage(ctx, productId);
   }
 
@@ -104,7 +109,7 @@ export class ProductsController {
   @Put(':productId/modifier-groups')
   setModifierGroups(
     @Ctx() ctx: RequestContext,
-    @Param('productId') productId: string,
+    @Param('productId', CatalogPathIdPipe) productId: string,
     @Body() body: SetProductModifierGroupsBodyDto,
   ) {
     return this.products.setModifierGroups(ctx, productId, body);

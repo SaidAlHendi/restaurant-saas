@@ -1,8 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
 import { NotFoundError } from '../../core/errors/app-errors';
-import { DRIZZLE, type DrizzleDb } from '../../core/db/db.module';
-import { withOrg } from '../../core/db/with-org';
+import type { DrizzleTx } from '../../core/db/with-org';
 import type { OrgLocaleContext } from '@app/shared';
 
 import { TenancyRepository } from './tenancy.repository';
@@ -13,15 +12,10 @@ export type OrgCatalogSettings = OrgLocaleContext & {
 
 @Injectable()
 export class OrgSettingsService {
-  constructor(
-    @Inject(DRIZZLE) private readonly db: DrizzleDb,
-    private readonly tenancyRepo: TenancyRepository,
-  ) {}
+  constructor(private readonly tenancyRepo: TenancyRepository) {}
 
-  async getCatalogSettings(orgId: string): Promise<OrgCatalogSettings> {
-    const org = await withOrg(this.db, orgId, async (tx) =>
-      this.tenancyRepo.findOrganizationById(tx, orgId),
-    );
+  async getCatalogSettings(tx: DrizzleTx, orgId: string): Promise<OrgCatalogSettings> {
+    const org = await this.tenancyRepo.findOrganizationById(tx, orgId);
     if (!org) {
       throw new NotFoundError();
     }

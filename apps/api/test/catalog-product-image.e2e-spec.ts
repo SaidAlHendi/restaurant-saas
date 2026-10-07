@@ -1,13 +1,18 @@
-import fs from 'node:fs';
-import path from 'node:path';
-
 import { type INestApplication } from '@nestjs/common';
 import type { Agent } from 'supertest';
 import sharp from 'sharp';
 
+import { SEED_ORG } from './factories';
 import { apiAgent } from './http';
 import { createTestApp } from './create-test-app';
-import { asDemoOwner, categoryBody, productBody } from './catalog-helpers';
+import {
+  asDemoKitchen,
+  asDemoOwner,
+  asOtherOwner,
+  categoryBody,
+  productBody,
+  webpFilesForProduct,
+} from './catalog-helpers';
 
 describe('Catalog product images (e2e)', () => {
   let app: INestApplication;
@@ -29,6 +34,25 @@ describe('Catalog product images (e2e)', () => {
     return (product.body as { id: string }).id;
   }
 
+  async function jpegWithGpsExif(): Promise<Buffer> {
+    return sharp({
+      create: { width: 1600, height: 900, channels: 3, background: '#224466' },
+    })
+      .jpeg()
+      .withExif({
+        IFD0: {
+          Make: 'TestCam',
+        },
+        IFD3: {
+          GPSLatitudeRef: 'N',
+          GPSLatitude: '40/1,30/1,0/1',
+          GPSLongitudeRef: 'W',
+          GPSLongitude: '74/1,0/1,0/1',
+        },
+      })
+      .toBuffer();
+  }
+
   it('rejects non-image bytes', async () => {
     const owner = await asDemoOwner(agent);
     const productId = await createProduct(owner);
@@ -38,36 +62,36 @@ describe('Catalog product images (e2e)', () => {
     expect(res.status).toBe(400);
   });
 
-  it('accepts jpeg, produces webp variants without exif', async () => {
+  it('strips exif, writes three widths, and deletes old files on replace', async () => {
     const owner = await asDemoOwner(agent);
     const productId = await createProduct(owner);
-    const jpeg = await sharp({
-      create: { width: 2000, height: 1200, channels: 3, background: '#336699' },
-    })
-      .jpeg()
-      .toBuffer();
+    const jpeg = await jpegWithGpsExif();
+    const inputMeta = await sharp(jpeg).metadata();
+    expect(inputMeta.exif).toBeDefined();
 
-    const res = await owner
+    const first = await owner
       .post(`/v1/products/${productId}/image`)
       .attach('file', jpeg, { filename: 'photo.jpg', contentType: 'image/jpeg' });
-    expect(res.status).toBe(201);
-    const body = res.body as { imageUrls: { url400: string } | null };
-    expect(body.imageUrls).not.toBeNull();
+    expect(first.status).toBe(201);
 
-    const storageRoot = path.join(process.cwd(), '.storage', 'orgs');
-    const walk = (dir: string): string[] => {
-      const entries = fs.readdirSync(dir, { withFileTypes: true });
-      return entries.flatMap((entry) => {
-        const full = path.join(dir, entry.name);
-        return entry.isDirectory() ? walk(full) : [full];
-      });
-    };
-    const webpPath = walk(storageRoot).find((f) => f.endsWith('-400.webp'));
-    expect(webpPath).toBeDefined();
-    const fullPath = webpPath ?? '';
-    const meta = await sharp(fullPath).metadata();
-    expect(meta.format).toBe('webp');
-    expect(meta.exif).toBeUndefined();
+    const firstFiles = webpFilesForProduct(SEED_ORG.demo.id, productId);
+    expect(firstFiles.some((f) => f.endsWith('-400.webp'))).toBe(true);
+    expect(firstFiles.some((f) => f.endsWith('-800.webp'))).toBe(true);
+    expect(firstFiles.some((f) => f.endsWith('-1200.webp'))).toBe(true);
+    const firstMeta = await sharp(firstFiles.find((f) => f.endsWith('-400.webp')) ?? '').metadata();
+    expect(firstMeta.exif).toBeUndefined();
+
+    const jpeg2 = await jpegWithGpsExif();
+    const second = await owner
+      .post(`/v1/products/${productId}/image`)
+      .attach('file', jpeg2, { filename: 'photo2.jpg', contentType: 'image/jpeg' });
+    expect(second.status).toBe(201);
+
+    const afterFiles = webpFilesForProduct(SEED_ORG.demo.id, productId);
+    expect(afterFiles.length).toBe(3);
+    for (const file of firstFiles) {
+      expect(afterFiles).not.toContain(file);
+    }
   });
 
   it('returns FILE_TOO_LARGE over 5MB', async () => {
@@ -80,5 +104,27 @@ describe('Catalog product images (e2e)', () => {
     expect(res.status).toBe(400);
     const code = (res.body as { error?: { code: string } }).error?.code;
     expect(code).toBe('FILE_TOO_LARGE');
+  });
+
+  it('404 when uploading to another org product', async () => {
+    const other = await asOtherOwner(agent);
+    const otherProductId = await createProduct(other);
+    const demo = await asDemoOwner(agent);
+    const jpeg = await jpegWithGpsExif();
+    const res = await demo
+      .post(`/v1/products/${otherProductId}/image`)
+      .attach('file', jpeg, { filename: 'x.jpg', contentType: 'image/jpeg' });
+    expect(res.status).toBe(404);
+  });
+
+  it('403 kitchen cannot upload image', async () => {
+    const owner = await asDemoOwner(agent);
+    const productId = await createProduct(owner);
+    const kitchen = await asDemoKitchen(agent);
+    const jpeg = await jpegWithGpsExif();
+    const res = await kitchen
+      .post(`/v1/products/${productId}/image`)
+      .attach('file', jpeg, { filename: 'x.jpg', contentType: 'image/jpeg' });
+    expect(res.status).toBe(403);
   });
 });

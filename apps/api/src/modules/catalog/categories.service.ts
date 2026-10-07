@@ -30,9 +30,9 @@ export class CategoriesService {
   }
 
   async create(ctx: RequestContext, body: CreateCategoryBody) {
-    const org = await this.orgSettings.getCatalogSettings(ctx.orgId);
-    const name = requireLocalizedText(body.name, org);
     return withOrg(this.db, ctx.orgId, async (tx) => {
+      const org = await this.orgSettings.getCatalogSettings(tx, ctx.orgId);
+      const name = requireLocalizedText(body.name, org);
       const sortOrder = await this.repo.nextCategorySortOrder(tx, ctx.orgId);
       const row = await this.repo.insertCategory(tx, {
         id: newUuidV7(),
@@ -46,8 +46,8 @@ export class CategoriesService {
   }
 
   async patch(ctx: RequestContext, categoryId: string, body: PatchCategoryBody) {
-    const org = await this.orgSettings.getCatalogSettings(ctx.orgId);
     return withOrg(this.db, ctx.orgId, async (tx) => {
+      const org = await this.orgSettings.getCatalogSettings(tx, ctx.orgId);
       const existing = await this.repo.findCategoryById(tx, categoryId);
       if (!existing) {
         throw new NotFoundError();

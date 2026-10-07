@@ -36,8 +36,8 @@ export class ModifierGroupsService {
   }
 
   async get(ctx: RequestContext, groupId: string) {
-    const org = await this.orgSettings.getCatalogSettings(ctx.orgId);
     return withOrg(this.db, ctx.orgId, async (tx) => {
+      const org = await this.orgSettings.getCatalogSettings(tx, ctx.orgId);
       const group = await this.repo.findModifierGroupById(tx, groupId);
       if (!group) {
         throw new NotFoundError();
@@ -51,9 +51,9 @@ export class ModifierGroupsService {
   }
 
   async create(ctx: RequestContext, body: CreateModifierGroupBody) {
-    const org = await this.orgSettings.getCatalogSettings(ctx.orgId);
-    const name = requireLocalizedText(body.name, org);
     return withOrg(this.db, ctx.orgId, async (tx) => {
+      const org = await this.orgSettings.getCatalogSettings(tx, ctx.orgId);
+      const name = requireLocalizedText(body.name, org);
       const row = await this.repo.insertModifierGroup(tx, {
         id: newUuidV7(),
         orgId: ctx.orgId,
@@ -66,9 +66,9 @@ export class ModifierGroupsService {
   }
 
   async patch(ctx: RequestContext, groupId: string, body: PatchModifierGroupBody) {
-    const org = await this.orgSettings.getCatalogSettings(ctx.orgId);
-    const name = body.name !== undefined ? requireLocalizedText(body.name, org) : undefined;
     return withOrg(this.db, ctx.orgId, async (tx) => {
+      const org = await this.orgSettings.getCatalogSettings(tx, ctx.orgId);
+      const name = body.name !== undefined ? requireLocalizedText(body.name, org) : undefined;
       const existing = await this.repo.findModifierGroupById(tx, groupId);
       if (!existing) {
         throw new NotFoundError();
@@ -101,9 +101,9 @@ export class ModifierGroupsService {
   }
 
   async createModifier(ctx: RequestContext, groupId: string, body: CreateModifierBody) {
-    const org = await this.orgSettings.getCatalogSettings(ctx.orgId);
-    const name = requireLocalizedText(body.name, org);
     return withOrg(this.db, ctx.orgId, async (tx) => {
+      const org = await this.orgSettings.getCatalogSettings(tx, ctx.orgId);
+      const name = requireLocalizedText(body.name, org);
       const group = await this.repo.findModifierGroupById(tx, groupId);
       if (!group) {
         throw new NotFoundError();
@@ -128,9 +128,9 @@ export class ModifierGroupsService {
     modifierId: string,
     body: PatchModifierBody,
   ) {
-    const org = await this.orgSettings.getCatalogSettings(ctx.orgId);
-    const name = body.name !== undefined ? requireLocalizedText(body.name, org) : undefined;
     return withOrg(this.db, ctx.orgId, async (tx) => {
+      const org = await this.orgSettings.getCatalogSettings(tx, ctx.orgId);
+      const name = body.name !== undefined ? requireLocalizedText(body.name, org) : undefined;
       const existing = await this.repo.findModifierById(tx, modifierId, groupId);
       if (!existing) {
         throw new NotFoundError();
@@ -148,8 +148,8 @@ export class ModifierGroupsService {
   }
 
   async removeModifier(ctx: RequestContext, groupId: string, modifierId: string) {
-    const org = await this.orgSettings.getCatalogSettings(ctx.orgId);
     return withOrg(this.db, ctx.orgId, async (tx) => {
+      const org = await this.orgSettings.getCatalogSettings(tx, ctx.orgId);
       const existing = await this.repo.findModifierById(tx, modifierId, groupId);
       if (!existing) {
         throw new NotFoundError();
@@ -164,6 +164,7 @@ export class ModifierGroupsService {
 
   async reorderModifiers(ctx: RequestContext, groupId: string, body: ReorderModifiersBody) {
     return withOrg(this.db, ctx.orgId, async (tx) => {
+      const org = await this.orgSettings.getCatalogSettings(tx, ctx.orgId);
       const group = await this.repo.findModifierGroupById(tx, groupId);
       if (!group) {
         throw new NotFoundError();
@@ -176,7 +177,6 @@ export class ModifierGroupsService {
           await this.repo.setModifierSortOrder(tx, id, i);
         }
       }
-      const org = await this.orgSettings.getCatalogSettings(ctx.orgId);
       const rows = await this.repo.listModifiersInGroup(tx, groupId);
       return { items: rows.map((m) => mapModifier(m, org.defaultCurrency)) };
     });

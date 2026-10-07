@@ -12,6 +12,7 @@ import {
   PatchModifierGroupBodyDto,
   ReorderModifiersBodyDto,
 } from './dto/catalog.dto';
+import { CatalogPathIdPipe } from './pipes/catalog-path-id.pipe';
 
 @Controller('v1/modifier-groups')
 export class ModifierGroupsController {
@@ -25,7 +26,7 @@ export class ModifierGroupsController {
 
   @RequirePermission('menu.read')
   @Get(':groupId')
-  get(@Ctx() ctx: RequestContext, @Param('groupId') groupId: string) {
+  get(@Ctx() ctx: RequestContext, @Param('groupId', CatalogPathIdPipe) groupId: string) {
     return this.groups.get(ctx, groupId);
   }
 
@@ -39,7 +40,7 @@ export class ModifierGroupsController {
   @Patch(':groupId')
   patch(
     @Ctx() ctx: RequestContext,
-    @Param('groupId') groupId: string,
+    @Param('groupId', CatalogPathIdPipe) groupId: string,
     @Body() body: PatchModifierGroupBodyDto,
   ) {
     return this.groups.patch(ctx, groupId, body);
@@ -47,7 +48,7 @@ export class ModifierGroupsController {
 
   @RequirePermission('menu.manage')
   @Delete(':groupId')
-  remove(@Ctx() ctx: RequestContext, @Param('groupId') groupId: string) {
+  remove(@Ctx() ctx: RequestContext, @Param('groupId', CatalogPathIdPipe) groupId: string) {
     return this.groups.remove(ctx, groupId);
   }
 
@@ -55,7 +56,7 @@ export class ModifierGroupsController {
   @Post(':groupId/modifiers')
   createModifier(
     @Ctx() ctx: RequestContext,
-    @Param('groupId') groupId: string,
+    @Param('groupId', CatalogPathIdPipe) groupId: string,
     @Body() body: CreateModifierBodyDto,
   ) {
     return this.groups.createModifier(ctx, groupId, body);
@@ -65,7 +66,7 @@ export class ModifierGroupsController {
   @Put(':groupId/modifiers/reorder')
   reorderModifiers(
     @Ctx() ctx: RequestContext,
-    @Param('groupId') groupId: string,
+    @Param('groupId', CatalogPathIdPipe) groupId: string,
     @Body() body: ReorderModifiersBodyDto,
   ) {
     return this.groups.reorderModifiers(ctx, groupId, body);
@@ -75,8 +76,8 @@ export class ModifierGroupsController {
   @Patch(':groupId/modifiers/:modifierId')
   patchModifier(
     @Ctx() ctx: RequestContext,
-    @Param('groupId') groupId: string,
-    @Param('modifierId') modifierId: string,
+    @Param('groupId', CatalogPathIdPipe) groupId: string,
+    @Param('modifierId', CatalogPathIdPipe) modifierId: string,
     @Body() body: PatchModifierBodyDto,
   ) {
     return this.groups.patchModifier(ctx, groupId, modifierId, body);
@@ -86,8 +87,8 @@ export class ModifierGroupsController {
   @Delete(':groupId/modifiers/:modifierId')
   removeModifier(
     @Ctx() ctx: RequestContext,
-    @Param('groupId') groupId: string,
-    @Param('modifierId') modifierId: string,
+    @Param('groupId', CatalogPathIdPipe) groupId: string,
+    @Param('modifierId', CatalogPathIdPipe) modifierId: string,
   ) {
     return this.groups.removeModifier(ctx, groupId, modifierId);
   }

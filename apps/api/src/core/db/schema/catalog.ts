@@ -100,7 +100,7 @@ export const modifiers = pgTable(
       name: 'modifiers_group_id_org_id_modifier_groups_id_org_id_fk',
       columns: [t.groupId, t.orgId],
       foreignColumns: [modifierGroups.id, modifierGroups.orgId],
-    }),
+    }).onDelete('cascade'),
   ],
 );
 
@@ -120,11 +120,11 @@ export const productModifierGroups = pgTable(
       name: 'product_modifier_groups_product_id_org_id_products_id_org_id_fk',
       columns: [t.productId, t.orgId],
       foreignColumns: [products.id, products.orgId],
-    }),
+    }).onDelete('cascade'),
     foreignKey({
       name: 'product_modifier_groups_group_id_org_id_modifier_groups_id_org_id_fk',
       columns: [t.groupId, t.orgId],
       foreignColumns: [modifierGroups.id, modifierGroups.orgId],
-    }),
+    }).onDelete('cascade'),
   ],
 );

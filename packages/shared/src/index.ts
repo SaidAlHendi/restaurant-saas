@@ -94,3 +94,17 @@ export type {
 
 export { cursorListQuerySchema, cursorListResponseSchema } from './catalog/pagination.js';
 export type { CursorListQuery } from './catalog/pagination.js';
+
+export {
+  catalogPathIdSchema,
+  categoryIdParamSchema,
+  productIdParamSchema,
+  modifierGroupIdParamSchema,
+  modifierIdParamSchema,
+} from './catalog/path-params.js';
+export type {
+  CategoryIdParam,
+  ProductIdParam,
+  ModifierGroupIdParam,
+  ModifierIdParam,
+} from './catalog/path-params.js';

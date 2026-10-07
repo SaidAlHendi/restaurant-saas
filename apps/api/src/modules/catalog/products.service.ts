@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { Express } from 'express';
 
 import {
@@ -13,6 +13,7 @@ import {
 
 import { NotFoundError, ValidationError } from '../../core/errors/app-errors';
 import { DRIZZLE, type DrizzleDb } from '../../core/db/db.module';
+import type { DrizzleTx } from '../../core/db/with-org';
 import { withOrg } from '../../core/db/with-org';
 import type { RequestContext } from '../../core/context/request-context';
 import { decodeProductListCursor, encodeProductListCursor } from '../../lib/cursor';
@@ -30,6 +31,8 @@ import { ProductImageService } from './product-image.service';
 
 @Injectable()
 export class ProductsService {
+  private readonly logger = new Logger(ProductsService.name);
+
   constructor(
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly repo: CatalogRepository,
@@ -39,7 +42,7 @@ export class ProductsService {
     @Inject(OBJECT_STORAGE) private readonly storage: ObjectStorage,
   ) {}
 
-  private async assertCategoryAvailable(tx: Parameters<CatalogRepository['findCategoryById']>[0], categoryId: string) {
+  private async assertCategoryAvailable(tx: DrizzleTx, categoryId: string) {
     const category = await this.repo.findCategoryById(tx, categoryId);
     if (!category) {
       throw new NotFoundError();
@@ -47,9 +50,24 @@ export class ProductsService {
     return category;
   }
 
+  private async buildProductDetail(tx: DrizzleTx, orgId: string, productId: string) {
+    const org = await this.orgSettings.getCatalogSettings(tx, orgId);
+    const product = await this.repo.findProductById(tx, productId);
+    if (!product) {
+      throw new NotFoundError();
+    }
+    const groups = await this.repo.listProductModifierGroups(tx, productId);
+    return {
+      ...mapProduct(product, org.defaultCurrency, this.storage),
+      modifierGroups: groups.map(({ group, link }) =>
+        mapModifierGroup(group, link.sortOrder),
+      ),
+    };
+  }
+
   list(ctx: RequestContext, query: ProductListQuery) {
     return withOrg(this.db, ctx.orgId, async (tx) => {
-      const org = await this.orgSettings.getCatalogSettings(ctx.orgId);
+      const org = await this.orgSettings.getCatalogSettings(tx, ctx.orgId);
       let cursor;
       if (query.cursor) {
         try {
@@ -80,29 +98,16 @@ export class ProductsService {
   }
 
   async get(ctx: RequestContext, productId: string) {
-    return withOrg(this.db, ctx.orgId, async (tx) => {
-      const org = await this.orgSettings.getCatalogSettings(ctx.orgId);
-      const product = await this.repo.findProductById(tx, productId);
-      if (!product) {
-        throw new NotFoundError();
-      }
-      const groups = await this.repo.listProductModifierGroups(tx, productId);
-      return {
-        ...mapProduct(product, org.defaultCurrency, this.storage),
-        modifierGroups: groups.map(({ group, link }) =>
-          mapModifierGroup(group, link.sortOrder),
-        ),
-      };
-    });
+    return withOrg(this.db, ctx.orgId, async (tx) => this.buildProductDetail(tx, ctx.orgId, productId));
   }
 
   async create(ctx: RequestContext, body: CreateProductBody) {
-    const org = await this.orgSettings.getCatalogSettings(ctx.orgId);
-    const name = requireLocalizedText(body.name, org);
-    const description =
-      body.description !== undefined ? optionalLocalizedText(body.description, org) : null;
-
     return withOrg(this.db, ctx.orgId, async (tx) => {
+      const org = await this.orgSettings.getCatalogSettings(tx, ctx.orgId);
+      const name = requireLocalizedText(body.name, org);
+      const description =
+        body.description !== undefined ? optionalLocalizedText(body.description, org) : null;
+
       await this.assertCategoryAvailable(tx, body.categoryId);
       const count = await this.repo.countNonDeletedProducts(tx, ctx.orgId);
       await this.entitlements.assertWithinLimit(ctx.orgId, 'limit.products', count + 1);
@@ -127,25 +132,34 @@ export class ProductsService {
   }
 
   async patch(ctx: RequestContext, productId: string, body: PatchProductBody) {
-    const org = await this.orgSettings.getCatalogSettings(ctx.orgId);
-    const name = body.name !== undefined ? requireLocalizedText(body.name, org) : undefined;
-    const description =
-      body.description !== undefined ? optionalLocalizedText(body.description, org) : undefined;
-
     return withOrg(this.db, ctx.orgId, async (tx) => {
+      const org = await this.orgSettings.getCatalogSettings(tx, ctx.orgId);
+      const name = body.name !== undefined ? requireLocalizedText(body.name, org) : undefined;
+      const description =
+        body.description !== undefined ? optionalLocalizedText(body.description, org) : undefined;
+
       const existing = await this.repo.findProductById(tx, productId);
       if (!existing) {
         throw new NotFoundError();
       }
-      if (body.categoryId !== undefined) {
+
+      let sortOrder: number | undefined;
+      if (body.categoryId !== undefined && body.categoryId !== existing.categoryId) {
         await this.assertCategoryAvailable(tx, body.categoryId);
+        sortOrder = await this.repo.nextProductSortOrderInCategory(
+          tx,
+          ctx.orgId,
+          body.categoryId,
+        );
       }
+
       const updated = await this.repo.updateProduct(tx, productId, {
         categoryId: body.categoryId,
         name,
         description,
         priceMinor: body.priceMinor,
         isActive: body.isActive,
+        sortOrder,
       });
       if (!updated) {
         throw new NotFoundError();
@@ -155,8 +169,8 @@ export class ProductsService {
   }
 
   async remove(ctx: RequestContext, productId: string) {
-    const org = await this.orgSettings.getCatalogSettings(ctx.orgId);
     return withOrg(this.db, ctx.orgId, async (tx) => {
+      const org = await this.orgSettings.getCatalogSettings(tx, ctx.orgId);
       const deleted = await this.repo.softDeleteProduct(tx, productId);
       if (!deleted) {
         throw new NotFoundError();
@@ -167,6 +181,7 @@ export class ProductsService {
 
   async reorder(ctx: RequestContext, body: ReorderProductsBody) {
     return withOrg(this.db, ctx.orgId, async (tx) => {
+      const org = await this.orgSettings.getCatalogSettings(tx, ctx.orgId);
       await this.assertCategoryAvailable(tx, body.categoryId);
       const locked = await this.repo.lockActiveProductsInCategoryForUpdate(
         tx,
@@ -180,7 +195,6 @@ export class ProductsService {
           await this.repo.setProductSortOrder(tx, id, i);
         }
       }
-      const org = await this.orgSettings.getCatalogSettings(ctx.orgId);
       const rows = await this.repo.listProducts(tx, ctx.orgId, {
         categoryId: body.categoryId,
         limit: 1000,
@@ -213,51 +227,71 @@ export class ProductsService {
         }
       }
       await this.repo.replaceProductModifierGroups(tx, productId, ctx.orgId, body.groupIds);
-      return this.get(ctx, productId);
+      return this.buildProductDetail(tx, ctx.orgId, productId);
     });
   }
 
   async uploadImage(ctx: RequestContext, productId: string, file: Express.Multer.File) {
     this.images.assertFileSize(file.size);
-    const org = await this.orgSettings.getCatalogSettings(ctx.orgId);
 
-    let writtenPrefix: string | null = null;
-    let writtenKeys: string[] = [];
+    const previousPrefix = await withOrg(this.db, ctx.orgId, async (tx) => {
+      const product = await this.repo.findProductById(tx, productId);
+      if (!product) {
+        throw new NotFoundError();
+      }
+      return product.imageKey;
+    });
+
+    let newPrefix: string | null = null;
     try {
       const processed = await this.images.processAndUpload(ctx.orgId, productId, file.buffer);
-      writtenPrefix = processed.prefix;
-      writtenKeys = processed.keys;
+      newPrefix = processed.prefix;
 
       const result = await withOrg(this.db, ctx.orgId, async (tx) => {
+        const org = await this.orgSettings.getCatalogSettings(tx, ctx.orgId);
         const product = await this.repo.findProductById(tx, productId);
         if (!product) {
           throw new NotFoundError();
         }
-        const previousPrefix = product.imageKey;
         const updated = await this.repo.updateProduct(tx, productId, {
           imageKey: processed.prefix,
         });
         if (!updated) {
           throw new NotFoundError();
         }
-        return { updated, previousPrefix };
+        return { updated, org };
       });
 
-      if (result.previousPrefix) {
-        await this.images.deletePrefix(result.previousPrefix);
+      if (previousPrefix && previousPrefix !== newPrefix) {
+        try {
+          await this.images.deletePrefix(previousPrefix);
+        } catch (err: unknown) {
+          this.logger.warn(
+            { err, previousPrefix, productId, orgId: ctx.orgId },
+            'Failed to delete replaced product image files',
+          );
+        }
       }
-      return mapProduct(result.updated, org.defaultCurrency, this.storage);
+
+      return mapProduct(result.updated, result.org.defaultCurrency, this.storage);
     } catch (err: unknown) {
-      if (writtenKeys.length > 0 && writtenPrefix) {
-        await this.images.deletePrefix(writtenPrefix);
+      if (newPrefix) {
+        try {
+          await this.images.deletePrefix(newPrefix);
+        } catch (cleanupErr: unknown) {
+          this.logger.warn(
+            { err: cleanupErr, newPrefix, productId, orgId: ctx.orgId },
+            'Failed to roll back new product image files after error',
+          );
+        }
       }
       throw err;
     }
   }
 
   async removeImage(ctx: RequestContext, productId: string) {
-    const org = await this.orgSettings.getCatalogSettings(ctx.orgId);
     const result = await withOrg(this.db, ctx.orgId, async (tx) => {
+      const org = await this.orgSettings.getCatalogSettings(tx, ctx.orgId);
       const product = await this.repo.findProductById(tx, productId);
       if (!product) {
         throw new NotFoundError();
@@ -267,11 +301,18 @@ export class ProductsService {
       if (!updated) {
         throw new NotFoundError();
       }
-      return { updated, previousPrefix };
+      return { updated, previousPrefix, org };
     });
     if (result.previousPrefix) {
-      await this.images.deletePrefix(result.previousPrefix);
+      try {
+        await this.images.deletePrefix(result.previousPrefix);
+      } catch (err: unknown) {
+        this.logger.warn(
+          { err, prefix: result.previousPrefix, productId, orgId: ctx.orgId },
+          'Failed to delete product image files after DB clear',
+        );
+      }
     }
-    return mapProduct(result.updated, org.defaultCurrency, this.storage);
+    return mapProduct(result.updated, result.org.defaultCurrency, this.storage);
   }
 }
