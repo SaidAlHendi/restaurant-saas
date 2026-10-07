@@ -62,6 +62,9 @@ function createTestStore() {
 describe('App root', () => {
   it('renders dashboard shell when session is bootstrapped', async () => {
     await initI18n();
+    // DashboardArea is lazy and now pulls in the menu feature; load it before render so the
+    // Suspense fallback does not outlast findByText's 1s window on a slow CI runner.
+    await import('./areas/dashboard/DashboardArea.js');
     const memoryRouter = createMemoryRouter(appRoutes, { initialEntries: ['/dashboard'] });
     render(
       <Provider store={createTestStore()}>
