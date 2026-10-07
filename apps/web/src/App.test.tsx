@@ -26,7 +26,14 @@ const bootstrappedMe: MeResponse = {
     name: 'Owner',
     locale: 'en',
   },
-  org: { id: orgId, name: 'Demo', slug: 'demo' },
+  org: {
+    id: orgId,
+    name: 'Demo',
+    slug: 'demo',
+    defaultLocale: 'en',
+    locales: ['en', 'ar'],
+    defaultCurrency: 'SAR',
+  },
   role: {
     id: '01932a1a-7b3e-7000-8000-000000000020',
     key: 'owner',
@@ -55,6 +62,9 @@ function createTestStore() {
 describe('App root', () => {
   it('renders dashboard shell when session is bootstrapped', async () => {
     await initI18n();
+    // DashboardArea is lazy and now pulls in the menu feature; load it before render so the
+    // Suspense fallback does not outlast findByText's 1s window on a slow CI runner.
+    await import('./areas/dashboard/DashboardArea.js');
     const memoryRouter = createMemoryRouter(appRoutes, { initialEntries: ['/dashboard'] });
     render(
       <Provider store={createTestStore()}>

@@ -6,6 +6,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import type { Response } from 'express';
+import { MulterError } from 'multer';
 import { ZodValidationException } from 'nestjs-zod';
 import { ZodError } from 'zod';
 
@@ -99,6 +100,17 @@ export class HttpExceptionFilter implements ExceptionFilter {
       return;
     }
 
+    if (exception instanceof MulterError && exception.code === 'LIMIT_FILE_SIZE') {
+      response.status(HttpStatus.BAD_REQUEST).json({
+        error: {
+          code: 'FILE_TOO_LARGE',
+          message: 'File exceeds maximum size',
+          details: {},
+        },
+      });
+      return;
+    }
+
     if (exception instanceof ZodValidationException) {
       const zodError = exception.getZodError();
       const issues = zodError instanceof ZodError ? zodError.issues : [];
@@ -114,6 +126,16 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     if (exception instanceof HttpException) {
       const status = exception.getStatus();
+      if (status === 413) {
+        response.status(HttpStatus.BAD_REQUEST).json({
+          error: {
+            code: 'FILE_TOO_LARGE',
+            message: 'File exceeds maximum size',
+            details: {},
+          },
+        });
+        return;
+      }
       const body = exception.getResponse();
       response.status(status).json({
         error: {

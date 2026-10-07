@@ -5,6 +5,7 @@ export const PERMISSION_KEYS = [
   'staff.manage',
   'orders.create',
   'orders.cancel',
+  'menu.read',
   'menu.manage',
   'reports.read',
 ] as const;

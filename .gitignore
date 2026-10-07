@@ -18,4 +18,5 @@ coverage/
 # Local scripts and build caches
 .tmp-*
 *.tsbuildinfo
+apps/api/.storage/
 .verify-pipeline.log

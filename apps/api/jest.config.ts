@@ -19,7 +19,7 @@ const config: Config = {
   passWithNoTests: true,
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
-    '^@app/shared$': '<rootDir>/../../packages/shared/src/index.ts',
+    '^@app/shared$': '<rootDir>/../../../packages/shared/src/index.ts',
   },
 };
 

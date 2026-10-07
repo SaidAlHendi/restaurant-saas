@@ -50,6 +50,114 @@
     "branch": "Branch",
     "selectOrg": "Select organization",
     "selectBranch": "Select branch",
-    "canManageBranches": "You can create and edit branches."
+    "canManageBranches": "You can create and edit branches.",
+    "nav": {
+      "home": "Overview",
+      "menu": "Menu",
+      "sidebar": "Dashboard navigation",
+      "closeSidebar": "Close menu"
+    }
+  },
+  "menu": {
+    "nav": {
+      "section": "Menu",
+      "categories": "Categories",
+      "products": "Products",
+      "modifierGroups": "Modifier groups"
+    },
+    "actions": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "errors": {
+      "loadFailed": "Could not load data. Try again.",
+      "generic": "Something went wrong. Try again.",
+      "categoryHasActiveProducts": "Move or remove products in this category before deleting it.",
+      "fileTooLarge": "The file is too large.",
+      "unsupportedImageType": "Choose a JPEG, PNG, or WebP image.",
+      "validation": "Check the form and try again.",
+      "notFound": "This item was not found."
+    },
+    "categories": {
+      "title": "Categories",
+      "subtitle": "Group products and control the order they appear on the menu.",
+      "add": "Add category",
+      "createTitle": "New category",
+      "editTitle": "Edit category",
+      "emptyTitle": "No categories yet",
+      "emptyDescription": "Create a category to start adding products.",
+      "drag": "Drag to reorder",
+      "deleteConfirm": "Products in this category must be moved or removed first."
+    },
+    "products": {
+      "title": "Products",
+      "subtitle": "Manage items, prices, photos, and modifier groups.",
+      "add": "Add product",
+      "createTitle": "New product",
+      "editTitle": "Edit product",
+      "emptyTitle": "No products yet",
+      "emptyDescription": "Add a product or change filters.",
+      "searchPlaceholder": "Search products",
+      "searchClear": "Clear search",
+      "allCategories": "All categories",
+      "allActive": "All statuses",
+      "loadMore": "Load more",
+      "sortBy": "Sort by",
+      "deleteConfirm": "This product will be removed from the menu (soft delete).",
+      "columns": {
+        "name": "Name",
+        "category": "Category",
+        "price": "Price",
+        "status": "Status",
+        "actions": "Row actions"
+      },
+      "fields": {
+        "category": "Category",
+        "price": "Price",
+        "modifierGroups": "Modifier groups"
+      },
+      "imageLabel": "Product photo",
+      "imageHint": "JPEG, PNG or WebP, up to 5 MB",
+      "imageChoose": "Choose image",
+      "imageUploading": "Uploading",
+      "imageRemove": "Remove image",
+      "imagePreviewAlt": "Product preview",
+      "imageUploadError": "Upload failed. Try another file.",
+      "imageRemoveError": "Could not remove the image."
+    },
+    "modifierGroups": {
+      "title": "Modifier groups",
+      "subtitle": "Optional add-ons and choices linked to products.",
+      "add": "Add group",
+      "createTitle": "New modifier group",
+      "editTitle": "Edit modifier group",
+      "emptyTitle": "No modifier groups",
+      "emptyDescription": "Create groups for sizes, extras, or sides.",
+      "minMax": "Select {{min}}–{{max}}",
+      "manageModifiers": "Manage modifiers",
+      "detailTitle": "Modifier group",
+      "deleteConfirm": "This group will be unlinked from products.",
+      "decrease": "Decrease",
+      "increase": "Increase",
+      "fields": {
+        "minSelect": "Minimum choices",
+        "maxSelect": "Maximum choices"
+      }
+    },
+    "modifiers": {
+      "add": "Add modifier",
+      "drag": "Drag to reorder",
+      "createTitle": "New modifier",
+      "emptyTitle": "No modifiers in this group yet.",
+      "fields": {
+        "priceDelta": "Price change"
+      }
+    }
   }
 }

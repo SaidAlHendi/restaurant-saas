@@ -6,6 +6,7 @@ import { useTheme } from '@app/ui';
 import { devUiCopy } from './dev-ui.copy.js';
 import { useLayoutDemo } from './layout-demo.js';
 import { useOrdersDemo } from './orders-demo.js';
+import { useImageUploadDemo } from './image-upload-demo.js';
 import { useInputsDemo, useProductFormDemo } from './product-form-demo.js';
 
 /** Fake request time for the ConfirmDialog demo. */
@@ -31,6 +32,7 @@ export function useDevUiPage() {
 
   const productForm = useProductFormDemo();
   const inputs = useInputsDemo();
+  const imageUpload = useImageUploadDemo();
 
   const isArabic = i18n.language === 'ar';
   const copy = isArabic ? devUiCopy.ar : devUiCopy.en;
@@ -67,6 +69,7 @@ export function useDevUiPage() {
     confirm: { open: confirmOpen, onOpenChange: setConfirmOpen, isConfirming, onConfirm },
     productForm,
     inputs,
+    imageUpload,
     locale,
     orders,
     layout,

@@ -50,6 +50,114 @@
     "branch": "الفرع",
     "selectOrg": "اختر المؤسسة",
     "selectBranch": "اختر الفرع",
-    "canManageBranches": "يمكنك إنشاء الفروع وتعديلها."
+    "canManageBranches": "يمكنك إنشاء الفروع وتعديلها.",
+    "nav": {
+      "home": "نظرة عامة",
+      "menu": "القائمة",
+      "sidebar": "تنقل لوحة التحكم",
+      "closeSidebar": "إغلاق القائمة"
+    }
+  },
+  "menu": {
+    "nav": {
+      "section": "القائمة",
+      "categories": "التصنيفات",
+      "products": "المنتجات",
+      "modifierGroups": "مجموعات الإضافات"
+    },
+    "actions": {
+      "save": "حفظ",
+      "cancel": "إلغاء",
+      "edit": "تعديل",
+      "delete": "حذف"
+    },
+    "status": {
+      "active": "نشط",
+      "inactive": "غير نشط"
+    },
+    "errors": {
+      "loadFailed": "تعذر تحميل البيانات. حاول مرة أخرى.",
+      "generic": "حدث خطأ. حاول مرة أخرى.",
+      "categoryHasActiveProducts": "انقل المنتجات أو أزلها من هذا التصنيف قبل حذفه.",
+      "fileTooLarge": "حجم الملف كبير جداً.",
+      "unsupportedImageType": "اختر صورة بصيغة JPEG أو PNG أو WebP.",
+      "validation": "تحقق من النموذج وحاول مرة أخرى.",
+      "notFound": "لم يُعثر على هذا العنصر."
+    },
+    "categories": {
+      "title": "التصنيفات",
+      "subtitle": "جمّع المنتجات ورتّب ظهورها في القائمة.",
+      "add": "إضافة تصنيف",
+      "createTitle": "تصنيف جديد",
+      "editTitle": "تعديل التصنيف",
+      "emptyTitle": "لا توجد تصنيفات",
+      "emptyDescription": "أنشئ تصنيفاً لبدء إضافة المنتجات.",
+      "drag": "اسحب لإعادة الترتيب",
+      "deleteConfirm": "يجب نقل المنتجات أو حذفها من هذا التصنيف أولاً."
+    },
+    "products": {
+      "title": "المنتجات",
+      "subtitle": "إدارة الأصناف والأسعار والصور ومجموعات الإضافات.",
+      "add": "إضافة منتج",
+      "createTitle": "منتج جديد",
+      "editTitle": "تعديل المنتج",
+      "emptyTitle": "لا توجد منتجات",
+      "emptyDescription": "أضف منتجاً أو غيّر عوامل التصفية.",
+      "searchPlaceholder": "بحث في المنتجات",
+      "searchClear": "مسح البحث",
+      "allCategories": "كل التصنيفات",
+      "allActive": "كل الحالات",
+      "loadMore": "تحميل المزيد",
+      "sortBy": "ترتيب حسب",
+      "deleteConfirm": "سيُزال هذا المنتج من القائمة (حذف منطقي).",
+      "columns": {
+        "name": "الاسم",
+        "category": "التصنيف",
+        "price": "السعر",
+        "status": "الحالة",
+        "actions": "إجراءات الصف"
+      },
+      "fields": {
+        "category": "التصنيف",
+        "price": "السعر",
+        "modifierGroups": "مجموعات الإضافات"
+      },
+      "imageLabel": "صورة المنتج",
+      "imageHint": "JPEG أو PNG أو WebP، حتى 5 ميجابايت",
+      "imageChoose": "اختر صورة",
+      "imageUploading": "جاري الرفع",
+      "imageRemove": "إزالة الصورة",
+      "imagePreviewAlt": "معاينة المنتج",
+      "imageUploadError": "فشل الرفع. جرّب ملفاً آخر.",
+      "imageRemoveError": "تعذرت إزالة الصورة."
+    },
+    "modifierGroups": {
+      "title": "مجموعات الإضافات",
+      "subtitle": "إضافات وخيارات اختيارية مرتبطة بالمنتجات.",
+      "add": "إضافة مجموعة",
+      "createTitle": "مجموعة إضافات جديدة",
+      "editTitle": "تعديل المجموعة",
+      "emptyTitle": "لا توجد مجموعات",
+      "emptyDescription": "أنشئ مجموعات للأحجام أو الإضافات أو الأطباق الجانبية.",
+      "minMax": "اختر {{min}}–{{max}}",
+      "manageModifiers": "إدارة الإضافات",
+      "detailTitle": "مجموعة الإضافات",
+      "deleteConfirm": "ستُفك هذه المجموعة من المنتجات المرتبطة.",
+      "decrease": "إنقاص",
+      "increase": "زيادة",
+      "fields": {
+        "minSelect": "الحد الأدنى",
+        "maxSelect": "الحد الأقصى"
+      }
+    },
+    "modifiers": {
+      "add": "إضافة خيار",
+      "drag": "اسحب لإعادة الترتيب",
+      "createTitle": "إضافة جديدة",
+      "emptyTitle": "لا توجد إضافات في هذه المجموعة بعد.",
+      "fields": {
+        "priceDelta": "تغيير السعر"
+      }
+    }
   }
 }

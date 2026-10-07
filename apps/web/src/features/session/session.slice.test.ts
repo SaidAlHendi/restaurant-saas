@@ -22,6 +22,9 @@ const sampleMe: MeResponse = {
     id: '01932a1a-7b3e-7000-8000-000000000010',
     name: 'Demo',
     slug: 'demo',
+    defaultLocale: 'en',
+    locales: ['en', 'ar'],
+    defaultCurrency: 'SAR',
   },
   role: {
     id: '01932a1a-7b3e-7000-8000-000000000020',

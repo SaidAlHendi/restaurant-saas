@@ -136,6 +136,13 @@ export interface DevUiCopy {
     numberTitle: string;
     decrease: string;
     increase: string;
+    imageUploadTitle: string;
+    imageLabel: string;
+    imageHint: string;
+    imageChoose: string;
+    imageUploading: string;
+    imageRemove: string;
+    imagePreviewAlt: string;
   };
   overlays: {
     branch: string;
@@ -378,6 +385,13 @@ const en: DevUiCopy = {
     numberTitle: 'NumberInput',
     decrease: 'Decrease',
     increase: 'Increase',
+    imageUploadTitle: 'ImageUpload',
+    imageLabel: 'Drop an image here',
+    imageHint: 'JPEG, PNG or WebP',
+    imageChoose: 'Choose file',
+    imageUploading: 'Uploading',
+    imageRemove: 'Remove',
+    imagePreviewAlt: 'Preview',
   },
   overlays: {
     branch: 'Branch',
@@ -625,6 +639,13 @@ const ar: DevUiCopy = {
     numberTitle: 'حقل الرقم',
     decrease: 'إنقاص',
     increase: 'زيادة',
+    imageUploadTitle: 'ImageUpload',
+    imageLabel: 'أسقط صورة هنا',
+    imageHint: 'JPEG أو PNG أو WebP',
+    imageChoose: 'اختر ملفاً',
+    imageUploading: 'جاري الرفع',
+    imageRemove: 'إزالة',
+    imagePreviewAlt: 'معاينة',
   },
   overlays: {
     branch: 'الفرع',

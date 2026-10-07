@@ -16,6 +16,7 @@ import { LoggingModule } from './logging/logging.module';
 import { PermissionsGuard } from './permissions/permissions.guard';
 import { RedisModule, REDIS } from './redis/redis.module';
 import { RealtimeModule } from './realtime/realtime.module';
+import { StorageModule } from './storage/storage.module';
 import { TestThrottlerGuard } from './throttling/test-throttler.guard';
 import { ZodValidationPipe } from './validation/zod-validation.pipe';
 
@@ -24,6 +25,7 @@ import { ZodValidationPipe } from './validation/zod-validation.pipe';
     ConfigModule,
     LoggingModule,
     DbModule,
+    StorageModule,
     RedisModule,
     RealtimeModule,
     AuthModule,

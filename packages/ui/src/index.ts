@@ -35,6 +35,7 @@ export * from './components/stat-card/index.js';
 export * from './components/toast/index.js';
 export * from './components/page-header/index.js';
 export * from './components/sidebar/index.js';
+export * from './components/image-upload/index.js';
 
 // Hooks
 export * from './hooks/use-theme.js';
@@ -48,6 +49,7 @@ export * from './hooks/use-search-input.js';
 export * from './hooks/use-pagination.js';
 export * from './hooks/use-data-table.js';
 export * from './hooks/use-disclosure.js';
+export * from './hooks/use-image-upload.js';
 
 // Lib
 export { cn } from './lib/cn.js';

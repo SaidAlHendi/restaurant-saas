@@ -55,7 +55,14 @@ export class MeService {
         name: user.name,
         locale: user.locale as 'ar' | 'en',
       },
-      org: { id: org.id, name: org.name, slug: org.slug },
+      org: {
+        id: org.id,
+        name: org.name,
+        slug: org.slug,
+        defaultLocale: org.defaultLocale,
+        locales: org.locales,
+        defaultCurrency: org.defaultCurrency,
+      },
       role: {
         id: role.id,
         key: role.key,

@@ -18,6 +18,31 @@ const envSchema = z.object({
     .transform((v) => v === 'true' || v === '1'),
   SEED_PASSWORD: z.string().min(8).optional(),
   CORS_ORIGINS: z.string().optional(),
+  STORAGE_DRIVER: z.enum(['local', 's3']).default('local'),
+  STORAGE_LOCAL_ROOT: z.string().optional(),
+  STORAGE_PUBLIC_BASE_URL: z.url().optional(),
+  S3_ENDPOINT: z.url().optional(),
+  S3_REGION: z.string().optional(),
+  S3_BUCKET: z.string().optional(),
+  S3_ACCESS_KEY_ID: z.string().optional(),
+  S3_SECRET_ACCESS_KEY: z.string().optional(),
+  S3_PUBLIC_BASE_URL: z.url().optional(),
+}).superRefine((data, ctx) => {
+  if (data.STORAGE_DRIVER === 's3') {
+    const required = [
+      ['S3_ENDPOINT', data.S3_ENDPOINT],
+      ['S3_REGION', data.S3_REGION],
+      ['S3_BUCKET', data.S3_BUCKET],
+      ['S3_ACCESS_KEY_ID', data.S3_ACCESS_KEY_ID],
+      ['S3_SECRET_ACCESS_KEY', data.S3_SECRET_ACCESS_KEY],
+      ['S3_PUBLIC_BASE_URL', data.S3_PUBLIC_BASE_URL],
+    ] as const;
+    for (const [key, val] of required) {
+      if (!val || val.length === 0) {
+        ctx.addIssue({ code: 'custom', message: `${key} is required when STORAGE_DRIVER=s3`, path: [key] });
+      }
+    }
+  }
 });
 
 export type Env = z.infer<typeof envSchema>;

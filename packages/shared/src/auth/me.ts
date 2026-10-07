@@ -11,6 +11,9 @@ export const meResponseSchema = z.object({
     id: z.uuid(),
     name: z.string(),
     slug: z.string(),
+    defaultLocale: z.string(),
+    locales: z.array(z.string()),
+    defaultCurrency: z.string().length(3),
   }),
   role: z.object({
     id: z.uuid(),

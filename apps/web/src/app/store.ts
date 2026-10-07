@@ -3,6 +3,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import { sessionReducer } from '../features/session/session.slice.js';
 import { baseApi } from './api/base-api.js';
 import '../features/auth/auth.api.js';
+import '../features/menu/menu.api.js';
 
 export const store = configureStore({
   reducer: {
