@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { Test } from '@nestjs/testing';
+import { Test, type TestingModule } from '@nestjs/testing';
 
 import { AppModule } from '../../src/app.module';
 import { resetEnvCacheForTests } from '../../src/config/env';
@@ -13,11 +13,16 @@ import { SEED_ORG } from '../factories';
 
 describe('System role write protection (e2e)', () => {
   let db: DrizzleDb;
+  let moduleRef: TestingModule;
 
   beforeAll(async () => {
     resetEnvCacheForTests();
-    const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+    moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
     db = moduleRef.get(DRIZZLE);
+  });
+
+  afterAll(async () => {
+    await moduleRef.close();
   });
 
   it('cannot mutate system roles or permissions from tenant context', async () => {

@@ -2,9 +2,7 @@ import * as argon2 from 'argon2';
 import { sql } from 'drizzle-orm';
 import { type INestApplication } from '@nestjs/common';
 import type { Agent } from 'supertest';
-import { Test } from '@nestjs/testing';
 
-import { AppModule } from '../src/app.module';
 import { DRIZZLE, type DrizzleDb } from '../src/core/db/db.module';
 import { withOrg } from '../src/core/db/with-org';
 import { newUuidV7 } from '../src/lib/uuid';
@@ -27,10 +25,8 @@ function postOrder(
   },
   idempotencyKey?: string,
 ) {
-  const req = client.post(`/v1/branches/${branchId}/orders`);
-  if (idempotencyKey !== undefined) {
-    void req.set('Idempotency-Key', idempotencyKey);
-  }
+  const base = client.post(`/v1/branches/${branchId}/orders`);
+  const req = idempotencyKey === undefined ? base : base.set('Idempotency-Key', idempotencyKey);
   return req.send(body);
 }
 
@@ -44,9 +40,8 @@ describe('Ordering HTTP (e2e)', () => {
   beforeAll(async () => {
     ({ app } = await createTestApp());
     agent = apiAgent(app);
-    const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
-    db = moduleRef.get(DRIZZLE);
-    const owner = await asDemoOwner(agent);
+    db = app.get(DRIZZLE);
+    const owner = await asDemoOwner(apiAgent(app));
     const me = await owner.get('/v1/me');
     branchId =
       (me.body as { branches: Array<{ id: string; isActive: boolean }> }).branches.find(
@@ -63,7 +58,7 @@ describe('Ordering HTTP (e2e)', () => {
   });
 
   it('400 when Idempotency-Key missing or mismatched', async () => {
-    const owner = await asDemoOwner(agent);
+    const owner = await asDemoOwner(apiAgent(app));
     const clientOrderId = newUuidV7();
     const body = {
       clientOrderId,
@@ -78,7 +73,7 @@ describe('Ordering HTTP (e2e)', () => {
   });
 
   it('201 then 200 for duplicate clientOrderId with matching header', async () => {
-    const owner = await asDemoOwner(agent);
+    const owner = await asDemoOwner(apiAgent(app));
     const clientOrderId = newUuidV7();
     const body = {
       clientOrderId,
@@ -93,7 +88,7 @@ describe('Ordering HTTP (e2e)', () => {
   });
 
   it('403 kitchen cannot create orders', async () => {
-    const kitchen = await asDemoKitchen(agent);
+    const kitchen = await asDemoKitchen(apiAgent(app));
     const res = await postOrder(
       kitchen,
       branchId,
@@ -108,7 +103,7 @@ describe('Ordering HTTP (e2e)', () => {
   });
 
   it('kitchen can move placed order to preparing', async () => {
-    const owner = await asDemoOwner(agent);
+    const owner = await asDemoOwner(apiAgent(app));
     const clientOrderId = newUuidV7();
     const created = await postOrder(
       owner,
@@ -123,7 +118,7 @@ describe('Ordering HTTP (e2e)', () => {
     expect(created.status).toBe(201);
     const orderId = (created.body as { id: string }).id;
     const version = (created.body as { version: number }).version;
-    const kitchen = await asDemoKitchen(agent);
+    const kitchen = await asDemoKitchen(apiAgent(app));
     const moved = await kitchen.post(`/v1/branches/${branchId}/orders/${orderId}/status`).send({
       to: 'preparing',
       expectedVersion: version,
@@ -133,7 +128,7 @@ describe('Ordering HTTP (e2e)', () => {
   });
 
   it('403 cashier cannot cancel a preparing order', async () => {
-    const owner = await asDemoOwner(agent);
+    const owner = await asDemoOwner(apiAgent(app));
     const clientOrderId = newUuidV7();
     const created = await postOrder(
       owner,
@@ -152,7 +147,7 @@ describe('Ordering HTTP (e2e)', () => {
       expectedVersion: version,
     });
     version = (preparing.body as { version: number }).version;
-    const cashier = authAgent(agent, (await loginSeedUser(agent, 'cashier', 'demo')).accessToken);
+    const cashier = authAgent(apiAgent(app), (await loginSeedUser(agent, 'cashier', 'demo')).accessToken);
     const cancelled = await cashier.post(`/v1/branches/${branchId}/orders/${orderId}/status`).send({
       to: 'cancelled',
       expectedVersion: version,
@@ -162,11 +157,11 @@ describe('Ordering HTTP (e2e)', () => {
   });
 
   it('404 for other org order and table', async () => {
-    const owner = await asDemoOwner(agent);
-    const other = await asOtherOwner(agent);
+    const owner = await asDemoOwner(apiAgent(app));
+    const other = await asOtherOwner(apiAgent(app));
     const otherBranches = await other.get('/v1/branches');
     const otherBranchId = (otherBranches.body as { items: Array<{ id: string }> }).items[0]?.id ?? '';
-    const tableLabel = `T-${newUuidV7().slice(0, 8)}`;
+    const tableLabel = `T-${newUuidV7().slice(-8)}`;
     const table = await owner.post(`/v1/branches/${branchId}/tables`).send({ label: tableLabel });
     expect(table.status).toBe(201);
     const tableId = (table.body as { id: string }).id;
@@ -198,7 +193,7 @@ describe('Ordering HTTP (e2e)', () => {
     const scopedPassword = 'scoped-ordering-user-1';
     const userId = newUuidV7();
     const membershipId = newUuidV7();
-    const email = `scoped-order-${userId.slice(0, 8)}@example.com`;
+    const email = `scoped-order-${userId.slice(-8)}@example.com`;
     const passwordHash = await argon2.hash(scopedPassword, { type: argon2.argon2id });
 
     let allowedBranchId = '';
@@ -227,7 +222,7 @@ describe('Ordering HTTP (e2e)', () => {
 
     const login = await agent.post('/v1/auth/login').send({ email, password: scopedPassword });
     const token = (login.body as { accessToken: string }).accessToken;
-    const scoped = authAgent(agent, token);
+    const scoped = authAgent(apiAgent(app), token);
 
     const ok = await scoped.get(`/v1/branches/${allowedBranchId}/orders`);
     expect(ok.status).toBe(200);
@@ -237,9 +232,9 @@ describe('Ordering HTTP (e2e)', () => {
   });
 
   it('hides qrToken unless branches.manage', async () => {
-    const owner = await asDemoOwner(agent);
-    const cashier = authAgent(agent, (await loginSeedUser(agent, 'cashier', 'demo')).accessToken);
-    const label = `QR-${newUuidV7().slice(0, 6)}`;
+    const owner = await asDemoOwner(apiAgent(app));
+    const cashier = authAgent(apiAgent(app), (await loginSeedUser(agent, 'cashier', 'demo')).accessToken);
+    const label = `QR-${newUuidV7().slice(-6)}`;
     const created = await owner.post(`/v1/branches/${branchId}/tables`).send({ label });
     expect(created.status).toBe(201);
     expect((created.body as { qrToken?: string }).qrToken).toBeDefined();

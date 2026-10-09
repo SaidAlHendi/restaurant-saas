@@ -1,6 +1,6 @@
 import { sql } from 'drizzle-orm';
 import pg from 'pg';
-import { Test } from '@nestjs/testing';
+import { Test, type TestingModule } from '@nestjs/testing';
 
 import { AppModule } from '../src/app.module';
 import { loadEnv, resetEnvCacheForTests } from '../src/config/env';
@@ -10,11 +10,16 @@ import { SEED_ORG } from './factories';
 
 describe('Ordering security (e2e)', () => {
   let db: DrizzleDb;
+  let moduleRef: TestingModule;
 
   beforeAll(async () => {
     resetEnvCacheForTests();
-    const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+    moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
     db = moduleRef.get(DRIZZLE);
+  });
+
+  afterAll(async () => {
+    await moduleRef.close();
   });
 
   it('denies UPDATE and DELETE on order_events for app_user', async () => {

@@ -37,7 +37,8 @@ describe('Catalog categories (e2e)', () => {
     expect(patched.status).toBe(200);
     expect((patched.body as { name: { en: string } }).name.en).toBe('Hot Drinks');
 
-    const beforeReorder = await owner.get('/v1/categories');
+    // Reorder needs every active category; the default page (20) is too small once a test DB fills up.
+    const beforeReorder = await owner.get('/v1/categories?limit=100');
     const allIds = (beforeReorder.body as { items: { id: string }[] }).items.map((c) => c.id);
     const reordered = await owner.put('/v1/categories/reorder').send({ orderedIds: allIds });
     expect(reordered.status).toBe(200);

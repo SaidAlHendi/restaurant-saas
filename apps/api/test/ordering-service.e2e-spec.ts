@@ -1,7 +1,7 @@
 import { eq, sql } from 'drizzle-orm';
 import { type INestApplication } from '@nestjs/common';
 import type { Agent } from 'supertest';
-import { Test } from '@nestjs/testing';
+import { Test, type TestingModule } from '@nestjs/testing';
 
 import { AppModule } from '../src/app.module';
 import { OutboxService } from '../src/core/outbox/outbox.service';
@@ -57,12 +57,15 @@ describe('OrderingService (e2e)', () => {
   beforeAll(async () => {
     ({ app } = await createTestApp());
     agent = apiAgent(app);
-    const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
-    db = moduleRef.get(DRIZZLE);
-    ordering = moduleRef.get(OrderingService);
+    db = app.get(DRIZZLE);
+    ordering = app.get(OrderingService);
   });
 
+  // Modules compiled with overridden providers own their own DB pool and Redis client.
+  const extraModules: TestingModule[] = [];
+
   afterAll(async () => {
+    await Promise.all(extraModules.map((m) => m.close()));
     await app.close();
   });
 
@@ -150,6 +153,7 @@ describe('OrderingService (e2e)', () => {
       .overrideProvider(OutboxService)
       .useClass(ThrowingOutboxService)
       .compile();
+    extraModules.push(moduleRef);
     const failingOrdering = moduleRef.get(OrderingService);
     const { ctx, branchId } = await demoOwnerContext(agent, db);
     const { productId } = await seedCatalogProduct(agent);
@@ -304,11 +308,15 @@ describe('OrderingService (e2e)', () => {
   });
 
   it('resets order number to 1 on a new business day with fixed clock', async () => {
-    const clock = new MutableClock(new Date('2026-06-01T05:00:00.000Z'));
+    // A random far-future day, so reruns against a non-empty test DB start a fresh counter.
+    const dayMs = 86_400_000;
+    const day1Start = Date.parse('2100-06-01T05:00:00.000Z') + Math.floor(Math.random() * 36_500) * dayMs;
+    const clock = new MutableClock(new Date(day1Start));
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
       .overrideProvider(CLOCK)
       .useValue(clock)
       .compile();
+    extraModules.push(moduleRef);
     const clockOrdering = moduleRef.get(OrderingService);
     const { ctx, branchId } = await demoOwnerContext(agent, db);
     const { productId } = await seedCatalogProduct(agent);
@@ -324,7 +332,7 @@ describe('OrderingService (e2e)', () => {
       type: 'takeaway',
       items: [{ productId, quantity: 1, modifierIds: [] }],
     });
-    clock.set(new Date('2026-06-02T01:00:00.000Z'));
+    clock.set(new Date(day1Start + dayMs - 4 * 3_600_000));
     const day2 = await clockOrdering.createOrder(ctx, branchId, {
       clientOrderId: newUuidV7(),
       type: 'takeaway',
@@ -449,7 +457,7 @@ describe('OrderingService (e2e)', () => {
   it('requires table for dine_in', async () => {
     const { ctx, branchId } = await demoOwnerContext(agent, db);
     const { productId } = await seedCatalogProduct(agent);
-    const tableId = await insertDiningTable(db, SEED_ORG.demo.id, branchId, `T-${newUuidV7().slice(0, 6)}`);
+    const tableId = await insertDiningTable(db, SEED_ORG.demo.id, branchId, `T-${newUuidV7().slice(-6)}`);
     const order = await ordering.createOrder(ctx, branchId, {
       clientOrderId: newUuidV7(),
       type: 'dine_in',

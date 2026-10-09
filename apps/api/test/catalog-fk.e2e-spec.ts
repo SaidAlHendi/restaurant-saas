@@ -1,6 +1,6 @@
 import pg from 'pg';
 import { sql } from 'drizzle-orm';
-import { Test } from '@nestjs/testing';
+import { Test, type TestingModule } from '@nestjs/testing';
 
 import { loadEnv } from '../src/config/env';
 import { AppModule } from '../src/app.module';
@@ -12,11 +12,16 @@ import { SEED_ORG } from './factories';
 
 describe('Catalog composite FK (e2e)', () => {
   let db: DrizzleDb;
+  let moduleRef: TestingModule;
 
   beforeAll(async () => {
     resetEnvCacheForTests();
-    const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+    moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
     db = moduleRef.get(DRIZZLE);
+  });
+
+  afterAll(async () => {
+    await moduleRef.close();
   });
 
   it('rejects cross-org product/category link at database level', async () => {

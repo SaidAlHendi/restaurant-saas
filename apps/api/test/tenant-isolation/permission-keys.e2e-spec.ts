@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { PERMISSION_KEYS } from '@app/shared';
-import { Test } from '@nestjs/testing';
+import { Test, type TestingModule } from '@nestjs/testing';
 
 import { AppModule } from '../../src/app.module';
 import { resetEnvCacheForTests } from '../../src/config/env';
@@ -15,11 +15,16 @@ import { SEED_ORG } from '../factories';
 
 describe('Owner role permissions (e2e)', () => {
   let db: DrizzleDb;
+  let moduleRef: TestingModule;
 
   beforeAll(async () => {
     resetEnvCacheForTests();
-    const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+    moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
     db = moduleRef.get(DRIZZLE);
+  });
+
+  afterAll(async () => {
+    await moduleRef.close();
   });
 
   it('owner system role has exactly every PERMISSION_KEYS entry', async () => {

@@ -8,9 +8,10 @@ process.env['NODE_ENV'] = 'test';
 loadDotenvFromMonorepoRoot();
 applyTestDatabaseEnv();
 
+// Tests always use local disk storage, whatever the developer's .env says (e.g. an R2 bucket).
+process.env['STORAGE_DRIVER'] = 'local';
 process.env['STORAGE_LOCAL_ROOT'] =
-  process.env['STORAGE_LOCAL_ROOT'] ??
-  path.join(__dirname, '..', '.storage');
+  process.env['STORAGE_LOCAL_ROOT'] || path.join(__dirname, '..', '.storage');
 
 process.env['REDIS_URL'] = process.env['REDIS_URL'] ?? 'redis://localhost:6379';
 process.env['APP_ROLE'] = 'api';

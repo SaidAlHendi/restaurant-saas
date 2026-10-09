@@ -1,6 +1,6 @@
 import * as argon2 from 'argon2';
 import { eq, sql } from 'drizzle-orm';
-import { Test } from '@nestjs/testing';
+import { Test, type TestingModule } from '@nestjs/testing';
 
 import { AppModule } from '../../src/app.module';
 import { resetEnvCacheForTests } from '../../src/config/env';
@@ -15,17 +15,18 @@ import { SEED_ORG } from '../factories';
 
 describe('withOrg vs withUser scoping (e2e)', () => {
   let db: DrizzleDb;
+  let moduleRef: TestingModule;
   const dualUserId = newUuidV7();
 
   beforeAll(async () => {
     resetEnvCacheForTests();
-    const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+    moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
     db = moduleRef.get(DRIZZLE);
 
     const passwordHash = await argon2.hash('dual-user-password-12', { type: argon2.argon2id });
     await db.insert(usersTable).values({
       id: dualUserId,
-      email: `dual-${dualUserId.slice(0, 8)}@example.com`,
+      email: `dual-${dualUserId.slice(-8)}@example.com`,
       passwordHash,
       name: 'Dual Org User',
       locale: 'en',
@@ -44,6 +45,10 @@ describe('withOrg vs withUser scoping (e2e)', () => {
         });
       });
     }
+  });
+
+  afterAll(async () => {
+    await moduleRef.close();
   });
 
   it('withOrg(A) does not leak org B rows in memberships or organizations', async () => {
