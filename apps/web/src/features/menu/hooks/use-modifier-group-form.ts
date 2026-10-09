@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -11,6 +11,7 @@ import {
   localizedRecordToFormDefaults,
 } from '../menu.utils.js';
 import { useCatalogOrg } from './use-catalog-org.js';
+import { menuFormResetKey, useMenuFormResetOnOpenOrEntity } from './use-menu-form-reset.js';
 
 export function buildModifierGroupFormSchema(locales: string[], defaultLocale: string) {
   return z
@@ -28,6 +29,7 @@ export function buildModifierGroupFormSchema(locales: string[], defaultLocale: s
 export type ModifierGroupFormValues = z.infer<ReturnType<typeof buildModifierGroupFormSchema>>;
 
 export function useModifierGroupForm(options: {
+  editingId: string | undefined;
   group: ModifierGroup | undefined;
   open: boolean;
 }) {
@@ -37,24 +39,26 @@ export function useModifierGroupForm(options: {
     [org.defaultLocale, org.locales],
   );
 
-  const defaultValues = useMemo((): ModifierGroupFormValues => {
+  const groupForForm =
+    options.editingId !== undefined && options.group?.id === options.editingId
+      ? options.group
+      : undefined;
+
+  const valuesForReset = useCallback((): ModifierGroupFormValues => {
     return {
-      name: localizedRecordToFormDefaults(options.group?.name, org.locales),
-      minSelect: options.group?.minSelect ?? 0,
-      maxSelect: options.group?.maxSelect ?? 1,
+      name: localizedRecordToFormDefaults(groupForForm?.name, org.locales),
+      minSelect: groupForForm?.minSelect ?? 0,
+      maxSelect: groupForForm?.maxSelect ?? 1,
     };
-  }, [options.group, org.locales]);
+  }, [groupForForm, org.locales]);
 
   const form = useForm<ModifierGroupFormValues, unknown, ModifierGroupFormValues>({
     resolver: zodResolver(schema),
-    defaultValues,
+    defaultValues: valuesForReset(),
   });
 
-  useEffect(() => {
-    if (options.open) {
-      form.reset(defaultValues);
-    }
-  }, [defaultValues, form, options.open]);
+  const entityKey = menuFormResetKey(options.editingId, groupForForm?.id);
+  useMenuFormResetOnOpenOrEntity(form, options.open, entityKey, valuesForReset);
 
   const toCreateBody = (values: ModifierGroupFormValues) => ({
     name: localizedFormToApi(values.name, org),

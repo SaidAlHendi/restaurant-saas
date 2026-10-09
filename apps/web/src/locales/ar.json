@@ -117,6 +117,7 @@
         "status": "الحالة",
         "actions": "إجراءات الصف"
       },
+      "priceRequired": "أدخل السعر",
       "fields": {
         "category": "التصنيف",
         "price": "السعر",

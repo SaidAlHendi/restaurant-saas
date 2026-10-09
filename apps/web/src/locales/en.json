@@ -117,6 +117,7 @@
         "status": "Status",
         "actions": "Row actions"
       },
+      "priceRequired": "Enter a price",
       "fields": {
         "category": "Category",
         "price": "Price",

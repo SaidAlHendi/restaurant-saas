@@ -6,6 +6,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
   ImageUpload,
   MoneyInput,
   Select,
@@ -24,7 +25,7 @@ import type { UseFormReturn } from 'react-hook-form';
 
 import type { ModifierGroup } from '@app/shared';
 
-import type { ProductFormValues } from '../hooks/use-product-form.js';
+import type { ProductFormOutput, ProductFormValues } from '../hooks/use-product-form.js';
 import { LocalizedFieldsView } from './LocalizedFieldsView.js';
 
 export interface ProductFormSheetViewProps {
@@ -33,7 +34,7 @@ export interface ProductFormSheetViewProps {
   title: string;
   submitLabel: string;
   cancelLabel: string;
-  form: UseFormReturn<ProductFormValues>;
+  form: UseFormReturn<ProductFormValues, unknown, ProductFormOutput>;
   onSubmit: () => void;
   isSaving: boolean;
   canManage: boolean;
@@ -160,6 +161,7 @@ export function ProductFormSheetView({
                       disabled={!canManage}
                     />
                   </FormControl>
+                  <FormMessage />
                 </FormItem>
               )}
             />
