@@ -1,11 +1,45 @@
-import type { Order, OrderDetail, OrderEvent, OrderListItem } from '@app/shared';
+import type {
+  DiningTable,
+  DiningTableWithToken,
+  Order,
+  OrderDetail,
+  OrderEvent,
+  OrderListItem,
+} from '@app/shared';
 
-import type { orderEvents, orderItemModifiers, orderItems, orders } from '../../core/db/schema/ordering';
+import type {
+  diningTables,
+  orderEvents,
+  orderItemModifiers,
+  orderItems,
+  orders,
+} from '../../core/db/schema/ordering';
 
 type OrderRow = typeof orders.$inferSelect;
 type ItemRow = typeof orderItems.$inferSelect;
 type ModifierRow = typeof orderItemModifiers.$inferSelect;
 type EventRow = typeof orderEvents.$inferSelect;
+
+type DiningTableRow = typeof diningTables.$inferSelect;
+
+export function mapDiningTable(
+  row: DiningTableRow,
+  includeQrToken: boolean,
+): DiningTable | DiningTableWithToken {
+  const base: DiningTable = {
+    id: row.id,
+    orgId: row.orgId,
+    branchId: row.branchId,
+    label: row.label,
+    isActive: row.isActive,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  };
+  if (includeQrToken) {
+    return { ...base, qrToken: row.qrToken };
+  }
+  return base;
+}
 
 function iso(d: Date | null | undefined): string | null {
   if (!d) {

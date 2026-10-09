@@ -49,6 +49,7 @@ export function walkStorageFiles(root: string): string[] {
 }
 
 export function webpFilesForProduct(orgId: string, productId: string): string[] {
-  const root = path.join(process.cwd(), '.storage', 'orgs', orgId, 'products', productId);
+  const storageRoot = process.env['STORAGE_LOCAL_ROOT'] ?? path.join(process.cwd(), '.storage');
+  const root = path.join(storageRoot, 'orgs', orgId, 'products', productId);
   return walkStorageFiles(root).filter((f) => f.endsWith('.webp'));
 }

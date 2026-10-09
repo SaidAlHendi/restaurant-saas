@@ -161,8 +161,10 @@ export class OrderingService {
         createdBy: ctx.membershipId,
       });
 
+      const createdItemIds: string[] = [];
       for (const line of lineSnapshots) {
         const itemId = newUuidV7();
+        createdItemIds.push(itemId);
         await this.repo.insertOrderItem(tx, {
           id: itemId,
           orgId: ctx.orgId,
@@ -195,7 +197,7 @@ export class OrderingService {
         type: ORDER_EVENT_TYPES.placed,
         fromStatus: null,
         toStatus: 'placed',
-        payload: { itemIds: [] },
+        payload: { itemIds: createdItemIds },
         actorMembershipId: ctx.membershipId,
       });
 
@@ -364,8 +366,10 @@ export class OrderingService {
 
       const lineSnapshots = await this.catalogOrdering.validateAndSnapshotOrderLines(tx, body.items);
 
+      const addedItemIds: string[] = [];
       for (const line of lineSnapshots) {
         const itemId = newUuidV7();
+        addedItemIds.push(itemId);
         await this.repo.insertOrderItem(tx, {
           id: itemId,
           orgId: ctx.orgId,
@@ -418,7 +422,7 @@ export class OrderingService {
         type: ORDER_EVENT_TYPES.itemsAdded,
         fromStatus: current.status,
         toStatus: current.status,
-        payload: {},
+        payload: { itemIds: addedItemIds },
         actorMembershipId: ctx.membershipId,
       });
 

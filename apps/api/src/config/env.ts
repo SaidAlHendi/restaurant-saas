@@ -17,7 +17,7 @@ const envSchema = z.object({
   APP_ROLE: z.enum(['api', 'worker', 'all']).default('all'),
   DATABASE_URL: z.url(),
   DATABASE_MIGRATION_URL: z.url(),
-  DATABASE_WORKER_URL: z.url(),
+  DATABASE_WORKER_URL: optionalUrl,
   OUTBOX_PUBLISHER_INTERVAL_MS: z.coerce.number().int().positive().default(500),
   REDIS_URL: z.url(),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
@@ -39,6 +39,16 @@ const envSchema = z.object({
   S3_SECRET_ACCESS_KEY: z.preprocess(emptyStringToUndefined, z.string().optional()),
   S3_PUBLIC_BASE_URL: optionalUrl,
 }).superRefine((data, ctx) => {
+  if (
+    (data.APP_ROLE === 'worker' || data.APP_ROLE === 'all') &&
+    !data.DATABASE_WORKER_URL
+  ) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'DATABASE_WORKER_URL is required when APP_ROLE is worker or all',
+      path: ['DATABASE_WORKER_URL'],
+    });
+  }
   if (data.STORAGE_DRIVER === 's3') {
     const required = [
       ['S3_ENDPOINT', data.S3_ENDPOINT],

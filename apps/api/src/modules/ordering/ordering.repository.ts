@@ -23,6 +23,41 @@ function firstRow<T>(rows: T[]): T {
 
 @Injectable()
 export class OrderingRepository {
+  async listTables(tx: DrizzleTx, branchId: string) {
+    return tx
+      .select()
+      .from(diningTables)
+      .where(eq(diningTables.branchId, branchId))
+      .orderBy(diningTables.label);
+  }
+
+  async findTableById(tx: DrizzleTx, branchId: string, tableId: string) {
+    const rows = await tx
+      .select()
+      .from(diningTables)
+      .where(and(eq(diningTables.id, tableId), eq(diningTables.branchId, branchId)))
+      .limit(1);
+    return rows[0];
+  }
+
+  async insertTable(tx: DrizzleTx, row: typeof diningTables.$inferInsert) {
+    return firstRow(await tx.insert(diningTables).values(row).returning());
+  }
+
+  async updateTable(
+    tx: DrizzleTx,
+    branchId: string,
+    tableId: string,
+    patch: Partial<typeof diningTables.$inferInsert>,
+  ) {
+    const rows = await tx
+      .update(diningTables)
+      .set({ ...patch, updatedAt: new Date() })
+      .where(and(eq(diningTables.id, tableId), eq(diningTables.branchId, branchId)))
+      .returning();
+    return rows[0];
+  }
+
   async findActiveTableForBranch(tx: DrizzleTx, branchId: string, tableId: string) {
     const rows = await tx
       .select()

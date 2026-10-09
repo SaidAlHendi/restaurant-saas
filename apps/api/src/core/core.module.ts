@@ -13,6 +13,7 @@ import { DatabaseRoleValidator } from './db/database-role.validator';
 import { DbModule } from './db/db.module';
 import { HttpExceptionFilter } from './errors/http-exception.filter';
 import { LoggingModule } from './logging/logging.module';
+import { BranchScopeGuard } from './permissions/branch-scope.guard';
 import { PermissionsGuard } from './permissions/permissions.guard';
 import { RedisModule, REDIS } from './redis/redis.module';
 import { RealtimeModule } from './realtime/realtime.module';
@@ -49,6 +50,7 @@ import { OutboxService } from './outbox/outbox.service';
     { provide: APP_GUARD, useClass: TestThrottlerGuard },
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_GUARD, useClass: PermissionsGuard },
+    { provide: APP_GUARD, useClass: BranchScopeGuard },
   ],
   exports: [OutboxService],
 })

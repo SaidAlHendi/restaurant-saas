@@ -140,11 +140,24 @@ export type {
 } from './orders/order.js';
 
 export {
+  branchIdParamSchema,
+  orderIdParamSchema,
+  orderItemIdParamSchema,
+  tableIdParamSchema,
+} from './orders/path-params.js';
+
+export {
   diningTableSchema,
   diningTableWithTokenSchema,
   createDiningTableBodySchema,
   patchDiningTableBodySchema,
   diningTableListResponseSchema,
+} from './orders/table.js';
+export type {
+  CreateDiningTableBody,
+  PatchDiningTableBody,
+  DiningTable,
+  DiningTableWithToken,
 } from './orders/table.js';
 
 export {

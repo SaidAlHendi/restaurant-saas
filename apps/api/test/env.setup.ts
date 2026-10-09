@@ -1,3 +1,5 @@
+import path from 'node:path';
+
 import { loadDotenvFromMonorepoRoot } from '../src/config/load-dotenv';
 
 import { applyTestDatabaseEnv } from './test-db-env';
@@ -5,6 +7,10 @@ import { applyTestDatabaseEnv } from './test-db-env';
 process.env['NODE_ENV'] = 'test';
 loadDotenvFromMonorepoRoot();
 applyTestDatabaseEnv();
+
+process.env['STORAGE_LOCAL_ROOT'] =
+  process.env['STORAGE_LOCAL_ROOT'] ??
+  path.join(__dirname, '..', '.storage');
 
 process.env['REDIS_URL'] = process.env['REDIS_URL'] ?? 'redis://localhost:6379';
 process.env['APP_ROLE'] = 'api';

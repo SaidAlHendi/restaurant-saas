@@ -26,3 +26,8 @@ export const patchDiningTableBodySchema = z.object({
 export const diningTableListResponseSchema = z.object({
   items: z.array(diningTableSchema),
 });
+
+export type DiningTable = z.infer<typeof diningTableSchema>;
+export type DiningTableWithToken = z.infer<typeof diningTableWithTokenSchema>;
+export type CreateDiningTableBody = z.infer<typeof createDiningTableBodySchema>;
+export type PatchDiningTableBody = z.infer<typeof patchDiningTableBodySchema>;

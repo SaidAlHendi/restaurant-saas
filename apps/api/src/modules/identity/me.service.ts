@@ -30,9 +30,10 @@ export class MeService {
         ? await this.tenancyRepo.findRoleById(tx, membership.roleId)
         : undefined;
       const branchRows = await this.tenancyRepo.listBranches(tx, ctx.orgId);
+      const activeBranches = branchRows.filter((b) => b.isActive);
       const visible = membership?.allBranches
-        ? branchRows
-        : branchRows.filter((b) => ctx.branchIds.includes(b.id));
+        ? activeBranches
+        : activeBranches.filter((b) => ctx.branchIds.includes(b.id));
       return {
         role: roleRow,
         branches: visible,
