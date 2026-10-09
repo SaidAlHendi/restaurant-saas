@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -9,6 +9,7 @@ import {
   localizedRecordToFormDefaults,
 } from '../menu.utils.js';
 import { useCatalogOrg } from './use-catalog-org.js';
+import { useMenuFormResetOnOpenOrEntity } from './use-menu-form-reset.js';
 
 export function buildModifierFormSchema(locales: string[], defaultLocale: string) {
   return z.object({
@@ -27,7 +28,7 @@ export function useModifierForm(options: { open: boolean }) {
     [org.defaultLocale, org.locales],
   );
 
-  const defaultValues = useMemo((): ModifierFormValues => {
+  const valuesForReset = useCallback((): ModifierFormValues => {
     return {
       name: localizedRecordToFormDefaults(undefined, org.locales),
       priceDeltaMinor: 0,
@@ -37,14 +38,10 @@ export function useModifierForm(options: { open: boolean }) {
 
   const form = useForm<ModifierFormValues, unknown, ModifierFormValues>({
     resolver: zodResolver(schema),
-    defaultValues,
+    defaultValues: valuesForReset(),
   });
 
-  useEffect(() => {
-    if (options.open) {
-      form.reset(defaultValues);
-    }
-  }, [defaultValues, form, options.open]);
+  useMenuFormResetOnOpenOrEntity(form, options.open, 'new', valuesForReset);
 
   const toCreateBody = (values: ModifierFormValues) => ({
     name: localizedFormToApi(values.name, org),

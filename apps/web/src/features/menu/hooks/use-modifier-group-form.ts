@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -11,6 +11,7 @@ import {
   localizedRecordToFormDefaults,
 } from '../menu.utils.js';
 import { useCatalogOrg } from './use-catalog-org.js';
+import { useMenuFormResetOnOpenOrEntity } from './use-menu-form-reset.js';
 
 export function buildModifierGroupFormSchema(locales: string[], defaultLocale: string) {
   return z
@@ -37,7 +38,7 @@ export function useModifierGroupForm(options: {
     [org.defaultLocale, org.locales],
   );
 
-  const defaultValues = useMemo((): ModifierGroupFormValues => {
+  const valuesForReset = useCallback((): ModifierGroupFormValues => {
     return {
       name: localizedRecordToFormDefaults(options.group?.name, org.locales),
       minSelect: options.group?.minSelect ?? 0,
@@ -47,14 +48,11 @@ export function useModifierGroupForm(options: {
 
   const form = useForm<ModifierGroupFormValues, unknown, ModifierGroupFormValues>({
     resolver: zodResolver(schema),
-    defaultValues,
+    defaultValues: valuesForReset(),
   });
 
-  useEffect(() => {
-    if (options.open) {
-      form.reset(defaultValues);
-    }
-  }, [defaultValues, form, options.open]);
+  const entityKey = options.group?.id ?? 'new';
+  useMenuFormResetOnOpenOrEntity(form, options.open, entityKey, valuesForReset);
 
   const toCreateBody = (values: ModifierGroupFormValues) => ({
     name: localizedFormToApi(values.name, org),

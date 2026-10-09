@@ -22,7 +22,7 @@ import type { ProductActiveFilter } from '../product-list-filters.js';
 import { isMutationError } from '../menu-mutation-result.js';
 import { showMenuApiError } from '../show-menu-api-error.js';
 import { useCatalogOrg } from './use-catalog-org.js';
-import { useProductForm, type ProductFormValues } from './use-product-form.js';
+import { useProductForm, type ProductFormOutput } from './use-product-form.js';
 import {
   useProductImageUpload,
   type ProductImageUploadError,
@@ -63,7 +63,10 @@ export function useProductsScreen(): ProductsPageViewProps {
       })),
     [categories, org.defaultLocale, org.uiLocale],
   );
-  const categoryIds = categoryOptions.map((item) => item.id);
+  const categoryIds = useMemo(
+    () => categoryOptions.map((item) => item.id),
+    [categoryOptions],
+  );
 
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -167,7 +170,7 @@ export function useProductsScreen(): ProductsPageViewProps {
   }, [categories, org.defaultLocale, org.uiLocale]);
 
   const onSubmit = () => {
-    void productForm.form.handleSubmit(async (values: ProductFormValues) => {
+    void productForm.form.handleSubmit(async (values: ProductFormOutput) => {
       if (editingId && productDetail) {
         const patchResult = await patchProduct({
           productId: editingId,
