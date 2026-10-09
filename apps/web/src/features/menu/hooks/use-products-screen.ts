@@ -133,6 +133,7 @@ export function useProductsScreen(): ProductsPageViewProps {
   const { data: productDetail } = useGetProductQuery(editingId ?? '', { skip: !editingId });
 
   const productForm = useProductForm({
+    editingId,
     product: productDetail,
     categoryIds,
     open: sheetOpen,
@@ -296,7 +297,12 @@ export function useProductsScreen(): ProductsPageViewProps {
     togglingProductId,
     sheetProps: {
       open: sheetOpen,
-      onOpenChange: setSheetOpen,
+      onOpenChange: (open) => {
+        setSheetOpen(open);
+        if (!open) {
+          setEditingId(undefined);
+        }
+      },
       title: editingId ? t('menu.products.editTitle') : t('menu.products.createTitle'),
       submitLabel: t('menu.actions.save'),
       cancelLabel: t('menu.actions.cancel'),

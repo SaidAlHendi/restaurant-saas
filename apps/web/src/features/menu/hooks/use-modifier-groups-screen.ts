@@ -47,7 +47,11 @@ export function useModifierGroupsScreen(): {
   const [formOpen, setFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
   const [editing, setEditing] = useState<ModifierGroup | undefined>();
-  const groupForm = useModifierGroupForm({ group: editing, open: formOpen });
+  const groupForm = useModifierGroupForm({
+    editingId: editing?.id,
+    group: editing,
+    open: formOpen,
+  });
 
   const [createGroup, createGroupState] = useCreateModifierGroupMutation();
   const [patchGroup, patchGroupState] = usePatchModifierGroupMutation();
@@ -201,7 +205,12 @@ export function useModifierGroupsScreen(): {
     minMaxLabel: (group) =>
       t('menu.modifierGroups.minMax', { min: group.minSelect, max: group.maxSelect }),
     formOpen,
-    onFormOpenChange: setFormOpen,
+    onFormOpenChange: (open) => {
+      setFormOpen(open);
+      if (!open) {
+        setEditing(undefined);
+      }
+    },
     formMode,
     formProps: {
       form: groupForm.form,

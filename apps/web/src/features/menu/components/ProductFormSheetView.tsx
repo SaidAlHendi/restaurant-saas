@@ -6,6 +6,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
   ImageUpload,
   MoneyInput,
   Select,
@@ -160,6 +161,7 @@ export function ProductFormSheetView({
                       disabled={!canManage}
                     />
                   </FormControl>
+                  <FormMessage />
                 </FormItem>
               )}
             />

@@ -12,7 +12,7 @@ import {
   localizedRecordToFormDefaults,
 } from '../menu.utils.js';
 import { useCatalogOrg } from './use-catalog-org.js';
-import { useMenuFormResetOnOpenOrEntity } from './use-menu-form-reset.js';
+import { menuFormResetKey, useMenuFormResetOnOpenOrEntity } from './use-menu-form-reset.js';
 
 export function buildProductFormSchema(
   locales: string[],
@@ -30,7 +30,12 @@ export function buildProductFormSchema(
       categoryId: z.uuid(),
       name: nameSchema,
       description: z.object(descriptionShape),
-      priceMinor: z.union([z.number().int().min(0), z.null()]),
+      priceMinor: z
+        .number()
+        .int()
+        .min(0)
+        .nullable()
+        .refine((value) => value !== null, { message: priceRequiredMessage }),
       isActive: z.boolean(),
       modifierGroupIds: z.array(z.uuid()),
     })
@@ -38,19 +43,6 @@ export function buildProductFormSchema(
       if (categoryIds.length > 0 && !categoryIds.includes(data.categoryId)) {
         ctx.addIssue({ code: 'custom', message: 'invalid category', path: ['categoryId'] });
       }
-      if (data.priceMinor === null) {
-        ctx.addIssue({
-          code: 'custom',
-          message: priceRequiredMessage,
-          path: ['priceMinor'],
-        });
-      }
-    })
-    .transform((data) => {
-      if (data.priceMinor === null) {
-        throw new Error('priceMinor required');
-      }
-      return { ...data, priceMinor: data.priceMinor };
     });
 }
 
@@ -73,12 +65,18 @@ export function buildProductFormDefaultValues(
 }
 
 export function useProductForm(options: {
+  editingId: string | undefined;
   product: ProductDetail | undefined;
   categoryIds: string[];
   open: boolean;
 }) {
   const org = useCatalogOrg();
   const { t } = useTranslation();
+
+  const productForForm =
+    options.editingId !== undefined && options.product?.id === options.editingId
+      ? options.product
+      : undefined;
 
   const schema = useMemo(
     () =>
@@ -93,8 +91,8 @@ export function useProductForm(options: {
 
   const valuesForReset = useCallback(
     (): ProductFormValues =>
-      buildProductFormDefaultValues(options.product, options.categoryIds, org.locales),
-    [options.categoryIds, options.product, org.locales],
+      buildProductFormDefaultValues(productForForm, options.categoryIds, org.locales),
+    [options.categoryIds, org.locales, productForForm],
   );
 
   const form = useForm<ProductFormValues, unknown, ProductFormOutput>({
@@ -102,7 +100,7 @@ export function useProductForm(options: {
     defaultValues: valuesForReset(),
   });
 
-  const entityKey = options.product?.id ?? 'new';
+  const entityKey = menuFormResetKey(options.editingId, productForForm?.id);
   useMenuFormResetOnOpenOrEntity(form, options.open, entityKey, valuesForReset);
 
   const toCreateBody = (values: ProductFormOutput) => ({

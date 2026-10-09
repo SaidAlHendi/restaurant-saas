@@ -11,7 +11,7 @@ import {
   localizedRecordToFormDefaults,
 } from '../menu.utils.js';
 import { useCatalogOrg } from './use-catalog-org.js';
-import { useMenuFormResetOnOpenOrEntity } from './use-menu-form-reset.js';
+import { menuFormResetKey, useMenuFormResetOnOpenOrEntity } from './use-menu-form-reset.js';
 
 export function buildCategoryFormSchema(locales: string[], defaultLocale: string) {
   return z.object({
@@ -23,6 +23,7 @@ export function buildCategoryFormSchema(locales: string[], defaultLocale: string
 export type CategoryFormValues = z.infer<ReturnType<typeof buildCategoryFormSchema>>;
 
 export function useCategoryForm(options: {
+  editingId: string | undefined;
   category: Category | undefined;
   open: boolean;
 }) {
@@ -32,19 +33,24 @@ export function useCategoryForm(options: {
     [org.defaultLocale, org.locales],
   );
 
+  const categoryForForm =
+    options.editingId !== undefined && options.category?.id === options.editingId
+      ? options.category
+      : undefined;
+
   const valuesForReset = useCallback((): CategoryFormValues => {
     return {
-      name: localizedRecordToFormDefaults(options.category?.name, org.locales),
-      isActive: options.category?.isActive ?? true,
+      name: localizedRecordToFormDefaults(categoryForForm?.name, org.locales),
+      isActive: categoryForForm?.isActive ?? true,
     };
-  }, [options.category, org.locales]);
+  }, [categoryForForm, org.locales]);
 
   const form = useForm<CategoryFormValues, unknown, CategoryFormValues>({
     resolver: zodResolver(schema),
     defaultValues: valuesForReset(),
   });
 
-  const entityKey = options.category?.id ?? 'new';
+  const entityKey = menuFormResetKey(options.editingId, categoryForForm?.id);
   useMenuFormResetOnOpenOrEntity(form, options.open, entityKey, valuesForReset);
 
   const toCreateBody = (values: CategoryFormValues) => ({

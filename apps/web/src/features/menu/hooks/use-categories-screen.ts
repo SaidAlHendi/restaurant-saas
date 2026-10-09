@@ -37,7 +37,11 @@ export function useCategoriesScreen(): {
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState<Category | undefined>();
 
-  const categoryForm = useCategoryForm({ category: editing, open: formOpen });
+  const categoryForm = useCategoryForm({
+    editingId: editing?.id,
+    category: editing,
+    open: formOpen,
+  });
   const [createCategory, createState] = useCreateCategoryMutation();
   const [patchCategory, patchState] = usePatchCategoryMutation();
   const [deleteCategory, deleteState] = useDeleteCategoryMutation();
@@ -132,7 +136,12 @@ export function useCategoriesScreen(): {
     emptyDescription: t('menu.categories.emptyDescription'),
     deleteLabel: t('menu.actions.delete'),
     formOpen,
-    onFormOpenChange: setFormOpen,
+    onFormOpenChange: (open) => {
+      setFormOpen(open);
+      if (!open) {
+        setEditing(undefined);
+      }
+    },
     formMode,
     formProps: {
       form: categoryForm.form,

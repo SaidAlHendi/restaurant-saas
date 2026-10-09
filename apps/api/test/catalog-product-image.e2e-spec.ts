@@ -60,6 +60,7 @@ describe('Catalog product images (e2e)', () => {
       .post(`/v1/products/${productId}/image`)
       .attach('file', Buffer.from('not an image'), { filename: 'fake.jpg', contentType: 'image/jpeg' });
     expect(res.status).toBe(400);
+    expect((res.body as { error: { code: string } }).error.code).toBe('UNSUPPORTED_IMAGE_TYPE');
   });
 
   it('strips exif, writes three widths, and deletes old files on replace', async () => {

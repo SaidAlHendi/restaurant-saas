@@ -1,9 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { act, renderHook } from '@testing-library/react';
-import type { ReactNode } from 'react';
+import { createElement, type ReactNode } from 'react';
 import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 import { beforeAll, describe, expect, it } from 'vitest';
+
+import type { ProductDetail } from '@app/shared';
 
 import { baseApi } from '../../../app/api/base-api.js';
 import { sessionReducer } from '../../../features/session/session.slice.js';
@@ -17,7 +19,30 @@ import {
 } from './use-product-form.js';
 
 const categoryId = '01934567-89ab-7cde-b012-3456789abcde';
+const productAId = '01934567-89ab-7cde-b012-3456789abc01';
+const productBId = '01934567-89ab-7cde-b012-3456789abc02';
+const orgId = '01934567-89ab-7cde-b012-3456789abc99';
 const priceRequiredMessage = 'Enter a price';
+
+function productDetail(
+  id: string,
+  nameEn: string,
+  priceMinor: number,
+): ProductDetail {
+  return {
+    id,
+    orgId,
+    categoryId,
+    name: { en: nameEn, ar: '' },
+    description: { en: '', ar: '' },
+    priceMinor,
+    currency: 'SAR',
+    isActive: true,
+    sortOrder: 0,
+    imageUrls: null,
+    modifierGroups: [],
+  };
+}
 
 function createTestStore() {
   return configureStore({
@@ -32,13 +57,19 @@ function createTestStore() {
 function createWrapper() {
   const store = createTestStore();
   return function Wrapper({ children }: { children: ReactNode }) {
-    return (
-      <Provider store={store}>
-        <I18nextProvider i18n={i18n}>{children}</I18nextProvider>
-      </Provider>
-    );
+    return createElement(Provider, {
+      store,
+      children: createElement(I18nextProvider, { i18n, children }),
+    });
   };
 }
+
+type ProductFormHookProps = {
+  open: boolean;
+  editingId: string | undefined;
+  product: ProductDetail | undefined;
+  categoryIds: string[];
+};
 
 describe('buildProductFormSchema', () => {
   it('maps localized name fields to API body shape', () => {
@@ -136,6 +167,7 @@ describe('useProductForm', () => {
     const { result, rerender } = renderHook(
       (props: { categoryIds: string[] }) =>
         useProductForm({
+          editingId: undefined,
           product: undefined,
           categoryIds: props.categoryIds,
           open: true,
@@ -170,5 +202,55 @@ describe('useProductForm', () => {
     const body = result.current.toCreateBody(submitted);
     expect(body.priceMinor).toBe(1500);
     expect(body.name.en).toBe('Burger');
+  });
+
+  it('resets to empty after edit close, then loads another product on edit', () => {
+    const wrapper = createWrapper();
+    const productA = productDetail(productAId, 'Product A', 1000);
+    const productB = productDetail(productBId, 'Product B', 2000);
+
+    const initialProps: ProductFormHookProps = {
+      open: true,
+      editingId: productAId,
+      product: productA,
+      categoryIds: [categoryId],
+    };
+
+    const { result, rerender } = renderHook(
+      (props: ProductFormHookProps) => useProductForm(props),
+      { wrapper, initialProps },
+    );
+
+    expect(result.current.form.getValues('name.en')).toBe('Product A');
+    expect(result.current.form.getValues('priceMinor')).toBe(1000);
+
+    const closedProps: ProductFormHookProps = {
+      open: false,
+      editingId: undefined,
+      product: undefined,
+      categoryIds: [categoryId],
+    };
+    rerender(closedProps);
+
+    const newProductProps: ProductFormHookProps = {
+      open: true,
+      editingId: undefined,
+      product: undefined,
+      categoryIds: [categoryId],
+    };
+    rerender(newProductProps);
+
+    expect(result.current.form.getValues('name.en')).toBe('');
+    expect(result.current.form.getValues('priceMinor')).toBeNull();
+
+    rerender({
+      open: true,
+      editingId: productBId,
+      product: productB,
+      categoryIds: [categoryId],
+    });
+
+    expect(result.current.form.getValues('name.en')).toBe('Product B');
+    expect(result.current.form.getValues('priceMinor')).toBe(2000);
   });
 });
