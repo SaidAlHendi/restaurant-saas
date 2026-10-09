@@ -36,6 +36,13 @@
       "when": 1759666000000,
       "tag": "0004_catalog_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1759666100000,
+      "tag": "0005_ordering_tables",
+      "breakpoints": true
     }
   ]
 }

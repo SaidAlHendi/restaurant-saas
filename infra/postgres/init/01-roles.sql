@@ -9,6 +9,9 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'app_user') THEN
     CREATE ROLE app_user LOGIN PASSWORD 'app_user_dev' NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE;
   END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'app_worker') THEN
+    CREATE ROLE app_worker LOGIN PASSWORD 'app_worker_dev' NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE;
+  END IF;
 END
 $$;
 
@@ -23,6 +26,8 @@ $$;
 ALTER SCHEMA public OWNER TO app_owner;
 
 GRANT USAGE ON SCHEMA public TO app_user;
+GRANT USAGE ON SCHEMA public TO app_worker;
 
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
 GRANT USAGE ON SCHEMA public TO app_user;
+GRANT USAGE ON SCHEMA public TO app_worker;

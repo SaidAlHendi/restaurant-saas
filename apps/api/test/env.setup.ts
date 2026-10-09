@@ -13,3 +13,6 @@ process.env['JWT_ACCESS_SECRET'] =
 process.env['COOKIE_SECURE'] = process.env['COOKIE_SECURE'] ?? 'false';
 process.env['SEED_PASSWORD'] =
   process.env['SEED_PASSWORD'] ?? 'seed-password-123456';
+process.env['DATABASE_WORKER_URL'] =
+  process.env['DATABASE_WORKER_URL'] ??
+  'postgresql://app_worker:app_worker_dev@localhost:5432/restaurant_saas_test';

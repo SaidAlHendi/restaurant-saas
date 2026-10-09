@@ -4,6 +4,9 @@ const DEFAULT_TEST_DATABASE_URL =
 const DEFAULT_TEST_MIGRATION_URL =
   'postgresql://app_owner:app_owner_dev@localhost:5432/restaurant_saas_test';
 
+const DEFAULT_TEST_WORKER_URL =
+  'postgresql://app_worker:app_worker_dev@localhost:5432/restaurant_saas_test';
+
 /** E2e uses the test database — never dev DATABASE_URL / DATABASE_MIGRATION_URL from `.env`. */
 export function applyTestDatabaseEnv(): void {
   const databaseUrl = process.env['E2E_DATABASE_URL'] ?? DEFAULT_TEST_DATABASE_URL;
@@ -13,8 +16,15 @@ export function applyTestDatabaseEnv(): void {
       ? databaseUrl.replace('app_user:app_user_dev', 'app_owner:app_owner_dev')
       : DEFAULT_TEST_MIGRATION_URL);
 
+  const workerUrl =
+    process.env['E2E_DATABASE_WORKER_URL'] ??
+    (process.env['E2E_DATABASE_URL']
+      ? databaseUrl.replace('app_user:app_user_dev', 'app_worker:app_worker_dev')
+      : DEFAULT_TEST_WORKER_URL);
+
   process.env['DATABASE_URL'] = databaseUrl;
   process.env['DATABASE_MIGRATION_URL'] = migrationUrl;
+  process.env['DATABASE_WORKER_URL'] = workerUrl;
 }
 
 export function redactDatabaseUrl(url: string): string {

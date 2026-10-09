@@ -33,25 +33,32 @@ export const organizations = pgTable('organizations', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const branches = pgTable('branches', {
-  id: uuid('id').primaryKey(),
-  orgId: uuid('org_id')
-    .notNull()
-    .references(() => organizations.id),
-  name: text('name').notNull(),
-  slug: text('slug').notNull(),
-  timezone: text('timezone').notNull(),
-  currency: text('currency').notNull(),
-  taxRateBp: integer('tax_rate_bp').notNull().default(0),
-  taxInclusive: boolean('tax_inclusive').notNull().default(false),
-  dayStartHour: integer('day_start_hour').notNull().default(4),
-  address: text('address'),
-  receiptHeader: text('receipt_header'),
-  receiptFooter: text('receipt_footer'),
-  isActive: boolean('is_active').notNull().default(true),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-});
+export const branches = pgTable(
+  'branches',
+  {
+    id: uuid('id').primaryKey(),
+    orgId: uuid('org_id')
+      .notNull()
+      .references(() => organizations.id),
+    name: text('name').notNull(),
+    slug: text('slug').notNull(),
+    timezone: text('timezone').notNull(),
+    currency: text('currency').notNull(),
+    taxRateBp: integer('tax_rate_bp').notNull().default(0),
+    taxInclusive: boolean('tax_inclusive').notNull().default(false),
+    dayStartHour: integer('day_start_hour').notNull().default(4),
+    address: text('address'),
+    receiptHeader: text('receipt_header'),
+    receiptFooter: text('receipt_footer'),
+    isActive: boolean('is_active').notNull().default(true),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('branches_org_slug_unique').on(t.orgId, t.slug),
+    unique('branches_id_org_id_unique').on(t.id, t.orgId),
+  ],
+);
 
 export const roles = pgTable('roles', {
   id: uuid('id').primaryKey(),

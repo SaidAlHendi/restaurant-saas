@@ -11,6 +11,7 @@ import { ModifierGroupsService } from './modifier-groups.service';
 import { ProductImageService } from './product-image.service';
 import { ProductsController } from './products.controller';
 import { ProductsService } from './products.service';
+import { CatalogOrderingService } from './catalog-ordering.service';
 
 @Module({
   imports: [TenancyModule, BillingModule],
@@ -21,7 +22,8 @@ import { ProductsService } from './products.service';
     ProductsService,
     ModifierGroupsService,
     ProductImageService,
+    CatalogOrderingService,
   ],
-  exports: [ProductsService, CategoriesService],
+  exports: [ProductsService, CategoriesService, CatalogOrderingService],
 })
 export class CatalogModule {}

@@ -34,13 +34,13 @@ describe('Owner role permissions (e2e)', () => {
     expect(keys).toEqual(expected);
   });
 
-  it('kitchen system role has no permissions in item 2', async () => {
+  it('kitchen system role has order read and status permissions only', async () => {
     const rows = await withOrg(db, SEED_ORG.demo.id, async (tx) =>
       tx
         .select({ key: rolePermissions.permissionKey })
         .from(rolePermissions)
         .where(eq(rolePermissions.roleId, SYSTEM_KITCHEN_ROLE_ID)),
     );
-    expect(rows.map((r) => r.key)).toEqual([]);
+    expect(rows.map((r) => r.key).sort()).toEqual(['orders.read', 'orders.update_status']);
   });
 });

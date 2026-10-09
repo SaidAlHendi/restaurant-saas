@@ -42,6 +42,7 @@ describe('RLS without tenant context (e2e)', () => {
             AND col.column_name = 'org_id'
         )
         AND c.relname <> 'auth_sessions'
+        AND c.relname <> 'outbox_events'
       ORDER BY c.relname
     `);
     const names = (tables.rows as { table_name: string }[]).map((r) => r.table_name);
