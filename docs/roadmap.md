@@ -3,9 +3,9 @@
 - [x] 1. Monorepo scaffold, docker compose (Postgres, Redis), CI (lint, typecheck, test), deploy to staging
 - [x] 1b. UI kit in packages/ui: shadcn/ui + Tailwind v4, themes cupcake/forest, first batch of components, /dev/ui showcase, ESLint UI-only rule (docs/ui-kit.md)
 - [x] 2. Auth, organizations, branches, memberships, roles, RLS, tenant-isolation test suite
-- [ ] 3. Catalog: categories, products, modifiers, images (resize to WebP), ar/en translations
+- [x] 3. Catalog: categories, products, modifiers, images (resize to WebP), ar/en translations
 - [ ] 4. Public menu page (cached at CDN) + QR codes
-- [ ] 5. Order model: tables, state machine, counters, idempotency, events, outbox
+- [x] 5. Order model: tables, state machine, counters, idempotency, events, outbox
 - [ ] 6. Cashier PWA: create order, modifiers, dine-in/takeaway, table, notes, tax, payment, print
 - [ ] 7. Kitchen display: realtime, sound, age timer, status changes, resync on reconnect
 - [ ] 8. Owner dashboard: current/past orders, search, filters, details, today's report

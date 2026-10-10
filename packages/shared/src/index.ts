@@ -96,6 +96,71 @@ export { cursorListQuerySchema, cursorListResponseSchema } from './catalog/pagin
 export type { CursorListQuery } from './catalog/pagination.js';
 
 export {
+  orderTypeSchema,
+  orderStatusSchema,
+  paymentStatusSchema,
+  orderItemStatusSchema,
+} from './orders/enums.js';
+export type {
+  OrderType,
+  OrderStatus,
+  PaymentStatus,
+  OrderItemStatus,
+} from './orders/enums.js';
+
+export { orderRealtimePayloadSchema } from './orders/realtime-payload.js';
+export type { OrderRealtimePayload } from './orders/realtime-payload.js';
+
+export { orderLineInputSchema } from './orders/order-line.js';
+export type { OrderLineInput } from './orders/order-line.js';
+
+export {
+  createOrderBodySchema,
+  orderSchema,
+  orderDetailSchema,
+  orderListItemSchema,
+  orderListQuerySchema,
+  orderListResponseSchema,
+  changeOrderStatusBodySchema,
+  addOrderItemsBodySchema,
+  voidOrderItemBodySchema,
+  orderEventSchema,
+  orderEventListResponseSchema,
+} from './orders/order.js';
+export type {
+  CreateOrderBody,
+  Order,
+  OrderDetail,
+  OrderListItem,
+  OrderListQuery,
+  ChangeOrderStatusBody,
+  AddOrderItemsBody,
+  VoidOrderItemBody,
+  OrderEvent,
+} from './orders/order.js';
+
+export {
+  branchIdParamSchema,
+  orderIdParamSchema,
+  orderItemIdParamSchema,
+  tableIdParamSchema,
+} from './orders/path-params.js';
+
+export {
+  diningTableSchema,
+  diningTableWithTokenSchema,
+  createDiningTableBodySchema,
+  patchDiningTableBodySchema,
+  diningTableListResponseSchema,
+} from './orders/table.js';
+export type {
+  CreateDiningTableBody,
+  PatchDiningTableBody,
+  DiningTable,
+  DiningTableWithToken,
+} from './orders/table.js';
+
+export {
   catalogPathIdSchema,
   categoryIdParamSchema,
   productIdParamSchema,

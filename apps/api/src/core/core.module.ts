@@ -13,18 +13,22 @@ import { DatabaseRoleValidator } from './db/database-role.validator';
 import { DbModule } from './db/db.module';
 import { HttpExceptionFilter } from './errors/http-exception.filter';
 import { LoggingModule } from './logging/logging.module';
+import { BranchScopeGuard } from './permissions/branch-scope.guard';
 import { PermissionsGuard } from './permissions/permissions.guard';
 import { RedisModule, REDIS } from './redis/redis.module';
 import { RealtimeModule } from './realtime/realtime.module';
 import { StorageModule } from './storage/storage.module';
 import { TestThrottlerGuard } from './throttling/test-throttler.guard';
 import { ZodValidationPipe } from './validation/zod-validation.pipe';
+import { ClockModule } from './clock/clock.module';
+import { OutboxService } from './outbox/outbox.service';
 
 @Module({
   imports: [
     ConfigModule,
     LoggingModule,
     DbModule,
+    ClockModule,
     StorageModule,
     RedisModule,
     RealtimeModule,
@@ -39,12 +43,15 @@ import { ZodValidationPipe } from './validation/zod-validation.pipe';
     }),
   ],
   providers: [
+    OutboxService,
     DatabaseRoleValidator,
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
     { provide: APP_PIPE, useClass: ZodValidationPipe },
     { provide: APP_GUARD, useClass: TestThrottlerGuard },
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_GUARD, useClass: PermissionsGuard },
+    { provide: APP_GUARD, useClass: BranchScopeGuard },
   ],
+  exports: [OutboxService],
 })
 export class CoreModule {}

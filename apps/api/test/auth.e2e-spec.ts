@@ -97,7 +97,8 @@ describe('Auth (e2e)', () => {
   });
 
   it('signup allocates slug and slug-1 for duplicate restaurant names', async () => {
-    const restaurantName = 'Slug Collision Cafe';
+    // Unique per run: slug suffixes stop at 50, and local test DBs are not reset between runs.
+    const restaurantName = `Slug Collision Cafe ${String(Date.now())}`;
     const email1 = `slug-a-${String(Date.now())}@example.com`;
     const email2 = `slug-b-${String(Date.now())}@example.com`;
 
@@ -164,7 +165,7 @@ describe('Auth (e2e)', () => {
     const server = app.getHttpServer() as Server;
     const password = seedPassword();
     const userId = newUuidV7();
-    const email = `dual-org-${userId.slice(0, 8)}@example.com`;
+    const email = `dual-org-${userId.slice(-8)}@example.com`;
     const passwordHash = await argon2.hash(password, { type: argon2.argon2id });
     await db.insert(usersTable).values({
       id: userId,
@@ -281,7 +282,7 @@ describe('Auth (e2e)', () => {
 
   it('login returns 403 when user has zero active memberships', async () => {
     const userId = newUuidV7();
-    const email = `nomember-${userId.slice(0, 8)}@example.com`;
+    const email = `nomember-${userId.slice(-8)}@example.com`;
     const passwordHash = await argon2.hash('password-1234567', { type: argon2.argon2id });
     await db.insert(usersTable).values({
       id: userId,
@@ -301,7 +302,7 @@ describe('Auth (e2e)', () => {
 
   it('disabled membership yields 401 on authenticated routes', async () => {
     const userId = newUuidV7();
-    const email = `disabled-${userId.slice(0, 8)}@example.com`;
+    const email = `disabled-${userId.slice(-8)}@example.com`;
     const passwordHash = await argon2.hash('password-1234567', { type: argon2.argon2id });
     await db.insert(usersTable).values({
       id: userId,

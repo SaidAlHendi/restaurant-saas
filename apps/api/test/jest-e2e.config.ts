@@ -4,6 +4,7 @@ const config: Config = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   rootDir: '.',
+  maxWorkers: 1,
   testRegex: '.e2e-spec.ts$',
   globalSetup: '<rootDir>/global-setup.ts',
   setupFiles: ['<rootDir>/env.setup.ts'],

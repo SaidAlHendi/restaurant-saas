@@ -2,7 +2,7 @@ import * as argon2 from 'argon2';
 import { sql } from 'drizzle-orm';
 import { type INestApplication } from '@nestjs/common';
 import type { Agent } from 'supertest';
-import { Test } from '@nestjs/testing';
+import { Test, type TestingModule } from '@nestjs/testing';
 
 import { AppModule } from '../src/app.module';
 import { resetEnvCacheForTests } from '../src/config/env';
@@ -19,6 +19,7 @@ describe('Permissions (e2e)', () => {
   let app: INestApplication;
   let agent: Agent;
   let db: DrizzleDb;
+  let moduleRef: TestingModule;
 
   const scopedPassword = 'scoped-user-password-1';
   let scopedAccessToken = '';
@@ -29,12 +30,12 @@ describe('Permissions (e2e)', () => {
     ({ app } = await createTestApp());
     agent = apiAgent(app);
     resetEnvCacheForTests();
-    const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+    moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
     db = moduleRef.get(DRIZZLE);
 
     const scopedUserId = newUuidV7();
     const membershipId = newUuidV7();
-    const email = `scoped-${scopedUserId.slice(0, 8)}@example.com`;
+    const email = `scoped-${scopedUserId.slice(-8)}@example.com`;
     const passwordHash = await argon2.hash(scopedPassword, { type: argon2.argon2id });
 
     await db.insert(usersTable).values({
@@ -87,6 +88,7 @@ describe('Permissions (e2e)', () => {
   });
 
   afterAll(async () => {
+    await moduleRef.close();
     await app.close();
   });
 

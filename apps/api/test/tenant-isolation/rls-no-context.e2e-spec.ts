@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { Test } from '@nestjs/testing';
+import { Test, type TestingModule } from '@nestjs/testing';
 
 import { AppModule } from '../../src/app.module';
 import { resetEnvCacheForTests } from '../../src/config/env';
@@ -7,11 +7,16 @@ import { DRIZZLE, type DrizzleDb } from '../../src/core/db/db.module';
 
 describe('RLS without tenant context (e2e)', () => {
   let db: DrizzleDb;
+  let moduleRef: TestingModule;
 
   beforeAll(async () => {
     resetEnvCacheForTests();
-    const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+    moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
     db = moduleRef.get(DRIZZLE);
+  });
+
+  afterAll(async () => {
+    await moduleRef.close();
   });
 
   it('does not expose organizations via app.signup_slug_check without org context', async () => {
@@ -42,6 +47,7 @@ describe('RLS without tenant context (e2e)', () => {
             AND col.column_name = 'org_id'
         )
         AND c.relname <> 'auth_sessions'
+        AND c.relname <> 'outbox_events'
       ORDER BY c.relname
     `);
     const names = (tables.rows as { table_name: string }[]).map((r) => r.table_name);

@@ -2,12 +2,23 @@ import { z } from 'zod';
 
 import { loadDotenvFromMonorepoRoot } from './load-dotenv';
 
+function emptyStringToUndefined(value: unknown): unknown {
+  if (value === '' || value === undefined) {
+    return undefined;
+  }
+  return value;
+}
+
+const optionalUrl = z.preprocess(emptyStringToUndefined, z.url().optional());
+
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(3000),
   APP_ROLE: z.enum(['api', 'worker', 'all']).default('all'),
   DATABASE_URL: z.url(),
   DATABASE_MIGRATION_URL: z.url(),
+  DATABASE_WORKER_URL: optionalUrl,
+  OUTBOX_PUBLISHER_INTERVAL_MS: z.coerce.number().int().positive().default(500),
   REDIS_URL: z.url(),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
   JWT_ACCESS_SECRET: z.string().min(32),
@@ -20,14 +31,24 @@ const envSchema = z.object({
   CORS_ORIGINS: z.string().optional(),
   STORAGE_DRIVER: z.enum(['local', 's3']).default('local'),
   STORAGE_LOCAL_ROOT: z.string().optional(),
-  STORAGE_PUBLIC_BASE_URL: z.url().optional(),
-  S3_ENDPOINT: z.url().optional(),
-  S3_REGION: z.string().optional(),
-  S3_BUCKET: z.string().optional(),
-  S3_ACCESS_KEY_ID: z.string().optional(),
-  S3_SECRET_ACCESS_KEY: z.string().optional(),
-  S3_PUBLIC_BASE_URL: z.url().optional(),
+  STORAGE_PUBLIC_BASE_URL: optionalUrl,
+  S3_ENDPOINT: optionalUrl,
+  S3_REGION: z.preprocess(emptyStringToUndefined, z.string().optional()),
+  S3_BUCKET: z.preprocess(emptyStringToUndefined, z.string().optional()),
+  S3_ACCESS_KEY_ID: z.preprocess(emptyStringToUndefined, z.string().optional()),
+  S3_SECRET_ACCESS_KEY: z.preprocess(emptyStringToUndefined, z.string().optional()),
+  S3_PUBLIC_BASE_URL: optionalUrl,
 }).superRefine((data, ctx) => {
+  if (
+    (data.APP_ROLE === 'worker' || data.APP_ROLE === 'all') &&
+    !data.DATABASE_WORKER_URL
+  ) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'DATABASE_WORKER_URL is required when APP_ROLE is worker or all',
+      path: ['DATABASE_WORKER_URL'],
+    });
+  }
   if (data.STORAGE_DRIVER === 's3') {
     const required = [
       ['S3_ENDPOINT', data.S3_ENDPOINT],

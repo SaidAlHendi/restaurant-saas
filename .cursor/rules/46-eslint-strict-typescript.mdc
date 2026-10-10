@@ -1,7 +1,7 @@
 ---
 description: ESLint + typescript-eslint strictTypeChecked patterns for the monorepo. Read before editing .ts/.tsx.
 globs: apps/**/*.ts,apps/**/*.tsx,packages/**/*.ts,packages/**/*.tsx
-alwaysApply: false
+alwaysApply: true
 ---
 # ESLint — strict type-checked TypeScript
 
@@ -79,6 +79,109 @@ RTK Query endpoints with **no argument** use **`undefined`**, not **`void`**: `b
 ## UI-only `.tsx` (apps/web, apps/site)
 
 See `45-components-ui-only.mdc` and `ui-only.js`: every feature `.tsx` (`src/features/**/*.tsx`) must not import `useState`, RTK Query, etc. Logic lives only in `.ts` files (`hooks/*.ts`, `*.utils.ts`). Every feature `.tsx` is UI only; never move logic to a new folder to get around this.
+
+## Backend (apps/api, packages/shared): mistakes seen in this repo
+
+These came up again and again in the order-model work. Write them correctly the first time.
+
+### `noUncheckedIndexedAccess`: `rows[0]` is `T | undefined`
+
+```typescript
+// BAD: type error, or a `!` to silence it
+const row = (await tx.select().from(orders).where(eq(orders.id, id)).limit(1))[0]!;
+
+// GOOD: return `T | undefined` and let the service throw NotFoundError,
+// or use the repository's firstRow() helper after an INSERT ... RETURNING
+const rows = await tx.select().from(orders).where(eq(orders.id, id)).limit(1);
+return rows[0];
+```
+
+### Raw SQL results are untyped (`no-unsafe-member-access`, `no-unsafe-assignment`)
+
+Prefer the Drizzle query builder. When raw `tx.execute(sql`...`)` is needed (upserts with RETURNING,
+`FOR UPDATE SKIP LOCKED`), describe the row once and check it:
+
+```typescript
+// BAD
+const n = result.rows[0].last_order_number;
+
+// GOOD
+const row = result.rows[0] as { last_order_number: number } | undefined;
+if (!row) {
+  throw new Error('Counter increment failed');
+}
+return row.last_order_number;
+```
+
+### Numbers and dates in template strings (`restrict-template-expressions`)
+
+```typescript
+// BAD
+`${year}-${month}`        `Cannot void item ${index}`        `${createdAt}`
+// GOOD
+`${String(year)}-${String(month).padStart(2, '0')}`        createdAt.toISOString()
+```
+
+### `catch` is `unknown`
+
+```typescript
+// BAD
+catch (err) { if (err.code === '23505') ... }
+// GOOD: narrow with the existing helper (lib/pg-errors.ts) or a type guard
+catch (err: unknown) { if (isPgUniqueViolation(err, 'orders_branch_client_order_id_unique')) ... }
+```
+
+### Don't re-validate what Zod already validated (`no-unnecessary-condition`)
+
+A DTO built from a Zod schema is already parsed. If the schema says `z.string().min(1)`, the value is a
+non-empty string: don't check `if (!body.label)` again. Put conditional rules (e.g. "reason required
+when cancelling") in the Zod schema with `superRefine`, or check once in the service, not both.
+
+### Express/Nest response status
+
+Set a dynamic status with `@Res({ passthrough: true }) res: Response` and `res.status(201)`, and still
+`return` the body. Never call `res.json()` yourself (it skips the exception filter and interceptors).
+
+## E2E tests (supertest): mistakes seen in this repo
+
+### `withBearer()` / `authAgent()` mutate the agent you pass in
+
+`agent.set('Authorization', ...)` changes that agent and returns the same object. Two users on one agent
+means every request uses the LAST login, so tests get random 403/404s.
+
+```typescript
+// BAD: owner and other are the same object; owner now sends other's token
+const owner = await asDemoOwner(agent);
+const other = await asOtherOwner(agent);
+
+// GOOD: one agent per user
+const owner = await asDemoOwner(apiAgent(app));
+const other = await asOtherOwner(apiAgent(app));
+```
+
+### A supertest request is a promise (`no-floating-promises`)
+
+```typescript
+// BAD: `void req.set(...)` or a bare `req.set(...)` statement
+// GOOD: build the request in one expression
+const base = client.post(url);
+const req = key === undefined ? base : base.set('Idempotency-Key', key);
+return req.send(body);
+```
+
+### Test data must be unique on every run
+
+Local test databases are NOT reset between runs. Never use fixed names, emails, labels or dates that hit
+a unique constraint or a counter:
+- UUIDv7 starts with the timestamp: `newUuidV7().slice(0, 8)` repeats for about a minute. Use `.slice(-8)`.
+- Fixed `Clock` dates: add a random number of whole days so each run gets an unused business day.
+- Lists you reorder or count: pass `?limit=100`, or only assert on rows the test created.
+
+### Close every Nest module you compile
+
+`Test.createTestingModule(...).compile()` opens a DB pool and a Redis client. Reuse `app.get(...)` from
+`createTestApp()`; if you must compile another module (to override a provider), close it in `afterAll`.
+Otherwise Jest prints "did not exit one second after the test run has completed".
 
 ## When unsure
 
