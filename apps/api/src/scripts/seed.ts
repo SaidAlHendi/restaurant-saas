@@ -1,8 +1,14 @@
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+
 import * as argon2 from 'argon2';
+import { eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import pg from 'pg';
 
-import { loadEnv, requireSeedPassword } from '../config/env';
+import { PERMISSION_KEYS } from '@app/shared';
+
+import { loadEnv, requireSeedPassword, type Env } from '../config/env';
 import * as schema from '../core/db/schema/index';
 import { withOrg } from '../core/db/with-org';
 import { newUuidV7 } from '../lib/uuid';
@@ -12,6 +18,7 @@ import {
   SYSTEM_MANAGER_ROLE_ID,
   SYSTEM_OWNER_ROLE_ID,
 } from '../modules/identity/constants';
+import { organizations } from '../core/db/schema/tenancy';
 import { IdentityRepository } from '../modules/identity/identity.repository';
 import { TenancyRepository } from '../modules/tenancy/tenancy.repository';
 
@@ -20,8 +27,63 @@ const SEED_ORGS = {
   other: { id: '00000000-0000-4000-8000-000000000202', name: 'Other Restaurant', slug: 'other' },
 } as const;
 
+/** Idempotent permission inserts from `0004_catalog_tables.sql` and `0005_ordering_tables.sql`. */
+const CATALOG_AND_ORDERING_ROLE_PERMISSIONS_SQL = `
+ALTER TABLE public.roles DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.role_permissions DISABLE ROW LEVEL SECURITY;
+
+INSERT INTO public.role_permissions (role_id, permission_key, org_id) VALUES
+  ('00000000-0000-4000-8000-000000000101', 'menu.read', NULL),
+  ('00000000-0000-4000-8000-000000000102', 'menu.read', NULL),
+  ('00000000-0000-4000-8000-000000000103', 'menu.read', NULL)
+ON CONFLICT (role_id, permission_key) DO NOTHING;
+
+INSERT INTO public.role_permissions (role_id, permission_key, org_id) VALUES
+  ('00000000-0000-4000-8000-000000000101', 'orders.read', NULL),
+  ('00000000-0000-4000-8000-000000000101', 'orders.update_status', NULL),
+  ('00000000-0000-4000-8000-000000000102', 'orders.read', NULL),
+  ('00000000-0000-4000-8000-000000000102', 'orders.update_status', NULL),
+  ('00000000-0000-4000-8000-000000000103', 'orders.read', NULL),
+  ('00000000-0000-4000-8000-000000000103', 'orders.update_status', NULL),
+  ('00000000-0000-4000-8000-000000000104', 'orders.read', NULL),
+  ('00000000-0000-4000-8000-000000000104', 'orders.update_status', NULL)
+ON CONFLICT (role_id, permission_key) DO NOTHING;
+
+ALTER TABLE public.roles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.roles FORCE ROW LEVEL SECURITY;
+ALTER TABLE public.role_permissions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.role_permissions FORCE ROW LEVEL SECURITY;
+`;
+
+/** Re-applies system role seed SQL when roles or permissions were wiped but migrations still recorded. */
+async function ensureSystemRolesSeed(env: Env): Promise<void> {
+  const pool = new pg.Pool({ connectionString: env.DATABASE_MIGRATION_URL });
+  try {
+    const count = await pool.query<{ c: number }>('SELECT count(*)::int AS c FROM public.roles');
+    const roleCount = count.rows[0]?.c ?? 0;
+    if (roleCount === 0) {
+      const sqlPath = path.join(process.cwd(), 'drizzle/0003_seed_system_roles.sql');
+      await pool.query(readFileSync(sqlPath, 'utf8'));
+    }
+
+    const ownerPerms = await pool.query<{ c: number }>(
+      'SELECT count(*)::int AS c FROM public.role_permissions WHERE role_id = $1::uuid',
+      [SYSTEM_OWNER_ROLE_ID],
+    );
+    const ownerPermCount = ownerPerms.rows[0]?.c ?? 0;
+    if (ownerPermCount < PERMISSION_KEYS.length) {
+      const sqlPath = path.join(process.cwd(), 'drizzle/0003_seed_system_roles.sql');
+      await pool.query(readFileSync(sqlPath, 'utf8'));
+      await pool.query(CATALOG_AND_ORDERING_ROLE_PERMISSIONS_SQL);
+    }
+  } finally {
+    await pool.end();
+  }
+}
+
 async function main(): Promise<void> {
   const env = loadEnv();
+  await ensureSystemRolesSeed(env);
   const passwordHash = await argon2.hash(requireSeedPassword(), { type: argon2.argon2id });
 
   const pool = new pg.Pool({ connectionString: env.DATABASE_URL });
@@ -43,6 +105,11 @@ async function main(): Promise<void> {
           locales: ['en', 'ar'],
           status: 'trial',
         });
+      } else {
+        await tx
+          .update(organizations)
+          .set({ status: 'trial' })
+          .where(eq(organizations.id, orgDef.id));
       }
 
       for (let i = 1; i <= 2; i += 1) {
