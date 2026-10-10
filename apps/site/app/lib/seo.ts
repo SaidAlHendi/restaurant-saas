@@ -83,6 +83,14 @@ export function buildMenuPageMeta(input: {
   });
 }
 
+/** Safe for embedding in `<script type="application/ld+json">` (prevents `</script>` breakout). */
+export function serializeJsonLd(value: unknown): string {
+  return JSON.stringify(value)
+    .replace(/</g, '\\u003c')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
+}
+
 export function buildMenuJsonLd(input: {
   menu: PublicMenuPayload;
   locale: 'ar' | 'en';

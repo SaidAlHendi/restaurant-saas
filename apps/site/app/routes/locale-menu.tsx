@@ -1,10 +1,10 @@
 import { data } from 'react-router';
 
-import { MenuHydration } from '../features/menu/MenuHydration.client.js';
+import { MenuHydration } from '../features/menu/MenuHydration.js';
 import { MenuPageView } from '../features/menu/MenuPageView.js';
 import { menuCanonicalUrl } from '../lib/menu-path.js';
 import { loadPublicMenuPage } from '../lib/public-menu-loader.server.js';
-import { buildMenuJsonLd, buildMenuPageMeta } from '../lib/seo.js';
+import { buildMenuJsonLd, buildMenuPageMeta, serializeJsonLd } from '../lib/seo.js';
 
 type LoaderData = Awaited<ReturnType<typeof loadPublicMenuPage>>;
 
@@ -61,7 +61,7 @@ export default function LocaleMenuRoute({ loaderData }: { loaderData: LoaderData
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
       <MenuPageView
         locale={loaderData.locale}

@@ -36,6 +36,7 @@ export * from './components/toast/index.js';
 export * from './components/page-header/index.js';
 export * from './components/sidebar/index.js';
 export * from './components/image-upload/index.js';
+export * from './components/qr-card/index.js';
 
 // Hooks
 export * from './hooks/use-theme.js';

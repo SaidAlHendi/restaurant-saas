@@ -1,5 +1,3 @@
-import { data } from 'react-router';
-
 import { fetchPublicSitemap } from '../lib/api.server.js';
 import { getSiteEnv } from '../lib/env.server.js';
 
@@ -26,16 +24,10 @@ ${urls
   .join('\n')}
 </urlset>`;
 
-  return data(body, {
+  return new Response(body, {
     headers: {
       'Content-Type': 'application/xml; charset=utf-8',
       'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=600',
     },
   });
-}
-
-export default function SitemapXml({ loaderData }: { loaderData: string }) {
-  return (
-    <pre className="whitespace-pre-wrap break-all p-4 text-xs">{loaderData}</pre>
-  );
 }

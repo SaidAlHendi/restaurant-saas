@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { formatMoney } from '@app/shared';
@@ -10,7 +10,7 @@ import {
   SheetTitle,
 } from '@app/ui';
 
-import { LanguageSwitcher } from './LanguageSwitcher.client.js';
+import { LanguageSwitcher } from './LanguageSwitcher.js';
 import type { MenuPageViewProps } from './menu-page.types.js';
 import { useProductSheet } from './use-product-sheet.js';
 
@@ -22,9 +22,17 @@ type MenuHydrationProps = Pick<
 };
 
 export function MenuHydration({ locale, menu, orgSlug, branchSlug, products }: MenuHydrationProps) {
+  const [mounted, setMounted] = useState(false);
   const { openProduct, onOpenProduct, onClose } = useProductSheet(products);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) {
+      return;
+    }
     const handlers: Array<{ el: Element; fn: () => void }> = [];
     for (const product of products) {
       const el = document.querySelector(`[data-product-sheet="${product.id}"]`);
@@ -42,9 +50,13 @@ export function MenuHydration({ locale, menu, orgSlug, branchSlug, products }: M
         el.removeEventListener('click', fn);
       }
     };
-  }, [products, onOpenProduct]);
+  }, [mounted, products, onOpenProduct]);
 
-  const langSlot = typeof document !== 'undefined' ? document.getElementById('menu-lang-slot') : null;
+  if (!mounted) {
+    return null;
+  }
+
+  const langSlot = document.getElementById('menu-lang-slot');
 
   return (
     <>

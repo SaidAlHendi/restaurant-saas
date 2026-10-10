@@ -1,5 +1,3 @@
-import { data } from 'react-router';
-
 import { getSiteEnv } from '../lib/env.server.js';
 
 export function loader() {
@@ -10,14 +8,10 @@ Allow: /
 
 Sitemap: ${base}/sitemap.xml
 `;
-  return data(body, {
+  return new Response(body, {
     headers: {
       'Content-Type': 'text/plain; charset=utf-8',
       'Cache-Control': 'public, s-maxage=86400',
     },
   });
-}
-
-export default function RobotsTxt({ loaderData }: { loaderData: string }) {
-  return <pre className="p-4 text-sm">{loaderData}</pre>;
 }

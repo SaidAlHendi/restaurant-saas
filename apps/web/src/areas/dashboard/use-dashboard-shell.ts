@@ -46,6 +46,8 @@ export function useDashboardShell() {
             { to: '/dashboard/menu/categories', label: t('menu.nav.categories') },
             { to: '/dashboard/menu/products', label: t('menu.nav.products') },
             { to: '/dashboard/menu/modifier-groups', label: t('menu.nav.modifierGroups') },
+            { to: '/dashboard/menu/tables', label: t('menu.nav.tables') },
+            { to: '/dashboard/menu/qr-codes', label: t('menu.nav.qrCodes') },
           ]
         : [],
     [canReadMenu, t],

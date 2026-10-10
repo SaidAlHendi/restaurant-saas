@@ -2,7 +2,12 @@ import { describe, expect, it } from 'vitest';
 
 import type { PublicMenuPayload } from '@app/shared';
 
-import { buildMenuJsonLd, buildMenuPageMeta, minorUnitsToMajorString } from './seo.js';
+import {
+  buildMenuJsonLd,
+  buildMenuPageMeta,
+  minorUnitsToMajorString,
+  serializeJsonLd,
+} from './seo.js';
 
 const sampleMenu: PublicMenuPayload = {
   org: {
@@ -64,6 +69,40 @@ describe('seo', () => {
       (m) => 'hrefLang' in m && m.rel === 'alternate',
     ) as Array<{ hrefLang?: string }>;
     expect(alternates.map((a) => a.hrefLang).sort()).toEqual(['ar', 'en']);
+  });
+
+  it('serializeJsonLd escapes script breakouts in product names', () => {
+    const maliciousName = '</script><script>alert(1)</script>';
+    const baseCategory = sampleMenu.categories[0];
+    const baseProduct = baseCategory?.products[0];
+    if (baseCategory === undefined || baseProduct === undefined) {
+      throw new Error('sampleMenu fixture must include a category and product');
+    }
+    const menuWithXss: PublicMenuPayload = {
+      ...sampleMenu,
+      categories: [
+        {
+          ...baseCategory,
+          products: [
+            {
+              ...baseProduct,
+              name: maliciousName,
+            },
+          ],
+        },
+      ],
+    };
+    const jsonLd = buildMenuJsonLd({
+      menu: menuWithXss,
+      locale: 'en',
+      url: 'https://menu.example/en/m/demo',
+    });
+    const serialized = serializeJsonLd(jsonLd);
+    expect(serialized.includes('</script>')).toBe(false);
+    expect(serialized.includes('<script')).toBe(false);
+    expect(serialized.includes('<')).toBe(false);
+    expect(serialized).toContain('alert(1)');
+    expect(/\\u003[cC]/.test(serialized)).toBe(true);
   });
 
   it('buildMenuJsonLd uses major units per currency', () => {

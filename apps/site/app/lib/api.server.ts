@@ -29,10 +29,11 @@ export async function fetchPublicMenu(
   locale: 'ar' | 'en',
   branchSlug?: string,
 ): Promise<PublicMenuFetchResult> {
+  const encodedOrg = encodeURIComponent(orgSlug);
   const path =
     branchSlug === undefined
-      ? `/v1/public/menus/${orgSlug}`
-      : `/v1/public/menus/${orgSlug}/branches/${branchSlug}`;
+      ? `/v1/public/menus/${encodedOrg}`
+      : `/v1/public/menus/${encodedOrg}/branches/${encodeURIComponent(branchSlug)}`;
   const res = await fetch(apiUrl(path, { locale }));
   if (res.status === 404) {
     throw new Response('Not Found', { status: 404 });

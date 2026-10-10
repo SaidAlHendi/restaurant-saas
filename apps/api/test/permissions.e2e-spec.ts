@@ -110,6 +110,18 @@ describe('Permissions (e2e)', () => {
     expect(created.status).toBe(201);
   });
 
+  it('rejects branch currency that differs from org default', async () => {
+    const owner = await loginSeedUser(agent, 'owner', 'demo');
+    const suffix = newUuidV7().slice(-8);
+    const res = await authAgent(agent, owner.accessToken).post('/v1/branches').send({
+      name: `Wrong currency ${suffix}`,
+      timezone: 'Asia/Riyadh',
+      currency: 'USD',
+    });
+    expect(res.status).toBe(422);
+    expect((res.body as { error: { code: string } }).error.code).toBe('BRANCH_CURRENCY_MISMATCH');
+  });
+
   it('rejects invalid X-Branch-Id with 400', async () => {
     const owner = await loginSeedUser(agent, 'owner', 'demo');
     const res = await withBranch(authAgent(agent, owner.accessToken), 'not-a-uuid').get(
