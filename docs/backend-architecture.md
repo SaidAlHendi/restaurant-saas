@@ -103,7 +103,9 @@ apps/api/
 - Only the outbox publisher emits order events (never controllers). `@socket.io/redis-emitter` publishes to
   room `branch:{branchId}` on namespace `/rt` using the default Redis key prefix `socket.io` (same as the
   Socket.io Redis adapter). Multiple worker processes use `FOR UPDATE SKIP LOCKED` so each row is published once.
-- Failed publishes increment `outbox_events.attempts` and set `last_error`; `published_at` stays null until success.
+- Failed publishes increment `attempts`, set `last_error`, and schedule `next_attempt_at` (`min(2^attempts s, 5 min)`).
+  A batch stops after the first failure (no same-batch retry). After 10 failures, or when `branch_id` is missing,
+  the row is marked dead (`published_at` set, error retained). Overlapping publisher ticks are prevented via chained `setTimeout`.
 - Clients treat events as hints and refetch on reconnect.
 
 ## Observability

@@ -6,6 +6,7 @@ export type OutboxEventRow = {
   aggregateId: string;
   payload: Record<string, unknown>;
   createdAt: Date;
+  attempts: number;
 };
 
 export interface EventPublisher {

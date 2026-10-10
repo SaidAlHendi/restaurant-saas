@@ -43,6 +43,13 @@
       "when": 1759666100000,
       "tag": "0005_ordering_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1759666200000,
+      "tag": "0006_outbox_next_attempt",
+      "breakpoints": true
     }
   ]
 }

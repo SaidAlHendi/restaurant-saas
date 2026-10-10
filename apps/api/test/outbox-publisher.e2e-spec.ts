@@ -7,6 +7,7 @@ import { outboxEvents } from '../src/core/db/schema/infra';
 import { DbModule, DRIZZLE, type DrizzleDb } from '../src/core/db/db.module';
 import { WORKER_DRIZZLE, type WorkerDrizzleDb } from '../src/core/db/worker-db.module';
 import { withOrg } from '../src/core/db/with-org';
+import { MAX_OUTBOX_ATTEMPTS } from '../src/core/outbox/outbox-backoff';
 import {
   EVENT_PUBLISHER,
   type EventPublisher,
@@ -34,7 +35,7 @@ class RecordingEventPublisher implements EventPublisher {
 
 async function insertOutboxRow(
   db: DrizzleDb,
-  input: { id?: string; branchId: string; createdAt?: Date },
+  input: { id?: string; branchId: string | null; createdAt?: Date },
 ): Promise<string> {
   const id = input.id ?? newUuidV7();
   await withOrg(db, SEED_ORG.demo.id, async (tx) => {
@@ -116,18 +117,67 @@ describe('Outbox publisher (e2e)', () => {
     expect(recording.published.map((r) => r.id)).toEqual([id1, id2, id3]);
   });
 
-  it('increments attempts and stores last_error when publish fails', async () => {
+  it('backs off after failure and publishes the next row on a later batch', async () => {
+    const badId = await insertOutboxRow(db, {
+      branchId,
+      createdAt: new Date('2026-01-01T10:00:00.000Z'),
+    });
+    const goodId = await insertOutboxRow(db, {
+      branchId,
+      createdAt: new Date('2026-01-01T11:00:00.000Z'),
+    });
+    recording.failOnId = badId;
+
+    await publisher.publishNextBatch(10);
+    expect(recording.published.map((r) => r.id)).toEqual([]);
+
+    const badRows = await workerDb.select().from(outboxEvents).where(eq(outboxEvents.id, badId)).limit(1);
+    expect(badRows[0]?.attempts).toBe(1);
+    expect(badRows[0]?.nextAttemptAt).not.toBeNull();
+
+    await publisher.publishNextBatch(10);
+    expect(recording.published.map((r) => r.id)).toEqual([goodId]);
+  });
+
+  it('increments attempts at most once per batch on failure', async () => {
     const id = await insertOutboxRow(db, { branchId });
     recording.failOnId = id;
-    recording.failMessage = 'redis down';
+
+    await publisher.publishNextBatch(5);
+
+    const rows = await workerDb.select().from(outboxEvents).where(eq(outboxEvents.id, id)).limit(1);
+    expect(rows[0]?.attempts).toBe(1);
+  });
+
+  it('marks dead rows with published_at and does not retry them', async () => {
+    const id = await insertOutboxRow(db, { branchId: null });
+    await publisher.publishNextBatch(5);
+
+    const rows = await workerDb.select().from(outboxEvents).where(eq(outboxEvents.id, id)).limit(1);
+    expect(rows[0]?.publishedAt).not.toBeNull();
+    expect(rows[0]?.lastError).toContain('branchId');
+    expect(recording.published).toHaveLength(0);
+
+    recording.published.length = 0;
+    await publisher.publishNextBatch(5);
+    expect(recording.published).toHaveLength(0);
+  });
+
+  it('marks row dead after max failed attempts', async () => {
+    const id = await insertOutboxRow(db, { branchId });
+    recording.failOnId = id;
+
+    await workerDb
+      .update(outboxEvents)
+      .set({ attempts: MAX_OUTBOX_ATTEMPTS - 1 })
+      .where(eq(outboxEvents.id, id));
 
     await publisher.publishNextBatch(1);
 
     const rows = await workerDb.select().from(outboxEvents).where(eq(outboxEvents.id, id)).limit(1);
-    const row = rows[0];
-    expect(row?.publishedAt).toBeNull();
-    expect(row?.attempts).toBe(1);
-    expect(row?.lastError).toBe('redis down');
+    expect(rows[0]?.attempts).toBe(MAX_OUTBOX_ATTEMPTS);
+    expect(rows[0]?.publishedAt).not.toBeNull();
+    expect(rows[0]?.lastError).toBe('publish failed');
   });
 
   it('never publishes the same row twice when two publishers run concurrently', async () => {

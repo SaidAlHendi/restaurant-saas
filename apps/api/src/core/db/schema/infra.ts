@@ -15,4 +15,5 @@ export const outboxEvents = pgTable('outbox_events', {
   publishedAt: timestamp('published_at', { withTimezone: true }),
   attempts: integer('attempts').notNull().default(0),
   lastError: text('last_error'),
+  nextAttemptAt: timestamp('next_attempt_at', { withTimezone: true }),
 });

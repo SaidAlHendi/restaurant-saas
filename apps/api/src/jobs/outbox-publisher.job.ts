@@ -6,7 +6,9 @@ import { OutboxPublisherService } from '../core/outbox/outbox-publisher.service'
 @Injectable()
 export class OutboxPublisherJob implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(OutboxPublisherJob.name);
-  private timer: ReturnType<typeof setInterval> | undefined;
+  private timeout: ReturnType<typeof setTimeout> | undefined;
+  private stopped = false;
+  private tickInFlight = false;
 
   constructor(
     @Inject(ENV) private readonly env: Env,
@@ -14,17 +16,37 @@ export class OutboxPublisherJob implements OnModuleInit, OnModuleDestroy {
   ) {}
 
   onModuleInit(): void {
-    const ms = this.env.OUTBOX_PUBLISHER_INTERVAL_MS;
-    this.timer = setInterval(() => {
-      void this.tick();
-    }, ms);
-    this.logger.log(`Outbox publisher interval ${String(ms)}ms`);
+    this.scheduleNextTick(0);
+    this.logger.log(`Outbox publisher interval ${String(this.env.OUTBOX_PUBLISHER_INTERVAL_MS)}ms`);
   }
 
   onModuleDestroy(): void {
-    if (this.timer !== undefined) {
-      clearInterval(this.timer);
-      this.timer = undefined;
+    this.stopped = true;
+    if (this.timeout !== undefined) {
+      clearTimeout(this.timeout);
+      this.timeout = undefined;
+    }
+  }
+
+  scheduleNextTick(delayMs: number): void {
+    if (this.stopped) {
+      return;
+    }
+    this.timeout = setTimeout(() => {
+      void this.runTick();
+    }, delayMs);
+  }
+
+  async runTick(): Promise<void> {
+    if (this.stopped || this.tickInFlight) {
+      return;
+    }
+    this.tickInFlight = true;
+    try {
+      await this.tick();
+    } finally {
+      this.tickInFlight = false;
+      this.scheduleNextTick(this.env.OUTBOX_PUBLISHER_INTERVAL_MS);
     }
   }
 

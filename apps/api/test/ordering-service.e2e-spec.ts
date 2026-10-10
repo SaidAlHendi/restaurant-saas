@@ -116,13 +116,19 @@ describe('OrderingService (e2e)', () => {
     const { ctx, branchId } = await demoOwnerContext(agent, db);
     const { productId } = await seedCatalogProduct(agent);
     const fakeModifier = newUuidV7();
-    let counterBefore = 0;
-    await withOrg(db, SEED_ORG.demo.id, async (tx) => {
-      const row = await tx.execute(sql`
-        SELECT coalesce(max(last_order_number), 0)::int AS n FROM branch_counters WHERE branch_id = ${branchId}::uuid
-      `);
-      counterBefore = (row.rows[0] as { n: number }).n;
+    const branchRow = await withOrg(db, SEED_ORG.demo.id, async (tx) => {
+      const rows = await tx.select().from(branches).where(eq(branches.id, branchId)).limit(1);
+      return rows[0];
     });
+    if (!branchRow) {
+      throw new Error('branch missing');
+    }
+    const businessDate = computeBusinessDate({
+      now: new Date(),
+      timezone: branchRow.timezone,
+      dayStartHour: branchRow.dayStartHour,
+    });
+    const counterBefore = await readBranchCounter(db, SEED_ORG.demo.id, branchId, businessDate);
     await expect(
       ordering.createOrder(ctx, branchId, {
         clientOrderId: newUuidV7(),
@@ -131,13 +137,7 @@ describe('OrderingService (e2e)', () => {
       }),
     ).rejects.toBeInstanceOf(BusinessRuleError);
 
-    let counterAfterFail = -1;
-    await withOrg(db, SEED_ORG.demo.id, async (tx) => {
-      const row = await tx.execute(sql`
-        SELECT coalesce(max(last_order_number), 0)::int AS n FROM branch_counters WHERE branch_id = ${branchId}::uuid
-      `);
-      counterAfterFail = (row.rows[0] as { n: number }).n;
-    });
+    const counterAfterFail = await readBranchCounter(db, SEED_ORG.demo.id, branchId, businessDate);
     expect(counterAfterFail).toBe(counterBefore);
 
     const ok = await ordering.createOrder(ctx, branchId, {

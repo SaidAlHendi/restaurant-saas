@@ -50,7 +50,7 @@ Translatable text = `jsonb` like `{"ar":"…","en":"…"}`. Tax in basis points 
 - **hourly_sales**: org_id, branch_id, business_date, hour smallint, orders_count, revenue_minor — PK(branch_id, business_date, hour)
 
 ## Infrastructure tables
-- **outbox_events**: id, org_id, branch_id (nullable), type, aggregate_id, payload jsonb, created_at, published_at, attempts int default 0, last_error text — partial INDEX(created_at, id) WHERE published_at IS NULL
+- **outbox_events**: id, org_id, branch_id (nullable), type, aggregate_id, payload jsonb, created_at, published_at, attempts int default 0, last_error text, next_attempt_at timestamptz (nullable backoff) — partial INDEX(created_at, id) WHERE published_at IS NULL; worker skips rows with next_attempt_at in the future
 - **audit_logs**: id, org_id, actor_user_id, action, entity, entity_id, before jsonb, after jsonb, ip, created_at
 - **idempotency_keys** (generic, for non-order POSTs): key, org_id, endpoint, response jsonb, created_at
 
