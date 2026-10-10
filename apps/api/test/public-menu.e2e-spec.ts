@@ -13,19 +13,22 @@ import { SEED_ORG } from './factories';
 import { apiAgent } from './http';
 
 type PublicMenuBody = {
-  org: { slug: string; locales: string[]; logoUrl: string | null };
+  org: { slug: string; locales: string[]; logoUrl: string | null; currency: string };
   categories: Array<{
     id: string;
     sortOrder: number;
     products: Array<{
       id: string;
       name: string;
+      currency: string;
       modifierGroups: Array<{ modifiers: Array<{ name: string }> }>;
     }>;
   }>;
   effectiveLocale: string;
   poweredBy?: boolean;
 };
+
+type OrgStatus = 'trial' | 'active' | 'past_due' | 'suspended' | 'cancelled';
 
 describe('Public menu API (e2e)', () => {
   let app: INestApplication;
@@ -42,7 +45,23 @@ describe('Public menu API (e2e)', () => {
     await app.close();
   });
 
-  async function setOrgStatus(orgId: string, status: 'trial' | 'active' | 'past_due' | 'suspended' | 'cancelled') {
+  async function getOrgStatus(orgId: string): Promise<OrgStatus> {
+    let status: OrgStatus = 'trial';
+    await withOrg(db, orgId, async (tx) => {
+      const rows = await tx
+        .select({ status: organizations.status })
+        .from(organizations)
+        .where(eq(organizations.id, orgId))
+        .limit(1);
+      const row = rows[0];
+      if (row) {
+        status = row.status;
+      }
+    });
+    return status;
+  }
+
+  async function setOrgStatus(orgId: string, status: OrgStatus) {
     await withOrg(db, orgId, async (tx) => {
       await tx.update(organizations).set({ status }).where(eq(organizations.id, orgId));
     });
@@ -116,20 +135,56 @@ describe('Public menu API (e2e)', () => {
   });
 
   it('404 unknown slug and suspended; 410 cancelled', async () => {
+    const previousStatus = await getOrgStatus(SEED_ORG.demo.id);
+    try {
+      const suffix = newUuidV7().slice(-8);
+      const unknown = await agent.get(`/v1/public/menus/no-org-${suffix}`);
+      expect(unknown.status).toBe(404);
+      expect(unknown.headers['cache-control']).toBe('public, s-maxage=30');
+
+      await setOrgStatus(SEED_ORG.demo.id, 'suspended');
+      const suspended = await agent.get('/v1/public/menus/demo');
+      expect(suspended.status).toBe(404);
+
+      await setOrgStatus(SEED_ORG.demo.id, 'cancelled');
+      const cancelled = await agent.get('/v1/public/menus/demo');
+      expect(cancelled.status).toBe(410);
+    } finally {
+      await setOrgStatus(SEED_ORG.demo.id, previousStatus);
+    }
+  });
+
+  it('branch menu uses org default currency for product prices', async () => {
     const suffix = newUuidV7().slice(-8);
-    const unknown = await agent.get(`/v1/public/menus/no-org-${suffix}`);
-    expect(unknown.status).toBe(404);
-    expect(unknown.headers['cache-control']).toBe('public, s-maxage=30');
+    const owner = await asDemoOwner(apiAgent(app));
+    const cat = await owner.post('/v1/categories').send(categoryBody(`Cur ${suffix}`, `ع ${suffix}`));
+    const categoryId = (cat.body as { id: string }).id;
+    await owner.post('/v1/products').send({
+      ...productBody(categoryId, 1800),
+      name: { en: `CurItem ${suffix}`, ar: `ع ${suffix}` },
+    });
 
-    await setOrgStatus(SEED_ORG.demo.id, 'suspended');
-    const suspended = await agent.get('/v1/public/menus/demo');
-    expect(suspended.status).toBe(404);
+    const branchList = await owner.get('/v1/branches');
+    const firstBranch = (branchList.body as { items: Array<{ id: string; slug: string }> }).items[0];
+    expect(firstBranch).toBeDefined();
 
-    await setOrgStatus(SEED_ORG.demo.id, 'cancelled');
-    const cancelled = await agent.get('/v1/public/menus/demo');
-    expect(cancelled.status).toBe(410);
+    const branchId = firstBranch?.id ?? '';
+    const branchSlug = firstBranch?.slug ?? '';
 
-    await setOrgStatus(SEED_ORG.demo.id, 'active');
+    await owner.patch(`/v1/branches/${branchId}`).send({ currency: 'KWD' });
+    try {
+      const menu = await agent.get(`/v1/public/menus/demo/branches/${branchSlug}`);
+      expect(menu.status).toBe(200);
+      const menuBody = menu.body as PublicMenuBody;
+      const product = menuBody.categories
+        .flatMap((c) => c.products)
+        .find((p) => p.name.includes(suffix));
+      expect(product).toBeDefined();
+      expect(product?.currency).toBe('SAR');
+      expect(menuBody.org.currency).toBe('SAR');
+    } finally {
+      await owner.patch(`/v1/branches/${branchId}`).send({ currency: 'SAR' });
+    }
   });
 
   it('branch menu 404 for unknown branch', async () => {

@@ -12,12 +12,13 @@ export async function loader({
   params,
   request,
 }: {
-  params: { locale?: string; orgSlug?: string };
+  params: { locale?: string; orgSlug?: string; branchSlug?: string };
   request: Request;
 }) {
   const result = await loadPublicMenuPage({
     locale: params.locale,
     orgSlug: params.orgSlug,
+    branchSlug: params.branchSlug,
     requestUrl: request.url,
   });
   return data(result, {
@@ -35,6 +36,7 @@ export function meta({ data: loaderData }: { data?: LoaderData }) {
     loaderData.siteBaseUrl,
     loaderData.locale,
     loaderData.orgSlug,
+    loaderData.branchSlug,
   );
   return buildMenuPageMeta({
     menu: loaderData.menu,
@@ -42,14 +44,16 @@ export function meta({ data: loaderData }: { data?: LoaderData }) {
     canonical,
     siteBaseUrl: loaderData.siteBaseUrl,
     orgSlug: loaderData.orgSlug,
+    branchSlug: loaderData.branchSlug,
   });
 }
 
-export default function LocaleMenuRoute({ loaderData }: { loaderData: LoaderData }) {
+export default function LocaleMenuBranchRoute({ loaderData }: { loaderData: LoaderData }) {
   const canonical = menuCanonicalUrl(
     loaderData.siteBaseUrl,
     loaderData.locale,
     loaderData.orgSlug,
+    loaderData.branchSlug,
   );
   const jsonLd = buildMenuJsonLd({
     menu: loaderData.menu,
@@ -67,14 +71,16 @@ export default function LocaleMenuRoute({ loaderData }: { loaderData: LoaderData
         locale={loaderData.locale}
         menu={loaderData.menu}
         orgSlug={loaderData.orgSlug}
+        branchSlug={loaderData.branchSlug}
         tableLabel={loaderData.tableLabel}
-        showBranchPicker={loaderData.showBranchPicker}
+        showBranchPicker={false}
         canonicalUrl={canonical}
       />
       <MenuHydration
         locale={loaderData.locale}
         menu={loaderData.menu}
         orgSlug={loaderData.orgSlug}
+        branchSlug={loaderData.branchSlug}
         products={loaderData.menu.categories.flatMap((c) => c.products)}
       />
     </>

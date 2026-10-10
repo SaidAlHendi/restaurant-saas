@@ -10,7 +10,8 @@ import { OBJECT_STORAGE } from '../../core/storage/storage.tokens';
 import type { ObjectStorage } from '../../core/storage/object-storage';
 import { EntitlementsService } from '../billing/entitlements.service';
 
-import { logoUrlFromKey, mapPublicCategory, mapPublicProduct } from './public-menu.mapper';
+import { assemblePublicMenuCategories } from './public-menu.assemble';
+import { logoUrlFromKey } from './public-menu.mapper';
 import { PublicMenuRepository } from './public-menu.repository';
 
 const MENU_VISIBLE_STATUSES = new Set(['trial', 'active', 'past_due']);
@@ -107,8 +108,9 @@ export class PublicMenuService {
         throw new NotFoundError();
       }
 
+      const productCurrency = orgRow.defaultCurrency;
+
       let branchField: PublicMenuPayload['branch'];
-      let currency = orgRow.defaultCurrency;
 
       if (branchSlug !== undefined) {
         const branch = await this.repo.findActiveBranchBySlug(tx, orgId, branchSlug);
@@ -120,53 +122,33 @@ export class PublicMenuService {
           slug: branch.slug,
           address: branch.address,
         };
-        currency = branch.currency;
       }
 
       const categoryRows = await this.repo.listActiveCategories(tx, orgId);
-      const categories: PublicMenuPayload['categories'] = [];
+      const categoryIds = categoryRows.map((c) => c.id);
+      const productRows = await this.repo.listActiveProductsForCategoryIds(
+        tx,
+        orgId,
+        categoryIds,
+      );
+      const productIds = productRows.map((p) => p.id);
+      const groupLinkRows = await this.repo.listProductModifierGroupsForProductIds(
+        tx,
+        productIds,
+      );
+      const groupIds = [...new Set(groupLinkRows.map((r) => r.group.id))];
+      const modifierRows = await this.repo.listActiveModifiersForGroupIds(tx, groupIds);
 
-      for (const categoryRow of categoryRows) {
-        const productRows = await this.repo.listActiveProductsInCategory(
-          tx,
-          orgId,
-          categoryRow.id,
-        );
-        if (productRows.length === 0) {
-          continue;
-        }
-
-        const productsMapped = [];
-        for (const productRow of productRows) {
-          const groupLinks = await this.repo.listProductModifierGroups(tx, productRow.id);
-          const groups = [];
-          for (const { group, link } of groupLinks) {
-            const mods = await this.repo.listActiveModifiersInGroup(tx, group.id);
-            if (mods.length === 0) {
-              continue;
-            }
-            groups.push({
-              group,
-              linkSortOrder: link.sortOrder,
-              modifiers: mods,
-            });
-          }
-          productsMapped.push(
-            mapPublicProduct(
-              productRow,
-              currency,
-              localeForContent,
-              defaultLocale,
-              this.storage,
-              groups,
-            ),
-          );
-        }
-
-        categories.push(
-          mapPublicCategory(categoryRow, localeForContent, defaultLocale, productsMapped),
-        );
-      }
+      const categories = assemblePublicMenuCategories({
+        categoryRows,
+        productRows,
+        groupLinkRows,
+        modifierRows,
+        currency: productCurrency,
+        localeForContent,
+        defaultLocale,
+        storage: this.storage,
+      });
 
       const branchRows = await this.repo.listActiveBranches(tx, orgId);
 

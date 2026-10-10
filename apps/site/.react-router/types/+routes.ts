@@ -14,6 +14,24 @@ type Pages = {
   "/": {
     params: {};
   };
+  "/robots.txt": {
+    params: {};
+  };
+  "/sitemap.xml": {
+    params: {};
+  };
+  "/t/:token": {
+    params: {
+      "token": string;
+    };
+  };
+  "/:locale/m/:orgSlug/:branchSlug": {
+    params: {
+      "locale": string;
+      "orgSlug": string;
+      "branchSlug": string;
+    };
+  };
   "/:locale/m/:orgSlug": {
     params: {
       "locale": string;
@@ -30,11 +48,27 @@ type Pages = {
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/" | "/:locale/m/:orgSlug" | "/:locale";
+    page: "/" | "/robots.txt" | "/sitemap.xml" | "/t/:token" | "/:locale/m/:orgSlug/:branchSlug" | "/:locale/m/:orgSlug" | "/:locale";
   };
   "routes/home.tsx": {
     id: "routes/home";
     page: "/";
+  };
+  "routes/robots[.]txt.tsx": {
+    id: "routes/robots[.]txt";
+    page: "/robots.txt";
+  };
+  "routes/sitemap[.]xml.tsx": {
+    id: "routes/sitemap[.]xml";
+    page: "/sitemap.xml";
+  };
+  "routes/table-redirect.tsx": {
+    id: "routes/table-redirect";
+    page: "/t/:token";
+  };
+  "routes/locale-menu-branch.tsx": {
+    id: "routes/locale-menu-branch";
+    page: "/:locale/m/:orgSlug/:branchSlug";
   };
   "routes/locale-menu.tsx": {
     id: "routes/locale-menu";
@@ -49,6 +83,10 @@ type RouteFiles = {
 type RouteModules = {
   "root": typeof import("./app/root.tsx");
   "routes/home": typeof import("./app/routes/home.tsx");
+  "routes/robots[.]txt": typeof import("./app/routes/robots[.]txt.tsx");
+  "routes/sitemap[.]xml": typeof import("./app/routes/sitemap[.]xml.tsx");
+  "routes/table-redirect": typeof import("./app/routes/table-redirect.tsx");
+  "routes/locale-menu-branch": typeof import("./app/routes/locale-menu-branch.tsx");
   "routes/locale-menu": typeof import("./app/routes/locale-menu.tsx");
   "locale-home": typeof import("./app/routes/locale-home.tsx");
 };

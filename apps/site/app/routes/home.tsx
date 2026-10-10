@@ -15,8 +15,8 @@ export default function Home() {
       <h1 className="text-3xl font-semibold">Restaurant SaaS</h1>
       <p className="mt-2 text-muted-foreground">
         Public marketing home (prerendered). Browse sample menu at{' '}
-        <a className="text-primary underline" href="/en/m/al-bait">
-          /en/m/al-bait
+        <a className="text-primary underline" href="/en/m/demo">
+          /en/m/demo
         </a>
         .
       </p>

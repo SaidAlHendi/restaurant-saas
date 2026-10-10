@@ -21,6 +21,19 @@ function mockDbTransaction() {
   });
 }
 
+function createPublicMenuRepoMock() {
+  return {
+    resolveOrg: jest.fn(),
+    findOrganization: jest.fn(),
+    findActiveBranchBySlug: jest.fn(),
+    listActiveBranches: jest.fn().mockResolvedValue([]),
+    listActiveCategories: jest.fn().mockResolvedValue([]),
+    listActiveProductsForCategoryIds: jest.fn().mockResolvedValue([]),
+    listProductModifierGroupsForProductIds: jest.fn().mockResolvedValue([]),
+    listActiveModifiersForGroupIds: jest.fn().mockResolvedValue([]),
+  };
+}
+
 describe('PublicMenuService', () => {
   it('checks menu.multilang and limits locales in payload when false', async () => {
     const can = jest.fn((_orgId: string, key: string) => Promise.resolve(key !== 'menu.multilang'));
@@ -32,10 +45,8 @@ describe('PublicMenuService', () => {
         {
           provide: PublicMenuRepository,
           useValue: {
+            ...createPublicMenuRepoMock(),
             resolveOrg: jest.fn().mockResolvedValue(resolvedOrg),
-            findOrganization: jest.fn(),
-            listActiveBranches: jest.fn().mockResolvedValue([]),
-            listActiveCategories: jest.fn().mockResolvedValue([]),
           },
         },
         {
@@ -74,10 +85,8 @@ describe('PublicMenuService', () => {
         {
           provide: PublicMenuRepository,
           useValue: {
+            ...createPublicMenuRepoMock(),
             resolveOrg: jest.fn().mockResolvedValue(resolvedOrg),
-            findOrganization: jest.fn(),
-            listActiveBranches: jest.fn().mockResolvedValue([]),
-            listActiveCategories: jest.fn().mockResolvedValue([]),
           },
         },
         {

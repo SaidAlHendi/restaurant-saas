@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { Inject, Injectable } from '@nestjs/common';
 
 import {
@@ -82,8 +82,6 @@ export class PublicMenuRepository {
         name: branches.name,
         slug: branches.slug,
         address: branches.address,
-        currency: branches.currency,
-        isActive: branches.isActive,
       })
       .from(branches)
       .where(and(eq(branches.orgId, orgId), eq(branches.isActive, true)))
@@ -96,7 +94,6 @@ export class PublicMenuRepository {
         name: branches.name,
         slug: branches.slug,
         address: branches.address,
-        currency: branches.currency,
       })
       .from(branches)
       .where(
@@ -138,22 +135,28 @@ export class PublicMenuRepository {
       .orderBy(asc(categories.sortOrder), asc(categories.id));
   }
 
-  async listActiveProductsInCategory(tx: DrizzleTx, orgId: string, categoryId: string) {
+  async listActiveProductsForCategoryIds(tx: DrizzleTx, orgId: string, categoryIds: string[]) {
+    if (categoryIds.length === 0) {
+      return [];
+    }
     return tx
       .select()
       .from(products)
       .where(
         and(
           eq(products.orgId, orgId),
-          eq(products.categoryId, categoryId),
+          inArray(products.categoryId, categoryIds),
           eq(products.isActive, true),
           isNull(products.deletedAt),
         ),
       )
-      .orderBy(asc(products.sortOrder), asc(products.id));
+      .orderBy(asc(products.categoryId), asc(products.sortOrder), asc(products.id));
   }
 
-  async listProductModifierGroups(tx: DrizzleTx, productId: string) {
+  async listProductModifierGroupsForProductIds(tx: DrizzleTx, productIds: string[]) {
+    if (productIds.length === 0) {
+      return [];
+    }
     return tx
       .select({
         link: productModifierGroups,
@@ -163,24 +166,31 @@ export class PublicMenuRepository {
       .innerJoin(modifierGroups, eq(productModifierGroups.groupId, modifierGroups.id))
       .where(
         and(
-          eq(productModifierGroups.productId, productId),
+          inArray(productModifierGroups.productId, productIds),
           isNull(modifierGroups.deletedAt),
         ),
       )
-      .orderBy(asc(productModifierGroups.sortOrder), asc(modifierGroups.id));
+      .orderBy(
+        asc(productModifierGroups.productId),
+        asc(productModifierGroups.sortOrder),
+        asc(modifierGroups.id),
+      );
   }
 
-  async listActiveModifiersInGroup(tx: DrizzleTx, groupId: string) {
+  async listActiveModifiersForGroupIds(tx: DrizzleTx, groupIds: string[]) {
+    if (groupIds.length === 0) {
+      return [];
+    }
     return tx
       .select()
       .from(modifiers)
       .where(
         and(
-          eq(modifiers.groupId, groupId),
+          inArray(modifiers.groupId, groupIds),
           eq(modifiers.isActive, true),
           isNull(modifiers.deletedAt),
         ),
       )
-      .orderBy(asc(modifiers.sortOrder), asc(modifiers.id));
+      .orderBy(asc(modifiers.groupId), asc(modifiers.sortOrder), asc(modifiers.id));
   }
 }

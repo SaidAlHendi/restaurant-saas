@@ -57,13 +57,6 @@
       "when": 1759666300000,
       "tag": "0007_public_menu_resolve",
       "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1759666400000,
-      "tag": "0008_public_menu_definer_policies",
-      "breakpoints": true
     }
   ]
 }
