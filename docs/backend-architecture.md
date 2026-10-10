@@ -18,7 +18,8 @@ apps/api/
       config.module.ts
     core/                     # cross-cutting, global providers
       db/
-        db.module.ts          # provides DRIZZLE (pg pool + drizzle instance)
+        db.module.ts          # provides DRIZZLE (app_user pool + drizzle instance)
+        worker-db.module.ts   # WORKER_DRIZZLE (app_worker pool) — WorkerModule / outbox publisher only
         with-org.ts           # withOrg(orgId, tx => ...): transaction + SET LOCAL app.org_id
         schema/               # one file per module: identity.ts, tenancy.ts, catalog.ts, ordering.ts, billing.ts, reporting.ts, infra.ts
       auth/
@@ -42,6 +43,9 @@ apps/api/
         realtime.module.ts
       outbox/
         outbox.service.ts     # write(tx, event) — used by services inside their transaction
+        outbox-publisher.service.ts  # SKIP LOCKED claim + EventPublisher + mark published / failed
+        event-publisher.ts      # EventPublisher interface; SocketIoRedisEventPublisher (@socket.io/redis-emitter, default Redis key `socket.io`)
+        outbox-publisher.module.ts   # WorkerDbModule + Redis; no app_user outbox reads
     modules/
       <module>/
         <module>.module.ts
@@ -53,7 +57,7 @@ apps/api/
         <module>.service.spec.ts  # unit tests (pure logic)
       identity/ tenancy/ catalog/ ordering/ kitchen/ reporting/ billing/ notifications/ admin/ public-menu/
     jobs/                      # imported only by WorkerModule
-      outbox-publisher.job.ts  # FOR UPDATE SKIP LOCKED -> Redis/Socket.io -> mark published
+      outbox-publisher.job.ts  # interval (OUTBOX_PUBLISHER_INTERVAL_MS) -> OutboxPublisherService
       aggregate-sales.job.ts   # recompute daily/hourly aggregates per (branch, business_date)
       queue.module.ts          # pg-boss to start (swappable for @nestjs/bullmq)
     lib/                       # pure helpers, no Nest/DB: money.ts, business-date.ts, uuid.ts (v7)
@@ -80,6 +84,10 @@ apps/api/
 - `RequestContext` is built only by the auth guard from a verified token, device token, or staff session.
 - Every repository call on a tenant table runs inside `withOrg`, so RLS applies. The app DB role is not the
   table owner and has no `BYPASSRLS`; migrations run with a separate owner role.
+- **`app_worker`** (see `infra/postgres/init/01-roles.sql`): separate login used only by `WorkerModule`
+  (`DATABASE_WORKER_URL`). Can `SELECT`/`UPDATE` `outbox_events` via policy `outbox_events_worker`; cannot
+  read tenant operational tables such as `orders`. API runtime (`app_user`) may `INSERT` outbox rows in the
+  same transaction as order writes but cannot read or update them.
 - `public-menu` module resolves `orgId` from the slug, read-only, no auth; responses are cacheable.
 - Platform admin endpoints use `withAdmin(fn)` which writes `audit_logs`.
 
@@ -92,7 +100,10 @@ apps/api/
 
 ## Realtime
 - Gateway verifies the token on handshake and joins only branches in the context.
-- Only the outbox publisher emits order events (never controllers). Redis adapter when > 1 instance.
+- Only the outbox publisher emits order events (never controllers). `@socket.io/redis-emitter` publishes to
+  room `branch:{branchId}` on namespace `/rt` using the default Redis key prefix `socket.io` (same as the
+  Socket.io Redis adapter). Multiple worker processes use `FOR UPDATE SKIP LOCKED` so each row is published once.
+- Failed publishes increment `outbox_events.attempts` and set `last_error`; `published_at` stays null until success.
 - Clients treat events as hints and refetch on reconnect.
 
 ## Observability

@@ -20,3 +20,4 @@ coverage/
 *.tsbuildinfo
 apps/api/.storage/
 .verify-pipeline.log
+.agent-quality-gate-output.txt

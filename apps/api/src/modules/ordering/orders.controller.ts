@@ -24,6 +24,7 @@ import {
   OrderListQueryDto,
   VoidOrderItemBodyDto,
 } from './dto/ordering.dto';
+import { OrderingPathIdPipe } from './pipes/ordering-path-id.pipe';
 import { OrderingService } from './ordering.service';
 
 @RequireBranchScope()
@@ -63,7 +64,7 @@ export class OrdersController {
   listEvents(
     @Ctx() ctx: RequestContext,
     @Param('branchId') branchId: string,
-    @Param('orderId') orderId: string,
+    @Param('orderId', OrderingPathIdPipe) orderId: string,
   ) {
     return this.ordering.listEvents(ctx, branchId, orderId);
   }
@@ -73,7 +74,7 @@ export class OrdersController {
   get(
     @Ctx() ctx: RequestContext,
     @Param('branchId') branchId: string,
-    @Param('orderId') orderId: string,
+    @Param('orderId', OrderingPathIdPipe) orderId: string,
   ) {
     return this.ordering.getOrder(ctx, branchId, orderId);
   }
@@ -83,7 +84,7 @@ export class OrdersController {
   changeStatus(
     @Ctx() ctx: RequestContext,
     @Param('branchId') branchId: string,
-    @Param('orderId') orderId: string,
+    @Param('orderId', OrderingPathIdPipe) orderId: string,
     @Body() body: ChangeOrderStatusBodyDto,
   ) {
     return this.ordering.changeStatus(ctx, branchId, orderId, body);
@@ -94,7 +95,7 @@ export class OrdersController {
   addItems(
     @Ctx() ctx: RequestContext,
     @Param('branchId') branchId: string,
-    @Param('orderId') orderId: string,
+    @Param('orderId', OrderingPathIdPipe) orderId: string,
     @Body() body: AddOrderItemsBodyDto,
   ) {
     return this.ordering.addItems(ctx, branchId, orderId, body);
@@ -105,8 +106,8 @@ export class OrdersController {
   voidItem(
     @Ctx() ctx: RequestContext,
     @Param('branchId') branchId: string,
-    @Param('orderId') orderId: string,
-    @Param('itemId') itemId: string,
+    @Param('orderId', OrderingPathIdPipe) orderId: string,
+    @Param('itemId', OrderingPathIdPipe) itemId: string,
     @Body() body: VoidOrderItemBodyDto,
   ) {
     return this.ordering.voidItem(ctx, branchId, orderId, itemId, body);

@@ -5,7 +5,8 @@ import type { CreateDiningTableBody, PatchDiningTableBody } from '@app/shared';
 import type { RequestContext } from '../../core/context/request-context';
 import { DRIZZLE, type DrizzleDb } from '../../core/db/db.module';
 import { withOrg } from '../../core/db/with-org';
-import { NotFoundError } from '../../core/errors/app-errors';
+import { ConflictError, NotFoundError } from '../../core/errors/app-errors';
+import { isPgUniqueViolation } from '../../lib/pg-errors';
 import { generateQrToken } from '../../lib/qr-token';
 import { newUuidV7 } from '../../lib/uuid';
 
@@ -30,15 +31,26 @@ export class TablesService {
 
   create(ctx: RequestContext, branchId: string, body: CreateDiningTableBody) {
     return withOrg(this.db, ctx.orgId, async (tx) => {
-      const row = await this.repo.insertTable(tx, {
-        id: newUuidV7(),
-        orgId: ctx.orgId,
-        branchId,
-        label: body.label,
-        qrToken: generateQrToken(),
-        isActive: true,
-      });
-      return mapDiningTable(row, true);
+      try {
+        const row = await this.repo.insertTable(tx, {
+          id: newUuidV7(),
+          orgId: ctx.orgId,
+          branchId,
+          label: body.label,
+          qrToken: generateQrToken(),
+          isActive: true,
+        });
+        return mapDiningTable(row, true);
+      } catch (err: unknown) {
+        if (isPgUniqueViolation(err, 'tables_branch_label_unique')) {
+          throw new ConflictError(
+            'Table label already exists in this branch',
+            { label: body.label },
+            'TABLE_LABEL_TAKEN',
+          );
+        }
+        throw err;
+      }
     });
   }
 
@@ -55,11 +67,22 @@ export class TablesService {
       if (body.isActive !== undefined) {
         patch.isActive = body.isActive;
       }
-      const row = await this.repo.updateTable(tx, branchId, tableId, patch);
-      if (!row) {
-        throw new NotFoundError();
+      try {
+        const row = await this.repo.updateTable(tx, branchId, tableId, patch);
+        if (!row) {
+          throw new NotFoundError();
+        }
+        return mapDiningTable(row, true);
+      } catch (err: unknown) {
+        if (isPgUniqueViolation(err, 'tables_branch_label_unique')) {
+          throw new ConflictError(
+            'Table label already exists in this branch',
+            { label: body.label ?? existing.label },
+            'TABLE_LABEL_TAKEN',
+          );
+        }
+        throw err;
       }
-      return mapDiningTable(row, true);
     });
   }
 }

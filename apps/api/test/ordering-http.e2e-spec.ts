@@ -231,6 +231,16 @@ describe('Ordering HTTP (e2e)', () => {
     expect(denied.status).toBe(404);
   });
 
+  it('409 when table label is already taken in the branch', async () => {
+    const owner = await asDemoOwner(apiAgent(app));
+    const label = `Dup-${newUuidV7().slice(0, 8)}`;
+    const first = await owner.post(`/v1/branches/${branchId}/tables`).send({ label });
+    expect(first.status).toBe(201);
+    const second = await owner.post(`/v1/branches/${branchId}/tables`).send({ label });
+    expect(second.status).toBe(409);
+    expect((second.body as { error: { code: string } }).error.code).toBe('TABLE_LABEL_TAKEN');
+  });
+
   it('hides qrToken unless branches.manage', async () => {
     const owner = await asDemoOwner(apiAgent(app));
     const cashier = authAgent(apiAgent(app), (await loginSeedUser(agent, 'cashier', 'demo')).accessToken);

@@ -30,13 +30,13 @@ Translatable text = `jsonb` like `{"ar":"…","en":"…"}`. Tax in basis points 
 ## Orders
 - **branch_counters**: branch_id, business_date date, last_order_number int, org_id — PK(branch_id, business_date)
 - **shifts**: id, org_id, branch_id, opened_by, opened_at, opening_cash_minor, closed_by, closed_at, counted_cash_minor, expected_cash_minor
-- **orders**: id, org_id, branch_id, client_order_id uuid, order_number int, business_date date, type (`dine_in`|`takeaway`), status (`draft`|`placed`|`preparing`|`ready`|`completed`|`cancelled`|`refunded`) — no DB default; API sets `placed` on create, shift_id and device_id added in a later migration when those tables exist, customer_name, notes, subtotal_minor, discount_minor, tax_minor, total_minor, currency, created_by (membership), cancel_reason, version int default 1, placed_at, completed_at, cancelled_at, created_at, updated_at
+- **orders**: id, org_id, branch_id, client_order_id uuid, order_number int, business_date date, type (`dine_in`|`takeaway`), status (`draft`|`placed`|`preparing`|`ready`|`completed`|`cancelled`|`refunded`) — no DB default; API sets `placed` on create; **`shift_id` and `device_id` deferred** until shift/device tables exist (later nullable columns), customer_name, notes, subtotal_minor, discount_minor, tax_minor, total_minor, currency, created_by (membership), cancel_reason, version int default 1, placed_at, completed_at, cancelled_at, created_at, updated_at
   - UNIQUE(branch_id, client_order_id); UNIQUE(branch_id, business_date, order_number)
   - INDEX(org_id, branch_id, created_at desc); INDEX(branch_id, status) WHERE status in active states; INDEX(org_id, business_date)
 - **order_items**: id, org_id, order_id, product_id, product_name_snapshot jsonb, unit_price_minor, quantity int, line_total_minor, notes, status (`pending`|`preparing`|`ready`|`voided`), is_addition bool, voided_at, void_reason, voided_by, created_at — INDEX(order_id)
 - **order_item_modifiers**: id, org_id, order_item_id, modifier_id, name_snapshot jsonb, price_delta_minor
 - **payments**: id, org_id, order_id, method (`cash`|`card`|`other`), amount_minor, tendered_minor, change_minor, status (`captured`|`refunded`), created_by, created_at
-- **order_events** (append-only): id, org_id, order_id, type, from_status, to_status, payload jsonb, actor_membership_id, created_at — `approved_by_membership_id` and `device_id` come in step 9 (manager approval); INDEX(order_id, created_at)
+- **order_events** (append-only): id, org_id, order_id, type, from_status, to_status, payload jsonb, actor_membership_id, created_at — `approved_by_membership_id` and `device_id` come in step 9 (manager approval); `app_user` has INSERT+SELECT only (no UPDATE/DELETE); INDEX(order_id, created_at)
 
 ## Billing
 - **plans**: id, key (`free`|`menu`|`restaurant`|`business`), name, price_minor, currency, interval, is_public

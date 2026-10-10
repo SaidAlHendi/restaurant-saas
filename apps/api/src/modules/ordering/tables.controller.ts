@@ -6,6 +6,7 @@ import { RequireBranchScope } from '../../core/permissions/require-branch-scope.
 import { RequirePermission } from '../../core/permissions/require-permission.decorator';
 
 import { CreateDiningTableBodyDto, PatchDiningTableBodyDto } from './dto/ordering.dto';
+import { OrderingPathIdPipe } from './pipes/ordering-path-id.pipe';
 import { TablesService } from './tables.service';
 
 @RequireBranchScope()
@@ -35,7 +36,7 @@ export class TablesController {
   patch(
     @Ctx() ctx: RequestContext,
     @Param('branchId') branchId: string,
-    @Param('tableId') tableId: string,
+    @Param('tableId', OrderingPathIdPipe) tableId: string,
     @Body() body: PatchDiningTableBodyDto,
   ) {
     return this.tables.patch(ctx, branchId, tableId, body);
