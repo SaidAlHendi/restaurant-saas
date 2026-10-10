@@ -1,5 +1,7 @@
 import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 
+import { RequireFeature } from '../../core/permissions/require-feature.decorator';
+
 import { Ctx } from '../../core/context/context.decorator';
 import type { RequestContext } from '../../core/context/request-context';
 import { RequireBranchScope } from '../../core/permissions/require-branch-scope.decorator';
@@ -17,8 +19,19 @@ export class TablesController {
   @RequirePermission('branches.read')
   @Get()
   list(@Ctx() ctx: RequestContext, @Param('branchId') branchId: string) {
-    const includeQrToken = ctx.permissions.includes('branches.manage');
-    return this.tables.list(ctx, branchId, includeQrToken);
+    const wantsQrToken = ctx.permissions.includes('branches.manage');
+    return this.tables.list(ctx, branchId, wantsQrToken);
+  }
+
+  @RequirePermission('branches.manage')
+  @RequireFeature('menu.table_qr')
+  @Post(':tableId/rotate-qr')
+  rotateQr(
+    @Ctx() ctx: RequestContext,
+    @Param('branchId') branchId: string,
+    @Param('tableId', OrderingPathIdPipe) tableId: string,
+  ) {
+    return this.tables.rotateQr(ctx, branchId, tableId);
   }
 
   @RequirePermission('branches.manage')

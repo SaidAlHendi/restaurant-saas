@@ -1,5 +1,7 @@
 // Pure helpers for number and money fields. Money is always integer minor units (no floats).
 
+export { currencyDigits, currencySymbol, formatMinor } from '@app/shared';
+
 const ARABIC_INDIC = '٠١٢٣٤٥٦٧٨٩';
 const PERSIAN = '۰۱۲۳۴۵۶۷۸۹';
 
@@ -17,34 +19,6 @@ export function normalizeDigits(text: string): string {
     else out += ch;
   }
   return out;
-}
-
-/** Number of minor-unit digits for a currency: 2 for SAR/USD, 3 for KWD/BHD/JOD/OMR, 0 for JPY. */
-export function currencyDigits(currency: string): number {
-  try {
-    return (
-      new Intl.NumberFormat('en', { style: 'currency', currency }).resolvedOptions()
-        .maximumFractionDigits ?? 2
-    );
-  } catch {
-    return 2;
-  }
-}
-
-/** Short currency symbol for a locale, e.g. "SAR" -> "ر.س.‏" in ar-SA, "$" for USD in en. */
-export function currencySymbol(currency: string, locale: string): string {
-  try {
-    const part = new Intl.NumberFormat(locale, {
-      style: 'currency',
-      currency,
-      currencyDisplay: 'narrowSymbol',
-    })
-      .formatToParts(0)
-      .find((p) => p.type === 'currency');
-    return part?.value ?? currency;
-  } catch {
-    return currency;
-  }
 }
 
 const MONEY_PATTERN = /^(-)?(\d*)(?:\.(\d*))?$/;
@@ -77,14 +51,6 @@ export function minorToText(minor: number, digits: number): string {
   const abs = String(Math.abs(minor)).padStart(digits + 1, '0');
   const text = digits === 0 ? abs : `${abs.slice(0, -digits)}.${abs.slice(-digits)}`;
   return negative ? `-${text}` : text;
-}
-
-/** Minor units formatted for display in a locale (grouping, local digits), without symbol. */
-export function formatMinor(minor: number, digits: number, locale: string): string {
-  return new Intl.NumberFormat(locale, {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
-  }).format(minor / 10 ** digits);
 }
 
 /** Parses an integer or decimal typed in any digits. Undefined when invalid, null when empty. */

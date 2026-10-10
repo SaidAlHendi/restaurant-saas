@@ -50,6 +50,13 @@
       "when": 1759666200000,
       "tag": "0006_outbox_next_attempt",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1759666300000,
+      "tag": "0007_public_menu_resolve",
+      "breakpoints": true
     }
   ]
 }

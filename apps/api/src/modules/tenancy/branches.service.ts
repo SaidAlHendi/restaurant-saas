@@ -1,20 +1,22 @@
 import { Inject, Injectable } from '@nestjs/common';
 
-import { NotFoundError } from '../../core/errors/app-errors';
+import { BusinessRuleError, NotFoundError } from '../../core/errors/app-errors';
 import { DRIZZLE, type DrizzleDb } from '../../core/db/db.module';
-import { withOrg } from '../../core/db/with-org';
+import { withOrg, type DrizzleTx } from '../../core/db/with-org';
 import type { RequestContext } from '../../core/context/request-context';
 import { newUuidV7 } from '../../lib/uuid';
 import { slugifyBase, slugWithSuffix } from '../../lib/slug';
 import type { CreateBranchBody, PatchBranchBody } from '@app/shared';
 
 import { TenancyRepository } from './tenancy.repository';
+import { OrgSettingsService } from './org-settings.service';
 
 @Injectable()
 export class BranchesService {
   constructor(
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly repo: TenancyRepository,
+    private readonly orgSettings: OrgSettingsService,
   ) {}
 
   list(ctx: RequestContext) {
@@ -39,6 +41,7 @@ export class BranchesService {
 
   async create(ctx: RequestContext, body: CreateBranchBody) {
     return withOrg(this.db, ctx.orgId, async (tx) => {
+      await this.assertBranchCurrencyMatchesOrg(tx, ctx.orgId, body.currency);
       const base = body.slug ?? (slugifyBase(body.name) || 'branch');
       let slug = base;
       let suffix = 0;
@@ -78,6 +81,9 @@ export class BranchesService {
       if (!existing || existing.orgId !== ctx.orgId) {
         throw new NotFoundError();
       }
+      if (body.currency !== undefined) {
+        await this.assertBranchCurrencyMatchesOrg(tx, ctx.orgId, body.currency);
+      }
       const updated = await this.repo.updateBranch(tx, branchId, {
         name: body.name,
         timezone: body.timezone,
@@ -103,5 +109,20 @@ export class BranchesService {
         isActive: updated.isActive,
       };
     });
+  }
+
+  private async assertBranchCurrencyMatchesOrg(
+    tx: DrizzleTx,
+    orgId: string,
+    currency: string,
+  ): Promise<void> {
+    const org = await this.orgSettings.getCatalogSettings(tx, orgId);
+    if (currency !== org.defaultCurrency) {
+      throw new BusinessRuleError(
+        'BRANCH_CURRENCY_MISMATCH',
+        'Branch currency must match the organization default currency',
+        { branchCurrency: currency, orgCurrency: org.defaultCurrency },
+      );
+    }
   }
 }

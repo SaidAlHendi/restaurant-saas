@@ -13,6 +13,7 @@ import { validateReorderIds } from './catalog-reorder';
 import { mapCategory } from './catalog.mapper';
 import { requireLocalizedText } from './catalog-validation';
 import { CatalogRepository } from './catalog.repository';
+import { CatalogMenuCacheNotifier } from './catalog-menu-cache.notifier';
 
 @Injectable()
 export class CategoriesService {
@@ -20,6 +21,7 @@ export class CategoriesService {
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly repo: CatalogRepository,
     private readonly orgSettings: OrgSettingsService,
+    private readonly menuCache: CatalogMenuCacheNotifier,
   ) {}
 
   list(ctx: RequestContext) {
@@ -30,7 +32,7 @@ export class CategoriesService {
   }
 
   async create(ctx: RequestContext, body: CreateCategoryBody) {
-    return withOrg(this.db, ctx.orgId, async (tx) => {
+    const result = await withOrg(this.db, ctx.orgId, async (tx) => {
       const org = await this.orgSettings.getCatalogSettings(tx, ctx.orgId);
       const name = requireLocalizedText(body.name, org);
       const sortOrder = await this.repo.nextCategorySortOrder(tx, ctx.orgId);
@@ -43,10 +45,12 @@ export class CategoriesService {
       });
       return mapCategory(row);
     });
+    this.menuCache.afterCatalogChange(ctx.orgId);
+    return result;
   }
 
   async patch(ctx: RequestContext, categoryId: string, body: PatchCategoryBody) {
-    return withOrg(this.db, ctx.orgId, async (tx) => {
+    const result = await withOrg(this.db, ctx.orgId, async (tx) => {
       const org = await this.orgSettings.getCatalogSettings(tx, ctx.orgId);
       const existing = await this.repo.findCategoryById(tx, categoryId);
       if (!existing) {
@@ -62,10 +66,12 @@ export class CategoriesService {
       }
       return mapCategory(updated);
     });
+    this.menuCache.afterCatalogChange(ctx.orgId);
+    return result;
   }
 
   async remove(ctx: RequestContext, categoryId: string) {
-    return withOrg(this.db, ctx.orgId, async (tx) => {
+    const result = await withOrg(this.db, ctx.orgId, async (tx) => {
       const existing = await this.repo.findCategoryById(tx, categoryId);
       if (!existing) {
         throw new NotFoundError();
@@ -84,10 +90,12 @@ export class CategoriesService {
       }
       return mapCategory(deleted);
     });
+    this.menuCache.afterCatalogChange(ctx.orgId);
+    return result;
   }
 
   async reorder(ctx: RequestContext, body: ReorderBody) {
-    return withOrg(this.db, ctx.orgId, async (tx) => {
+    const result = await withOrg(this.db, ctx.orgId, async (tx) => {
       const locked = await this.repo.lockActiveCategoriesForUpdate(tx, ctx.orgId);
       const activeIds = locked.map((r) => r.id);
       validateReorderIds(body.orderedIds, activeIds);
@@ -100,5 +108,7 @@ export class CategoriesService {
       const rows = await this.repo.listCategories(tx, ctx.orgId);
       return { items: rows.map(mapCategory) };
     });
+    this.menuCache.afterCatalogChange(ctx.orgId);
+    return result;
   }
 }

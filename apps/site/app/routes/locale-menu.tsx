@@ -1,71 +1,82 @@
-import { sampleMenu } from '../lib/sample-menu.js';
-import { buildPageMeta, buildRestaurantJsonLd } from '../lib/seo.js';
+import { data } from 'react-router';
 
-type MenuLoaderData = {
-  locale: 'ar' | 'en';
-  orgSlug: string;
-  restaurantName: string;
-  items: { name: string; priceMinor: number; currency: string }[];
-};
+import { MenuHydration } from '../features/menu/MenuHydration.js';
+import { MenuPageView } from '../features/menu/MenuPageView.js';
+import { menuCanonicalUrl } from '../lib/menu-path.js';
+import { loadPublicMenuPage } from '../lib/public-menu-loader.server.js';
+import { buildMenuJsonLd, buildMenuPageMeta, serializeJsonLd } from '../lib/seo.js';
 
-export function loader({ params }: { params: { locale?: string; orgSlug?: string } }) {
-  const locale = params.locale;
-  if (locale !== 'ar' && locale !== 'en') {
-    throw new Response('Not Found', { status: 404 });
-  }
-  if (params.orgSlug !== sampleMenu.orgSlug) {
-    throw new Response('Not Found', { status: 404 });
-  }
-  return {
-    locale,
+type LoaderData = Awaited<ReturnType<typeof loadPublicMenuPage>>;
+
+export async function loader({
+  params,
+  request,
+}: {
+  params: { locale?: string; orgSlug?: string };
+  request: Request;
+}) {
+  const result = await loadPublicMenuPage({
+    locale: params.locale,
     orgSlug: params.orgSlug,
-    restaurantName: sampleMenu.name[locale],
-    items: sampleMenu.items.map((item) => ({
-      name: item.name[locale],
-      priceMinor: item.priceMinor,
-      currency: item.currency,
-    })),
-  } satisfies MenuLoaderData;
+    requestUrl: request.url,
+  });
+  return data(result, {
+    headers: {
+      'Cache-Control': result.cacheControl,
+    },
+  });
 }
 
-export function meta({ data: loaderData }: { data?: MenuLoaderData }) {
+export function meta({ data: loaderData }: { data?: LoaderData }) {
   if (!loaderData) {
     return [{ title: 'Menu' }];
   }
-  const canonical = `https://example.com/${loaderData.locale}/m/${loaderData.orgSlug}`;
-  return buildPageMeta({
-    title: `${loaderData.restaurantName} — Menu`,
-    description: `Digital menu for ${loaderData.restaurantName}.`,
-    canonical,
+  const canonical = menuCanonicalUrl(
+    loaderData.siteBaseUrl,
+    loaderData.locale,
+    loaderData.orgSlug,
+  );
+  return buildMenuPageMeta({
+    menu: loaderData.menu,
     locale: loaderData.locale,
+    canonical,
+    siteBaseUrl: loaderData.siteBaseUrl,
+    orgSlug: loaderData.orgSlug,
   });
 }
 
-export default function LocaleMenu({ loaderData }: { loaderData: MenuLoaderData }) {
-  const jsonLd = buildRestaurantJsonLd({
-    name: loaderData.restaurantName,
-    url: `https://example.com/${loaderData.locale}/m/${loaderData.orgSlug}`,
+export default function LocaleMenuRoute({ loaderData }: { loaderData: LoaderData }) {
+  const canonical = menuCanonicalUrl(
+    loaderData.siteBaseUrl,
+    loaderData.locale,
+    loaderData.orgSlug,
+  );
+  const jsonLd = buildMenuJsonLd({
+    menu: loaderData.menu,
     locale: loaderData.locale,
-    menuItems: loaderData.items,
+    url: canonical,
   });
 
   return (
-    <main className="mx-auto max-w-3xl p-6">
+    <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
-      <h1 className="text-3xl font-semibold">{loaderData.restaurantName}</h1>
-      <ul className="mt-6 space-y-3">
-        {loaderData.items.map((item) => (
-          <li key={item.name} className="flex items-center justify-between border-b border-border pb-2">
-            <span>{item.name}</span>
-            <span className="text-muted-foreground">
-              {(item.priceMinor / 100).toFixed(2)} {item.currency}
-            </span>
-          </li>
-        ))}
-      </ul>
-    </main>
+      <MenuPageView
+        locale={loaderData.locale}
+        menu={loaderData.menu}
+        orgSlug={loaderData.orgSlug}
+        tableLabel={loaderData.tableLabel}
+        showBranchPicker={loaderData.showBranchPicker}
+        canonicalUrl={canonical}
+      />
+      <MenuHydration
+        locale={loaderData.locale}
+        menu={loaderData.menu}
+        orgSlug={loaderData.orgSlug}
+        products={loaderData.menu.categories.flatMap((c) => c.products)}
+      />
+    </>
   );
 }

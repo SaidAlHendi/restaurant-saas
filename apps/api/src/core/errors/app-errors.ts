@@ -16,6 +16,12 @@ export class NotFoundError extends AppError {
   }
 }
 
+export class GoneError extends AppError {
+  constructor(message = 'Gone', details: Record<string, unknown> = {}) {
+    super('GONE', message, 410, details);
+  }
+}
+
 export class ForbiddenError extends AppError {
   constructor(
     message = 'Forbidden',

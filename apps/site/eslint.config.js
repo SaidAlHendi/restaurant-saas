@@ -14,7 +14,7 @@ export default [
   { ignores: ['build/**', '.react-router/**'] },
   ...react,
   {
-    files: ['app/root.tsx', 'app/routes/**/*.{ts,tsx}'],
+    files: ['app/root.tsx', 'app/routes/**/*.{ts,tsx}', 'app/lib/**/*.ts'],
     rules: {
       'react-refresh/only-export-components': 'off',
       '@typescript-eslint/only-throw-error': [

@@ -6,6 +6,7 @@ import { EntitlementsService } from '../billing/entitlements.service';
 import { OrgSettingsService } from '../tenancy/org-settings.service';
 
 import { CatalogRepository } from './catalog.repository';
+import { CatalogMenuCacheNotifier } from './catalog-menu-cache.notifier';
 import { ProductImageService } from './product-image.service';
 import { ProductsService } from './products.service';
 
@@ -66,6 +67,10 @@ describe('ProductsService', () => {
         {
           provide: OBJECT_STORAGE,
           useValue: { publicUrl: () => 'http://example.com/x.webp' },
+        },
+        {
+          provide: CatalogMenuCacheNotifier,
+          useValue: { afterCatalogChange: jest.fn() },
         },
       ],
     }).compile();
