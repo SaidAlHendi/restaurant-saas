@@ -5,6 +5,7 @@ import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis'
 import Redis from 'ioredis';
 
 import { ConfigModule, ENV, type Env } from '../config/config.module';
+import { BillingModule } from '../modules/billing/billing.module';
 import { IdentityModule } from '../modules/identity/identity.module';
 
 import { AuthModule } from './auth/auth.module';
@@ -34,6 +35,7 @@ import { OutboxService } from './outbox/outbox.service';
     RealtimeModule,
     AuthModule,
     IdentityModule,
+    BillingModule,
     ThrottlerModule.forRootAsync({
       inject: [ENV, REDIS],
       useFactory: (env: Env, redis: Redis) => ({

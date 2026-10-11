@@ -14,10 +14,12 @@ import { ProductsController } from './products.controller';
 import { ProductsService } from './products.service';
 import { CatalogOrderingService } from './catalog-ordering.service';
 import { CatalogMenuCacheNotifier } from './catalog-menu-cache.notifier';
+import { PosMenuController } from './pos-menu.controller';
+import { PosMenuService } from './pos-menu.service';
 
 @Module({
   imports: [TenancyModule, BillingModule, PublicMenuModule],
-  controllers: [CategoriesController, ProductsController, ModifierGroupsController],
+  controllers: [CategoriesController, ProductsController, ModifierGroupsController, PosMenuController],
   providers: [
     CatalogRepository,
     CategoriesService,
@@ -26,6 +28,7 @@ import { CatalogMenuCacheNotifier } from './catalog-menu-cache.notifier';
     ProductImageService,
     CatalogOrderingService,
     CatalogMenuCacheNotifier,
+    PosMenuService,
   ],
   exports: [ProductsService, CategoriesService, CatalogOrderingService],
 })

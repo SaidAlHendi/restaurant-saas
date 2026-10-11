@@ -37,6 +37,10 @@ export const orderItemStatusEnum = pgEnum('order_item_status', [
   'voided',
 ]);
 
+export const paymentMethodEnum = pgEnum('payment_method', ['cash', 'card', 'other']);
+
+export const paymentRecordStatusEnum = pgEnum('payment_record_status', ['captured', 'refunded']);
+
 export const diningTables = pgTable(
   'tables',
   {
@@ -183,6 +187,34 @@ export const orderItemModifiers = pgTable(
       name: 'order_item_modifiers_order_item_id_org_id_order_items_id_org_id_fk',
       columns: [t.orderItemId, t.orgId],
       foreignColumns: [orderItems.id, orderItems.orgId],
+    }).onDelete('restrict'),
+  ],
+);
+
+export const payments = pgTable(
+  'payments',
+  {
+    id: uuid('id').primaryKey(),
+    orgId: uuid('org_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    orderId: uuid('order_id').notNull(),
+    clientPaymentId: uuid('client_payment_id').notNull(),
+    method: paymentMethodEnum('method').notNull(),
+    amountMinor: bigint('amount_minor', { mode: 'number' }).notNull(),
+    tenderedMinor: bigint('tendered_minor', { mode: 'number' }),
+    changeMinor: bigint('change_minor', { mode: 'number' }),
+    status: paymentRecordStatusEnum('status').notNull().default('captured'),
+    createdBy: uuid('created_by').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('payments_id_org_id_unique').on(t.id, t.orgId),
+    unique('payments_order_client_payment_unique').on(t.orderId, t.clientPaymentId),
+    foreignKey({
+      name: 'payments_order_id_org_id_orders_id_org_id_fk',
+      columns: [t.orderId, t.orgId],
+      foreignColumns: [orders.id, orders.orgId],
     }).onDelete('restrict'),
   ],
 );

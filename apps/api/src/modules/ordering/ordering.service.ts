@@ -1,11 +1,19 @@
 import { Inject, Injectable } from '@nestjs/common';
 
+import {
+  computeDueMinor,
+  computeLineTotalMinor,
+  computeOrderTotals,
+  computePaymentStatus,
+} from '@app/shared';
 import type {
   AddOrderItemsBody,
   ChangeOrderStatusBody,
   CreateOrderBody,
+  CreatePaymentBody,
   OrderListQuery,
   OrderStatus,
+  Payment,
   VoidOrderItemBody,
 } from '@app/shared';
 
@@ -23,7 +31,6 @@ import {
 import { OutboxService } from '../../core/outbox/outbox.service';
 import { computeBusinessDate } from '../../lib/business-date';
 import { decodeOrderListCursor, encodeOrderListCursor } from '../../lib/order-list-cursor';
-import { computeLineTotalMinor, computeOrderTotals } from '../../lib/money';
 import { isPgUniqueViolation } from '../../lib/pg-errors';
 import { newUuidV7 } from '../../lib/uuid';
 import { CatalogOrderingService } from '../catalog/catalog-ordering.service';
@@ -35,7 +42,7 @@ import {
   buildRealtimePayload,
   realtimeTypeForOrderEvent,
 } from './ordering.events';
-import { mapOrderDetail, mapOrderEvent, mapOrderListItem } from './ordering.mapper';
+import { mapOrderDetail, mapOrderEvent, mapOrderListItem, mapPayment } from './ordering.mapper';
 import { OrderingRepository } from './ordering.repository';
 import {
   assertTransition,
@@ -45,6 +52,11 @@ import {
 
 export type PlaceOrderResult = {
   order: ReturnType<typeof mapOrderDetail>;
+  created: boolean;
+};
+
+export type CapturePaymentResult = {
+  payment: Payment;
   created: boolean;
 };
 
@@ -231,22 +243,24 @@ export class OrderingService {
       const rows = await this.repo.listOrders(tx, branchId, {
         status: query.status,
         businessDate: query.businessDate,
+        activeOnly: query.activeOnly,
         cursor,
         limit: query.limit,
       });
       const hasMore = rows.length > query.limit;
       const page = hasMore ? rows.slice(0, query.limit) : rows;
-      const counts = await this.repo.countItemsForOrders(
-        tx,
-        page.map((r) => r.id),
-      );
+      const orderIds = page.map((r) => r.id);
+      const counts = await this.repo.countItemsForOrders(tx, orderIds);
+      const paidByOrder = await this.repo.sumCapturedMinorByOrderIds(tx, orderIds);
       const last = page[page.length - 1];
       const nextCursor =
         hasMore && last
           ? encodeOrderListCursor({ createdAt: last.createdAt.toISOString(), id: last.id })
           : null;
       return {
-        items: page.map((row) => mapOrderListItem(row, counts.get(row.id) ?? 0)),
+        items: page.map((row) =>
+          mapOrderListItem(row, counts.get(row.id) ?? 0, paidByOrder.get(row.id) ?? 0),
+        ),
         nextCursor,
       };
     });
@@ -273,6 +287,21 @@ export class OrderingService {
         throw new ValidationError('Cancel reason is required');
       }
       // TODO(step 9): manager approval for cancel after placed
+
+      if (body.to === 'completed' && current.paymentStatus !== 'paid') {
+        throw new BusinessRuleError('ORDER_NOT_PAID', 'Order must be fully paid before completing', {
+          orderId,
+          paymentStatus: current.paymentStatus,
+        });
+      }
+
+      if (body.to === 'cancelled' && (await this.repo.hasCapturedPayments(tx, orderId))) {
+        throw new BusinessRuleError(
+          'ORDER_HAS_PAYMENTS',
+          'Cannot cancel an order with captured payments',
+          { orderId },
+        );
+      }
 
       const patch: {
         status: OrderStatus;
@@ -406,7 +435,16 @@ export class OrderingService {
         taxInclusive: branch.taxInclusive,
       });
 
-      const updated = await this.repo.updateOrderTotals(tx, orderId, body.expectedVersion, totals);
+      const paidMinor = await this.repo.sumCapturedMinorForOrder(tx, orderId);
+      const paymentStatus = computePaymentStatus(totals.totalMinor, paidMinor);
+
+      const updated = await this.repo.updateOrderTotals(
+        tx,
+        orderId,
+        body.expectedVersion,
+        totals,
+        paymentStatus,
+      );
       if (!updated) {
         throw new ConflictError(
           'Order version conflict',
@@ -470,6 +508,14 @@ export class OrderingService {
         );
       }
 
+      if (await this.repo.hasCapturedPayments(tx, orderId)) {
+        throw new BusinessRuleError(
+          'ORDER_HAS_PAYMENTS',
+          'Cannot void items on an order with captured payments',
+          { orderId },
+        );
+      }
+
       const item = await this.repo.findOrderItem(tx, orderId, itemId);
       if (!item || item.status === 'voided') {
         throw new NotFoundError();
@@ -508,7 +554,16 @@ export class OrderingService {
         taxInclusive: branch.taxInclusive,
       });
 
-      const updated = await this.repo.updateOrderTotals(tx, orderId, body.expectedVersion, totals);
+      const paidMinor = await this.repo.sumCapturedMinorForOrder(tx, orderId);
+      const paymentStatus = computePaymentStatus(totals.totalMinor, paidMinor);
+
+      const updated = await this.repo.updateOrderTotals(
+        tx,
+        orderId,
+        body.expectedVersion,
+        totals,
+        paymentStatus,
+      );
       if (!updated) {
         throw new ConflictError(
           'Order version conflict',
@@ -541,6 +596,138 @@ export class OrderingService {
     });
   }
 
+  async capturePayment(
+    ctx: RequestContext,
+    branchId: string,
+    orderId: string,
+    body: CreatePaymentBody,
+  ): Promise<CapturePaymentResult> {
+    return withOrg(this.db, ctx.orgId, async (tx) => {
+      const existingPayment = await this.repo.findPaymentByClientPaymentId(
+        tx,
+        orderId,
+        body.clientPaymentId,
+      );
+      if (existingPayment) {
+        return { payment: mapPayment(existingPayment), created: false };
+      }
+
+      const current = await this.repo.findOrderById(tx, branchId, orderId);
+      if (!current) {
+        throw new NotFoundError();
+      }
+
+      this.assertOrderPayable(current.status);
+
+      const paidMinor = await this.repo.sumCapturedMinorForOrder(tx, orderId);
+      const dueMinor = computeDueMinor(current.totalMinor, paidMinor);
+
+      if (body.amountMinor <= 0 || body.amountMinor > dueMinor) {
+        throw new BusinessRuleError(
+          'PAYMENT_EXCEEDS_DUE',
+          'Payment amount exceeds amount due',
+          { amountMinor: body.amountMinor, dueMinor },
+        );
+      }
+
+      if (body.method === 'cash') {
+        const tendered = body.tenderedMinor ?? 0;
+        if (tendered < body.amountMinor) {
+          throw new BusinessRuleError(
+            'PAYMENT_TENDERED_INSUFFICIENT',
+            'Tendered amount is less than payment amount',
+            { tenderedMinor: tendered, amountMinor: body.amountMinor },
+          );
+        }
+      }
+
+      if (current.version !== body.expectedVersion) {
+        throw new ConflictError(
+          'Order version conflict',
+          {},
+          'ORDER_VERSION_CONFLICT',
+        );
+      }
+
+      const tenderedMinor = body.method === 'cash' ? body.tenderedMinor ?? null : null;
+      const changeMinor =
+        body.method === 'cash' && tenderedMinor !== null
+          ? tenderedMinor - body.amountMinor
+          : null;
+
+      const paymentId = newUuidV7();
+      let inserted;
+      try {
+        inserted = await this.repo.insertPayment(tx, {
+          id: paymentId,
+          orgId: ctx.orgId,
+          orderId,
+          clientPaymentId: body.clientPaymentId,
+          method: body.method,
+          amountMinor: body.amountMinor,
+          tenderedMinor,
+          changeMinor,
+          status: 'captured',
+          createdBy: ctx.membershipId,
+        });
+      } catch (err: unknown) {
+        if (isPgUniqueViolation(err, 'payments_order_client_payment_unique')) {
+          const dup = await this.repo.findPaymentByClientPaymentId(
+            tx,
+            orderId,
+            body.clientPaymentId,
+          );
+          if (dup) {
+            return { payment: mapPayment(dup), created: false };
+          }
+        }
+        throw err;
+      }
+
+      const newPaidMinor = paidMinor + body.amountMinor;
+      const paymentStatus = computePaymentStatus(current.totalMinor, newPaidMinor);
+      const updated = await this.repo.updateOrderPaymentStatus(
+        tx,
+        orderId,
+        body.expectedVersion,
+        paymentStatus,
+      );
+      if (!updated) {
+        throw new ConflictError(
+          'Order version conflict',
+          {},
+          'ORDER_VERSION_CONFLICT',
+        );
+      }
+
+      await this.repo.insertOrderEvent(tx, {
+        id: newUuidV7(),
+        orgId: ctx.orgId,
+        orderId,
+        type: ORDER_EVENT_TYPES.paymentCaptured,
+        fromStatus: current.status,
+        toStatus: current.status,
+        payload: {
+          paymentId: inserted.id,
+          method: body.method,
+          amountMinor: body.amountMinor,
+        },
+        actorMembershipId: ctx.membershipId,
+      });
+
+      await this.writeOutbox(
+        tx,
+        ctx.orgId,
+        branchId,
+        orderId,
+        ORDER_EVENT_TYPES.paymentCaptured,
+        updated,
+      );
+
+      return { payment: mapPayment(inserted), created: true };
+    });
+  }
+
   async listEvents(ctx: RequestContext, branchId: string, orderId: string) {
     return withOrg(this.db, ctx.orgId, async (tx) => {
       const order = await this.repo.findOrderById(tx, branchId, orderId);
@@ -562,7 +749,15 @@ export class OrderingService {
       throw new NotFoundError();
     }
     const items = await this.repo.listOrderItemsWithModifiers(tx, orderId);
-    return mapOrderDetail(row, items);
+    const paymentRows = await this.repo.listCapturedPaymentsForOrder(tx, orderId);
+    const paidMinor = await this.repo.sumCapturedMinorForOrder(tx, orderId);
+    return mapOrderDetail(row, items, paymentRows, paidMinor);
+  }
+
+  private assertOrderPayable(status: OrderStatus): void {
+    if (status === 'cancelled' || status === 'refunded' || status === 'draft') {
+      throw new BusinessRuleError('ORDER_NOT_PAYABLE', 'Order cannot accept payments', { status });
+    }
   }
 
   private async writeOutbox(

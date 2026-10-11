@@ -43,6 +43,12 @@ export type { LocalizedText, OrgLocaleContext } from './i18n/localized-text.js';
 
 export { currencyDigits, currencySymbol, formatMinor } from './money/currency.js';
 export { formatMoney, intlLocaleForUi } from './money/format-money.js';
+export {
+  computeLineTotalMinor,
+  computeOrderTotals,
+} from './money/order-totals.js';
+export type { OrderLineForTotals, OrderTotals, OrderTotalsInput } from './money/order-totals.js';
+export { computeDueMinor, computePaymentStatus } from './money/payment-status.js';
 
 export {
   publicMenuQuerySchema,
@@ -151,6 +157,14 @@ export {
   orderEventSchema,
   orderEventListResponseSchema,
 } from './orders/order.js';
+export {
+  createPaymentBodySchema,
+  paymentSchema,
+  paymentMethodSchema,
+} from './orders/payment.js';
+export type { CreatePaymentBody, Payment, PaymentMethod } from './orders/payment.js';
+export { posMenuPayloadSchema } from './pos/pos-menu.js';
+export type { PosMenuPayload } from './pos/pos-menu.js';
 export type {
   CreateOrderBody,
   Order,
