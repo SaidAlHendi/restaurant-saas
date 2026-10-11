@@ -23,6 +23,7 @@ export function PosOrderDetailSheetView(props: PosOrderDetailSheetViewProps) {
     itemRows,
     canAddItems,
     canPay,
+    canCancel,
     nextStatusAction,
     isAddingItems,
     startAddItems,
@@ -144,7 +145,7 @@ export function PosOrderDetailSheetView(props: PosOrderDetailSheetViewProps) {
                     {labels.printKitchenAddition}
                   </Button>
                 </div>
-                {order.status !== 'completed' && order.status !== 'cancelled' ? (
+                {canCancel ? (
                   <Button type="button" size="sm" variant="destructive" onClick={openCancelDialog}>
                     {labels.cancelOrder}
                   </Button>

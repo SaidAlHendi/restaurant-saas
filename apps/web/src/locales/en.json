@@ -122,6 +122,7 @@
       "change": "Change",
       "methodCash": "Cash",
       "methodCard": "Card",
+      "methodOther": "Other",
       "confirm": "Record payment"
     },
     "paymentStatus": {
@@ -165,7 +166,8 @@
       "kitchenTitle": "Kitchen",
       "kitchenAdditionTitle": "Additions",
       "paid": "Paid",
-      "due": "Due"
+      "due": "Due",
+      "taxInclSuffix": "(incl.)"
     },
     "noAccess": {
       "title": "Cashier not available",

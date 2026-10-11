@@ -1,6 +1,5 @@
 # API conventions
 
-- **Full route catalog:** `docs/rest-api-reference.md` lists every HTTP handler, parameters, JSON Schemas, and examples. Update it in the same change as any API contract change (see `.cursor/rules/49-rest-api-reference.mdc`).
 - REST over JSON, prefix `/v1`. NestJS controllers with DTOs built from the Zod schemas in `packages/shared` (nestjs-zod) for body,
   params, query and response (also generates OpenAPI).
 - Auth: short-lived JWT access token (15 min) + httpOnly refresh cookie for dashboard users.

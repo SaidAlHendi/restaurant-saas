@@ -25,7 +25,6 @@ export default defineConfig({
         'icon-512.png',
         'icon-maskable-512.png',
         'pos.webmanifest',
-        'manifest.webmanifest',
       ],
       manifest: {
         name: 'Restaurant SaaS',

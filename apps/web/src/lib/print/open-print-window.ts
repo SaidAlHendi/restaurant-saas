@@ -1,18 +1,46 @@
-import { PRINT_80MM_STYLES } from './print-styles.js';
+import { buildPrintDocumentHtml, type PrintDocumentLocale } from './print-document.js';
 
-export function openPrintWindow(title: string, bodyHtml: string): void {
-  const win = window.open('', '_blank', 'noopener,noreferrer');
-  if (!win) {
+export function openPrintWindow(
+  title: string,
+  bodyHtml: string,
+  locale: PrintDocumentLocale,
+): void {
+  if (typeof document === 'undefined') {
     return;
   }
-  const doc = win.document;
-  doc.title = title;
-  const style = doc.createElement('style');
-  style.textContent = PRINT_80MM_STYLES;
-  doc.head.append(style);
-  const body = doc.createElement('div');
-  body.innerHTML = bodyHtml;
-  doc.body.replaceChildren(body);
-  win.focus();
-  win.print();
+
+  const iframe = document.createElement('iframe');
+  iframe.setAttribute('aria-hidden', 'true');
+  iframe.style.position = 'fixed';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  iframe.style.opacity = '0';
+  iframe.style.pointerEvents = 'none';
+  document.body.append(iframe);
+
+  const docHtml = buildPrintDocumentHtml({ title, bodyHtml, locale });
+  iframe.srcdoc = docHtml;
+
+  const cleanup = (): void => {
+    iframe.remove();
+  };
+
+  const tryPrint = (): void => {
+    const win = iframe.contentWindow;
+    if (!win) {
+      cleanup();
+      return;
+    }
+    win.addEventListener('afterprint', cleanup, { once: true });
+    win.focus();
+    win.print();
+    window.setTimeout(() => {
+      if (iframe.isConnected) {
+        cleanup();
+      }
+    }, 60_000);
+  };
+
+  iframe.addEventListener('load', tryPrint, { once: true });
 }

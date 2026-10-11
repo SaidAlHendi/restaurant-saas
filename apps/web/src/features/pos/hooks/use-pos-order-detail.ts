@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import type { OrderStatus, PosMenuPayload } from '@app/shared';
 
 import { openPrintWindow } from '../../../lib/print/open-print-window.js';
+import { printLocaleFromUi } from '../../../lib/print/print-document.js';
 import {
   kitchenItemsToPrint,
   markKitchenItemsPrinted,
@@ -21,6 +22,12 @@ import { parseOrdersApiErrorCode } from '../../orders/orders-api-errors.js';
 import { showOrdersApiError } from '../../orders/show-orders-api-error.js';
 import { buildAddOrderItemsBody } from '../pos-add-items.utils.js';
 import { posLocalizedName } from '../pos-label.utils.js';
+import {
+  canShowCancelOrder,
+  canShowPay,
+  canVoidOrderItem,
+  nextOrderStatusTarget,
+} from '../pos-order-detail.utils.js';
 
 export function usePosOrderDetail(input: {
   branchId: string | null;
@@ -35,6 +42,7 @@ export function usePosOrderDetail(input: {
   clearAdditionLines: () => void;
   isAddingItems: boolean;
   setIsAddingItems: (value: boolean) => void;
+  canCancelOrders: boolean;
 }) {
   const { t } = useTranslation();
   const [voidItemId, setVoidItemId] = useState<string | null>(null);
@@ -167,13 +175,20 @@ export function usePosOrderDetail(input: {
       printedAt: new Date(),
       labels: {
         subtotal: t('pos.totals.subtotal'),
-        tax: input.menu.branch.taxInclusive ? t('pos.totals.taxIncl') : t('pos.totals.tax'),
+        tax: t('pos.totals.tax'),
+        taxInclusiveSuffix: input.menu.branch.taxInclusive ? t('pos.print.taxInclSuffix') : '',
         total: t('pos.totals.total'),
-        paid: t('pos.print.paid'),
-        due: t('pos.print.due'),
+        orderNumber: t('pos.result.orderNumber', { number: order.orderNumber }),
+        dineIn: t('pos.orderType.dineIn'),
+        takeaway: t('pos.orderType.takeaway'),
+        paymentMethodCash: t('pos.payment.methodCash'),
+        paymentMethodCard: t('pos.payment.methodCard'),
+        paymentMethodOther: t('pos.payment.methodOther'),
+        tendered: t('pos.payment.tendered'),
+        change: t('pos.payment.change'),
       },
     });
-    openPrintWindow(t('pos.print.receiptTitle'), html);
+    openPrintWindow(t('pos.print.receiptTitle'), html, printLocaleFromUi(input.locale));
   }, [input, order, t, tableLabel]);
 
   const printKitchen = useCallback(
@@ -191,10 +206,17 @@ export function usePosOrderDetail(input: {
         tableLabel,
         locale: input.locale,
         fallbackLocale: input.defaultLocale,
+        timeZone: input.menu?.branch.timezone ?? 'UTC',
+        printedAt: new Date(),
         title: additionsOnly ? t('pos.print.kitchenAdditionTitle') : t('pos.print.kitchenTitle'),
         isAdditionTicket: additionsOnly,
+        labels: {
+          dineIn: t('pos.orderType.dineIn'),
+          takeaway: t('pos.orderType.takeaway'),
+          additionHeader: t('pos.print.kitchenAdditionTitle'),
+        },
       });
-      openPrintWindow(t('pos.print.kitchenTitle'), html);
+      openPrintWindow(t('pos.print.kitchenTitle'), html, printLocaleFromUi(input.locale));
       markKitchenItemsPrinted(order, items);
     },
     [input, order, t, tableLabel],
@@ -211,12 +233,11 @@ export function usePosOrderDetail(input: {
       lineTotalLabel: input.formatMinor(item.lineTotalMinor),
       voided: item.status === 'voided',
       isAddition: item.isAddition,
-      onVoid:
-        item.status !== 'voided' && order.status !== 'completed' && order.status !== 'cancelled'
-          ? () => {
-              setVoidItemId(item.id);
-            }
-          : undefined,
+      onVoid: canVoidOrderItem(order, item.status === 'voided')
+        ? () => {
+            setVoidItemId(item.id);
+          }
+        : undefined,
       voidLabel: t('pos.orderDetail.voidItem'),
     }));
   }, [input, order, t]);
@@ -226,19 +247,23 @@ export function usePosOrderDetail(input: {
     (order.status === 'placed' || order.status === 'preparing') &&
     !input.isAddingItems;
 
-  const canPay = order !== undefined && order.dueMinor > 0 && order.status !== 'cancelled';
+  const canPay = order !== undefined && canShowPay(order);
+
+  const canCancel =
+    order !== undefined && canShowCancelOrder(input.canCancelOrders, order.status);
 
   const nextStatusAction = useMemo(() => {
     if (!order) {
       return null;
     }
-    if (order.status === 'placed') {
+    const target = nextOrderStatusTarget(order);
+    if (target === 'preparing') {
       return { label: t('pos.orderDetail.markPreparing'), onClick: onStartPreparing };
     }
-    if (order.status === 'preparing') {
+    if (target === 'ready') {
       return { label: t('pos.orderDetail.markReady'), onClick: onMarkReady };
     }
-    if (order.status === 'ready') {
+    if (target === 'completed') {
       return { label: t('pos.orderDetail.complete'), onClick: onComplete };
     }
     return null;
@@ -259,6 +284,7 @@ export function usePosOrderDetail(input: {
     tableLabel,
     canAddItems,
     canPay,
+    canCancel,
     nextStatusAction,
     isAddingItems: input.isAddingItems,
     startAddItems: () => {
@@ -311,9 +337,7 @@ export function usePosOrderDetail(input: {
     printKitchenAddition: () => {
       printKitchen(true);
     },
-    refetchOrder: () => {
-      void refetch();
-    },
+    refetchOrder: () => refetch(),
     statusChanging: changeState.isLoading,
     formatMinor: input.formatMinor,
     labels: {

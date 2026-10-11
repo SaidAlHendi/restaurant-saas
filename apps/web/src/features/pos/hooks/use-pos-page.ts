@@ -9,6 +9,7 @@ import type { CartLine, CartLineInput, CartOrderType } from '../../cart/cart.typ
 import { cartTotalsPreview, mergeCartLine } from '../../cart/cart.utils.js';
 import { applyDashboardBranchChange } from '../../session/apply-dashboard-branch-change.js';
 import {
+  selectCan,
   selectCurrentBranchId,
   selectSessionBranches,
   selectSessionOrg,
@@ -36,6 +37,7 @@ export function usePosPage() {
   const branchId = useAppSelector(selectCurrentBranchId);
   const cart = useAppSelector((state) => state.cart);
   const hasCartLines = useAppSelector(cartHasUnsavedLines);
+  const canCancelOrders = useAppSelector(selectCan('orders.cancel'));
 
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
   const [isOnline, setIsOnline] = useState(
@@ -263,12 +265,17 @@ export function usePosPage() {
     clearAdditionLines,
     isAddingItems,
     setIsAddingItems,
+    canCancelOrders,
   });
 
   const paymentDialog = usePosPaymentDialog({
     branchId,
     order: orderDetail.order,
-    onPaymentCaptured: orderDetail.refetchOrder,
+    onPaymentCaptured: () => {
+      void orderDetail.refetchOrder().then(() => {
+        orderDetail.printReceipt();
+      });
+    },
     formatMinor,
     currency,
     uiLocale,
