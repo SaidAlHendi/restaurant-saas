@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import type { RootState } from '../../app/store.js';
+import { cartSlice } from '../cart/cart.slice.js';
 
 import { selectCan, selectIsAuthenticated } from './session.selectors.js';
 
 function stateWith(permissions: string[], accessToken: string | null, hasUser: boolean): RootState {
   return {
+    cart: cartSlice.getInitialState(),
     session: {
       accessToken,
       bootstrapDone: true,

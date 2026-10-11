@@ -3,6 +3,11 @@ import { describe, expect, it } from 'vitest';
 import { computeDueMinor, computePaymentStatus } from './payment-status.js';
 
 describe('computePaymentStatus', () => {
+  it('returns paid when total is zero or negative', () => {
+    expect(computePaymentStatus(0, 0)).toBe('paid');
+    expect(computePaymentStatus(0, 100)).toBe('paid');
+  });
+
   it('returns unpaid when nothing captured', () => {
     expect(computePaymentStatus(1000, 0)).toBe('unpaid');
   });

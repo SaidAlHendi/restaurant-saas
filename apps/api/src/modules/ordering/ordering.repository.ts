@@ -280,11 +280,15 @@ export class OrderingRepository {
   async sumCapturedMinorForOrder(tx: DrizzleTx, orderId: string): Promise<number> {
     const result = await tx
       .select({
-        total: sql<number>`coalesce(sum(${payments.amountMinor}), 0)::int`,
+        total: sql<bigint>`coalesce(sum(${payments.amountMinor}), 0)::bigint`,
       })
       .from(payments)
       .where(and(eq(payments.orderId, orderId), eq(payments.status, 'captured')));
-    return result[0]?.total ?? 0;
+    const row = result[0];
+    if (row === undefined) {
+      return 0;
+    }
+    return Number(row.total);
   }
 
   async sumCapturedMinorByOrderIds(
@@ -298,13 +302,13 @@ export class OrderingRepository {
     const result = await tx
       .select({
         orderId: payments.orderId,
-        total: sql<number>`sum(${payments.amountMinor})::int`,
+        total: sql<bigint>`sum(${payments.amountMinor})::bigint`,
       })
       .from(payments)
       .where(and(inArray(payments.orderId, orderIds), eq(payments.status, 'captured')))
       .groupBy(payments.orderId);
     for (const row of result) {
-      map.set(row.orderId, row.total);
+      map.set(row.orderId, Number(row.total));
     }
     return map;
   }

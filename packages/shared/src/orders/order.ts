@@ -120,7 +120,10 @@ export const orderListQuerySchema = cursorListQuerySchema.extend({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/)
     .optional(),
-  activeOnly: z.coerce.boolean().optional(),
+  activeOnly: z
+    .enum(['true', 'false'])
+    .optional()
+    .transform((value) => (value === undefined ? undefined : value === 'true')),
 });
 
 export type OrderListQuery = z.infer<typeof orderListQuerySchema>;

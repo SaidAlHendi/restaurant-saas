@@ -4,6 +4,9 @@ export function computePaymentStatus(
   totalMinor: number,
   capturedMinor: number,
 ): PaymentStatus {
+  if (totalMinor <= 0) {
+    return 'paid';
+  }
   const paid = Math.max(0, capturedMinor);
   if (paid <= 0) {
     return 'unpaid';

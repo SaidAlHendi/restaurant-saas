@@ -1,0 +1,10 @@
+{
+  "name": "Cashier — Restaurant SaaS",
+  "short_name": "Cashier",
+  "start_url": "/pos",
+  "scope": "/pos",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": []
+}

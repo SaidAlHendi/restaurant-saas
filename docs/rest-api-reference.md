@@ -1204,7 +1204,8 @@ System roles: `owner`, `manager`, `cashier`, `kitchen` (seeded; permissions assi
 - Conventions and realtime: `docs/api-conventions.md`
 - Data model: `docs/data-model.md`
 - Backend module boundaries: `docs/backend-architecture.md`
+- Agent rule for keeping this file current: `.cursor/rules/49-rest-api-reference.mdc`
 
 ---
 
-*Generated from repository controllers and `@app/shared` Zod schemas. When code and this document disagree, trust the schemas in `packages/shared`.*
+*Maintained alongside `apps/api` controllers and `@app/shared` Zod schemas. When code and this document disagree, trust the schemas in `packages/shared` and update this file.*

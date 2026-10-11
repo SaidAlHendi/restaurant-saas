@@ -88,7 +88,7 @@ const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
 export const baseApi = createApi({
   reducerPath: 'api',
   baseQuery: baseQueryWithReauth,
-  tagTypes: ['Health', 'Me', 'Category', 'Product', 'ModifierGroup', 'DiningTable'],
+  tagTypes: ['Health', 'Me', 'Category', 'Product', 'ModifierGroup', 'DiningTable', 'PosMenu', 'Order'],
   endpoints: (builder) => ({
     getHealth: builder.query<{ status: string }, undefined>({
       query: () => '/v1/health',

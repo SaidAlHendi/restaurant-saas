@@ -6,7 +6,13 @@ import { DRIZZLE, type DrizzleDb } from '../src/core/db/db.module';
 import { withOrg } from '../src/core/db/with-org';
 import { newUuidV7 } from '../src/lib/uuid';
 
-import { asDemoKitchen, asDemoOwner, asOtherOwner } from './catalog-helpers';
+import {
+  asDemoKitchen,
+  asDemoOwner,
+  asOtherOwner,
+  categoryBody,
+  productBody,
+} from './catalog-helpers';
 import { createTestApp } from './create-test-app';
 import { apiAgent } from './http';
 import { seedCatalogProduct } from './ordering-helpers';
@@ -371,6 +377,127 @@ describe('Ordering payments (e2e)', () => {
       amountMinor: totalMinor,
     });
     expect(res.status).toBe(403);
+  });
+
+  it('concurrent duplicate clientPaymentId returns 201 and 200 without error', async () => {
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      const owner = await asDemoOwner(apiAgent(app));
+      const { orderId, version, totalMinor } = await createTakeawayOrder(owner);
+      const clientPaymentId = newUuidV7();
+      const payload = {
+        clientPaymentId,
+        expectedVersion: version,
+        method: 'card' as const,
+        amountMinor: totalMinor,
+      };
+      const [first, second] = await Promise.all([
+        postPayment(owner, branchId, orderId, payload),
+        postPayment(owner, branchId, orderId, payload),
+      ]);
+      const statuses = [first.status, second.status].sort((a, b) => a - b);
+      expect(statuses).toEqual([200, 201]);
+      expect(await countPayments(db, orgId, orderId)).toBe(1);
+    }
+  });
+
+  it('activeOnly=false with status=completed returns completed orders', async () => {
+    const owner = await asDemoOwner(apiAgent(app));
+    const { orderId, version, totalMinor } = await createTakeawayOrder(owner);
+    await postPayment(owner, branchId, orderId, {
+      clientPaymentId: newUuidV7(),
+      expectedVersion: version,
+      method: 'card',
+      amountMinor: totalMinor,
+    });
+    let order = await owner.get(`/v1/branches/${branchId}/orders/${orderId}`);
+    let v = (order.body as { version: number }).version;
+    await owner.post(`/v1/branches/${branchId}/orders/${orderId}/status`).send({
+      to: 'preparing',
+      expectedVersion: v,
+    });
+    order = await owner.get(`/v1/branches/${branchId}/orders/${orderId}`);
+    v = (order.body as { version: number }).version;
+    await owner.post(`/v1/branches/${branchId}/orders/${orderId}/status`).send({
+      to: 'ready',
+      expectedVersion: v,
+    });
+    order = await owner.get(`/v1/branches/${branchId}/orders/${orderId}`);
+    v = (order.body as { version: number }).version;
+    await owner.post(`/v1/branches/${branchId}/orders/${orderId}/status`).send({
+      to: 'completed',
+      expectedVersion: v,
+    });
+
+    const completedList = await owner
+      .get(`/v1/branches/${branchId}/orders`)
+      .query({ activeOnly: false, status: 'completed', limit: 100 });
+    expect(completedList.status).toBe(200);
+    const completedIds = (completedList.body as { items: Array<{ id: string }> }).items.map(
+      (row) => row.id,
+    );
+    expect(completedIds.includes(orderId)).toBe(true);
+
+    const activeList = await owner
+      .get(`/v1/branches/${branchId}/orders`)
+      .query({ activeOnly: true, limit: 100 });
+    const activeIds = (activeList.body as { items: Array<{ id: string }> }).items.map((row) => row.id);
+    expect(activeIds.includes(orderId)).toBe(false);
+  });
+
+  it('completes zero-total order without payment after voiding a free line', async () => {
+    const owner = await asDemoOwner(apiAgent(app));
+    const cat = await owner.post('/v1/categories').send(categoryBody());
+    const categoryId = (cat.body as { id: string }).id;
+    const prod = await owner.post('/v1/products').send(productBody(categoryId, 0));
+    const freeProductId = (prod.body as { id: string }).id;
+    const clientOrderId = newUuidV7();
+    const placed = await postOrder(
+      owner,
+      branchId,
+      {
+        clientOrderId,
+        type: 'takeaway',
+        customerName: `Zero-${newUuidV7().slice(-8)}`,
+        items: [
+          { productId: freeProductId, quantity: 1, modifierIds: [] },
+          { productId: freeProductId, quantity: 1, modifierIds: [] },
+        ],
+      },
+      clientOrderId,
+    );
+    expect(placed.status).toBe(201);
+    const orderId = (placed.body as { id: string }).id;
+    let version = (placed.body as { version: number }).version;
+    const itemId = (placed.body as { items: Array<{ id: string }> }).items[0]?.id;
+    if (!itemId) {
+      throw new Error('missing item');
+    }
+    const voided = await owner
+      .post(`/v1/branches/${branchId}/orders/${orderId}/items/${itemId}/void`)
+      .send({ expectedVersion: version, reason: 'duplicate free item' });
+    expect(voided.status).toBe(201);
+    version = (voided.body as { version: number; totalMinor: number; paymentStatus: string }).version;
+    expect((voided.body as { totalMinor: number }).totalMinor).toBe(0);
+    expect((voided.body as { paymentStatus: string }).paymentStatus).toBe('paid');
+
+    await owner.post(`/v1/branches/${branchId}/orders/${orderId}/status`).send({
+      to: 'preparing',
+      expectedVersion: version,
+    });
+    const preparing = await owner.get(`/v1/branches/${branchId}/orders/${orderId}`);
+    version = (preparing.body as { version: number }).version;
+    await owner.post(`/v1/branches/${branchId}/orders/${orderId}/status`).send({
+      to: 'ready',
+      expectedVersion: version,
+    });
+    const ready = await owner.get(`/v1/branches/${branchId}/orders/${orderId}`);
+    version = (ready.body as { version: number }).version;
+    const completed = await owner.post(`/v1/branches/${branchId}/orders/${orderId}/status`).send({
+      to: 'completed',
+      expectedVersion: version,
+    });
+    expect(completed.status).toBe(201);
+    expect((completed.body as { status: string }).status).toBe('completed');
   });
 
   it('activeOnly lists open orders without businessDate filter', async () => {

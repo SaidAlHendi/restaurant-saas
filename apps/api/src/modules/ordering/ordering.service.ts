@@ -602,6 +602,27 @@ export class OrderingService {
     orderId: string,
     body: CreatePaymentBody,
   ): Promise<CapturePaymentResult> {
+    try {
+      return await this.capturePaymentInTransaction(ctx, branchId, orderId, body);
+    } catch (err: unknown) {
+      if (isPgUniqueViolation(err, 'payments_order_client_payment_unique')) {
+        const existing = await withOrg(this.db, ctx.orgId, async (tx) =>
+          this.repo.findPaymentByClientPaymentId(tx, orderId, body.clientPaymentId),
+        );
+        if (existing) {
+          return { payment: mapPayment(existing), created: false };
+        }
+      }
+      throw err;
+    }
+  }
+
+  private async capturePaymentInTransaction(
+    ctx: RequestContext,
+    branchId: string,
+    orderId: string,
+    body: CreatePaymentBody,
+  ): Promise<CapturePaymentResult> {
     return withOrg(this.db, ctx.orgId, async (tx) => {
       const existingPayment = await this.repo.findPaymentByClientPaymentId(
         tx,
@@ -655,34 +676,18 @@ export class OrderingService {
           ? tenderedMinor - body.amountMinor
           : null;
 
-      const paymentId = newUuidV7();
-      let inserted;
-      try {
-        inserted = await this.repo.insertPayment(tx, {
-          id: paymentId,
-          orgId: ctx.orgId,
-          orderId,
-          clientPaymentId: body.clientPaymentId,
-          method: body.method,
-          amountMinor: body.amountMinor,
-          tenderedMinor,
-          changeMinor,
-          status: 'captured',
-          createdBy: ctx.membershipId,
-        });
-      } catch (err: unknown) {
-        if (isPgUniqueViolation(err, 'payments_order_client_payment_unique')) {
-          const dup = await this.repo.findPaymentByClientPaymentId(
-            tx,
-            orderId,
-            body.clientPaymentId,
-          );
-          if (dup) {
-            return { payment: mapPayment(dup), created: false };
-          }
-        }
-        throw err;
-      }
+      const inserted = await this.repo.insertPayment(tx, {
+        id: newUuidV7(),
+        orgId: ctx.orgId,
+        orderId,
+        clientPaymentId: body.clientPaymentId,
+        method: body.method,
+        amountMinor: body.amountMinor,
+        tenderedMinor,
+        changeMinor,
+        status: 'captured',
+        createdBy: ctx.membershipId,
+      });
 
       const newPaidMinor = paidMinor + body.amountMinor;
       const paymentStatus = computePaymentStatus(current.totalMinor, newPaidMinor);
