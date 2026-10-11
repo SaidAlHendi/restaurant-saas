@@ -1,7 +1,11 @@
 import { toDataURL } from 'qrcode';
 
-export function qrCodeToDataUrl(text: string): Promise<string> {
-  return toDataURL(text, { margin: 1, width: 256, errorCorrectionLevel: 'M' });
+export function qrCodeToDataUrl(text: string, widthPx: number): Promise<string> {
+  return toDataURL(text, {
+    margin: 1,
+    width: widthPx,
+    errorCorrectionLevel: 'M',
+  });
 }
 
 export function downloadDataUrl(dataUrl: string, fileName: string): void {

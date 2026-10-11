@@ -80,6 +80,7 @@ export interface DevUiCopy {
     toasts: { show: string; success: string; error: string; info: string; warning: string };
     skeleton: string;
     qrCard: { title: string; subtitle: string; download: string };
+    branchSwitcher: { label: string; placeholder: string };
   };
   data: {
     search: string;
@@ -301,6 +302,10 @@ const en: DevUiCopy = {
       title: 'Table 12',
       subtitle: 'Scan to open the menu',
       download: 'Download PNG',
+    },
+    branchSwitcher: {
+      label: 'Current branch',
+      placeholder: 'Select branch',
     },
   },
   title: 'UI kit',
@@ -561,6 +566,10 @@ const ar: DevUiCopy = {
       title: 'طاولة 12',
       subtitle: 'امسح الرمز لفتح القائمة',
       download: 'تحميل PNG',
+    },
+    branchSwitcher: {
+      label: 'الفرع الحالي',
+      placeholder: 'اختر الفرع',
     },
   },
   title: 'مكتبة الواجهة',

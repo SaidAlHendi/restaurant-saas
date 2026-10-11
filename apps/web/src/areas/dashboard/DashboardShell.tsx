@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 
 import {
+  BranchSwitcher,
   Sidebar,
   SidebarContent,
   SidebarGroup,
@@ -26,6 +27,8 @@ export function DashboardShell({
   closeLabel,
   brand,
   menuSectionLabel,
+  branchSwitcher,
+  onBranchChange,
 }: DashboardShellViewModel) {
   return (
     <div className="flex min-h-[calc(100dvh-6rem)] overflow-hidden rounded-xl border">
@@ -90,6 +93,13 @@ export function DashboardShell({
               }
             }}
           />
+          <div className="ms-auto min-w-0 max-w-xs">
+            <BranchSwitcher
+              {...branchSwitcher}
+              className="w-full min-w-[8rem]"
+              onValueChange={onBranchChange}
+            />
+          </div>
         </div>
         <div className="flex-1 overflow-y-auto p-6">
           <Outlet />

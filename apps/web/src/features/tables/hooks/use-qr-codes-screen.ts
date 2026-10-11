@@ -2,7 +2,8 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import { downloadDataUrl } from '../../../lib/qr-code-data-url.js';
+import { downloadQrPng } from '../../../lib/download-qr-png.js';
+import { QR_PREVIEW_PX } from '../../../lib/qr-code-sizes.js';
 import { useAppSelector } from '../../../app/hooks.js';
 import { selectCan } from '../../session/session.selectors.js';
 import type { QrCodesPageViewProps } from '../components/QrCodesPageView.js';
@@ -26,7 +27,7 @@ export function useQrCodesScreen(): QrCodesPageViewProps {
     return list;
   }, [menuCard, tableCards]);
 
-  const { images, loading: qrLoading } = useQrCodeImages(urls);
+  const { images, loading: qrLoading } = useQrCodeImages(urls, QR_PREVIEW_PX);
 
   const cards = useMemo(() => {
     const result: QrCodesPageViewProps['cards'] = [];
@@ -64,8 +65,8 @@ export function useQrCodesScreen(): QrCodesPageViewProps {
     onPrint: () => {
       void navigate('/dashboard/menu/qr-codes/print');
     },
-    onDownload: (dataUrl: string, fileName: string) => {
-      downloadDataUrl(dataUrl, fileName);
+    onDownload: (url: string, fileName: string) => {
+      void downloadQrPng(url, fileName);
     },
     showTableQrHint: canManage && !tableQrAvailable,
   };

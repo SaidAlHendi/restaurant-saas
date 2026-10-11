@@ -1,18 +1,28 @@
 import { LayoutDashboardIcon, UtensilsIcon } from 'lucide-react';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useDisclosure } from '@app/ui';
 
-import { useAppSelector } from '../../app/hooks.js';
-import { selectCan } from '../../features/session/session.selectors.js';
+import { useAppDispatch, useAppSelector } from '../../app/hooks.js';
+import { applyDashboardBranchChange } from '../../features/session/apply-dashboard-branch-change.js';
+import {
+  selectCan,
+  selectCurrentBranchId,
+  selectSessionBranches,
+  selectSessionOrg,
+} from '../../features/session/session.selectors.js';
 
 export function useDashboardShell() {
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const canReadMenu = useAppSelector(selectCan('menu.read'));
+  const org = useAppSelector(selectSessionOrg);
+  const branches = useAppSelector(selectSessionBranches);
+  const currentBranchId = useAppSelector(selectCurrentBranchId);
 
   const collapse = useDisclosure();
   const mobile = useDisclosure();
@@ -55,6 +65,26 @@ export function useDashboardShell() {
 
   const isMenuSection = location.pathname.startsWith('/dashboard/menu');
 
+  const branchSwitcher = useMemo(
+    () => ({
+      branches: branches.map((b) => ({ id: b.id, name: b.name })),
+      value: currentBranchId,
+      ariaLabel: t('dashboard.branchSwitcherLabel'),
+      placeholder: t('dashboard.selectBranch'),
+    }),
+    [branches, currentBranchId, t],
+  );
+
+  const onBranchChange = useCallback(
+    (branchId: string) => {
+      if (org === null) {
+        return;
+      }
+      applyDashboardBranchChange(dispatch, org.id, branchId);
+    },
+    [dispatch, org],
+  );
+
   return {
     t,
     collapsed: collapse.open,
@@ -73,6 +103,8 @@ export function useDashboardShell() {
     closeLabel: t('dashboard.nav.closeSidebar'),
     brand: t('app.title'),
     menuSectionLabel: t('menu.nav.section'),
+    branchSwitcher,
+    onBranchChange,
   };
 }
 

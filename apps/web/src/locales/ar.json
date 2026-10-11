@@ -50,6 +50,7 @@
     "branch": "الفرع",
     "selectOrg": "اختر المؤسسة",
     "selectBranch": "اختر الفرع",
+    "branchSwitcherLabel": "الفرع الحالي",
     "canManageBranches": "يمكنك إنشاء الفروع وتعديلها.",
     "nav": {
       "home": "نظرة عامة",
@@ -173,7 +174,7 @@
       "emptyTitle": "لا توجد طاولات",
       "emptyDescription": "أضف طاولات لإنشاء رموز QR للطاولات.",
       "noBranchTitle": "اختر فرعاً",
-      "noBranchDescription": "اختر فرعاً من أعلى الصفحة لإدارة طاولاته.",
+      "noBranchDescription": "اختر فرعاً من شريط الأدوات أعلاه لإدارة طاولاته.",
       "rotateQr": "تدوير QR"
     },
     "qr": {

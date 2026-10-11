@@ -50,6 +50,7 @@
     "branch": "Branch",
     "selectOrg": "Select organization",
     "selectBranch": "Select branch",
+    "branchSwitcherLabel": "Current branch",
     "canManageBranches": "You can create and edit branches.",
     "nav": {
       "home": "Overview",
@@ -173,7 +174,7 @@
       "emptyTitle": "No tables yet",
       "emptyDescription": "Add tables to generate table QR codes.",
       "noBranchTitle": "Select a branch",
-      "noBranchDescription": "Choose a branch in the header to manage its tables.",
+      "noBranchDescription": "Choose a branch from the toolbar above to manage its tables.",
       "rotateQr": "Rotate QR"
     },
     "qr": {
