@@ -60,6 +60,12 @@
     "db:seed": {
       "cache": false
     },
+    "db:seed:demo": {
+      "cache": false
+    },
+    "db:seed:images": {
+      "cache": false
+    },
     "db:reset-test": {
       "cache": false
     }

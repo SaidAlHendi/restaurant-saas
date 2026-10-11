@@ -14,6 +14,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/scripts/migrate.ts",
     "db:seed": "tsx src/scripts/seed.ts",
+    "db:seed:demo": "tsx src/scripts/seed-demo/index.ts",
+    "db:seed:images": "tsx src/scripts/seed-demo/fetch-unsplash-images.ts",
     "db:reset-test": "tsx src/scripts/reset-test-database.ts"
   },
   "dependencies": {
