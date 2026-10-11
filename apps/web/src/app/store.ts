@@ -1,5 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 
+import { cartPersistenceListener } from '../features/cart/cart.listener.js';
 import { cartReducer } from '../features/cart/cart.slice.js';
 import { sessionReducer } from '../features/session/session.slice.js';
 import { baseApi } from './api/base-api.js';
@@ -15,7 +16,8 @@ export const store = configureStore({
     cart: cartReducer,
     [baseApi.reducerPath]: baseApi.reducer,
   },
-  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(baseApi.middleware),
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(baseApi.middleware, cartPersistenceListener.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

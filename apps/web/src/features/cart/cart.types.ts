@@ -9,6 +9,8 @@ export type CartLine = {
   note: string;
 };
 
+export type CartLineInput = Omit<CartLine, 'localId'>;
+
 export type CartOrderType = 'dine_in' | 'takeaway';
 
 export type CartState = {

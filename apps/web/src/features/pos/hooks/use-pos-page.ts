@@ -3,9 +3,10 @@ import { useTranslation } from 'react-i18next';
 
 import { useAppDispatch, useAppSelector } from '../../../app/hooks.js';
 import { formatMoney, intlLocaleForUi } from '../../../lib/money.js';
+import { randomUuid } from '../../../lib/uuid.js';
 import { cartActions, cartHasUnsavedLines } from '../../cart/cart.slice.js';
-import type { CartLine, CartOrderType } from '../../cart/cart.types.js';
-import { cartTotalsPreview, newCartLineId } from '../../cart/cart.utils.js';
+import type { CartLine, CartLineInput, CartOrderType } from '../../cart/cart.types.js';
+import { cartTotalsPreview, mergeCartLine } from '../../cart/cart.utils.js';
 import { applyDashboardBranchChange } from '../../session/apply-dashboard-branch-change.js';
 import {
   selectCurrentBranchId,
@@ -13,12 +14,14 @@ import {
   selectSessionOrg,
 } from '../../session/session.selectors.js';
 import { useListDiningTablesQuery } from '../../tables/tables.api.js';
-import { useCreateOrderMutation } from '../../orders/orders.api.js';
+import { useCreateOrderMutation, useListOrdersQuery } from '../../orders/orders.api.js';
 import { posLocalizedName } from '../pos-label.utils.js';
 import { buildCreateOrderBody } from '../pos-order.utils.js';
 import { useGetPosMenuQuery } from '../pos.api.js';
 import type { PosMenuProduct } from './use-pos-modifier-sheet.js';
 import { usePosModifierSheet } from './use-pos-modifier-sheet.js';
+import { usePosOrderDetail } from './use-pos-order-detail.js';
+import { usePosPaymentDialog } from './use-pos-payment-dialog.js';
 
 export type SentOrderSummary = {
   orderNumber: number;
@@ -41,6 +44,10 @@ export function usePosPage() {
   const [sendError, setSendError] = useState(false);
   const [sentOrder, setSentOrder] = useState<SentOrderSummary | null>(null);
   const [pendingBranchId, setPendingBranchId] = useState<string | null>(null);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [openOrdersOpen, setOpenOrdersOpen] = useState(false);
+  const [isAddingItems, setIsAddingItems] = useState(false);
+  const [additionLines, setAdditionLines] = useState<CartLine[]>([]);
 
   const locale = i18n.language.startsWith('ar') ? 'ar' : 'en';
   const uiLocale = intlLocaleForUi(i18n.language);
@@ -50,9 +57,26 @@ export function usePosPage() {
   });
   const { data: tablesData } = useListDiningTablesQuery(branchId ?? '', { skip: !branchId });
   const [createOrder, createState] = useCreateOrderMutation();
+  const { data: openOrdersData, isLoading: openOrdersLoading } = useListOrdersQuery(
+    { branchId: branchId ?? '', query: { activeOnly: true, limit: 100 } },
+    { skip: !branchId, pollingInterval: 10_000 },
+  );
 
   const defaultLocale = org?.defaultLocale ?? 'en';
-  const modifierSheet = usePosModifierSheet({ locale, defaultLocale });
+
+  const addAdditionLine = useCallback((line: CartLineInput) => {
+    setAdditionLines((prev) => mergeCartLine(prev, { ...line, localId: randomUuid() }));
+  }, []);
+
+  const clearAdditionLines = useCallback(() => {
+    setAdditionLines([]);
+  }, []);
+
+  const modifierSheet = usePosModifierSheet({
+    locale,
+    defaultLocale,
+    onAddLine: isAddingItems ? addAdditionLine : undefined,
+  });
 
   useEffect(() => {
     if (branchId) {
@@ -108,23 +132,30 @@ export function usePosPage() {
 
   const onProductPress = useCallback(
     (product: PosMenuProduct) => {
+      const line: CartLineInput = {
+        productId: product.id,
+        nameSnapshot: product.name,
+        unitPriceMinor: product.priceMinor,
+        modifierIds: [],
+        modifierNames: {},
+        quantity: 1,
+        note: '',
+      };
+      if (isAddingItems) {
+        if (product.modifierGroups.length === 0) {
+          addAdditionLine(line);
+        } else {
+          modifierSheet.openForProduct(product);
+        }
+        return;
+      }
       if (product.modifierGroups.length === 0) {
-        const line: CartLine = {
-          localId: newCartLineId(),
-          productId: product.id,
-          nameSnapshot: product.name,
-          unitPriceMinor: product.priceMinor,
-          modifierIds: [],
-          modifierNames: {},
-          quantity: 1,
-          note: '',
-        };
         dispatch(cartActions.addLine(line));
         return;
       }
       modifierSheet.openForProduct(product);
     },
-    [dispatch, modifierSheet],
+    [addAdditionLine, dispatch, isAddingItems, modifierSheet],
   );
 
   const onSendToKitchen = useCallback(async () => {
@@ -198,6 +229,50 @@ export function usePosPage() {
     const items = tablesData?.items ?? [];
     return items.filter((table) => table.isActive);
   }, [tablesData?.items]);
+
+  const busyTableIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const order of openOrdersData?.items ?? []) {
+      if (order.tableId !== null) {
+        ids.add(order.tableId);
+      }
+    }
+    return ids;
+  }, [openOrdersData?.items]);
+
+  const tableLabelById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const table of tableOptions) {
+      map.set(table.id, table.label);
+    }
+    return map;
+  }, [tableOptions]);
+
+  const orderDetail = usePosOrderDetail({
+    branchId,
+    orderId: selectedOrderId,
+    onClose: () => {
+      setSelectedOrderId(null);
+    },
+    menu,
+    tableLabelById,
+    locale,
+    defaultLocale,
+    formatMinor,
+    additionLines,
+    clearAdditionLines,
+    isAddingItems,
+    setIsAddingItems,
+  });
+
+  const paymentDialog = usePosPaymentDialog({
+    branchId,
+    order: orderDetail.order,
+    onPaymentCaptured: orderDetail.refetchOrder,
+    formatMinor,
+    currency,
+    uiLocale,
+  });
 
   const cartLines = cart.lines.map((line) => ({
     localId: line.localId,
@@ -283,8 +358,46 @@ export function usePosPage() {
     },
     tableOptions: tableOptions.map((table) => ({
       id: table.id,
-      label: table.label,
+      label: busyTableIds.has(table.id)
+        ? t('pos.tableBusyLabel', { label: table.label })
+        : table.label,
+      disabled: busyTableIds.has(table.id),
     })),
+    openOrders: {
+      open: openOrdersOpen,
+      onToggle: () => {
+        setOpenOrdersOpen((prev) => !prev);
+      },
+      isLoading: openOrdersLoading,
+      orders: (openOrdersData?.items ?? []).map((order) => ({
+        id: order.id,
+        orderNumberLabel: t('pos.result.orderNumber', { number: order.orderNumber }),
+        statusLabel: t(`pos.orderStatus.${order.status}`),
+        totalLabel: formatMinor(order.totalMinor),
+        metaLabel:
+          order.tableId !== null
+            ? (tableLabelById.get(order.tableId) ?? t('pos.orderType.dineIn'))
+            : (order.customerName ?? t('pos.orderType.takeaway')),
+        onSelect: () => {
+          setSelectedOrderId(order.id);
+        },
+      })),
+      labels: {
+        title: t('pos.openOrders.title'),
+        empty: t('pos.openOrders.empty'),
+        toggle: t('pos.openOrders.toggle'),
+        close: t('pos.actions.close'),
+      },
+    },
+    orderDetail: {
+      ...orderDetail,
+      onPay: () => {
+        paymentDialog.openForOrder();
+      },
+    },
+    paymentDialog,
+    isAddingItems,
+    addingItemsHint: isAddingItems ? t('pos.orderDetail.addItemsHint') : null,
     cartLines,
     cartEmpty: cart.lines.length === 0,
     totals,
@@ -340,6 +453,7 @@ export function usePosPage() {
       cartEmpty: t('pos.cart.empty'),
       retry: t('pos.retry'),
       loading: t('common.loading'),
+      close: t('pos.actions.close'),
     },
   };
 }

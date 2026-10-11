@@ -444,6 +444,51 @@ describe('Ordering payments (e2e)', () => {
     expect(activeIds.includes(orderId)).toBe(false);
   });
 
+  it('creates a single free product order as paid and completes without payment', async () => {
+    const owner = await asDemoOwner(apiAgent(app));
+    const cat = await owner.post('/v1/categories').send(categoryBody());
+    const categoryId = (cat.body as { id: string }).id;
+    const prod = await owner.post('/v1/products').send(productBody(categoryId, 0));
+    const freeProductId = (prod.body as { id: string }).id;
+    const clientOrderId = newUuidV7();
+    const placed = await postOrder(
+      owner,
+      branchId,
+      {
+        clientOrderId,
+        type: 'takeaway',
+        customerName: `FreeOnly-${newUuidV7().slice(-8)}`,
+        items: [{ productId: freeProductId, quantity: 1, modifierIds: [] }],
+      },
+      clientOrderId,
+    );
+    expect(placed.status).toBe(201);
+    const orderId = (placed.body as { id: string }).id;
+    let version = (placed.body as { version: number; paymentStatus: string; totalMinor: number })
+      .version;
+    expect((placed.body as { paymentStatus: string }).paymentStatus).toBe('paid');
+    expect((placed.body as { totalMinor: number }).totalMinor).toBe(0);
+
+    await owner.post(`/v1/branches/${branchId}/orders/${orderId}/status`).send({
+      to: 'preparing',
+      expectedVersion: version,
+    });
+    const preparing = await owner.get(`/v1/branches/${branchId}/orders/${orderId}`);
+    version = (preparing.body as { version: number }).version;
+    await owner.post(`/v1/branches/${branchId}/orders/${orderId}/status`).send({
+      to: 'ready',
+      expectedVersion: version,
+    });
+    const ready = await owner.get(`/v1/branches/${branchId}/orders/${orderId}`);
+    version = (ready.body as { version: number }).version;
+    const completed = await owner.post(`/v1/branches/${branchId}/orders/${orderId}/status`).send({
+      to: 'completed',
+      expectedVersion: version,
+    });
+    expect(completed.status).toBe(201);
+    expect((completed.body as { status: string }).status).toBe('completed');
+  });
+
   it('completes zero-total order without payment after voiding a free line', async () => {
     const owner = await asDemoOwner(apiAgent(app));
     const cat = await owner.post('/v1/categories').send(categoryBody());

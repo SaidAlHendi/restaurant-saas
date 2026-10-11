@@ -1,13 +1,17 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
-import { clearCartStorage, loadCartFromStorage, saveCartToStorage } from './cart-storage.js';
-import type { CartLine, CartOrderType, CartState } from './cart.types.js';
-import { cartLineMergeKey, mergeCartLine, newClientOrderId } from './cart.utils.js';
+import { randomUuid } from '../../lib/uuid.js';
+import { loadCartFromStorage } from './cart-storage.js';
+import type { StoredCartState } from './cart.schema.js';
+import type { CartLine, CartLineInput, CartOrderType, CartState } from './cart.types.js';
+import { cartLineMergeKey, mergeCartLine } from './cart.utils.js';
 
-function emptyCart(branchId: string): CartState {
+export type { CartLineInput };
+
+function emptyCartForBranch(branchId: string): StoredCartState {
   return {
     branchId,
-    clientOrderId: newClientOrderId(),
+    clientOrderId: randomUuid(),
     orderType: 'takeaway',
     tableId: null,
     customerName: '',
@@ -16,13 +20,13 @@ function emptyCart(branchId: string): CartState {
   };
 }
 
-function persist(state: CartState): void {
-  saveCartToStorage(state);
+function toCartState(stored: StoredCartState): CartState {
+  return stored;
 }
 
 const initialState: CartState = {
   branchId: null,
-  clientOrderId: newClientOrderId(),
+  clientOrderId: '',
   orderType: 'takeaway',
   tableId: null,
   customerName: '',
@@ -34,15 +38,15 @@ export const cartSlice = createSlice({
   name: 'cart',
   initialState,
   reducers: {
-    initCartForBranch(state, action: PayloadAction<string>) {
-      const branchId = action.payload;
-      const stored = loadCartFromStorage(branchId);
-      if (stored && stored.branchId === branchId) {
-        return stored;
-      }
-      const fresh = emptyCart(branchId);
-      persist(fresh);
-      return fresh;
+    initCartForBranch: {
+      prepare(branchId: string) {
+        const stored = loadCartFromStorage(branchId);
+        const cart = stored ?? emptyCartForBranch(branchId);
+        return { payload: toCartState(cart) };
+      },
+      reducer(_state, action: PayloadAction<CartState>) {
+        return action.payload;
+      },
     },
     setOrderType(state, action: PayloadAction<CartOrderType>) {
       state.orderType = action.payload;
@@ -51,23 +55,28 @@ export const cartSlice = createSlice({
       } else {
         state.customerName = '';
       }
-      persist(state);
     },
     setTableId(state, action: PayloadAction<string | null>) {
       state.tableId = action.payload;
-      persist(state);
     },
     setCustomerName(state, action: PayloadAction<string>) {
       state.customerName = action.payload;
-      persist(state);
     },
     setOrderNote(state, action: PayloadAction<string>) {
       state.orderNote = action.payload;
-      persist(state);
     },
-    addLine(state, action: PayloadAction<CartLine>) {
-      state.lines = mergeCartLine(state.lines, action.payload);
-      persist(state);
+    addLine: {
+      prepare(line: CartLineInput) {
+        return {
+          payload: {
+            ...line,
+            localId: randomUuid(),
+          } satisfies CartLine,
+        };
+      },
+      reducer(state, action: PayloadAction<CartLine>) {
+        state.lines = mergeCartLine(state.lines, action.payload);
+      },
     },
     updateLineQuantity(
       state,
@@ -81,33 +90,19 @@ export const cartSlice = createSlice({
       if (line.quantity <= 0) {
         state.lines = state.lines.filter((row) => row.localId !== action.payload.localId);
       }
-      persist(state);
     },
     removeLine(state, action: PayloadAction<string>) {
       state.lines = state.lines.filter((row) => row.localId !== action.payload);
-      persist(state);
     },
     clearCartAfterSuccessfulSend(state) {
-      const branchId = state.branchId;
-      if (!branchId) {
+      if (state.branchId === null) {
         return;
       }
-      const next = emptyCart(branchId);
-      Object.assign(state, next);
-      persist(state);
+      return toCartState(emptyCartForBranch(state.branchId));
     },
-    replaceCartBranch(state, action: PayloadAction<string>) {
-      const branchId = action.payload;
-      if (state.branchId && state.branchId !== branchId) {
-        clearCartStorage(state.branchId);
-      }
-      const stored = loadCartFromStorage(branchId);
-      if (stored && stored.branchId === branchId) {
-        return stored;
-      }
-      const fresh = emptyCart(branchId);
-      persist(fresh);
-      return fresh;
+    replaceCartBranch(_state, action: PayloadAction<string>) {
+      const stored = loadCartFromStorage(action.payload);
+      return toCartState(stored ?? emptyCartForBranch(action.payload));
     },
   },
 });

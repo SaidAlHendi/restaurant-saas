@@ -106,12 +106,83 @@
       "confirm": "Switch branch"
     },
     "actions": {
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "close": "Close"
+    },
+    "tableBusyLabel": "{{label}} (busy)",
+    "openOrders": {
+      "title": "Open orders",
+      "toggle": "Open orders",
+      "empty": "No active orders."
+    },
+    "payment": {
+      "title": "Take payment",
+      "due": "Amount due",
+      "tendered": "Cash tendered",
+      "change": "Change",
+      "methodCash": "Cash",
+      "methodCard": "Card",
+      "confirm": "Record payment"
+    },
+    "paymentStatus": {
+      "unpaid": "Unpaid",
+      "partial": "Partially paid",
+      "paid": "Paid",
+      "refunded": "Refunded"
+    },
+    "orderStatus": {
+      "draft": "Draft",
+      "placed": "Placed",
+      "preparing": "Preparing",
+      "ready": "Ready",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "refunded": "Refunded"
+    },
+    "orderDetail": {
+      "title": "Order",
+      "pay": "Pay",
+      "addItems": "Add items",
+      "addItemsHint": "Tap products to add items to this order.",
+      "sendAdditions": "Send additions",
+      "complete": "Complete",
+      "markPreparing": "Start preparing",
+      "markReady": "Mark ready",
+      "cancelOrder": "Cancel order",
+      "cancelTitle": "Cancel this order?",
+      "cancelReason": "Reason for cancellation",
+      "cancelConfirm": "Cancel order",
+      "voidItem": "Void",
+      "voidTitle": "Void item?",
+      "voidReason": "Reason for void",
+      "voidConfirm": "Void item"
+    },
+    "print": {
+      "receipt": "Receipt",
+      "kitchen": "Kitchen ticket",
+      "kitchenAddition": "Kitchen additions",
+      "receiptTitle": "Receipt",
+      "kitchenTitle": "Kitchen",
+      "kitchenAdditionTitle": "Additions",
+      "paid": "Paid",
+      "due": "Due"
     },
     "noAccess": {
       "title": "Cashier not available",
       "description": "Your role cannot create orders or your plan does not include the cashier.",
       "backToDashboard": "Back to dashboard"
+    }
+  },
+  "orders": {
+    "errors": {
+      "generic": "Something went wrong. Try again.",
+      "versionConflict": "This order was updated elsewhere. Refreshed — try again.",
+      "invalidTransition": "That status change is not allowed.",
+      "notEditable": "This order cannot be edited now.",
+      "hasPayments": "Cannot cancel an order with payments.",
+      "validation": "Check the form and try again.",
+      "notFound": "Order not found.",
+      "forbidden": "You do not have permission for this action."
     }
   },
   "menu": {

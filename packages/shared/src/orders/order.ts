@@ -62,6 +62,8 @@ export const orderItemSchema = z.object({
   modifiers: z.array(orderItemModifierSchema),
 });
 
+export type OrderItem = z.infer<typeof orderItemSchema>;
+
 export const orderMoneySchema = z.object({
   subtotalMinor: moneyMinorSchema,
   discountMinor: moneyMinorSchema,

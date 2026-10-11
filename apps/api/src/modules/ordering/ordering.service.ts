@@ -159,7 +159,7 @@ export class OrderingService {
         businessDate,
         type: body.type,
         status: 'placed',
-        paymentStatus: 'unpaid',
+        paymentStatus: computePaymentStatus(totals.totalMinor, 0),
         tableId: body.tableId ?? null,
         customerName: body.customerName ?? null,
         notes: body.notes ?? null,

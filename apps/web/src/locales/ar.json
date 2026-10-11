@@ -106,12 +106,83 @@
       "confirm": "تغيير الفرع"
     },
     "actions": {
-      "cancel": "إلغاء"
+      "cancel": "إلغاء",
+      "close": "إغلاق"
+    },
+    "tableBusyLabel": "{{label}} (مشغولة)",
+    "openOrders": {
+      "title": "الطلبات النشطة",
+      "toggle": "الطلبات النشطة",
+      "empty": "لا توجد طلبات نشطة."
+    },
+    "payment": {
+      "title": "تحصيل الدفع",
+      "due": "المبلغ المستحق",
+      "tendered": "النقد المُسلّم",
+      "change": "الباقي",
+      "methodCash": "نقد",
+      "methodCard": "بطاقة",
+      "confirm": "تسجيل الدفع"
+    },
+    "paymentStatus": {
+      "unpaid": "غير مدفوع",
+      "partial": "مدفوع جزئياً",
+      "paid": "مدفوع",
+      "refunded": "مسترد"
+    },
+    "orderStatus": {
+      "draft": "مسودة",
+      "placed": "مُرسَل",
+      "preparing": "قيد التحضير",
+      "ready": "جاهز",
+      "completed": "مكتمل",
+      "cancelled": "ملغى",
+      "refunded": "مسترد"
+    },
+    "orderDetail": {
+      "title": "الطلب",
+      "pay": "دفع",
+      "addItems": "إضافة أصناف",
+      "addItemsHint": "اضغط على المنتجات لإضافتها إلى هذا الطلب.",
+      "sendAdditions": "إرسال الإضافات",
+      "complete": "إتمام",
+      "markPreparing": "بدء التحضير",
+      "markReady": "تعيين جاهز",
+      "cancelOrder": "إلغاء الطلب",
+      "cancelTitle": "إلغاء هذا الطلب؟",
+      "cancelReason": "سبب الإلغاء",
+      "cancelConfirm": "إلغاء الطلب",
+      "voidItem": "إبطال",
+      "voidTitle": "إبطال الصنف؟",
+      "voidReason": "سبب الإبطال",
+      "voidConfirm": "إبطال الصنف"
+    },
+    "print": {
+      "receipt": "فاتورة",
+      "kitchen": "تذكرة المطبخ",
+      "kitchenAddition": "إضافات المطبخ",
+      "receiptTitle": "فاتورة",
+      "kitchenTitle": "المطبخ",
+      "kitchenAdditionTitle": "إضافات",
+      "paid": "مدفوع",
+      "due": "متبقي"
     },
     "noAccess": {
       "title": "الكاشير غير متاح",
       "description": "دورك لا يسمح بإنشاء الطلبات أو خطتك لا تشمل الكاشير.",
       "backToDashboard": "العودة للوحة التحكم"
+    }
+  },
+  "orders": {
+    "errors": {
+      "generic": "حدث خطأ. حاول مرة أخرى.",
+      "versionConflict": "تم تحديث الطلب في مكان آخر. تم التحديث — حاول مرة أخرى.",
+      "invalidTransition": "لا يمكن تغيير الحالة بهذه الطريقة.",
+      "notEditable": "لا يمكن تعديل هذا الطلب الآن.",
+      "hasPayments": "لا يمكن إلغاء طلب عليه مدفوعات.",
+      "validation": "تحقق من البيانات وحاول مرة أخرى.",
+      "notFound": "الطلب غير موجود.",
+      "forbidden": "ليس لديك صلاحية لهذا الإجراء."
     }
   },
   "menu": {

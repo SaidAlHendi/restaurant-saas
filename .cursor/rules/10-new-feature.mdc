@@ -5,8 +5,8 @@ alwaysApply: true
 # Restaurant SaaS — core rules
 
 Multi-tenant SaaS for restaurants: public digital menu, cashier (POS), kitchen display (KDS),
-owner dashboard, reports, subscriptions. Read `docs/product.md`, `docs/architecture.md`, `docs/backend-architecture.md`, `docs/frontend-architecture.md`, `docs/ui-kit.md`, `docs/data-model.md`, `docs/api-conventions.md` and `docs/roadmap.md`
-before any non-trivial task. The current milestone is the first unchecked item in the roadmap.
+owner dashboard, reports, subscriptions. Read `docs/product.md`, `docs/architecture.md`, `docs/backend-architecture.md`, `docs/frontend-architecture.md`, `docs/ui-kit.md`, `docs/data-model.md`, `docs/api-conventions.md`, `docs/rest-api-reference.md` and `docs/roadmap.md`
+before any non-trivial task. HTTP contract changes must update `docs/rest-api-reference.md` (see `49-rest-api-reference.mdc`). The current milestone is the first unchecked item in the roadmap.
 
 ## Stack (do not change without asking)
 - pnpm + Turborepo monorepo, TypeScript strict everywhere

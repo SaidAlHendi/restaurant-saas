@@ -2,9 +2,9 @@ import { useCallback, useMemo, useState } from 'react';
 
 import type { PosMenuPayload } from '@app/shared';
 
+import type { CartLineInput } from '../../cart/cart.types.js';
 import { cartActions } from '../../cart/cart.slice.js';
-import type { CartLine } from '../../cart/cart.types.js';
-import { newCartLineId, validateModifierSelection } from '../../cart/cart.utils.js';
+import { validateModifierSelection } from '../../cart/cart.utils.js';
 import { useAppDispatch } from '../../../app/hooks.js';
 import { posLocalizedName } from '../pos-label.utils.js';
 
@@ -13,6 +13,7 @@ export type PosMenuProduct = PosMenuPayload['categories'][number]['products'][nu
 export function usePosModifierSheet(input: {
   locale: string;
   defaultLocale: string;
+  onAddLine?: (line: CartLineInput) => void;
 }) {
   const dispatch = useAppDispatch();
   const [product, setProduct] = useState<PosMenuProduct | null>(null);
@@ -93,8 +94,7 @@ export function usePosModifierSheet(input: {
         }
       }
     }
-    const line: CartLine = {
-      localId: newCartLineId(),
+    const line: CartLineInput = {
       productId: product.id,
       nameSnapshot: product.name,
       unitPriceMinor,
@@ -103,12 +103,17 @@ export function usePosModifierSheet(input: {
       quantity,
       note,
     };
-    dispatch(cartActions.addLine(line));
+    if (input.onAddLine) {
+      input.onAddLine(line);
+    } else {
+      dispatch(cartActions.addLine(line));
+    }
     close();
   }, [
     close,
     dispatch,
     groupsForValidation,
+    input,
     note,
     product,
     quantity,

@@ -9,6 +9,7 @@ alwaysApply: false
    - user-visible behavior (who does what, on which screen)
    - schema changes (tables, columns, indexes, RLS policy) and migration name
    - API endpoints with Zod request/response schemas in `packages/shared`
+   - updates to `docs/rest-api-reference.md` (§2 overview table + §4 endpoint sections)
    - permissions and plan entitlement keys involved
    - tests you will write
    Wait for approval if the plan touches schema, API contracts, or the core rules.

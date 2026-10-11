@@ -20,13 +20,39 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
+      includeAssets: ['icon-192.svg', 'icon-512.svg', 'icon-maskable-512.svg', 'pos.webmanifest'],
       manifest: {
         name: 'Restaurant SaaS',
         short_name: 'Restaurant',
         start_url: '/',
+        scope: '/',
         display: 'standalone',
         background_color: '#ffffff',
-        theme_color: '#ffffff',
+        theme_color: '#065f46',
+        icons: [
+          {
+            src: '/icon-192.svg',
+            sizes: '192x192',
+            type: 'image/svg+xml',
+            purpose: 'any',
+          },
+          {
+            src: '/icon-512.svg',
+            sizes: '512x512',
+            type: 'image/svg+xml',
+            purpose: 'any',
+          },
+          {
+            src: '/icon-maskable-512.svg',
+            sizes: '512x512',
+            type: 'image/svg+xml',
+            purpose: 'maskable',
+          },
+        ],
+      },
+      workbox: {
+        navigateFallback: '/index.html',
+        navigateFallbackAllowlist: [/^\/(?!api)/],
       },
     }),
   ],

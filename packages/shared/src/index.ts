@@ -169,6 +169,7 @@ export type {
   CreateOrderBody,
   Order,
   OrderDetail,
+  OrderItem,
   OrderListItem,
   OrderListQuery,
   ChangeOrderStatusBody,

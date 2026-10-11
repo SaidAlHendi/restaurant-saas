@@ -2,14 +2,6 @@ import { computeOrderTotals, type OrderLineForTotals } from '@app/shared';
 
 import type { CartLine } from './cart.types.js';
 
-export function newCartLineId(): string {
-  return crypto.randomUUID();
-}
-
-export function newClientOrderId(): string {
-  return crypto.randomUUID();
-}
-
 export function cartLineMergeKey(line: Pick<CartLine, 'productId' | 'modifierIds' | 'note'>): string {
   const mods = [...line.modifierIds].sort().join(',');
   const noteKey = line.note.trim().length === 0 ? '' : line.note.trim();

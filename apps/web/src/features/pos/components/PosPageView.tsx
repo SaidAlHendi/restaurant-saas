@@ -20,6 +20,9 @@ import {
 import type { PosPageViewModel } from '../hooks/use-pos-page.js';
 
 import { PosModifierSheetView } from './PosModifierSheetView.js';
+import { PosOpenOrdersPanelView, PosOpenOrdersToggle } from './PosOpenOrdersPanelView.js';
+import { PosOrderDetailSheetView } from './PosOrderDetailSheetView.js';
+import { PosPaymentDialogView } from './PosPaymentDialogView.js';
 
 export function PosPageView(props: PosPageViewModel) {
   const {
@@ -52,6 +55,10 @@ export function PosPageView(props: PosPageViewModel) {
     onDismissResult,
     modifierSheet,
     branchSwitchConfirm,
+    openOrders,
+    orderDetail,
+    paymentDialog,
+    addingItemsHint,
     labels,
   } = props;
 
@@ -86,8 +93,14 @@ export function PosPageView(props: PosPageViewModel) {
       <header className="border-b px-4 py-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-lg font-semibold">{branchName}</h1>
-          <BranchSwitcher {...branchSwitcher} className="min-w-48" />
+          <div className="flex flex-wrap items-center gap-2">
+            <PosOpenOrdersToggle {...openOrders} />
+            <BranchSwitcher {...branchSwitcher} className="min-w-48" />
+          </div>
         </div>
+        {addingItemsHint ? (
+          <p className="text-primary mt-2 text-sm font-medium">{addingItemsHint}</p>
+        ) : null}
       </header>
 
       {showOfflineBanner ? (
@@ -102,7 +115,10 @@ export function PosPageView(props: PosPageViewModel) {
         </Alert>
       ) : null}
 
-      <div className="grid flex-1 gap-0 lg:grid-cols-[1fr_min(24rem,100%)]">
+      <div
+        className={`grid flex-1 gap-0 lg:grid-cols-[1fr_min(24rem,100%)] ${openOrders.open ? 'xl:grid-cols-[12rem_1fr_min(24rem,100%)]' : ''}`}
+      >
+        {openOrders.open ? <PosOpenOrdersPanelView {...openOrders} /> : null}
         <section className="flex min-h-0 flex-col border-e p-4">
           <Tabs value={categoryTabs.find((c) => c.isActive)?.id ?? ''}>
             <TabsList className="mb-4 flex h-auto flex-wrap justify-start gap-1">
@@ -169,7 +185,7 @@ export function PosPageView(props: PosPageViewModel) {
                 </SelectTrigger>
                 <SelectContent>
                   {tableOptions.map((table) => (
-                    <SelectItem key={table.id} value={table.id}>
+                    <SelectItem key={table.id} value={table.id} disabled={table.disabled}>
                       {table.label}
                     </SelectItem>
                   ))}
@@ -238,6 +254,8 @@ export function PosPageView(props: PosPageViewModel) {
       </div>
 
       <PosModifierSheetView sheet={modifierSheet} />
+      <PosOrderDetailSheetView {...orderDetail} />
+      <PosPaymentDialogView {...paymentDialog} />
       <ConfirmDialog
         open={branchSwitchConfirm.open}
         title={branchSwitchConfirm.title}
