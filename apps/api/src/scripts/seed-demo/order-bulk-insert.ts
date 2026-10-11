@@ -22,7 +22,9 @@ export async function bulkInsertGeneratedOrders(
   }
 
   const orderRows = planned.map((p) => p.order);
-  const itemRows = planned.flatMap((p) => p.items.map(({ modifiers: _m, ...item }) => item));
+  const itemRows = planned.flatMap((p) =>
+    p.items.map(({ modifiers: _m, ...item }) => item),
+  );
   const modifierRows = planned.flatMap((p) => p.items.flatMap((it) => it.modifiers));
   const eventRows = planned.flatMap((p) => p.events);
   const paymentRows = planned.flatMap((p) => p.payments);

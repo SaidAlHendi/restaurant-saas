@@ -20,14 +20,10 @@ function sortEntries(entries: UnsplashPhotoEntry[]): UnsplashPhotoEntry[] {
   return [...entries].sort((a, b) => a.productKey.localeCompare(b.productKey));
 }
 
-class RateLimitedError extends Error {}
-
-type SearchOutcome = {
-  photo: UnsplashSearchResult['results'][0] | undefined;
-  remaining: number | null;
-};
-
-async function searchPhoto(accessKey: string, query: string): Promise<SearchOutcome> {
+async function searchPhoto(
+  accessKey: string,
+  query: string,
+): Promise<{ photo: UnsplashSearchResult['results'][0]; remaining: number | null }> {
   const params = new URLSearchParams({
     query,
     orientation: 'squarish',
@@ -39,18 +35,17 @@ async function searchPhoto(accessKey: string, query: string): Promise<SearchOutc
     headers: { Authorization: `Client-ID ${accessKey}`, 'Accept-Version': 'v1' },
   });
   const remainingHeader = res.headers.get('X-Ratelimit-Remaining');
-  const remaining = remainingHeader === null ? null : Number.parseInt(remainingHeader, 10);
-  if (res.status === 403 || res.status === 429) {
-    throw new RateLimitedError(`Unsplash refused the request (${String(res.status)})`);
-  }
+  const remaining =
+    remainingHeader === null ? null : Number.parseInt(remainingHeader, 10);
   if (!res.ok) {
     throw new Error(`Unsplash search failed: ${String(res.status)}`);
   }
   const body = (await res.json()) as UnsplashSearchResult;
-  return {
-    photo: body.results[0],
-    remaining: remaining === null || Number.isNaN(remaining) ? null : remaining,
-  };
+  const photo = body.results[0];
+  if (!photo) {
+    throw new Error(`No Unsplash results for query "${query}"`);
+  }
+  return { photo, remaining: Number.isNaN(remaining ?? NaN) ? null : remaining };
 }
 
 async function pingDownloadLocation(accessKey: string, downloadLocation: string): Promise<void> {
@@ -68,47 +63,19 @@ export async function runFetchUnsplashImages(): Promise<void> {
 
   const existing = await readEntries();
   const byKey = new Map(existing.map((e) => [e.productKey, e]));
-  const pending = ALL_ORG_DEFINITIONS.flatMap((org) =>
-    org.products
-      .map((product) => ({ product, productKey: productGlobalKey(org.slug, product.key) }))
-      .filter(({ productKey }) => !byKey.has(productKey)),
-  );
   let resolved = 0;
-  let noResults = 0;
 
-  // Saved after every photo so a stop (rate limit, network, Ctrl+C) never loses searches.
-  const save = async (): Promise<void> => {
-    const sorted = sortEntries([...byKey.values()]);
-    await writeEntries(sorted);
-    await writeCredits(sorted);
-  };
-  const remainingMessage = (): string =>
-    `${String(pending.length - resolved - noResults)} product(s) still need a photo`;
-
-  for (const { product, productKey } of pending) {
-    const query = `${product.unsplashQuery ?? product.name.en} food`;
-    let outcome: SearchOutcome;
-    try {
-      outcome = await searchPhoto(accessKey, query);
-    } catch (err: unknown) {
-      if (err instanceof RateLimitedError) {
-        process.stdout.write(
-          `[seed-images] ${err.message}: hourly limit reached. Resolved ${String(resolved)} this run, ${remainingMessage()}. Run again later.\n`,
-        );
-        return;
+  for (const org of ALL_ORG_DEFINITIONS) {
+    for (const product of org.products) {
+      const productKey = productGlobalKey(org.slug, product.key);
+      if (byKey.has(productKey)) {
+        continue;
       }
-      throw err;
-    }
-
-    const { photo, remaining } = outcome;
-    if (!photo) {
-      noResults += 1;
-      process.stderr.write(
-        `[seed-images] No results for ${productKey} ("${query}"). Add an unsplashQuery override in its data file.\n`,
-      );
-    } else {
+      const query = `${product.unsplashQuery ?? product.name.en} food`;
+      const { photo, remaining } = await searchPhoto(accessKey, query);
       await pingDownloadLocation(accessKey, photo.links.download_location);
-      byKey.set(productKey, {
+
+      const entry: UnsplashPhotoEntry = {
         productKey,
         query,
         photoId: photo.id,
@@ -116,24 +83,25 @@ export async function runFetchUnsplashImages(): Promise<void> {
         authorName: photo.user.name,
         authorUrl: photo.user.links.html,
         photoUrl: photo.urls.regular,
-      });
+      };
+      byKey.set(productKey, entry);
       resolved += 1;
-      await save();
       process.stdout.write(`[seed-images] ${productKey} -> ${photo.id}\n`);
-    }
 
-    if (remaining === 0) {
-      process.stdout.write(
-        `[seed-images] Hourly limit reached. Resolved ${String(resolved)} this run, ${remainingMessage()}. Run again later.\n`,
-      );
-      return;
+      if (remaining === 0) {
+        await writeEntries(sortEntries([...byKey.values()]));
+        process.stdout.write(
+          `[seed-images] Rate limit reached (0 remaining). Resolved ${String(resolved)} photo(s) this run.\n`,
+        );
+        await writeCredits(sortEntries([...byKey.values()]));
+        return;
+      }
     }
   }
 
-  await save();
-  process.stdout.write(
-    `[seed-images] Done. Resolved ${String(resolved)} new photo(s), ${String(noResults)} without results.\n`,
-  );
+  await writeEntries(sortEntries([...byKey.values()]));
+  await writeCredits(sortEntries([...byKey.values()]));
+  process.stdout.write(`[seed-images] Done. Resolved ${String(resolved)} new photo(s).\n`);
 }
 
 async function readEntries(): Promise<UnsplashPhotoEntry[]> {

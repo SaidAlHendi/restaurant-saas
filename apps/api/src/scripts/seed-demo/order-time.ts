@@ -1,32 +1,3 @@
-function zoneOffsetMs(instant: Date, timeZone: string): number {
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone,
-    hourCycle: 'h23',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  }).formatToParts(instant);
-  const pick = (type: Intl.DateTimeFormatPartTypes): number => {
-    const part = parts.find((p) => p.type === type);
-    if (!part) {
-      throw new Error(`Missing ${type} for ${timeZone}`);
-    }
-    return Number(part.value);
-  };
-  const localAsUtc = Date.UTC(
-    pick('year'),
-    pick('month') - 1,
-    pick('day'),
-    pick('hour'),
-    pick('minute'),
-    pick('second'),
-  );
-  return localAsUtc - Math.floor(instant.getTime() / 1000) * 1000;
-}
-
 /** Map a local wall time in `timeZone` to a UTC `Date`. */
 export function dateAtLocalTime(
   businessDate: string,
@@ -42,10 +13,50 @@ export function dateAtLocalTime(
     throw new Error(`Invalid businessDate ${businessDate}`);
   }
 
-  const wallAsUtc = Date.UTC(y, m - 1, d, hour, minute, 0, 0);
-  const firstGuess = wallAsUtc - zoneOffsetMs(new Date(wallAsUtc), timeZone);
-  // Re-read the offset at the first guess so DST changes between the two instants are honoured.
-  return new Date(wallAsUtc - zoneOffsetMs(new Date(firstGuess), timeZone));
+  let utcMs = Date.UTC(y, m - 1, d, hour, minute, 0, 0);
+
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: false,
+    }).formatToParts(new Date(utcMs));
+
+    const pick = (type: Intl.DateTimeFormatPartTypes): number => {
+      const part = parts.find((p) => p.type === type);
+      if (!part) {
+        throw new Error(`Missing ${type} for ${timeZone}`);
+      }
+      return Number(part.value);
+    };
+
+    const ly = pick('year');
+    const lm = pick('month');
+    const ld = pick('day');
+    let lh = pick('hour');
+    if (lh === 24) {
+      lh = 0;
+    }
+    const lmin = pick('minute');
+
+    if (ly === y && lm === m && ld === d && lh === hour && lmin === minute) {
+      return new Date(utcMs);
+    }
+
+    const targetLocalMin = hour * 60 + minute;
+    const actualLocalMin = lh * 60 + lmin;
+    let dayDelta = 0;
+    if (ly !== y || lm !== m || ld !== d) {
+      dayDelta = (ld < d ? -1 : 1) * 24 * 60;
+    }
+    utcMs += (targetLocalMin - actualLocalMin + dayDelta) * 60_000;
+  }
+
+  return new Date(utcMs);
 }
 
 export function addMinutes(date: Date, minutes: number): Date {

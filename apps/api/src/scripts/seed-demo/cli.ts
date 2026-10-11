@@ -22,8 +22,7 @@ function parseAnchor(value: string): Date {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     throw new Error(`Invalid --anchor "${value}" (use YYYY-MM-DD)`);
   }
-  // 19:30 UTC = 22:30 in Asia/Riyadh: the anchor day has a full service day of history.
-  const parsed = new Date(`${value}T19:30:00.000Z`);
+  const parsed = new Date(`${value}T12:00:00.000Z`);
   if (Number.isNaN(parsed.getTime())) {
     throw new Error(`Invalid --anchor "${value}"`);
   }
@@ -82,9 +81,9 @@ export function printDemoSeedHelp(): void {
       '',
       '  --reset          Remove seed-* orgs (app_owner) and their storage prefix, then re-seed',
       '  --images=on|off  Upload product images from Unsplash cache (default off)',
-      '  --days=N         Order history days (default 30)',
+      '  --days=N         Order history days (2b; default 30)',
       '  --org=slug       Limit to one seed org slug',
-      '  --anchor=DATE    Fixed anchor (DATE 19:30 UTC) for deterministic data (default: now)',
+      '  --anchor=DATE    Fixed anchor for deterministic data (default: now)',
       '',
     ].join('\n'),
   );

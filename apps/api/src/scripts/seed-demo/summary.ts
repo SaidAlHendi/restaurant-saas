@@ -68,12 +68,7 @@ export async function countSeedOrgTables(db: DrizzleDb, orgIds: string[]): Promi
 }
 
 export function printSummaryTable(counts: TableCounts): void {
-  const lines: string[] = [
-    '',
-    'Demo seed summary (row counts):',
-    'table                    rows',
-    '------------------------ ------',
-  ];
+  const lines: string[] = ['', 'Demo seed summary (row counts):', 'table                    rows', '------------------------ ------'];
 
   const seededTables = Object.entries(SEED_COVERAGE)
     .filter(([, v]) => v === 'seeded')

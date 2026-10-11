@@ -6,13 +6,14 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import pg from 'pg';
 
 import type { Env } from '../../config/env';
-import { PROTECTED_ORG_IDS, SEED_ORG_SLUG_PREFIX, SEED_USER_EMAIL_SUFFIX } from './constants';
+import {
+  PROTECTED_ORG_IDS,
+  SEED_ORG_SLUG_PREFIX,
+  SEED_USER_EMAIL_SUFFIX,
+} from './constants';
 
 async function deleteLocalOrgStoragePrefix(env: Env, orgId: string): Promise<void> {
   if (env.STORAGE_DRIVER !== 'local') {
-    process.stderr.write(
-      `[seed-demo] STORAGE_DRIVER=${env.STORAGE_DRIVER}: images under orgs/${orgId}/ were not deleted\n`,
-    );
     return;
   }
   const root = env.STORAGE_LOCAL_ROOT ?? path.join(process.cwd(), '.storage');
@@ -52,7 +53,9 @@ export async function resetSeedOrgs(env: Env): Promise<string[]> {
         await tx.execute(sql`DELETE FROM order_events WHERE org_id = ${orgId}::uuid`);
         await tx.execute(sql`DELETE FROM orders WHERE org_id = ${orgId}::uuid`);
         await tx.execute(sql`DELETE FROM branch_counters WHERE org_id = ${orgId}::uuid`);
-        await tx.execute(sql`DELETE FROM product_modifier_groups WHERE org_id = ${orgId}::uuid`);
+        await tx.execute(
+          sql`DELETE FROM product_modifier_groups WHERE org_id = ${orgId}::uuid`,
+        );
         await tx.execute(sql`DELETE FROM modifiers WHERE org_id = ${orgId}::uuid`);
         await tx.execute(sql`DELETE FROM modifier_groups WHERE org_id = ${orgId}::uuid`);
         await tx.execute(sql`DELETE FROM products WHERE org_id = ${orgId}::uuid`);

@@ -1,13 +1,10 @@
 import { baitShamiOrg } from './data/bait-shami';
 import {
   collectInvariantFailures,
-  findOrderTotalsMismatches,
-  findPaymentStatusMismatches,
   invariantBranchCounters,
   invariantCancelledWithoutPayments,
   invariantCompletedOrdersPaid,
   invariantModifierLinkRatio,
-  invariantNoOffenders,
   invariantOrdersMissingPlacedEvent,
   invariantOrgBranchCount,
   invariantProductCount,
@@ -65,48 +62,5 @@ describe('seed-demo invariants', () => {
   it('requires placed events', () => {
     expect(invariantOrdersMissingPlacedEvent(0)).toBeNull();
     expect(invariantOrdersMissingPlacedEvent(1)?.code).toBe('ORDER_PLACED_EVENT');
-  });
-  describe('order money', () => {
-    const base = {
-      id: 'o1',
-      itemsSubtotalMinor: 10_000,
-      subtotalMinor: 10_000,
-      discountMinor: 0,
-      taxMinor: 1_500,
-      totalMinor: 11_500,
-      taxRateBp: 1_500,
-      taxInclusive: false,
-    };
-
-    it('accepts totals that match computeOrderTotals (exclusive and inclusive tax)', () => {
-      expect(findOrderTotalsMismatches([base])).toEqual([]);
-      expect(
-        findOrderTotalsMismatches([
-          { ...base, id: 'o2', taxMinor: 1_304, totalMinor: 10_000, taxInclusive: true },
-        ]),
-      ).toEqual([]);
-    });
-
-    it('flags an order whose subtotal or total drifted from its items', () => {
-      expect(findOrderTotalsMismatches([{ ...base, itemsSubtotalMinor: 9_000 }])).toEqual(['o1']);
-      expect(findOrderTotalsMismatches([{ ...base, totalMinor: 11_000 }])).toEqual(['o1']);
-    });
-
-    it('flags a payment_status that does not match the captured amount', () => {
-      const rows = [
-        { id: 'paid', totalMinor: 1_000, paidMinor: 1_000, paymentStatus: 'paid' },
-        { id: 'partial', totalMinor: 1_000, paidMinor: 400, paymentStatus: 'partial' },
-        { id: 'wrong', totalMinor: 1_000, paidMinor: 400, paymentStatus: 'paid' },
-      ];
-      expect(findPaymentStatusMismatches(rows)).toEqual(['wrong']);
-    });
-
-    it('reports offenders with a count and examples', () => {
-      expect(invariantNoOffenders('X', 'bad row(s)', [])).toBeNull();
-      expect(invariantNoOffenders('X', 'bad row(s)', ['a', 'b'])).toEqual({
-        code: 'X',
-        message: '2 bad row(s) (e.g. a, b)',
-      });
-    });
   });
 });

@@ -1,8 +1,11 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
+import { eq } from 'drizzle-orm';
+
 import type { Env } from '../../config/env';
 import type { DrizzleDb } from '../../core/db/db.module';
+import { products } from '../../core/db/schema/catalog';
 import { withOrg } from '../../core/db/with-org';
 import { ProductImageService } from '../../modules/catalog/product-image.service';
 import { CatalogRepository } from '../../modules/catalog/catalog.repository';
@@ -101,10 +104,7 @@ export async function seedProductImagesForOrg(
   let uploaded = 0;
   let skipped = 0;
   let warnings = 0;
-  let missingPhotos = 0;
 
-  // Read which products still need a photo, then download and process outside any transaction.
-  const needsImage = new Set<string>();
   await withOrg(db, orgId, async (tx) => {
     for (const product of definition.products) {
       const productId = deterministicUuid('product', definition.slug, product.key);
@@ -114,45 +114,30 @@ export async function seedProductImagesForOrg(
       }
       if (row.imageKey) {
         skipped += 1;
-      } else {
-        needsImage.add(product.key);
+        continue;
+      }
+
+      const globalKey = productGlobalKey(definition.slug, product.key);
+      const photo = photos.get(globalKey);
+      if (!photo) {
+        warnings += 1;
+        process.stderr.write(`[seed-demo] No Unsplash entry for ${globalKey}\n`);
+        continue;
+      }
+
+      const cacheFile = path.join(CACHE_DIR, `${globalKey.replace(/:/g, '_')}.jpg`);
+      try {
+        const buffer = await downloadToCache(cacheFile, photo.rawUrl);
+        const processed = await imageService.processAndUpload(orgId, productId, buffer);
+        await catalogRepo.updateProduct(tx, productId, { imageKey: processed.prefix });
+        uploaded += 1;
+      } catch (err: unknown) {
+        warnings += 1;
+        const message = err instanceof Error ? err.message : 'unknown error';
+        process.stderr.write(`[seed-demo] Image skipped for ${globalKey}: ${message}\n`);
       }
     }
   });
-
-  for (const product of definition.products) {
-    if (!needsImage.has(product.key)) {
-      continue;
-    }
-    const productId = deterministicUuid('product', definition.slug, product.key);
-    const globalKey = productGlobalKey(definition.slug, product.key);
-    const photo = photos.get(globalKey);
-    if (!photo) {
-      missingPhotos += 1;
-      continue;
-    }
-
-    const cacheFile = path.join(CACHE_DIR, `${globalKey.replace(/:/g, '_')}.jpg`);
-    try {
-      const buffer = await downloadToCache(cacheFile, photo.rawUrl);
-      const processed = await imageService.processAndUpload(orgId, productId, buffer);
-      await withOrg(db, orgId, async (tx) => {
-        await catalogRepo.updateProduct(tx, productId, { imageKey: processed.prefix });
-      });
-      uploaded += 1;
-    } catch (err: unknown) {
-      warnings += 1;
-      const message = err instanceof Error ? err.message : 'unknown error';
-      process.stderr.write(`[seed-demo] Image skipped for ${globalKey}: ${message}\n`);
-    }
-  }
-
-  if (missingPhotos > 0) {
-    warnings += missingPhotos;
-    process.stderr.write(
-      `[seed-demo] ${definition.slug}: ${String(missingPhotos)} product(s) have no photo in unsplash-photos.json (run pnpm db:seed:images)\n`,
-    );
-  }
 
   return { uploaded, skipped, warnings };
 }
@@ -165,4 +150,21 @@ export async function seedProductImages(
   for (const org of orgs) {
     await seedProductImagesForOrg(db, env, org.definition, org.id);
   }
+}
+
+export async function countProductsWithImages(db: DrizzleDb, orgId: string): Promise<number> {
+  let count = 0;
+  await withOrg(db, orgId, async (tx) => {
+    const rows = await tx
+      .select({ id: products.id })
+      .from(products)
+      .where(eq(products.orgId, orgId));
+    for (const row of rows) {
+      const full = await tx.select().from(products).where(eq(products.id, row.id)).limit(1);
+      if (full[0]?.imageKey) {
+        count += 1;
+      }
+    }
+  });
+  return count;
 }

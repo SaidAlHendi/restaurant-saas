@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, isNull } from 'drizzle-orm';
+import { and, eq, inArray, isNull } from 'drizzle-orm';
 
 import type { DrizzleDb } from '../../core/db/db.module';
 import {
@@ -57,15 +57,12 @@ export async function loadBranchOrderContexts(
     const branchRows = await tx
       .select()
       .from(branches)
-      .where(eq(branches.orgId, seeded.id))
-      .orderBy(asc(branches.slug));
+      .where(eq(branches.orgId, seeded.id));
 
     const productRows = await tx
       .select()
       .from(products)
-      .where(and(eq(products.orgId, seeded.id), isNull(products.deletedAt)))
-      // Stable order: the PRNG picks products by index, so row order must not vary between runs.
-      .orderBy(asc(products.id));
+      .where(and(eq(products.orgId, seeded.id), isNull(products.deletedAt)));
 
     const activeProducts = productRows.filter((p) => p.isActive);
     const productIds = activeProducts.map((p) => p.id);
@@ -80,8 +77,7 @@ export async function loadBranchOrderContexts(
               sortOrder: productModifierGroups.sortOrder,
             })
             .from(productModifierGroups)
-            .where(inArray(productModifierGroups.productId, productIds))
-            .orderBy(asc(productModifierGroups.productId), asc(productModifierGroups.groupId));
+            .where(inArray(productModifierGroups.productId, productIds));
 
     const groupIds = [...new Set(linkRows.map((l) => l.groupId))];
     const groupRows =
@@ -99,11 +95,7 @@ export async function loadBranchOrderContexts(
             .select()
             .from(modifiers)
             .where(
-              and(
-                inArray(modifiers.groupId, groupIds),
-                isNull(modifiers.deletedAt),
-                eq(modifiers.isActive, true),
-              ),
+              and(inArray(modifiers.groupId, groupIds), isNull(modifiers.deletedAt), eq(modifiers.isActive, true)),
             );
 
     const productsBuilt: SeedProduct[] = activeProducts.map((p) => {
@@ -116,7 +108,7 @@ export async function loadBranchOrderContexts(
         }
         const groupMods = modifierRows
           .filter((m) => m.groupId === group.id)
-          .sort((a, b) => a.sortOrder - b.sortOrder || a.id.localeCompare(b.id));
+          .sort((a, b) => a.sortOrder - b.sortOrder);
         for (const mod of groupMods) {
           mods.push({
             id: mod.id,
@@ -143,8 +135,7 @@ export async function loadBranchOrderContexts(
       const tableRows = await tx
         .select({ id: diningTables.id })
         .from(diningTables)
-        .where(and(eq(diningTables.branchId, branch.id), eq(diningTables.isActive, true)))
-        .orderBy(asc(diningTables.id));
+        .where(and(eq(diningTables.branchId, branch.id), eq(diningTables.isActive, true)));
 
       const cashierRows = await tx
         .select({ membershipId: memberships.id })
@@ -158,7 +149,6 @@ export async function loadBranchOrderContexts(
             eq(memberships.status, 'active'),
           ),
         )
-        .orderBy(asc(memberships.id))
         .limit(1);
 
       const cashierMembershipId = cashierRows[0]?.membershipId;

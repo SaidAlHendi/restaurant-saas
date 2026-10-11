@@ -13,7 +13,14 @@ export function createObjectStorageFromEnv(env: Env): ObjectStorage {
     const accessKeyId = env.S3_ACCESS_KEY_ID;
     const secretAccessKey = env.S3_SECRET_ACCESS_KEY;
     const publicBaseUrl = env.S3_PUBLIC_BASE_URL;
-    if (!endpoint || !region || !bucket || !accessKeyId || !secretAccessKey || !publicBaseUrl) {
+    if (
+      !endpoint ||
+      !region ||
+      !bucket ||
+      !accessKeyId ||
+      !secretAccessKey ||
+      !publicBaseUrl
+    ) {
       throw new Error('S3 storage env vars are incomplete');
     }
     return new S3ObjectStorage({
@@ -26,6 +33,7 @@ export function createObjectStorageFromEnv(env: Env): ObjectStorage {
     });
   }
   const root = env.STORAGE_LOCAL_ROOT ?? path.join(process.cwd(), '.storage');
-  const base = env.STORAGE_PUBLIC_BASE_URL ?? `http://localhost:${String(env.PORT)}/v1/media`;
+  const base =
+    env.STORAGE_PUBLIC_BASE_URL ?? `http://localhost:${String(env.PORT)}/v1/media`;
   return new LocalObjectStorage(root, base);
 }

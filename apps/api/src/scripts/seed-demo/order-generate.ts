@@ -1,4 +1,8 @@
-import { computeLineTotalMinor, computeOrderTotals, computePaymentStatus } from '@app/shared';
+import {
+  computeLineTotalMinor,
+  computeOrderTotals,
+  computePaymentStatus,
+} from '@app/shared';
 import type { LocalizedText, OrderStatus } from '@app/shared';
 
 import { computeBusinessDate } from '../../lib/business-date';
@@ -138,7 +142,12 @@ function pickModifiers(rng: () => number, product: SeedProduct): SeedModifier[] 
     if (opts.length === 0) {
       continue;
     }
-    const count = group.minSelect > 0 ? group.minSelect : rng() < 0.45 ? 1 : 0;
+    const count =
+      group.minSelect > 0
+        ? group.minSelect
+        : rng() < 0.45
+          ? 1
+          : 0;
     const capped = Math.min(count, group.maxSelect, opts.length);
     for (let i = 0; i < capped; i += 1) {
       const idx = Math.floor(rng() * opts.length);
@@ -191,64 +200,6 @@ function ordersForDay(rng: () => number, businessDate: string): number {
   const spread = max - min;
   const raw = mid + (rng() - 0.5) * spread;
   return Math.min(max, Math.max(min, Math.round(raw)));
-}
-
-type OrderSlot = {
-  seq: number;
-  placedAt: Date;
-  orderRng: () => number;
-  /** Minutes since the order was placed, for orders still open at the cutoff; null otherwise. */
-  liveAgeMinutes: number | null;
-};
-
-/** History orders on the cutoff day must have finished (complete/cancel) before the cutoff. */
-const HISTORY_SAFETY_MINUTES = 45;
-
-/**
- * Plans one business day for a branch: order times sorted ascending (so order numbers follow
- * time), nothing after `cutoff`, and on the cutoff day a few open orders placed 5-40 min ago.
- */
-function planOrderSlots(
-  ctx: BranchOrderContext,
-  businessDate: string,
-  count: number,
-  isToday: boolean,
-  cutoff: Date,
-  dayRng: () => number,
-  anchorIso: string,
-): OrderSlot[] {
-  const historyLimit = addMinutes(cutoff, -HISTORY_SAFETY_MINUTES);
-  const slots: OrderSlot[] = [];
-
-  for (let seq = 1; seq <= count; seq += 1) {
-    const orderRng = createDemoRng(anchorIso, `${ctx.branchId}:${businessDate}:${String(seq)}`);
-    const { hour, minute } = pickOrderHour(orderRng);
-    const placedAt = dateAtLocalTime(businessDate, hour, minute, ctx.timezone);
-    if (isToday && placedAt > historyLimit) {
-      continue;
-    }
-    slots.push({ seq, placedAt, orderRng, liveAgeMinutes: null });
-  }
-
-  if (isToday) {
-    const liveCount = 4 + Math.floor(dayRng() * 5);
-    for (let i = 0; i < liveCount; i += 1) {
-      const seq = count + 1 + i;
-      const orderRng = createDemoRng(anchorIso, `${ctx.branchId}:${businessDate}:${String(seq)}`);
-      const age = 5 + Math.floor(orderRng() * 36);
-      const placedAt = addMinutes(cutoff, -age);
-      const placedDay = computeBusinessDate({
-        now: placedAt,
-        timezone: ctx.timezone,
-        dayStartHour: ctx.dayStartHour,
-      });
-      if (placedDay === businessDate) {
-        slots.push({ seq, placedAt, orderRng, liveAgeMinutes: age });
-      }
-    }
-  }
-
-  return slots.sort((a, b) => a.placedAt.getTime() - b.placedAt.getTime() || a.seq - b.seq);
 }
 
 function listBusinessDates(
@@ -342,11 +293,7 @@ function computeTotalsFromItems(
 
 function syncItemStatusForOrder(items: PlannedItem[], status: OrderStatus): void {
   const target =
-    status === 'preparing'
-      ? 'preparing'
-      : status === 'ready' || status === 'completed'
-        ? 'ready'
-        : 'pending';
+    status === 'preparing' ? 'preparing' : status === 'ready' || status === 'completed' ? 'ready' : 'pending';
   for (const item of items) {
     if (item.status === 'voided') {
       continue;
@@ -372,8 +319,6 @@ export function generateBranchOrders(
     dayStartHour: ctx.dayStartHour,
   });
 
-  // Nothing the seed writes may be later than the anchor (the run start by default).
-  const cutoff = options.anchor;
   const counterByDate = new Map<string, number>();
   const orders: PlannedOrder[] = [];
 
@@ -381,24 +326,24 @@ export function generateBranchOrders(
     const dayRng = createDemoRng(anchorIso, `${ctx.branchId}:${businessDate}`);
     const count = ordersForDay(dayRng, businessDate);
     const isToday = businessDate === todayBusinessDate;
-    const slots = planOrderSlots(ctx, businessDate, count, isToday, cutoff, dayRng, anchorIso);
+    const liveCount = isToday ? Math.min(count, 4 + Math.floor(dayRng() * 5)) : 0;
 
-    for (const [index, slot] of slots.entries()) {
-      const { seq, placedAt, orderRng, liveAgeMinutes } = slot;
-      const orderNumber = index + 1;
+    for (let n = 1; n <= count; n += 1) {
+      const seq = n;
+      const orderRng = createDemoRng(anchorIso, `${ctx.branchId}:${businessDate}:${String(seq)}`);
+      const prev = counterByDate.get(businessDate) ?? 0;
+      const orderNumber = prev + 1;
       counterByDate.set(businessDate, orderNumber);
 
+      const { hour, minute } = pickOrderHour(orderRng);
+      const placedAt = dateAtLocalTime(businessDate, hour, minute, ctx.timezone);
+
       const orderId = deterministicUuid('order', ctx.branchId, businessDate, String(seq));
-      const clientOrderId = deterministicUuid(
-        'client-order',
-        ctx.branchId,
-        businessDate,
-        String(seq),
-      );
+      const clientOrderId = deterministicUuid('client-order', ctx.branchId, businessDate, String(seq));
 
       const roll = orderRng();
-      const isLive = liveAgeMinutes !== null;
-      const isCancelled = !isLive && roll < 0.05;
+      const isCancelled = !isToday && roll < 0.05;
+      const isLive = isToday && seq > count - liveCount;
       const voidOne = !isCancelled && !isLive && orderRng() < 0.03;
       const splitPay = !isCancelled && !isLive && orderRng() < 0.02;
 
@@ -408,19 +353,20 @@ export function generateBranchOrders(
       } else if (!isLive) {
         status = 'completed';
       } else {
-        // Older live orders are further along, like a real kitchen queue.
-        const age = liveAgeMinutes;
-        if (age >= 25 && orderRng() < 0.8) {
-          status = 'ready';
-        } else if (age >= 10 && orderRng() < 0.7) {
+        const livePick = orderRng();
+        if (livePick < 0.34) {
+          status = 'placed';
+        } else if (livePick < 0.67) {
           status = 'preparing';
+        } else {
+          status = 'ready';
         }
       }
 
       const dineIn = orderRng() < 0.6 && ctx.tableIds.length > 0;
       const tableId =
         dineIn && ctx.tableIds.length > 0
-          ? (ctx.tableIds[Math.floor(orderRng() * ctx.tableIds.length)] ?? null)
+          ? ctx.tableIds[Math.floor(orderRng() * ctx.tableIds.length)] ?? null
           : null;
 
       const { items, voidItemId } = buildLines(
@@ -490,28 +436,31 @@ export function generateBranchOrders(
           cancelledAt,
         );
       } else if (isLive) {
-        const age = liveAgeMinutes;
-        const prepAt = addMinutes(placedAt, Math.max(1, Math.floor(age * 0.25)));
-        const readyAt = addMinutes(placedAt, Math.max(2, Math.floor(age * 0.7)));
-        const payAt = addMinutes(placedAt, Math.max(3, Math.floor(age * 0.85)));
         if (status === 'preparing' || status === 'ready') {
           syncItemStatusForOrder(items, 'preparing');
           version += 1;
-          pushEvent(ORDER_EVENT_TYPES.statusChanged, 'placed', 'preparing', {}, prepAt);
+          pushEvent(
+            ORDER_EVENT_TYPES.statusChanged,
+            'placed',
+            'preparing',
+            {},
+            addMinutes(placedAt, 3),
+          );
         }
         if (status === 'ready') {
           syncItemStatusForOrder(items, 'ready');
           version += 1;
-          pushEvent(ORDER_EVENT_TYPES.statusChanged, 'preparing', 'ready', {}, readyAt);
+          pushEvent(
+            ORDER_EVENT_TYPES.statusChanged,
+            'preparing',
+            'ready',
+            {},
+            addMinutes(placedAt, 12),
+          );
         }
-        const payRoll = orderRng();
-        const paysNow = status !== 'placed' && payRoll < 0.6;
-        if (paysNow) {
-          // Some live orders are paid in full at the counter, others only partly (deposit).
-          const amount =
-            status === 'ready' && payRoll < 0.4
-              ? totals.totalMinor
-              : Math.max(100, Math.floor(totals.totalMinor / 2));
+        if (status === 'ready' && orderRng() < 0.5) {
+          const payAt = addMinutes(placedAt, 14);
+          const amount = totals.totalMinor;
           const paymentId = deterministicUuid('payment', orderId, '1');
           payments.push({
             id: paymentId,
@@ -613,8 +562,10 @@ export function generateBranchOrders(
         } else {
           const method = orderRng() < 0.55 ? 'cash' : 'card';
           const amount = due;
-          const tendered = method === 'cash' ? amount + (500 - (amount % 500)) : null;
-          const change = method === 'cash' && tendered !== null ? tendered - amount : null;
+          const tendered =
+            method === 'cash' ? amount + (500 - (amount % 500)) : null;
+          const change =
+            method === 'cash' && tendered !== null ? tendered - amount : null;
           payments.push({
             id: deterministicUuid('payment', orderId, '1'),
             orgId: ctx.orgId,
@@ -647,7 +598,13 @@ export function generateBranchOrders(
         version += 1;
         completedAt = addMinutes(payAt, 2 + Math.floor(orderRng() * 5));
         syncItemStatusForOrder(items, 'completed');
-        pushEvent(ORDER_EVENT_TYPES.statusChanged, 'ready', 'completed', {}, completedAt);
+        pushEvent(
+          ORDER_EVENT_TYPES.statusChanged,
+          'ready',
+          'completed',
+          {},
+          completedAt,
+        );
       }
 
       orders.push({

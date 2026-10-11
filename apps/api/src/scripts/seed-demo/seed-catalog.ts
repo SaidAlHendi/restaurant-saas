@@ -14,8 +14,7 @@ function pickModifierGroupsForProduct(
   rngScope: string,
 ): string[] {
   const product = definition.products.find((p) => p.key === productKey);
-  // An explicit list (including []) wins; only products without one get random links.
-  if (product?.modifierGroupKeys !== undefined) {
+  if (product?.modifierGroupKeys && product.modifierGroupKeys.length > 0) {
     return product.modifierGroupKeys;
   }
   const rng = createDemoRng(rngScope, productGlobalKey(definition.slug, productKey));
