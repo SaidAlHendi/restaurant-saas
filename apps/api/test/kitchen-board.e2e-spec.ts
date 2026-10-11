@@ -12,7 +12,7 @@ import { asDemoKitchen, asDemoOwner, asOtherOwner } from './catalog-helpers';
 import { createTestApp } from './create-test-app';
 import { authAgent, SEED_ORG } from './factories';
 import { apiAgent, withBranch } from './http';
-import { postOrder, seedCatalogProduct } from './ordering-helpers';
+import { postOrder, seedCatalogProduct, seedProductWithRequiredModifier } from './ordering-helpers';
 
 async function createKitchenTestBranch(owner: Agent): Promise<string> {
   const slug = `kds-${newUuidV7().slice(-8)}`;
@@ -30,14 +30,12 @@ async function createKitchenTestBranch(owner: Agent): Promise<string> {
 
 describe('Kitchen board (e2e)', () => {
   let app: INestApplication;
-  let agent: Agent;
   let db: DrizzleDb;
   let branchId = '';
   let productId = '';
 
   beforeAll(async () => {
     ({ app } = await createTestApp());
-    agent = apiAgent(app);
     db = app.get(DRIZZLE);
     const owner = await asDemoOwner(apiAgent(app));
     branchId = await createKitchenTestBranch(owner);
@@ -300,5 +298,113 @@ describe('Kitchen item status (e2e)', () => {
       .send({ to: 'ready', expectedVersion: version });
     expect(res.status).toBe(422);
     expect((res.body as { error: { code: string } }).error.code).toBe('ITEM_VOIDED');
+  });
+
+  it('returns table label, modifiers, additions and voided items on the card', async () => {
+    const owner = await asDemoOwner(apiAgent(app));
+    const tableLabel = `K-${newUuidV7().slice(-6)}`;
+    const table = await owner.post(`/v1/branches/${branchId}/tables`).send({ label: tableLabel });
+    expect(table.status).toBe(201);
+    const tableId = (table.body as { id: string }).id;
+    const withMod = await seedProductWithRequiredModifier(apiAgent(app));
+
+    const clientOrderId = newUuidV7();
+    const created = await postOrder(
+      owner,
+      branchId,
+      {
+        clientOrderId,
+        type: 'dine_in',
+        tableId,
+        items: [
+          { productId: withMod.productId, quantity: 2, modifierIds: [withMod.modifierId] },
+          { productId, quantity: 1, modifierIds: [] },
+        ],
+      },
+      clientOrderId,
+    );
+    expect(created.status).toBe(201);
+    const orderId = (created.body as { id: string }).id;
+    const voidItemId = (created.body as { items: Array<{ id: string }> }).items[1]?.id ?? '';
+    let version = (created.body as { version: number }).version;
+
+    const voided = await owner
+      .post(`/v1/branches/${branchId}/orders/${orderId}/items/${voidItemId}/void`)
+      .send({ reason: 'customer changed mind', expectedVersion: version });
+    expect(voided.status).toBe(201);
+    version = (voided.body as { version: number }).version;
+
+    const added = await owner.post(`/v1/branches/${branchId}/orders/${orderId}/items`).send({
+      expectedVersion: version,
+      items: [{ productId, quantity: 1, modifierIds: [] }],
+    });
+    expect(added.status).toBe(201);
+
+    const kitchen = await asDemoKitchen(apiAgent(app));
+    const board = await kitchen.get(`/v1/branches/${branchId}/kitchen/board`);
+    expect(board.status).toBe(200);
+    type Card = {
+      id: string;
+      tableLabel: string | null;
+      items: Array<{
+        id: string;
+        isAddition: boolean;
+        voidedAt: string | null;
+        voidReason: string | null;
+        quantity: number;
+        modifiers: Array<{ name: Record<string, string> }>;
+      }>;
+    };
+    const body = board.body as { serverTime: string; orders: Card[] };
+    expect(Number.isNaN(Date.parse(body.serverTime))).toBe(false);
+    const card = body.orders.find((o) => o.id === orderId);
+    expect(card?.tableLabel).toBe(tableLabel);
+    expect(card?.items).toHaveLength(3);
+    const modItem = card?.items.find((i) => i.modifiers.length > 0);
+    expect(modItem?.quantity).toBe(2);
+    expect(modItem?.modifiers[0]?.name['en']).toBe('Large');
+    const voidedItem = card?.items.find((i) => i.id === voidItemId);
+    expect(voidedItem?.voidedAt).not.toBeNull();
+    expect(voidedItem?.voidReason).toBe('customer changed mind');
+    expect(card?.items.filter((i) => i.isAddition)).toHaveLength(1);
+  });
+
+  it('not_ready puts the item back to pending (placed) or preparing (preparing)', async () => {
+    const owner = await asDemoOwner(apiAgent(app));
+    const clientOrderId = newUuidV7();
+    const created = await postOrder(
+      owner,
+      branchId,
+      {
+        clientOrderId,
+        type: 'takeaway',
+        items: [{ productId, quantity: 1, modifierIds: [] }],
+      },
+      clientOrderId,
+    );
+    const orderId = (created.body as { id: string }).id;
+    const itemId = (created.body as { items: Array<{ id: string }> }).items[0]?.id ?? '';
+    let version = (created.body as { version: number }).version;
+    const kitchen = await asDemoKitchen(apiAgent(app));
+    const itemUrl = `/v1/branches/${branchId}/orders/${orderId}/items/${itemId}/status`;
+    type Detail = { version: number; items: Array<{ id: string; status: string }> };
+    const statusOf = (b: unknown) => (b as Detail).items.find((i) => i.id === itemId)?.status;
+
+    let res = await kitchen.post(itemUrl).send({ to: 'ready', expectedVersion: version });
+    expect(statusOf(res.body)).toBe('ready');
+    version = (res.body as Detail).version;
+    res = await kitchen.post(itemUrl).send({ to: 'not_ready', expectedVersion: version });
+    expect(res.status).toBe(201);
+    expect(statusOf(res.body)).toBe('pending');
+    version = (res.body as Detail).version;
+
+    const moved = await kitchen
+      .post(`/v1/branches/${branchId}/orders/${orderId}/status`)
+      .send({ to: 'preparing', expectedVersion: version });
+    version = (moved.body as Detail).version;
+    res = await kitchen.post(itemUrl).send({ to: 'ready', expectedVersion: version });
+    version = (res.body as Detail).version;
+    res = await kitchen.post(itemUrl).send({ to: 'not_ready', expectedVersion: version });
+    expect(statusOf(res.body)).toBe('preparing');
   });
 });

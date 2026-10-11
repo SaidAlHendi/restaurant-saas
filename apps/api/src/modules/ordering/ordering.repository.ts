@@ -427,7 +427,6 @@ export class OrderingRepository {
 
   async listOrderItemsForOrderIds(tx: DrizzleTx, orderIds: string[]) {
     if (orderIds.length === 0) {
-      await tx.select({ id: orderItems.id }).from(orderItems).where(sql`false`);
       return [];
     }
     return tx
@@ -439,7 +438,6 @@ export class OrderingRepository {
 
   async listOrderItemModifiersForItemIds(tx: DrizzleTx, itemIds: string[]) {
     if (itemIds.length === 0) {
-      await tx.select({ id: orderItemModifiers.id }).from(orderItemModifiers).where(sql`false`);
       return [];
     }
     return tx
@@ -451,7 +449,6 @@ export class OrderingRepository {
 
   async listTableLabelsForBranch(tx: DrizzleTx, branchId: string, tableIds: string[]) {
     if (tableIds.length === 0) {
-      await tx.select({ id: diningTables.id }).from(diningTables).where(sql`false`);
       return [];
     }
     return tx

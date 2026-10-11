@@ -9,17 +9,18 @@ import { loadEnv } from '../../config/env';
 /** Same `Server` type Nest passes to {@link IoAdapter.close}. */
 type IoServer = Parameters<IoAdapter['close']>[0];
 
-function corsOriginsFromEnv(): string[] | boolean {
+/** `null` = no CORS_ORIGINS configured (allow any origin, like HTTP). */
+function corsOriginsFromEnv(): string[] | null {
   const env = loadEnv();
   const raw = env.CORS_ORIGINS;
   if (!raw || raw.length === 0) {
-    return true;
+    return null;
   }
   return raw.split(',').map((s) => s.trim());
 }
 
-function socketIoCorsOptions(allowed: string[] | boolean): ServerOptions['cors'] {
-  if (allowed === true) {
+function socketIoCorsOptions(allowed: string[] | null): ServerOptions['cors'] {
+  if (allowed === null) {
     return { origin: true, credentials: true };
   }
   return {
@@ -56,7 +57,7 @@ export class SocketIoRedisIoAdapter extends IoAdapter {
   private adapterConstructor: ReturnType<typeof createAdapter> | undefined;
   private pubClient: Redis | undefined;
   private subClient: Redis | undefined;
-  private readonly corsOrigin: string[] | boolean;
+  private readonly corsOrigin: string[] | null;
   private readonly servers = new Set<IoServer>();
 
   constructor(app: INestApplication) {
