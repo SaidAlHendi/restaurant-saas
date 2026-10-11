@@ -18,6 +18,26 @@ function corsOriginsFromEnv(): string[] | boolean {
   return raw.split(',').map((s) => s.trim());
 }
 
+function socketIoCorsOptions(allowed: string[] | boolean): ServerOptions['cors'] {
+  if (allowed === true) {
+    return { origin: true, credentials: true };
+  }
+  return {
+    credentials: true,
+    origin: (origin, callback) => {
+      if (origin === undefined) {
+        callback(null, true);
+        return;
+      }
+      if (!allowed.includes(origin)) {
+        callback(new Error('Origin not allowed by CORS'));
+        return;
+      }
+      callback(null, true);
+    },
+  };
+}
+
 function isSocketIoServer(value: unknown): value is IoServer {
   if (typeof value !== 'object' || value === null) {
     return false;
@@ -54,10 +74,7 @@ export class SocketIoRedisIoAdapter extends IoAdapter {
   createIOServer(port: number, options?: ServerOptions): IoServer {
     const created: unknown = super.createIOServer(port, {
       ...options,
-      cors: {
-        origin: this.corsOrigin,
-        credentials: true,
-      },
+      cors: socketIoCorsOptions(this.corsOrigin),
     });
     const server = asSocketIoServer(created);
     if (this.adapterConstructor) {

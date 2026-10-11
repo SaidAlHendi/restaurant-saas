@@ -14,6 +14,20 @@ import { authAgent, SEED_ORG } from './factories';
 import { apiAgent, withBranch } from './http';
 import { postOrder, seedCatalogProduct } from './ordering-helpers';
 
+async function createKitchenTestBranch(owner: Agent): Promise<string> {
+  const slug = `kds-${newUuidV7().slice(-8)}`;
+  const res = await owner.post('/v1/branches').send({
+    name: 'KDS test branch',
+    slug,
+    timezone: 'Asia/Riyadh',
+    currency: 'SAR',
+  });
+  if (res.status !== 201) {
+    throw new Error(`branch create failed ${String(res.status)}`);
+  }
+  return (res.body as { id: string }).id;
+}
+
 describe('Kitchen board (e2e)', () => {
   let app: INestApplication;
   let agent: Agent;
@@ -25,10 +39,9 @@ describe('Kitchen board (e2e)', () => {
     ({ app } = await createTestApp());
     agent = apiAgent(app);
     db = app.get(DRIZZLE);
-    const owner = await asDemoOwner(agent);
-    const me = await owner.get('/v1/me');
-    branchId = (me.body as { branches: Array<{ id: string }> }).branches[0]?.id ?? '';
-    ({ productId } = await seedCatalogProduct(agent));
+    const owner = await asDemoOwner(apiAgent(app));
+    branchId = await createKitchenTestBranch(owner);
+    ({ productId } = await seedCatalogProduct(apiAgent(app)));
   });
 
   afterAll(async () => {
@@ -36,7 +49,7 @@ describe('Kitchen board (e2e)', () => {
   });
 
   it('returns only placed, preparing, and ready orders sorted by placedAt', async () => {
-    const owner = await asDemoOwner(agent);
+    const owner = await asDemoOwner(apiAgent(app));
     const clientOrderId = newUuidV7();
     const created = await postOrder(
       owner,
@@ -49,7 +62,7 @@ describe('Kitchen board (e2e)', () => {
       clientOrderId,
     );
     expect(created.status).toBe(201);
-    const kitchen = await asDemoKitchen(agent);
+    const kitchen = await asDemoKitchen(apiAgent(app));
     const board = await kitchen.get(`/v1/branches/${branchId}/kitchen/board`);
     expect(board.status).toBe(200);
     const orders = (board.body as { orders: Array<{ id: string; status: string }> }).orders;
@@ -57,19 +70,31 @@ describe('Kitchen board (e2e)', () => {
     for (const order of orders) {
       expect(['placed', 'preparing', 'ready']).toContain(order.status);
     }
+    const placedAtValues = orders.map((o) => (o as { placedAt?: string }).placedAt ?? '');
+    const sorted = [...placedAtValues].sort();
+    expect(placedAtValues).toEqual(sorted);
   });
 
   it('404 for other tenant branch', async () => {
-    const other = await asOtherOwner(agent);
-    const kitchen = await asDemoKitchen(agent);
-    const otherMe = await other.get('/v1/me');
-    const otherBranchId = (otherMe.body as { branches: Array<{ id: string }> }).branches[0]?.id ?? '';
+    const other = await asOtherOwner(apiAgent(app));
+    const slug = `kds-x-${newUuidV7().slice(-8)}`;
+    const createdBranch = await other.post('/v1/branches').send({
+      name: 'Other org KDS branch',
+      slug,
+      timezone: 'Asia/Riyadh',
+      currency: 'SAR',
+    });
+    expect(createdBranch.status).toBe(201);
+    const otherBranchId = (createdBranch.body as { id: string }).id;
+    expect(otherBranchId).not.toBe(branchId);
+
+    const kitchen = await asDemoKitchen(apiAgent(app));
     const res = await kitchen.get(`/v1/branches/${otherBranchId}/kitchen/board`);
     expect(res.status).toBe(404);
   });
 
   it('403 item status for read-only custom role', async () => {
-    const owner = await asDemoOwner(agent);
+    const owner = await asDemoOwner(apiAgent(app));
     const clientOrderId = newUuidV7();
     const created = await postOrder(
       owner,
@@ -122,12 +147,13 @@ describe('Kitchen board (e2e)', () => {
       `);
     });
 
-    const login = await agent.post('/v1/auth/login').send({
+    const loginAgent = apiAgent(app);
+    const login = await loginAgent.post('/v1/auth/login').send({
       email,
       password: 'read-only-kitchen-pw',
     });
     const token = (login.body as { accessToken: string }).accessToken;
-    const readOnly = withBranch(authAgent(agent, token), branchId);
+    const readOnly = withBranch(authAgent(apiAgent(app), token), branchId);
 
     const board = await readOnly.get(`/v1/branches/${branchId}/kitchen/board`);
     expect(board.status).toBe(200);
@@ -141,17 +167,14 @@ describe('Kitchen board (e2e)', () => {
 
 describe('Kitchen item status (e2e)', () => {
   let app: INestApplication;
-  let agent: Agent;
   let branchId = '';
   let productId = '';
 
   beforeAll(async () => {
     ({ app } = await createTestApp());
-    agent = apiAgent(app);
-    const owner = await asDemoOwner(agent);
-    const me = await owner.get('/v1/me');
-    branchId = (me.body as { branches: Array<{ id: string }> }).branches[0]?.id ?? '';
-    ({ productId } = await seedCatalogProduct(agent));
+    const owner = await asDemoOwner(apiAgent(app));
+    branchId = await createKitchenTestBranch(owner);
+    ({ productId } = await seedCatalogProduct(apiAgent(app)));
   });
 
   afterAll(async () => {
@@ -159,7 +182,7 @@ describe('Kitchen item status (e2e)', () => {
   });
 
   it('marks item ready and returns 409 on stale version', async () => {
-    const owner = await asDemoOwner(agent);
+    const owner = await asDemoOwner(apiAgent(app));
     const clientOrderId = newUuidV7();
     const created = await postOrder(
       owner,
@@ -174,7 +197,7 @@ describe('Kitchen item status (e2e)', () => {
     const orderId = (created.body as { id: string }).id;
     const itemId = (created.body as { items: Array<{ id: string }> }).items[0]?.id ?? '';
     const version = (created.body as { version: number }).version;
-    const kitchen = await asDemoKitchen(agent);
+    const kitchen = await asDemoKitchen(apiAgent(app));
 
     const ok = await kitchen
       .post(`/v1/branches/${branchId}/orders/${orderId}/items/${itemId}/status`)
@@ -188,7 +211,7 @@ describe('Kitchen item status (e2e)', () => {
   });
 
   it('422 when order is completed', async () => {
-    const owner = await asDemoOwner(agent);
+    const owner = await asDemoOwner(apiAgent(app));
     const clientOrderId = newUuidV7();
     const created = await postOrder(
       owner,
@@ -203,7 +226,7 @@ describe('Kitchen item status (e2e)', () => {
     const orderId = (created.body as { id: string }).id;
     const itemId = (created.body as { items: Array<{ id: string }> }).items[0]?.id ?? '';
     let version = (created.body as { version: number }).version;
-    const kitchen = await asDemoKitchen(agent);
+    const kitchen = await asDemoKitchen(apiAgent(app));
 
     for (const to of ['preparing', 'ready'] as const) {
       const moved = await kitchen.post(`/v1/branches/${branchId}/orders/${orderId}/status`).send({
@@ -215,11 +238,12 @@ describe('Kitchen item status (e2e)', () => {
     }
 
     const totalMinor = (created.body as { totalMinor: number }).totalMinor;
+    const clientPaymentId = newUuidV7();
     const paid = await owner
       .post(`/v1/branches/${branchId}/orders/${orderId}/payments`)
-      .set('Idempotency-Key', newUuidV7())
+      .set('Idempotency-Key', clientPaymentId)
       .send({
-        clientPaymentId: newUuidV7(),
+        clientPaymentId,
         method: 'cash',
         amountMinor: totalMinor,
         tenderedMinor: totalMinor,
@@ -244,7 +268,7 @@ describe('Kitchen item status (e2e)', () => {
   });
 
   it('422 when item is voided', async () => {
-    const owner = await asDemoOwner(agent);
+    const owner = await asDemoOwner(apiAgent(app));
     const clientOrderId = newUuidV7();
     const created = await postOrder(
       owner,
@@ -263,7 +287,6 @@ describe('Kitchen item status (e2e)', () => {
     const items = (created.body as { items: Array<{ id: string }> }).items;
     const itemId = items[0]?.id ?? '';
     let version = (created.body as { version: number }).version;
-    const kitchen = await asDemoKitchen(agent);
 
     const voided = await owner
       .post(`/v1/branches/${branchId}/orders/${orderId}/items/${itemId}/void`)
@@ -271,6 +294,7 @@ describe('Kitchen item status (e2e)', () => {
     expect(voided.status).toBe(201);
     version = (voided.body as { version: number }).version;
 
+    const kitchen = await asDemoKitchen(apiAgent(app));
     const res = await kitchen
       .post(`/v1/branches/${branchId}/orders/${orderId}/items/${itemId}/status`)
       .send({ to: 'ready', expectedVersion: version });

@@ -96,16 +96,6 @@ describe('Realtime gateway (e2e)', () => {
     const { accessToken } = await loginSeedUser(agent, 'kitchen', 'demo');
     const socket = await connectSocket(port, { token: accessToken, branchId });
 
-    const eventPromise = new Promise<Record<string, unknown>>((resolve, reject) => {
-      const timer = setTimeout(() => {
-        reject(new Error('timed out waiting for order.placed'));
-      }, 10_000);
-      socket.on('order.placed', (payload: Record<string, unknown>) => {
-        clearTimeout(timer);
-        resolve(payload);
-      });
-    });
-
     const owner = await asDemoOwner(agent);
     const clientOrderId = newUuidV7();
     const created = await postOrder(
@@ -119,11 +109,30 @@ describe('Realtime gateway (e2e)', () => {
       clientOrderId,
     );
     expect(created.status).toBe(201);
+    const expectedOrderId = (created.body as { id: string }).id;
 
-    await publisher.publishNextBatch(10);
+    const eventPromise = new Promise<Record<string, unknown>>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        reject(new Error('timed out waiting for order.placed'));
+      }, 10_000);
+      socket.on('order.placed', (payload: Record<string, unknown>) => {
+        const orderId = payload['orderId'];
+        if (orderId !== expectedOrderId) {
+          return;
+        }
+        clearTimeout(timer);
+        resolve(payload);
+      });
+    });
 
-    const payload = await eventPromise;
-    expect(payload['orderId']).toBe((created.body as { id: string }).id);
+    const drainOutbox = (async () => {
+      for (let i = 0; i < 200; i += 1) {
+        await publisher.publishNextBatch(5);
+      }
+    })();
+
+    const payload = await Promise.all([eventPromise, drainOutbox]).then(([event]) => event);
+    expect(payload['orderId']).toBe(expectedOrderId);
     expect(payload['change']).toBe('placed');
     socket.disconnect();
   });

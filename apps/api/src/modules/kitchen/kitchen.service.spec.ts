@@ -47,6 +47,12 @@ describe('OrderingService kitchen board', () => {
     const listTableLabelsForBranch = jest.fn(() =>
       Promise.resolve([{ id: '00000000-0000-4000-8000-000000000010', label: 'T1' }]),
     );
+    const findBranchById = jest.fn(() =>
+      Promise.resolve({
+        id: '00000000-0000-4000-8000-000000000030',
+        orgId: '00000000-0000-4000-8000-000000000201',
+      }),
+    );
 
     const moduleRef = await Test.createTestingModule({
       providers: [
@@ -67,7 +73,7 @@ describe('OrderingService kitchen board', () => {
             listTableLabelsForBranch,
           },
         },
-        { provide: TenancyRepository, useValue: {} },
+        { provide: TenancyRepository, useValue: { findBranchById } },
         { provide: CatalogOrderingService, useValue: {} },
         { provide: OrgSettingsService, useValue: {} },
         { provide: OutboxService, useValue: { write: jest.fn() } },
@@ -107,6 +113,7 @@ describe('OrderingService kitchen board', () => {
     await ordering.getKitchenBoard(ctx, '00000000-0000-4000-8000-000000000030');
     await ordering.getKitchenBoard(ctx, '00000000-0000-4000-8000-000000000030');
 
+    expect(findBranchById).toHaveBeenCalledTimes(2);
     expect(listKitchenBoardOrders).toHaveBeenCalledTimes(2);
     expect(listOrderItemsForOrderIds).toHaveBeenCalledTimes(2);
     expect(listOrderItemModifiersForItemIds).toHaveBeenCalledTimes(2);

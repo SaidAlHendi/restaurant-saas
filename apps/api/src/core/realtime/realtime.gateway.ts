@@ -1,7 +1,8 @@
-import { Logger } from '@nestjs/common';
+import { Inject, Logger } from '@nestjs/common';
 import { WebSocketGateway, type OnGatewayInit } from '@nestjs/websockets';
 import type { Server, Socket } from 'socket.io';
 
+import { ENV, type Env } from '../../config/config.module';
 import { JwtAccessService } from '../auth/jwt.service';
 import { ForbiddenError, UnauthorizedError, ValidationError } from '../errors/app-errors';
 import { AuthContextService } from '../../modules/identity/auth-context.service';
@@ -21,6 +22,7 @@ export class RealtimeGateway implements OnGatewayInit {
   private readonly logger = new Logger(RealtimeGateway.name);
 
   constructor(
+    @Inject(ENV) private readonly env: Env,
     private readonly jwt: JwtAccessService,
     private readonly authContext: AuthContextService,
   ) {}
@@ -38,6 +40,8 @@ export class RealtimeGateway implements OnGatewayInit {
   }
 
   private async authenticateHandshake(socket: Socket): Promise<void> {
+    this.assertOriginAllowed(socket);
+
     const handshakeAuth: unknown = socket.handshake.auth;
     const tokenRaw = authField(handshakeAuth, 'token');
     const branchIdRaw = authField(handshakeAuth, 'branchId');
@@ -59,6 +63,18 @@ export class RealtimeGateway implements OnGatewayInit {
     }
 
     await socket.join(`branch:${branchIdRaw}`);
+  }
+
+  private assertOriginAllowed(socket: Socket): void {
+    const raw = this.env.CORS_ORIGINS;
+    if (raw === undefined || raw.length === 0) {
+      return;
+    }
+    const allowed = raw.split(',').map((entry) => entry.trim());
+    const origin = socket.handshake.headers.origin;
+    if (typeof origin === 'string' && !allowed.includes(origin)) {
+      throw new ForbiddenError('Origin not allowed', {}, 'FORBIDDEN');
+    }
   }
 
   private toConnectError(err: unknown): Error {

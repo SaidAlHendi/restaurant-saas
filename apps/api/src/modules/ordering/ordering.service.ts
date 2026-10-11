@@ -747,6 +747,10 @@ export class OrderingService {
   async getKitchenBoard(ctx: RequestContext, branchId: string): Promise<KitchenBoardResponse> {
     const serverTime = this.clock.now().toISOString();
     return withOrg(this.db, ctx.orgId, async (tx) => {
+      const branch = await this.tenancyRepo.findBranchById(tx, branchId);
+      if (!branch || branch.orgId !== ctx.orgId) {
+        throw new NotFoundError();
+      }
       const orderRows = await this.repo.listKitchenBoardOrders(tx, branchId, 200);
       const orderIds = orderRows.map((row) => row.id);
       const itemRows = await this.repo.listOrderItemsForOrderIds(tx, orderIds);
