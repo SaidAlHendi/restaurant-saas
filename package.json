@@ -14,6 +14,8 @@
     "db:generate": "turbo run db:generate --filter=@app/api",
     "db:migrate": "turbo run db:migrate --filter=@app/api",
     "db:seed": "turbo run db:seed --filter=@app/api",
+    "db:seed:demo": "turbo run db:seed:demo --filter=@app/api --",
+    "db:seed:images": "turbo run db:seed:images --filter=@app/api --",
     "db:reset-test": "turbo run db:reset-test --filter=@app/api"
   },
   "devDependencies": {

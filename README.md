@@ -90,7 +90,46 @@ pnpm build
 pnpm db:generate   # Drizzle migration from schema changes
 pnpm db:migrate
 pnpm db:seed
+pnpm db:seed:demo          # large demo tenants (seed-* slugs), optional order history
+pnpm db:seed:images        # fetch Unsplash metadata (developer machine; needs UNSPLASH_ACCESS_KEY)
 ```
+
+## Demo data (`pnpm db:seed:demo`)
+
+Separate from **`pnpm db:seed`** (fixed `demo` / `other` orgs for tests). Demo seed creates four bilingual restaurants (`seed-bait-shami`, `seed-burger-lab`, `seed-cafe-qahwa`, `seed-pizza-forno`) with catalog, staff, tables, and order history.
+
+```bash
+# Full reset of seed-* orgs + re-seed (safe for local DB only; refuses NODE_ENV=production)
+pnpm db:seed:demo --reset --images=off --days=30
+
+# Smaller history (CI uses --days=2)
+pnpm db:seed:demo --images=off --days=2
+
+# Fixed anchor for reproducible rows (that date at 22:30 Riyadh time; default anchor = now,
+# nothing is ever written after the anchor and a few orders are still open in the kitchen)
+pnpm db:seed:demo --reset --anchor=2026-10-11 --images=off --days=7
+
+# Product photos: commit unsplash-photos.json via db:seed:images, then upload from cache
+pnpm db:seed:images          # needs UNSPLASH_ACCESS_KEY in .env (see .env.example)
+pnpm db:seed:demo --images=on
+```
+
+**Logins** (password = `SEED_PASSWORD` from `.env`):
+
+| Org slug | Owner | Manager | Cashiers / kitchen |
+|----------|-------|---------|-------------------|
+| `seed-bait-shami` | `owner1@seed-bait-shami.seed.local` | `manager1@…` | `cashier1`…`cashier6`, `kitchen1`…`kitchen3` |
+| `seed-burger-lab` | `owner1@seed-burger-lab.seed.local` | … | 2 branches |
+| `seed-cafe-qahwa` | `owner1@seed-cafe-qahwa.seed.local` | … | 3 branches |
+| `seed-pizza-forno` | `owner1@seed-pizza-forno.seed.local` | … | 2 branches |
+
+Email pattern: `{role}{n}@{org-slug}.seed.local`.
+
+**Unsplash:** create an app at [unsplash.com/oauth/applications](https://unsplash.com/oauth/applications), add `UNSPLASH_ACCESS_KEY` to `.env`, run `pnpm db:seed:images` (rate-limited; re-run to continue). Credits land in `docs/seed-image-credits.md`.
+
+**Checks:** every run ends with invariants (totals, payment status, business date, no future timestamps, image files) and exits 1 on failure. `data/data.spec.ts` keeps the menus Arabic-script only and at least 8 dishes per category.
+
+**Coverage:** `apps/api/src/scripts/seed-demo/coverage.spec.ts` fails if a Drizzle table is missing from `SEED_COVERAGE` (see `.cursor/rules/21-seed-data.mdc`).
 
 ## Docs
 

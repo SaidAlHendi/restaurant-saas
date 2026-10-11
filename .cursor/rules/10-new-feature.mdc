@@ -22,7 +22,7 @@ before any non-trivial task. The current milestone is the first unchecked item i
 ## Commands
 - `pnpm dev` — run everything locally (needs `docker compose up -d` for Postgres/Redis)
 - `pnpm lint && pnpm typecheck && pnpm test` — must pass before you say a task is done
-- `pnpm db:generate` — create a migration from schema changes; `pnpm db:migrate` — apply locally
+- `pnpm db:generate` — create a migration from schema changes; `pnpm db:migrate` — apply locally; update demo seed per `21-seed-data.mdc` when schema changes
 
 ## Non-negotiable rules
 1. **Tenant isolation.** Every tenant table has `org_id` (operational tables also `branch_id`).

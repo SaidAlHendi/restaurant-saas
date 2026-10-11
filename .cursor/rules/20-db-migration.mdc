@@ -4,7 +4,7 @@ alwaysApply: false
 ---
 # Building a feature
 
-1. Read the core rules, `docs/product.md`, `docs/architecture.md`, `docs/data-model.md`, and the roadmap item. Identify the owning module.
+1. Read the core rules, `docs/product.md`, `docs/architecture.md`, `docs/data-model.md`, and the roadmap item. Identify the owning module. Schema changes must also follow `.cursor/rules/21-seed-data.mdc`.
 2. Write a plan and show it before coding:
    - user-visible behavior (who does what, on which screen)
    - schema changes (tables, columns, indexes, RLS policy) and migration name

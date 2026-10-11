@@ -69,6 +69,9 @@ jobs:
       - name: Seed
         run: pnpm db:seed
 
+      - name: Demo seed smoke
+        run: pnpm db:seed:demo --images=off --days=2
+
       - name: Lint
         run: pnpm lint
 
