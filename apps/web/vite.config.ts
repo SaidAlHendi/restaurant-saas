@@ -20,7 +20,13 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icon-192.svg', 'icon-512.svg', 'icon-maskable-512.svg', 'pos.webmanifest'],
+      includeAssets: [
+        'icon-192.png',
+        'icon-512.png',
+        'icon-maskable-512.png',
+        'pos.webmanifest',
+        'manifest.webmanifest',
+      ],
       manifest: {
         name: 'Restaurant SaaS',
         short_name: 'Restaurant',
@@ -31,21 +37,21 @@ export default defineConfig({
         theme_color: '#065f46',
         icons: [
           {
-            src: '/icon-192.svg',
+            src: '/icon-192.png',
             sizes: '192x192',
-            type: 'image/svg+xml',
+            type: 'image/png',
             purpose: 'any',
           },
           {
-            src: '/icon-512.svg',
+            src: '/icon-512.png',
             sizes: '512x512',
-            type: 'image/svg+xml',
+            type: 'image/png',
             purpose: 'any',
           },
           {
-            src: '/icon-maskable-512.svg',
+            src: '/icon-maskable-512.png',
             sizes: '512x512',
-            type: 'image/svg+xml',
+            type: 'image/png',
             purpose: 'maskable',
           },
         ],

@@ -21,6 +21,7 @@ export function usePosPaymentDialog(input: {
   const [open, setOpen] = useState(false);
   const [method, setMethod] = useState<PaymentMethod>('cash');
   const [tenderedMinor, setTenderedMinor] = useState<number | null>(null);
+  const [clientPaymentId, setClientPaymentId] = useState<string | null>(null);
   const [capturePayment, captureState] = useCapturePaymentMutation();
 
   const dueMinor = input.order?.dueMinor ?? 0;
@@ -28,11 +29,13 @@ export function usePosPaymentDialog(input: {
   const openForOrder = useCallback(() => {
     setMethod('cash');
     setTenderedMinor(dueMinor > 0 ? dueMinor : null);
+    setClientPaymentId(randomUuid());
     setOpen(true);
   }, [dueMinor]);
 
   const close = useCallback(() => {
     setOpen(false);
+    setClientPaymentId(null);
   }, []);
 
   const quickAmounts = useMemo(() => quickTenderAmounts(dueMinor), [dueMinor]);
@@ -52,10 +55,9 @@ export function usePosPaymentDialog(input: {
     (method === 'card' || (tenderedMinor !== null && tenderedMinor >= dueMinor));
 
   const submit = useCallback(async () => {
-    if (!input.branchId || !input.order || !canSubmit) {
+    if (!input.branchId || !input.order || !canSubmit || clientPaymentId === null) {
       return;
     }
-    const clientPaymentId = randomUuid();
     const body =
       method === 'cash'
         ? {
@@ -97,6 +99,7 @@ export function usePosPaymentDialog(input: {
     method,
     t,
     tenderedMinor,
+    clientPaymentId,
   ]);
 
   return {
