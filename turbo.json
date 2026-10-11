@@ -59,6 +59,9 @@
     },
     "db:seed": {
       "cache": false
+    },
+    "db:reset-test": {
+      "cache": false
     }
   }
 }

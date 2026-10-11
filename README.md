@@ -58,10 +58,14 @@ pnpm install
 pnpm db:migrate
 pnpm db:seed          # demo/other orgs (uses DATABASE_URL → restaurant_saas)
 
-# e2e uses restaurant_saas_test — migrate + seed once:
+# e2e uses restaurant_saas_test — migrate + seed once (global-setup runs these on every test run):
 DATABASE_MIGRATION_URL=postgresql://app_owner:app_owner_dev@localhost:5432/restaurant_saas_test \
 DATABASE_URL=postgresql://app_user:app_user_dev@localhost:5432/restaurant_saas_test \
   pnpm db:migrate && pnpm db:seed
+
+# If e2e migrate fails with "already exists", reset the test schema then migrate + seed:
+DATABASE_MIGRATION_URL=postgresql://app_owner:app_owner_dev@localhost:5432/restaurant_saas_test \
+  pnpm db:reset-test && pnpm db:migrate && pnpm db:seed
 
 pnpm dev
 ```

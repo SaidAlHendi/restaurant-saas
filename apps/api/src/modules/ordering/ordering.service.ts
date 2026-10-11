@@ -624,6 +624,11 @@ export class OrderingService {
     body: CreatePaymentBody,
   ): Promise<CapturePaymentResult> {
     return withOrg(this.db, ctx.orgId, async (tx) => {
+      const current = await this.repo.findOrderByIdForUpdate(tx, branchId, orderId);
+      if (!current) {
+        throw new NotFoundError();
+      }
+
       const existingPayment = await this.repo.findPaymentByClientPaymentId(
         tx,
         orderId,
@@ -631,11 +636,6 @@ export class OrderingService {
       );
       if (existingPayment) {
         return { payment: mapPayment(existingPayment), created: false };
-      }
-
-      const current = await this.repo.findOrderById(tx, branchId, orderId);
-      if (!current) {
-        throw new NotFoundError();
       }
 
       this.assertOrderPayable(current.status);

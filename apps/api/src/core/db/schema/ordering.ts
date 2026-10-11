@@ -1,6 +1,8 @@
+import { sql } from 'drizzle-orm';
 import {
   bigint,
   boolean,
+  check,
   date,
   foreignKey,
   integer,
@@ -14,7 +16,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 
-import { organizations, branches } from './tenancy';
+import { branches, memberships, organizations } from './tenancy';
 
 export const orderTypeEnum = pgEnum('order_type', ['dine_in', 'takeaway']);
 
@@ -211,10 +213,21 @@ export const payments = pgTable(
   (t) => [
     unique('payments_id_org_id_unique').on(t.id, t.orgId),
     unique('payments_order_client_payment_unique').on(t.orderId, t.clientPaymentId),
+    check('payments_amount_positive', sql`${t.amountMinor} > 0`),
+    check(
+      'payments_tendered_nonneg',
+      sql`${t.tenderedMinor} IS NULL OR ${t.tenderedMinor} >= 0`,
+    ),
+    check('payments_change_nonneg', sql`${t.changeMinor} IS NULL OR ${t.changeMinor} >= 0`),
     foreignKey({
       name: 'payments_order_id_org_id_orders_id_org_id_fk',
       columns: [t.orderId, t.orgId],
       foreignColumns: [orders.id, orders.orgId],
+    }).onDelete('restrict'),
+    foreignKey({
+      name: 'payments_created_by_memberships_id_fk',
+      columns: [t.createdBy],
+      foreignColumns: [memberships.id],
     }).onDelete('restrict'),
   ],
 );

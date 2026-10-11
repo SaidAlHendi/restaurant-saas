@@ -31,6 +31,15 @@ describe('Ordering security (e2e)', () => {
     });
   });
 
+  it('denies UPDATE and DELETE on payments for app_user', async () => {
+    await withOrg(db, SEED_ORG.demo.id, async (tx) => {
+      await expect(
+        tx.execute(sql`UPDATE payments SET amount_minor = 1 WHERE false`),
+      ).rejects.toThrow();
+      await expect(tx.execute(sql`DELETE FROM payments WHERE false`)).rejects.toThrow();
+    });
+  });
+
   it('app_worker cannot SELECT from orders', async () => {
     const env = loadEnv();
     if (!env.DATABASE_WORKER_URL) {

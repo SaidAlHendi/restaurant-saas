@@ -128,6 +128,16 @@ export class OrderingRepository {
     return rows[0];
   }
 
+  async findOrderByIdForUpdate(tx: DrizzleTx, branchId: string, orderId: string) {
+    const rows = await tx
+      .select()
+      .from(orders)
+      .where(and(eq(orders.id, orderId), eq(orders.branchId, branchId)))
+      .limit(1)
+      .for('update');
+    return rows[0];
+  }
+
   async listOrderItemsWithModifiers(tx: DrizzleTx, orderId: string) {
     const items = await tx
       .select()
