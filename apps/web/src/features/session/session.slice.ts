@@ -50,7 +50,10 @@ const sessionSlice = createSlice({
       state.permissions = me.permissions;
       state.branches = me.branches;
       state.orgs = me.orgs;
-      state.currentBranchId = me.currentBranchId;
+      // The API only returns a current branch when the token is branch-scoped. Otherwise keep the
+      // branch picked earlier (if still visible) or default to the first one, so branch pages work.
+      const kept = me.branches.some((b) => b.id === state.currentBranchId) ? state.currentBranchId : null;
+      state.currentBranchId = me.currentBranchId ?? kept ?? me.branches[0]?.id ?? null;
     },
     setCurrentBranchId(state, action: PayloadAction<string | null>) {
       state.currentBranchId = action.payload;

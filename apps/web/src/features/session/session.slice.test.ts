@@ -59,6 +59,23 @@ describe('sessionReducer', () => {
     expect(state.currentBranchId).toBe(sampleMe.currentBranchId);
   });
 
+  it('defaults to the first branch when the API returns no current branch', () => {
+    const state = sessionReducer(undefined, hydrateFromMe({ ...sampleMe, currentBranchId: null }));
+    expect(state.currentBranchId).toBe(sampleMe.branches[0]?.id);
+  });
+
+  it('keeps a branch picked earlier when the API returns no current branch', () => {
+    const picked = '01932a1a-7b3e-7000-8000-000000000031';
+    const twoBranches: MeResponse = {
+      ...sampleMe,
+      currentBranchId: null,
+      branches: [...sampleMe.branches, { id: picked, name: 'Second', slug: 'second', isActive: true }],
+    };
+    let state = sessionReducer(undefined, setCurrentBranchId(picked));
+    state = sessionReducer(state, hydrateFromMe(twoBranches));
+    expect(state.currentBranchId).toBe(picked);
+  });
+
   it('updates current branch id', () => {
     const branchId = '01932a1a-7b3e-7000-8000-000000000031';
     const state = sessionReducer(undefined, setCurrentBranchId(branchId));
