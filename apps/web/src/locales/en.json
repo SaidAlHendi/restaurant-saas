@@ -57,7 +57,8 @@
       "menu": "Menu",
       "cashier": "Cashier",
       "sidebar": "Dashboard navigation",
-      "closeSidebar": "Close menu"
+      "closeSidebar": "Close menu",
+      "kitchen": "Kitchen"
     }
   },
   "pos": {
@@ -184,7 +185,9 @@
       "hasPayments": "Cannot cancel an order with payments.",
       "validation": "Check the form and try again.",
       "notFound": "Order not found.",
-      "forbidden": "You do not have permission for this action."
+      "forbidden": "You do not have permission for this action.",
+      "notPaid": "The order must be paid before it can be completed.",
+      "itemVoided": "This item was voided."
     }
   },
   "menu": {
@@ -313,6 +316,50 @@
       "printTitle": "QR codes",
       "back": "Back to QR codes",
       "tableQrUpsell": "Table QR codes appear when your plan includes table QR and you have active tables."
+    }
+  },
+  "kds": {
+    "title": "Kitchen",
+    "loadError": "Could not load the kitchen board. Try again later.",
+    "emptyColumn": "No orders",
+    "disconnected": "Disconnected — reconnecting… Taps are paused.",
+    "columns": {
+      "new": "New",
+      "preparing": "Preparing",
+      "ready": "Ready"
+    },
+    "card": {
+      "orderNumber": "#{{number}}",
+      "table": "Table {{label}}",
+      "added": "ADDED",
+      "voided": "VOID",
+      "start": "Start",
+      "markReady": "Ready",
+      "awaitingPayment": "Awaiting payment",
+      "readyForPickup": "Ready — waiting for cashier",
+      "age": "Waiting {{age}}"
+    },
+    "sound": {
+      "mute": "Mute sound",
+      "unmute": "Turn sound on",
+      "enableTitle": "Turn on sound?",
+      "enableDescription": "The screen plays a chime for new orders, added items, voids and cancellations.",
+      "enable": "Turn on sound",
+      "skip": "Not now"
+    },
+    "settings": {
+      "open": "Kitchen settings",
+      "title": "Kitchen settings",
+      "description": "Saved on this device only.",
+      "amber": "Amber after (minutes)",
+      "red": "Red after (minutes)",
+      "invalid": "Use whole minutes; red must be after amber.",
+      "save": "Save"
+    },
+    "noAccess": {
+      "title": "Kitchen screen not available",
+      "description": "Your role cannot change order status or your plan does not include the kitchen display.",
+      "backToDashboard": "Back to dashboard"
     }
   }
 }

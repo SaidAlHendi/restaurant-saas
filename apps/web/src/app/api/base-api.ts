@@ -13,7 +13,7 @@ import { setAccessToken, clearSession } from '../../features/session/session.sli
 import { selectAccessToken, selectCurrentBranchId } from '../../features/session/session.selectors.js';
 import { runAuthRefresh } from '../../lib/auth-refresh-lock.js';
 
-function apiBaseUrl(): string {
+export function apiBaseUrl(): string {
   const fromEnv = import.meta.env.VITE_API_URL;
   return fromEnv && fromEnv.length > 0 ? fromEnv : 'http://localhost:3000';
 }
@@ -88,7 +88,7 @@ const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
 export const baseApi = createApi({
   reducerPath: 'api',
   baseQuery: baseQueryWithReauth,
-  tagTypes: ['Health', 'Me', 'Category', 'Product', 'ModifierGroup', 'DiningTable', 'PosMenu', 'Order'],
+  tagTypes: ['Health', 'Me', 'Category', 'Product', 'ModifierGroup', 'DiningTable', 'PosMenu', 'Order', 'KitchenBoard'],
   endpoints: (builder) => ({
     getHealth: builder.query<{ status: string }, undefined>({
       query: () => '/v1/health',

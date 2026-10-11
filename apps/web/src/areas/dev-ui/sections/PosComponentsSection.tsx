@@ -1,4 +1,4 @@
-import { CartLine, ProductTile } from '@app/ui';
+import { CartLine, ConnectionBanner, KdsColumn, KdsOrderCard, ProductTile } from '@app/ui';
 
 import type { PosComponentsDemo } from '../pos-components-demo.js';
 
@@ -6,6 +6,7 @@ type PosComponentsCopy = {
   title: string;
   productTile: string;
   cartLine: string;
+  kds: string;
 };
 
 export function PosComponentsSection({
@@ -28,6 +29,17 @@ export function PosComponentsSection({
         <p className="mb-2 text-sm text-muted-foreground">{copy.cartLine}</p>
         <div className="max-w-md rounded-lg border px-3">
           <CartLine {...demo.cartLine} />
+        </div>
+      </div>
+      <div className="flex flex-col gap-2">
+        <p className="text-sm text-muted-foreground">{copy.kds}</p>
+        <ConnectionBanner {...demo.kds.banner} className="rounded-md" />
+        <div className="max-w-sm">
+          <KdsColumn {...demo.kds.column} count={demo.kds.cards.length}>
+            {demo.kds.cards.map(({ id, ...card }) => (
+              <KdsOrderCard key={id} {...card} />
+            ))}
+          </KdsColumn>
         </div>
       </div>
     </section>

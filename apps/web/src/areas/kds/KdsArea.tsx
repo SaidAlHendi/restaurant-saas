@@ -1,6 +1,40 @@
-import { useTranslation } from 'react-i18next';
+import { lazy, Suspense } from 'react';
+import { Navigate, Route, Routes } from 'react-router-dom';
+
+import { Spinner } from '@app/ui';
+
+import { useKdsArea } from '../../features/kds/hooks/use-kds-area.js';
+import { PosNoAccessView } from '../../features/pos/components/PosNoAccessView.js';
+
+const KdsPage = lazy(() => import('./KdsPage.js'));
 
 export default function KdsArea() {
-  const { t } = useTranslation();
-  return <p>{t('areas.kds')}</p>;
+  const vm = useKdsArea();
+
+  if (!vm.bootstrapDone) {
+    return (
+      <div className="flex justify-center p-8">
+        <Spinner label={vm.t('common.loading')} />
+      </div>
+    );
+  }
+
+  if (!vm.canUseKds) {
+    return <PosNoAccessView noAccess={vm.noAccess} />;
+  }
+
+  return (
+    <Suspense
+      fallback={
+        <div className="flex justify-center p-8">
+          <Spinner label={vm.t('common.loading')} />
+        </div>
+      }
+    >
+      <Routes>
+        <Route index element={<KdsPage />} />
+        <Route path="*" element={<Navigate to="/kds" replace />} />
+      </Routes>
+    </Suspense>
+  );
 }
