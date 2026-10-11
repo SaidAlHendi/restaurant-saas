@@ -7,12 +7,9 @@ import {
   clearSession,
   hydrateFromMe,
   setAccessToken,
-  setCurrentBranchId,
 } from '../../features/session/session.slice.js';
 import {
   selectCan,
-  selectCurrentBranchId,
-  selectSessionBranches,
   selectSessionOrg,
   selectSessionOrgs,
   selectSessionUser,
@@ -25,8 +22,6 @@ export function useDashboardPage() {
   const user = useAppSelector(selectSessionUser);
   const org = useAppSelector(selectSessionOrg);
   const orgs = useAppSelector(selectSessionOrgs);
-  const branches = useAppSelector(selectSessionBranches);
-  const currentBranchId = useAppSelector(selectCurrentBranchId);
   const canManageBranches = useAppSelector(selectCan('branches.manage'));
   const [switchOrg, { isLoading: switchingOrg }] = useSwitchOrgMutation();
   const [logout, { isLoading: loggingOut }] = useLogoutMutation();
@@ -36,10 +31,6 @@ export function useDashboardPage() {
     dispatch(setAccessToken(result.accessToken));
     const me = await dispatch(authApi.endpoints.getMe.initiate(undefined)).unwrap();
     dispatch(hydrateFromMe(me));
-  };
-
-  const onBranchChange = (branchId: string) => {
-    dispatch(setCurrentBranchId(branchId));
   };
 
   const onLogout = async () => {
@@ -56,13 +47,10 @@ export function useDashboardPage() {
     user,
     org,
     orgs,
-    branches,
-    currentBranchId,
     canManageBranches,
     switchingOrg,
     loggingOut,
     onOrgChange,
-    onBranchChange,
     onLogout,
   };
 }

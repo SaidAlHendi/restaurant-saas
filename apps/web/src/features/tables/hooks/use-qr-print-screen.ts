@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
+import { QR_PRINT_PX } from '../../../lib/qr-code-sizes.js';
 import type { QrPrintLayoutViewProps } from '../components/QrPrintLayoutView.js';
 import { usePublicQrSources } from './use-public-qr-sources.js';
 import { useQrCodeImages } from './use-qr-code-images.js';
@@ -22,7 +23,7 @@ export function useQrPrintScreen(): QrPrintLayoutViewProps {
     return list;
   }, [menuCard, tableCards]);
 
-  const { images, loading: qrLoading } = useQrCodeImages(urls);
+  const { images, loading: qrLoading } = useQrCodeImages(urls, QR_PRINT_PX);
 
   const cards = useMemo(() => {
     const result: QrPrintLayoutViewProps['cards'] = [];

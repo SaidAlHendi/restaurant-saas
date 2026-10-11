@@ -16,13 +16,10 @@ export function DashboardHome() {
     user,
     org,
     orgs,
-    branches,
-    currentBranchId,
     canManageBranches,
     switchingOrg,
     loggingOut,
     onOrgChange,
-    onBranchChange,
     onLogout,
   } = useDashboardPage();
 
@@ -39,7 +36,9 @@ export function DashboardHome() {
             <span className="text-sm font-medium">{t('dashboard.org')}</span>
             <Select
               value={org?.id ?? ''}
-              onValueChange={(value) => void onOrgChange(value)}
+              onValueChange={(value) => {
+                void onOrgChange(value);
+              }}
               disabled={switchingOrg || orgs.length <= 1}
             >
               <SelectTrigger>
@@ -49,25 +48,6 @@ export function DashboardHome() {
                 {orgs.map((o) => (
                   <SelectItem key={o.id} value={o.id}>
                     {o.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex flex-col gap-2">
-            <span className="text-sm font-medium">{t('dashboard.branch')}</span>
-            <Select
-              value={currentBranchId ?? branches[0]?.id ?? ''}
-              onValueChange={onBranchChange}
-              disabled={branches.length === 0}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={t('dashboard.selectBranch')} />
-              </SelectTrigger>
-              <SelectContent>
-                {branches.map((b) => (
-                  <SelectItem key={b.id} value={b.id}>
-                    {b.name}
                   </SelectItem>
                 ))}
               </SelectContent>

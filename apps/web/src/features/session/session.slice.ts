@@ -2,6 +2,11 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
 import type { MeResponse } from '@app/shared';
 
+import {
+  pickCurrentBranchId,
+  readStoredBranchId,
+} from './session-branch-preference.js';
+
 export type SessionUser = MeResponse['user'];
 export type SessionOrg = MeResponse['org'];
 export type SessionRole = MeResponse['role'];
@@ -18,6 +23,10 @@ export type SessionState = {
   branches: SessionBranch[];
   orgs: SessionOrgOption[];
   currentBranchId: string | null;
+};
+
+type HydrateFromMeMeta = {
+  storedBranchId: string | null;
 };
 
 const initialState: SessionState = {
@@ -42,18 +51,33 @@ const sessionSlice = createSlice({
     setBootstrapDone(state, action: PayloadAction<boolean>) {
       state.bootstrapDone = action.payload;
     },
-    hydrateFromMe(state, action: PayloadAction<MeResponse>) {
-      const me = action.payload;
-      state.user = me.user;
-      state.org = me.org;
-      state.role = me.role;
-      state.permissions = me.permissions;
-      state.branches = me.branches;
-      state.orgs = me.orgs;
-      // The API only returns a current branch when the token is branch-scoped. Otherwise keep the
-      // branch picked earlier (if still visible) or default to the first one, so branch pages work.
-      const kept = me.branches.some((b) => b.id === state.currentBranchId) ? state.currentBranchId : null;
-      state.currentBranchId = me.currentBranchId ?? kept ?? me.branches[0]?.id ?? null;
+    hydrateFromMe: {
+      prepare(me: MeResponse) {
+        return {
+          payload: me,
+          meta: {
+            storedBranchId: readStoredBranchId(me.org.id),
+          } satisfies HydrateFromMeMeta,
+        };
+      },
+      reducer(
+        state,
+        action: PayloadAction<MeResponse, string, HydrateFromMeMeta>,
+      ) {
+        const me = action.payload;
+        state.user = me.user;
+        state.org = me.org;
+        state.role = me.role;
+        state.permissions = me.permissions;
+        state.branches = me.branches;
+        state.orgs = me.orgs;
+        state.currentBranchId = pickCurrentBranchId({
+          meCurrentBranchId: me.currentBranchId,
+          branches: me.branches,
+          previousBranchId: state.currentBranchId,
+          storedBranchId: action.meta.storedBranchId,
+        });
+      },
     },
     setCurrentBranchId(state, action: PayloadAction<string | null>) {
       state.currentBranchId = action.payload;

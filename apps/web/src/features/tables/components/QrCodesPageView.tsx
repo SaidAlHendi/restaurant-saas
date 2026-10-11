@@ -27,7 +27,7 @@ export type QrCodesPageViewProps = {
   downloadLabel: string;
   loadingQrLabel: string;
   onPrint: () => void;
-  onDownload: (dataUrl: string, fileName: string) => void;
+  onDownload: (url: string, fileName: string) => void;
 };
 
 export function QrCodesPageView({
@@ -86,7 +86,7 @@ export function QrCodesPageView({
               onDownload={
                 card.qrDataUrl
                   ? () => {
-                      onDownload(card.qrDataUrl ?? '', card.downloadFileName);
+                      onDownload(card.url, card.downloadFileName);
                     }
                   : undefined
               }

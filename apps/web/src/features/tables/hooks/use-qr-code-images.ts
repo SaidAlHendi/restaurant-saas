@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react';
 
 import { qrCodeToDataUrl } from '../../../lib/qr-code-data-url.js';
 
-export function useQrCodeImages(urls: string[]): {
+export function useQrCodeImages(
+  urls: string[],
+  widthPx: number,
+): {
   images: Record<string, string>;
   loading: boolean;
 } {
@@ -20,7 +23,7 @@ export function useQrCodeImages(urls: string[]): {
       setLoading(true);
       const entries: Array<[string, string]> = [];
       for (const url of urls) {
-        const dataUrl = await qrCodeToDataUrl(url);
+        const dataUrl = await qrCodeToDataUrl(url, widthPx);
         entries.push([url, dataUrl]);
       }
       if (!cancelled) {
@@ -32,7 +35,7 @@ export function useQrCodeImages(urls: string[]): {
     return () => {
       cancelled = true;
     };
-  }, [urls]);
+  }, [urls, widthPx]);
 
   return { images, loading };
 }

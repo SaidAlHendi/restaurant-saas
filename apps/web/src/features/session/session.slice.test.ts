@@ -1,7 +1,8 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import type { MeResponse } from '@app/shared';
 
+import { branchPreferenceStorageKey, writeStoredBranchId } from './session-branch-preference.js';
 import {
   clearSession,
   hydrateFromMe,
@@ -45,6 +46,10 @@ const sampleMe: MeResponse = {
 };
 
 describe('sessionReducer', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
   it('stores access token and bootstrap flag', () => {
     let state = sessionReducer(undefined, setAccessToken('jwt'));
     state = sessionReducer(state, setBootstrapDone(true));
@@ -57,6 +62,23 @@ describe('sessionReducer', () => {
     expect(state.user?.email).toBe('owner@example.com');
     expect(state.permissions).toContain('branches.manage');
     expect(state.currentBranchId).toBe(sampleMe.currentBranchId);
+  });
+
+  it('prefers stored branch when the API returns no current branch', () => {
+    const stored = '01932a1a-7b3e-7000-8000-000000000031';
+    const orgId = sampleMe.org.id;
+    writeStoredBranchId(orgId, stored);
+    const twoBranches: MeResponse = {
+      ...sampleMe,
+      currentBranchId: null,
+      branches: [
+        ...sampleMe.branches,
+        { id: stored, name: 'Second', slug: 'second', isActive: true },
+      ],
+    };
+    const state = sessionReducer(undefined, hydrateFromMe(twoBranches));
+    expect(state.currentBranchId).toBe(stored);
+    localStorage.removeItem(branchPreferenceStorageKey(orgId));
   });
 
   it('defaults to the first branch when the API returns no current branch', () => {

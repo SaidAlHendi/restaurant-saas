@@ -28,6 +28,7 @@ import {
   CardHeader,
   CardTitle,
   EmptyState,
+  BranchSwitcher,
   PageHeader,
   QrCard,
   Sidebar,
@@ -231,6 +232,20 @@ export function LayoutSection({ copy, layout }: LayoutSectionProps) {
             {kind}
           </Button>
         ))}
+      </ShowcaseRow>
+
+      <ShowcaseRow label="BranchSwitcher">
+        <BranchSwitcher
+          branches={[
+            { id: 'main', name: 'Riyadh – Olaya' },
+            { id: 'second', name: 'Jeddah – Corniche' },
+          ]}
+          value="main"
+          onValueChange={() => undefined}
+          ariaLabel={l.branchSwitcher.label}
+          placeholder={l.branchSwitcher.placeholder}
+          className="min-w-[10rem]"
+        />
       </ShowcaseRow>
 
       <ShowcaseRow label="QrCard">
