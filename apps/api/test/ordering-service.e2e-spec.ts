@@ -354,6 +354,13 @@ describe('OrderingService (e2e)', () => {
       to: 'ready',
       expectedVersion: order.version,
     });
+    await ordering.capturePayment(ctx, branchId, order.id, {
+      clientPaymentId: newUuidV7(),
+      expectedVersion: order.version,
+      method: 'card',
+      amountMinor: order.totalMinor,
+    });
+    order = await ordering.getOrder(ctx, branchId, order.id);
     order = await ordering.changeStatus(ctx, branchId, order.id, {
       to: 'completed',
       expectedVersion: order.version,

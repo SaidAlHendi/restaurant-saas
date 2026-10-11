@@ -1,4 +1,6 @@
-import { computeOrderTotals } from './money';
+import { describe, expect, it } from 'vitest';
+
+import { computeOrderTotals } from './order-totals.js';
 
 describe('computeOrderTotals', () => {
   const lines = [{ lineTotalMinor: 10_000, status: 'pending' as const }];

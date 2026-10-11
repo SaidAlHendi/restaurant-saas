@@ -17,10 +17,13 @@ import { Authenticated } from '../../core/auth/authenticated.decorator';
 import { RequireBranchScope } from '../../core/permissions/require-branch-scope.decorator';
 import { RequirePermission } from '../../core/permissions/require-permission.decorator';
 
+import { RequireFeature } from '../../core/permissions/require-feature.decorator';
+
 import {
   AddOrderItemsBodyDto,
   ChangeOrderStatusBodyDto,
   CreateOrderBodyDto,
+  CreatePaymentBodyDto,
   OrderListQueryDto,
   VoidOrderItemBodyDto,
 } from './dto/ordering.dto';
@@ -99,6 +102,25 @@ export class OrdersController {
     @Body() body: AddOrderItemsBodyDto,
   ) {
     return this.ordering.addItems(ctx, branchId, orderId, body);
+  }
+
+  @RequirePermission('orders.create')
+  @RequireFeature('pos.access')
+  @Post(':orderId/payments')
+  async capturePayment(
+    @Ctx() ctx: RequestContext,
+    @Param('branchId') branchId: string,
+    @Param('orderId', OrderingPathIdPipe) orderId: string,
+    @Headers('idempotency-key') idempotencyKey: string | undefined,
+    @Body() body: CreatePaymentBodyDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    if (!idempotencyKey || idempotencyKey !== body.clientPaymentId) {
+      throw new ValidationError('Idempotency-Key must equal clientPaymentId');
+    }
+    const result = await this.ordering.capturePayment(ctx, branchId, orderId, body);
+    res.status(result.created ? 201 : 200);
+    return result.payment;
   }
 
   @Authenticated()

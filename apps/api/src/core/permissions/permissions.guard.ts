@@ -2,6 +2,7 @@ import { type CanActivate, type ExecutionContext, Injectable } from '@nestjs/com
 import { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
 
+import { EntitlementsService } from '../../modules/billing/entitlements.service';
 import { IS_PUBLIC_KEY } from '../auth/public.decorator';
 import { IS_AUTHENTICATED_KEY } from '../auth/authenticated.decorator';
 import { REQUEST_CONTEXT_KEY, type RequestContext } from '../context/request-context';
@@ -11,9 +12,12 @@ import { PERMISSION_KEY } from './require-permission.decorator';
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
-  constructor(private readonly reflector: Reflector) {}
+  constructor(
+    private readonly reflector: Reflector,
+    private readonly entitlements: EntitlementsService,
+  ) {}
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -46,7 +50,10 @@ export class PermissionsGuard implements CanActivate {
     }
 
     if (feature) {
-      // Roadmap item 10: entitlement check stub — always allow
+      const allowed = await this.entitlements.can(ctx.orgId, feature);
+      if (!allowed) {
+        throw new ForbiddenError('Plan feature not available');
+      }
     }
 
     if (permission && !ctx.permissions.includes(permission)) {

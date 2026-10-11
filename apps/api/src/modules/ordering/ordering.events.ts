@@ -7,6 +7,7 @@ export const ORDER_EVENT_TYPES = {
   itemsAdded: 'order.items_added',
   itemVoided: 'order.item_voided',
   cancelled: 'order.cancelled',
+  paymentCaptured: 'payment.captured',
 } as const;
 
 export const REALTIME_EVENT_TYPES = {

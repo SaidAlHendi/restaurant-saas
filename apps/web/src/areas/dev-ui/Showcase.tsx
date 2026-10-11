@@ -9,6 +9,7 @@ import { DataSection } from './sections/DataSection.js';
 import { FormsSection } from './sections/FormsSection.js';
 import { IconButtonsSection } from './sections/IconButtonsSection.js';
 import { LayoutSection } from './sections/LayoutSection.js';
+import { PosComponentsSection } from './sections/PosComponentsSection.js';
 import { OverlaysSection } from './sections/OverlaysSection.js';
 import { SelectsSection } from './sections/SelectsSection.js';
 import { TextFieldsSection } from './sections/TextFieldsSection.js';
@@ -26,6 +27,7 @@ export interface ShowcaseProps {
   imageUpload: ImageUploadDemo;
   orders: OrdersDemo;
   layout: DevUiPageViewModel['layout'];
+  posComponents: DevUiPageViewModel['posComponents'];
 }
 
 export function Showcase({
@@ -40,6 +42,7 @@ export function Showcase({
   imageUpload,
   orders,
   layout,
+  posComponents,
 }: ShowcaseProps) {
   return (
     <div className="flex flex-col gap-10 p-6">
@@ -62,6 +65,14 @@ export function Showcase({
       />
       <DataSection copy={copy} idPrefix={idPrefix} orders={orders} />
       <LayoutSection copy={copy} layout={layout} />
+      <PosComponentsSection
+        copy={{
+          title: copy.sections.pos,
+          productTile: copy.pos.productTile,
+          cartLine: copy.pos.cartLine,
+        }}
+        demo={posComponents}
+      />
     </div>
   );
 }

@@ -36,6 +36,14 @@ export function testDatabaseEnvHint(): string {
     'E2e Postgres default: ' +
     DEFAULT_TEST_DATABASE_URL +
     ' (shared local Postgres on 5432). ' +
-    'Override with E2E_DATABASE_URL / E2E_DATABASE_MIGRATION_URL (CI uses port 5433).'
+    'Override with E2E_DATABASE_URL / E2E_DATABASE_MIGRATION_URL (CI uses port 5433). ' +
+    'If migrate fails with "already exists", the test DB schema is out of sync with the migration journal — reset it: ' +
+    'DATABASE_MIGRATION_URL=' +
+    DEFAULT_TEST_MIGRATION_URL +
+    ' pnpm db:reset-test && DATABASE_MIGRATION_URL=' +
+    DEFAULT_TEST_MIGRATION_URL +
+    ' DATABASE_URL=' +
+    DEFAULT_TEST_DATABASE_URL +
+    ' pnpm db:migrate && pnpm db:seed'
   );
 }

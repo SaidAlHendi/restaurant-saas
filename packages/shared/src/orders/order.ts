@@ -10,6 +10,7 @@ import {
   paymentStatusSchema,
 } from './enums.js';
 import { orderLineInputSchema } from './order-line.js';
+import { paymentSchema } from './payment.js';
 
 export const createOrderBodySchema = z
   .object({
@@ -61,12 +62,19 @@ export const orderItemSchema = z.object({
   modifiers: z.array(orderItemModifierSchema),
 });
 
+export type OrderItem = z.infer<typeof orderItemSchema>;
+
 export const orderMoneySchema = z.object({
   subtotalMinor: moneyMinorSchema,
   discountMinor: moneyMinorSchema,
   taxMinor: moneyMinorSchema,
   totalMinor: moneyMinorSchema,
   currency: z.string().length(3),
+});
+
+export const orderPaymentSummarySchema = z.object({
+  paidMinor: moneyMinorSchema,
+  dueMinor: moneyMinorSchema,
 });
 
 export const orderSchema = orderMoneySchema.extend({
@@ -79,6 +87,8 @@ export const orderSchema = orderMoneySchema.extend({
   type: orderTypeSchema,
   status: orderStatusSchema,
   paymentStatus: paymentStatusSchema,
+  paidMinor: moneyMinorSchema,
+  dueMinor: moneyMinorSchema,
   tableId: z.uuid().nullable(),
   customerName: z.string().nullable(),
   notes: z.string().nullable(),
@@ -95,6 +105,7 @@ export type Order = z.infer<typeof orderSchema>;
 
 export const orderDetailSchema = orderSchema.extend({
   items: z.array(orderItemSchema),
+  payments: z.array(paymentSchema),
 });
 
 export type OrderDetail = z.infer<typeof orderDetailSchema>;
@@ -111,6 +122,10 @@ export const orderListQuerySchema = cursorListQuerySchema.extend({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/)
     .optional(),
+  activeOnly: z
+    .enum(['true', 'false'])
+    .optional()
+    .transform((value) => (value === undefined ? undefined : value === 'true')),
 });
 
 export type OrderListQuery = z.infer<typeof orderListQuerySchema>;

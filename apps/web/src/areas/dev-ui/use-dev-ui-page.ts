@@ -8,6 +8,7 @@ import { useLayoutDemo } from './layout-demo.js';
 import { useQrCardDemo } from './qr-card-demo.js';
 import { useOrdersDemo } from './orders-demo.js';
 import { useImageUploadDemo } from './image-upload-demo.js';
+import { usePosComponentsDemo } from './pos-components-demo.js';
 import { useInputsDemo, useProductFormDemo } from './product-form-demo.js';
 
 /** Fake request time for the ConfirmDialog demo. */
@@ -31,6 +32,7 @@ export function useDevUiPage() {
     [],
   );
 
+  const posComponents = usePosComponentsDemo();
   const productForm = useProductFormDemo();
   const inputs = useInputsDemo();
   const imageUpload = useImageUploadDemo();
@@ -87,6 +89,7 @@ export function useDevUiPage() {
     locale,
     orders,
     layout,
+    posComponents,
   };
 }
 

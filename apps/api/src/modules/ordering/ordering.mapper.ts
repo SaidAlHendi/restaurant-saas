@@ -1,3 +1,4 @@
+import { computeDueMinor } from '@app/shared';
 import type {
   DiningTable,
   DiningTableWithToken,
@@ -5,6 +6,7 @@ import type {
   OrderDetail,
   OrderEvent,
   OrderListItem,
+  Payment,
 } from '@app/shared';
 
 import type {
@@ -13,9 +15,11 @@ import type {
   orderItemModifiers,
   orderItems,
   orders,
+  payments,
 } from '../../core/db/schema/ordering';
 
 type OrderRow = typeof orders.$inferSelect;
+type PaymentRow = typeof payments.$inferSelect;
 type ItemRow = typeof orderItems.$inferSelect;
 type ModifierRow = typeof orderItemModifiers.$inferSelect;
 type EventRow = typeof orderEvents.$inferSelect;
@@ -55,7 +59,19 @@ function businessDateString(d: string | Date): string {
   return d.toISOString().slice(0, 10);
 }
 
-export function mapOrder(row: OrderRow): Order {
+export function mapPayment(row: PaymentRow): Payment {
+  return {
+    id: row.id,
+    method: row.method,
+    amountMinor: row.amountMinor,
+    tenderedMinor: row.tenderedMinor,
+    changeMinor: row.changeMinor,
+    createdAt: row.createdAt.toISOString(),
+  };
+}
+
+export function mapOrder(row: OrderRow, paidMinor: number): Order {
+  const dueMinor = computeDueMinor(row.totalMinor, paidMinor);
   return {
     id: row.id,
     orgId: row.orgId,
@@ -66,6 +82,8 @@ export function mapOrder(row: OrderRow): Order {
     type: row.type,
     status: row.status,
     paymentStatus: row.paymentStatus,
+    paidMinor,
+    dueMinor,
     tableId: row.tableId,
     customerName: row.customerName,
     notes: row.notes,
@@ -109,16 +127,19 @@ export function mapOrderItem(row: ItemRow, modifiers: ModifierRow[]) {
 export function mapOrderDetail(
   row: OrderRow,
   items: Array<{ item: ItemRow; modifiers: ModifierRow[] }>,
+  paymentRows: PaymentRow[],
+  paidMinor: number,
 ): OrderDetail {
   return {
-    ...mapOrder(row),
+    ...mapOrder(row, paidMinor),
     items: items.map(({ item, modifiers }) => mapOrderItem(item, modifiers)),
+    payments: paymentRows.map(mapPayment),
   };
 }
 
-export function mapOrderListItem(row: OrderRow, itemCount: number): OrderListItem {
+export function mapOrderListItem(row: OrderRow, itemCount: number, paidMinor: number): OrderListItem {
   return {
-    ...mapOrder(row),
+    ...mapOrder(row, paidMinor),
     itemCount,
   };
 }

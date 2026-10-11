@@ -10,6 +10,7 @@ import {
   orderItemModifiers,
   orderItems,
   orders,
+  payments,
 } from '../../core/db/schema/ordering';
 import type { OrderStatus } from '@app/shared';
 
@@ -127,6 +128,16 @@ export class OrderingRepository {
     return rows[0];
   }
 
+  async findOrderByIdForUpdate(tx: DrizzleTx, branchId: string, orderId: string) {
+    const rows = await tx
+      .select()
+      .from(orders)
+      .where(and(eq(orders.id, orderId), eq(orders.branchId, branchId)))
+      .limit(1)
+      .for('update');
+    return rows[0];
+  }
+
   async listOrderItemsWithModifiers(tx: DrizzleTx, orderId: string) {
     const items = await tx
       .select()
@@ -158,16 +169,21 @@ export class OrderingRepository {
     opts: {
       status?: OrderStatus;
       businessDate?: string;
+      activeOnly?: boolean;
       cursor?: OrderListCursor;
       limit: number;
     },
   ) {
     const conditions = [eq(orders.branchId, branchId)];
-    if (opts.status) {
-      conditions.push(eq(orders.status, opts.status));
-    }
-    if (opts.businessDate) {
-      conditions.push(eq(orders.businessDate, opts.businessDate));
+    if (opts.activeOnly) {
+      conditions.push(inArray(orders.status, ['placed', 'preparing', 'ready']));
+    } else {
+      if (opts.status) {
+        conditions.push(eq(orders.status, opts.status));
+      }
+      if (opts.businessDate) {
+        conditions.push(eq(orders.businessDate, opts.businessDate));
+      }
     }
     if (opts.cursor) {
       conditions.push(
@@ -238,6 +254,7 @@ export class OrderingRepository {
       taxMinor: number;
       totalMinor: number;
     },
+    paymentStatus?: typeof orders.$inferSelect.paymentStatus,
   ) {
     const rows = await tx
       .update(orders)
@@ -246,6 +263,92 @@ export class OrderingRepository {
         discountMinor: totals.discountMinor,
         taxMinor: totals.taxMinor,
         totalMinor: totals.totalMinor,
+        ...(paymentStatus !== undefined ? { paymentStatus } : {}),
+        version: expectedVersion + 1,
+        updatedAt: new Date(),
+      })
+      .where(and(eq(orders.id, orderId), eq(orders.version, expectedVersion)))
+      .returning();
+    return rows[0];
+  }
+
+  async findPaymentByClientPaymentId(tx: DrizzleTx, orderId: string, clientPaymentId: string) {
+    const rows = await tx
+      .select()
+      .from(payments)
+      .where(
+        and(eq(payments.orderId, orderId), eq(payments.clientPaymentId, clientPaymentId)),
+      )
+      .limit(1);
+    return rows[0];
+  }
+
+  async insertPayment(tx: DrizzleTx, row: typeof payments.$inferInsert) {
+    return firstRow(await tx.insert(payments).values(row).returning());
+  }
+
+  async sumCapturedMinorForOrder(tx: DrizzleTx, orderId: string): Promise<number> {
+    const result = await tx
+      .select({
+        total: sql<bigint>`coalesce(sum(${payments.amountMinor}), 0)::bigint`,
+      })
+      .from(payments)
+      .where(and(eq(payments.orderId, orderId), eq(payments.status, 'captured')));
+    const row = result[0];
+    if (row === undefined) {
+      return 0;
+    }
+    return Number(row.total);
+  }
+
+  async sumCapturedMinorByOrderIds(
+    tx: DrizzleTx,
+    orderIds: string[],
+  ): Promise<Map<string, number>> {
+    const map = new Map<string, number>();
+    if (orderIds.length === 0) {
+      return map;
+    }
+    const result = await tx
+      .select({
+        orderId: payments.orderId,
+        total: sql<bigint>`sum(${payments.amountMinor})::bigint`,
+      })
+      .from(payments)
+      .where(and(inArray(payments.orderId, orderIds), eq(payments.status, 'captured')))
+      .groupBy(payments.orderId);
+    for (const row of result) {
+      map.set(row.orderId, Number(row.total));
+    }
+    return map;
+  }
+
+  async listCapturedPaymentsForOrder(tx: DrizzleTx, orderId: string) {
+    return tx
+      .select()
+      .from(payments)
+      .where(and(eq(payments.orderId, orderId), eq(payments.status, 'captured')))
+      .orderBy(payments.createdAt, payments.id);
+  }
+
+  async hasCapturedPayments(tx: DrizzleTx, orderId: string): Promise<boolean> {
+    const result = await tx
+      .select({ count: sql<number>`count(*)::int` })
+      .from(payments)
+      .where(and(eq(payments.orderId, orderId), eq(payments.status, 'captured')));
+    return (result[0]?.count ?? 0) > 0;
+  }
+
+  async updateOrderPaymentStatus(
+    tx: DrizzleTx,
+    orderId: string,
+    expectedVersion: number,
+    paymentStatus: typeof orders.$inferSelect.paymentStatus,
+  ) {
+    const rows = await tx
+      .update(orders)
+      .set({
+        paymentStatus,
         version: expectedVersion + 1,
         updatedAt: new Date(),
       })

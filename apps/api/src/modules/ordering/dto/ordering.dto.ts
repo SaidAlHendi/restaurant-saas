@@ -5,12 +5,14 @@ import {
   changeOrderStatusBodySchema,
   createDiningTableBodySchema,
   createOrderBodySchema,
+  createPaymentBodySchema,
   orderListQuerySchema,
   patchDiningTableBodySchema,
   voidOrderItemBodySchema,
 } from '@app/shared';
 
 export class CreateOrderBodyDto extends createZodDto(createOrderBodySchema) {}
+export class CreatePaymentBodyDto extends createZodDto(createPaymentBodySchema) {}
 export class OrderListQueryDto extends createZodDto(orderListQuerySchema) {}
 export class ChangeOrderStatusBodyDto extends createZodDto(changeOrderStatusBodySchema) {}
 export class AddOrderItemsBodyDto extends createZodDto(addOrderItemsBodySchema) {}

@@ -16,6 +16,11 @@ export interface DevUiCopy {
     data: string;
     badges: string;
     layout: string;
+    pos: string;
+  };
+  pos: {
+    productTile: string;
+    cartLine: string;
   };
   layout: {
     sidebarLabel: string;
@@ -328,6 +333,11 @@ const en: DevUiCopy = {
     badges: 'Badge',
     layout:
       'Card, Tabs, StatCard, Alert, EmptyState, Spinner, Skeleton, Toast, PageHeader, Sidebar',
+    pos: 'ProductTile, CartLine (POS)',
+  },
+  pos: {
+    productTile: 'Product tile (touch target)',
+    cartLine: 'Cart line with quantity stepper',
   },
   data: {
     search: 'Search orders',
@@ -591,6 +601,11 @@ const ar: DevUiCopy = {
     data: 'البحث والجداول والتنقل بين الصفحات',
     badges: 'الشارات',
     layout: 'البطاقات والتبويبات والتنبيهات والإشعارات والشريط الجانبي',
+    pos: 'ProductTile و CartLine (الكاشير)',
+  },
+  pos: {
+    productTile: 'بلاطة منتج (هدف لمس)',
+    cartLine: 'سطر سلة مع عدّاد الكمية',
   },
   data: {
     search: 'بحث في الطلبات',

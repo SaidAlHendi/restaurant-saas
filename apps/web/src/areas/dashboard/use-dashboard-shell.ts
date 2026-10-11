@@ -1,4 +1,4 @@
-import { LayoutDashboardIcon, UtensilsIcon } from 'lucide-react';
+import { LayoutDashboardIcon, ShoppingBagIcon, UtensilsIcon } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -20,6 +20,7 @@ export function useDashboardShell() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const canReadMenu = useAppSelector(selectCan('menu.read'));
+  const canUsePos = useAppSelector(selectCan('orders.create'));
   const org = useAppSelector(selectSessionOrg);
   const branches = useAppSelector(selectSessionBranches);
   const currentBranchId = useAppSelector(selectCurrentBranchId);
@@ -46,8 +47,17 @@ export function useDashboardShell() {
         end: false,
       });
     }
+    if (canUsePos) {
+      items.push({
+        id: 'cashier',
+        to: '/pos',
+        icon: ShoppingBagIcon,
+        label: t('dashboard.nav.cashier'),
+        end: true,
+      });
+    }
     return items;
-  }, [canReadMenu, t]);
+  }, [canReadMenu, canUsePos, t]);
 
   const menuSubNav = useMemo(
     () =>

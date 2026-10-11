@@ -388,4 +388,77 @@ export class CatalogRepository {
         ),
       );
   }
+
+  async listActiveCategoriesForPosMenu(tx: DrizzleTx, orgId: string) {
+    return tx
+      .select()
+      .from(categories)
+      .where(
+        and(
+          eq(categories.orgId, orgId),
+          eq(categories.isActive, true),
+          isNull(categories.deletedAt),
+        ),
+      )
+      .orderBy(asc(categories.sortOrder), asc(categories.id));
+  }
+
+  async listActiveProductsForCategoryIds(tx: DrizzleTx, orgId: string, categoryIds: string[]) {
+    if (categoryIds.length === 0) {
+      return [];
+    }
+    return tx
+      .select()
+      .from(products)
+      .where(
+        and(
+          eq(products.orgId, orgId),
+          inArray(products.categoryId, categoryIds),
+          eq(products.isActive, true),
+          isNull(products.deletedAt),
+        ),
+      )
+      .orderBy(asc(products.categoryId), asc(products.sortOrder), asc(products.id));
+  }
+
+  async listProductModifierGroupsForProductIds(tx: DrizzleTx, productIds: string[]) {
+    if (productIds.length === 0) {
+      return [];
+    }
+    return tx
+      .select({
+        link: productModifierGroups,
+        group: modifierGroups,
+      })
+      .from(productModifierGroups)
+      .innerJoin(modifierGroups, eq(productModifierGroups.groupId, modifierGroups.id))
+      .where(
+        and(
+          inArray(productModifierGroups.productId, productIds),
+          isNull(modifierGroups.deletedAt),
+        ),
+      )
+      .orderBy(
+        asc(productModifierGroups.productId),
+        asc(productModifierGroups.sortOrder),
+        asc(modifierGroups.id),
+      );
+  }
+
+  async listActiveModifiersForGroupIds(tx: DrizzleTx, groupIds: string[]) {
+    if (groupIds.length === 0) {
+      return [];
+    }
+    return tx
+      .select()
+      .from(modifiers)
+      .where(
+        and(
+          inArray(modifiers.groupId, groupIds),
+          eq(modifiers.isActive, true),
+          isNull(modifiers.deletedAt),
+        ),
+      )
+      .orderBy(asc(modifiers.groupId), asc(modifiers.sortOrder), asc(modifiers.id));
+  }
 }

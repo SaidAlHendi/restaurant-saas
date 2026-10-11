@@ -13,7 +13,7 @@ export const uiOnlyFiles = [
 ];
 
 export default [
-  { ignores: ['dist/**'] },
+  { ignores: ['dist/**', 'scripts/**'] },
   ...react,
   {
     files: typedFiles,
