@@ -4,6 +4,7 @@ import {
   Button,
   CartLine,
   ConfirmDialog,
+  ConnectionBanner,
   ProductTile,
   Select,
   SelectContent,
@@ -27,6 +28,7 @@ import { PosPaymentDialogView } from './PosPaymentDialogView.js';
 export function PosPageView(props: PosPageViewModel) {
   const {
     branchName,
+    realtimeBanner,
     branchSwitcher,
     isLoading,
     isError,
@@ -90,6 +92,7 @@ export function PosPageView(props: PosPageViewModel) {
 
   return (
     <div className="flex min-h-[calc(100dvh-4rem)] flex-col">
+      <ConnectionBanner {...realtimeBanner} />
       <header className="border-b px-4 py-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-lg font-semibold">{branchName}</h1>

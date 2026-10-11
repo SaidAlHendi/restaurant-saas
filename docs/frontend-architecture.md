@@ -55,8 +55,10 @@ apps/web/src/
 - **Types and validation from Zod.** Request bodies and forms use the schemas in `@app/shared`
   (`z.infer` for types). Responses are validated in dev/test via `zod-response.ts`.
 - **Optimistic updates** only for KDS status taps and cart; always roll back on error.
-- **Realtime**: one socket per screen. On (re)connect: `invalidateTags(['ActiveOrders'])`. On event: update the
-  cache with `updateQueryData` only if `event.version > cached.version`.
+- **Realtime**: one socket per screen (`lib/realtime.ts` + `features/realtime/use-branch-realtime.ts`), handshake
+  `auth: { token, branchId }`. On every reconnect: invalidate the screen's tags (`KitchenBoard`, `Order`). On event:
+  refetch only if the order is unknown or `event.version > cached.version`. The POS polls open orders every 60 s only
+  while the socket is down. The KDS chimes on `change` placed / items_added / item_voided / cancelled.
 - **Routing**: areas lazy-loaded; guards check session + permission before rendering.
 - **i18n/RTL**: all text through react-i18next; set `document.documentElement.dir/lang` on locale change;
   Tailwind logical utilities only (`ms-`, `pe-`, `start-`, `text-start`).

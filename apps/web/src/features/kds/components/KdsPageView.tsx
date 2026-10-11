@@ -53,7 +53,7 @@ export function KdsPageView({
           {labels.title} · {branchName}
         </h1>
         <div className="flex flex-wrap items-center gap-2">
-          <BranchSwitcher {...branchSwitcher} className="min-w-48" />
+          <BranchSwitcher {...branchSwitcher} className="w-48" />
           <IconButton
             type="button"
             size="touch"
