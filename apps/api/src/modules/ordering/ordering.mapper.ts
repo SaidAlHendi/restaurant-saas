@@ -2,6 +2,7 @@ import { computeDueMinor } from '@app/shared';
 import type {
   DiningTable,
   DiningTableWithToken,
+  KitchenBoardResponse,
   Order,
   OrderDetail,
   OrderEvent,
@@ -154,6 +155,63 @@ export function mapOrderEvent(row: EventRow): OrderEvent {
     payload: row.payload as Record<string, unknown>,
     actorMembershipId: row.actorMembershipId,
     createdAt: row.createdAt.toISOString(),
+  };
+}
+
+export function mapKitchenBoardResponse(input: {
+  serverTime: string;
+  orderRows: OrderRow[];
+  itemRows: ItemRow[];
+  modifierRows: ModifierRow[];
+  labelByTableId: Map<string, string>;
+}): KitchenBoardResponse {
+  const modifiersByItem = new Map<string, ModifierRow[]>();
+  for (const mod of input.modifierRows) {
+    const list = modifiersByItem.get(mod.orderItemId) ?? [];
+    list.push(mod);
+    modifiersByItem.set(mod.orderItemId, list);
+  }
+  const itemsByOrder = new Map<string, ItemRow[]>();
+  for (const item of input.itemRows) {
+    const list = itemsByOrder.get(item.orderId) ?? [];
+    list.push(item);
+    itemsByOrder.set(item.orderId, list);
+  }
+
+  return {
+    serverTime: input.serverTime,
+    orders: input.orderRows.map((row) => {
+      const placedAt = row.placedAt ?? row.createdAt;
+      const tableLabel =
+        row.tableId !== null ? (input.labelByTableId.get(row.tableId) ?? null) : null;
+      const items = itemsByOrder.get(row.id) ?? [];
+      return {
+        id: row.id,
+        orderNumber: row.orderNumber,
+        type: row.type,
+        status: row.status,
+        version: row.version,
+        placedAt: placedAt.toISOString(),
+        tableLabel,
+        customerName: row.customerName,
+        notes: row.notes,
+        paymentStatus: row.paymentStatus,
+        items: items.map((item) => ({
+          id: item.id,
+          name: item.productNameSnapshot as Record<string, string>,
+          quantity: item.quantity,
+          notes: item.notes,
+          status: item.status,
+          isAddition: item.isAddition,
+          createdAt: item.createdAt.toISOString(),
+          voidedAt: iso(item.voidedAt),
+          voidReason: item.voidReason,
+          modifiers: (modifiersByItem.get(item.id) ?? []).map((m) => ({
+            name: m.nameSnapshot as Record<string, string>,
+          })),
+        })),
+      };
+    }),
   };
 }
 

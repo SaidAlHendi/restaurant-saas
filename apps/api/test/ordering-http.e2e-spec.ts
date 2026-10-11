@@ -12,23 +12,7 @@ import { asDemoOwner, asDemoKitchen, asOtherOwner } from './catalog-helpers';
 import { createTestApp } from './create-test-app';
 import { authAgent, loginSeedUser, SEED_ORG } from './factories';
 import { apiAgent } from './http';
-import { seedCatalogProduct } from './ordering-helpers';
-
-function postOrder(
-  client: Agent,
-  branchId: string,
-  body: {
-    clientOrderId: string;
-    type: 'takeaway' | 'dine_in';
-    tableId?: string;
-    items: Array<{ productId: string; quantity: number; modifierIds: string[] }>;
-  },
-  idempotencyKey?: string,
-) {
-  const base = client.post(`/v1/branches/${branchId}/orders`);
-  const req = idempotencyKey === undefined ? base : base.set('Idempotency-Key', idempotencyKey);
-  return req.send(body);
-}
+import { postOrder, seedCatalogProduct } from './ordering-helpers';
 
 describe('Ordering HTTP (e2e)', () => {
   let app: INestApplication;

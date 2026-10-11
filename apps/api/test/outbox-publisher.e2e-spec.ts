@@ -45,7 +45,13 @@ async function insertOutboxRow(
       branchId: input.branchId,
       type: 'order.updated',
       aggregateId: newUuidV7(),
-      payload: { orderId: newUuidV7(), branchId: input.branchId, status: 'placed', version: 1 },
+      payload: {
+        orderId: newUuidV7(),
+        branchId: input.branchId,
+        status: 'placed',
+        version: 1,
+        change: 'placed',
+      },
       createdAt: input.createdAt,
     });
   });
@@ -149,12 +155,13 @@ describe('Outbox publisher (e2e)', () => {
     expect(rows[0]?.attempts).toBe(1);
   });
 
-  it('marks dead rows with published_at and does not retry them', async () => {
+  it('marks dead rows with dead_at and does not retry them', async () => {
     const id = await insertOutboxRow(db, { branchId: null });
     await publisher.publishNextBatch(5);
 
     const rows = await workerDb.select().from(outboxEvents).where(eq(outboxEvents.id, id)).limit(1);
-    expect(rows[0]?.publishedAt).not.toBeNull();
+    expect(rows[0]?.deadAt).not.toBeNull();
+    expect(rows[0]?.publishedAt).toBeNull();
     expect(rows[0]?.lastError).toContain('branchId');
     expect(recording.published).toHaveLength(0);
 
@@ -176,8 +183,20 @@ describe('Outbox publisher (e2e)', () => {
 
     const rows = await workerDb.select().from(outboxEvents).where(eq(outboxEvents.id, id)).limit(1);
     expect(rows[0]?.attempts).toBe(MAX_OUTBOX_ATTEMPTS);
-    expect(rows[0]?.publishedAt).not.toBeNull();
+    expect(rows[0]?.deadAt).not.toBeNull();
+    expect(rows[0]?.publishedAt).toBeNull();
     expect(rows[0]?.lastError).toBe('publish failed');
+  });
+
+  it('skips rows with dead_at set when claiming', async () => {
+    const id = await insertOutboxRow(db, { branchId });
+    await workerDb
+      .update(outboxEvents)
+      .set({ deadAt: new Date(), publishedAt: null, lastError: 'dead test' })
+      .where(eq(outboxEvents.id, id));
+
+    await publisher.publishNextBatch(5);
+    expect(recording.published).toHaveLength(0);
   });
 
   it('never publishes the same row twice when two publishers run concurrently', async () => {

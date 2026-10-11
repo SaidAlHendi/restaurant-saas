@@ -15,6 +15,22 @@ import { asDemoOwner, categoryBody, productBody } from './catalog-helpers';
 import { computeBusinessDate } from '../src/lib/business-date';
 import { branches } from '../src/core/db/schema/tenancy';
 
+export function postOrder(
+  client: Agent,
+  branchId: string,
+  body: {
+    clientOrderId: string;
+    type: 'takeaway' | 'dine_in';
+    tableId?: string;
+    items: Array<{ productId: string; quantity: number; modifierIds: string[] }>;
+  },
+  idempotencyKey?: string,
+) {
+  const base = client.post(`/v1/branches/${branchId}/orders`);
+  const req = idempotencyKey === undefined ? base : base.set('Idempotency-Key', idempotencyKey);
+  return req.send(body);
+}
+
 export async function readBranchCounter(
   db: DrizzleDb,
   orgId: string,

@@ -105,7 +105,8 @@ apps/api/
   Socket.io Redis adapter). Multiple worker processes use `FOR UPDATE SKIP LOCKED` so each row is published once.
 - Failed publishes increment `attempts`, set `last_error`, and schedule `next_attempt_at` (`min(2^attempts s, 5 min)`).
   A batch stops after the first failure (no same-batch retry). After 10 failures, or when `branch_id` is missing,
-  the row is marked dead (`published_at` set, error retained). Overlapping publisher ticks are prevented via chained `setTimeout`.
+  the row is marked dead (`dead_at` set, `published_at` stays NULL, error retained). Overlapping publisher ticks are prevented via chained `setTimeout`.
+  On shutdown, the publisher job awaits the in-flight tick up to `OUTBOX_SHUTDOWN_TIMEOUT_MS` (default 10s) before the worker pool closes.
 - Clients treat events as hints and refetch on reconnect.
 
 ## Observability

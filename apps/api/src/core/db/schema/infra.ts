@@ -13,6 +13,7 @@ export const outboxEvents = pgTable('outbox_events', {
   payload: jsonb('payload').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   publishedAt: timestamp('published_at', { withTimezone: true }),
+  deadAt: timestamp('dead_at', { withTimezone: true }),
   attempts: integer('attempts').notNull().default(0),
   lastError: text('last_error'),
   nextAttemptAt: timestamp('next_attempt_at', { withTimezone: true }),

@@ -138,8 +138,31 @@ export type {
   OrderItemStatus,
 } from './orders/enums.js';
 
-export { orderRealtimePayloadSchema } from './orders/realtime-payload.js';
-export type { OrderRealtimePayload } from './orders/realtime-payload.js';
+export {
+  orderRealtimeChangeSchema,
+  orderRealtimePayloadSchema,
+  orderRealtimeClientPayloadSchema,
+  normalizeOrderRealtimeChange,
+} from './orders/realtime-payload.js';
+export type {
+  OrderRealtimeChange,
+  OrderRealtimePayload,
+  OrderRealtimeClientPayload,
+} from './orders/realtime-payload.js';
+
+export {
+  kitchenBoardResponseSchema,
+  kitchenBoardOrderSchema,
+  kitchenBoardItemSchema,
+} from './kitchen/kitchen-board.js';
+export type {
+  KitchenBoardResponse,
+  KitchenBoardOrder,
+  KitchenBoardItem,
+} from './kitchen/kitchen-board.js';
+
+export { changeOrderItemStatusBodySchema } from './kitchen/change-item-status.js';
+export type { ChangeOrderItemStatusBody } from './kitchen/change-item-status.js';
 
 export { orderLineInputSchema } from './orders/order-line.js';
 export type { OrderLineInput } from './orders/order-line.js';

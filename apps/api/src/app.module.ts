@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { CoreModule } from './core/core.module';
+import { WorkerContextShutdownService } from './worker-context-shutdown.service';
 import { AdminModule } from './modules/admin/admin.module';
 import { BillingModule } from './modules/billing/billing.module';
 import { CatalogModule } from './modules/catalog/catalog.module';
@@ -25,5 +26,6 @@ import { ReportingModule } from './modules/reporting/reporting.module';
     AdminModule,
     PublicMenuModule,
   ],
+  providers: [WorkerContextShutdownService],
 })
 export class AppModule {}

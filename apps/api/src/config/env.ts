@@ -19,6 +19,7 @@ const envSchema = z.object({
   DATABASE_MIGRATION_URL: z.url(),
   DATABASE_WORKER_URL: optionalUrl,
   OUTBOX_PUBLISHER_INTERVAL_MS: z.coerce.number().int().positive().default(500),
+  OUTBOX_SHUTDOWN_TIMEOUT_MS: z.coerce.number().int().positive().default(10_000),
   REDIS_URL: z.url(),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
   JWT_ACCESS_SECRET: z.string().min(32),
