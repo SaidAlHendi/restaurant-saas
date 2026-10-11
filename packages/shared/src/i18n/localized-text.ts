@@ -85,3 +85,20 @@ export function parseOptionalLocalizedText(
   }
   return parseLocalizedText(value, org, { optional: true });
 }
+
+/** Requested locale with fallback to the org default. */
+export function pickLocalizedText(
+  value: LocalizedText | null | undefined,
+  locale: string,
+  defaultLocale: string,
+): string {
+  if (value === null || value === undefined) {
+    return '';
+  }
+  const preferred = value[locale];
+  if (preferred !== undefined && preferred.trim().length > 0) {
+    return preferred;
+  }
+  const fallback = value[defaultLocale];
+  return fallback ?? '';
+}

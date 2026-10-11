@@ -27,6 +27,7 @@ import { validateReorderIds } from './catalog-reorder';
 import { mapModifierGroup, mapProduct } from './catalog.mapper';
 import { optionalLocalizedText, requireLocalizedText } from './catalog-validation';
 import { CatalogRepository } from './catalog.repository';
+import { CatalogMenuCacheNotifier } from './catalog-menu-cache.notifier';
 import { ProductImageService } from './product-image.service';
 
 @Injectable()
@@ -40,6 +41,7 @@ export class ProductsService {
     private readonly entitlements: EntitlementsService,
     private readonly images: ProductImageService,
     @Inject(OBJECT_STORAGE) private readonly storage: ObjectStorage,
+    private readonly menuCache: CatalogMenuCacheNotifier,
   ) {}
 
   private async assertCategoryAvailable(tx: DrizzleTx, categoryId: string) {
@@ -102,7 +104,7 @@ export class ProductsService {
   }
 
   async create(ctx: RequestContext, body: CreateProductBody) {
-    return withOrg(this.db, ctx.orgId, async (tx) => {
+    const result = await withOrg(this.db, ctx.orgId, async (tx) => {
       const org = await this.orgSettings.getCatalogSettings(tx, ctx.orgId);
       const name = requireLocalizedText(body.name, org);
       const description =
@@ -129,10 +131,12 @@ export class ProductsService {
       });
       return mapProduct(row, org.defaultCurrency, this.storage);
     });
+    this.menuCache.afterCatalogChange(ctx.orgId);
+    return result;
   }
 
   async patch(ctx: RequestContext, productId: string, body: PatchProductBody) {
-    return withOrg(this.db, ctx.orgId, async (tx) => {
+    const result = await withOrg(this.db, ctx.orgId, async (tx) => {
       const org = await this.orgSettings.getCatalogSettings(tx, ctx.orgId);
       const name = body.name !== undefined ? requireLocalizedText(body.name, org) : undefined;
       const description =
@@ -166,10 +170,12 @@ export class ProductsService {
       }
       return mapProduct(updated, org.defaultCurrency, this.storage);
     });
+    this.menuCache.afterCatalogChange(ctx.orgId);
+    return result;
   }
 
   async remove(ctx: RequestContext, productId: string) {
-    return withOrg(this.db, ctx.orgId, async (tx) => {
+    const result = await withOrg(this.db, ctx.orgId, async (tx) => {
       const org = await this.orgSettings.getCatalogSettings(tx, ctx.orgId);
       const deleted = await this.repo.softDeleteProduct(tx, productId);
       if (!deleted) {
@@ -177,10 +183,12 @@ export class ProductsService {
       }
       return mapProduct(deleted, org.defaultCurrency, this.storage);
     });
+    this.menuCache.afterCatalogChange(ctx.orgId);
+    return result;
   }
 
   async reorder(ctx: RequestContext, body: ReorderProductsBody) {
-    return withOrg(this.db, ctx.orgId, async (tx) => {
+    const result = await withOrg(this.db, ctx.orgId, async (tx) => {
       const org = await this.orgSettings.getCatalogSettings(tx, ctx.orgId);
       await this.assertCategoryAvailable(tx, body.categoryId);
       const locked = await this.repo.lockActiveProductsInCategoryForUpdate(
@@ -203,6 +211,8 @@ export class ProductsService {
         items: rows.map((row) => mapProduct(row, org.defaultCurrency, this.storage)),
       };
     });
+    this.menuCache.afterCatalogChange(ctx.orgId);
+    return result;
   }
 
   async setModifierGroups(ctx: RequestContext, productId: string, body: SetProductModifierGroupsBody) {
@@ -215,7 +225,7 @@ export class ProductsService {
       throw err;
     }
 
-    return withOrg(this.db, ctx.orgId, async (tx) => {
+    const result = await withOrg(this.db, ctx.orgId, async (tx) => {
       const product = await this.repo.findProductById(tx, productId);
       if (!product) {
         throw new NotFoundError();
@@ -229,6 +239,8 @@ export class ProductsService {
       await this.repo.replaceProductModifierGroups(tx, productId, ctx.orgId, body.groupIds);
       return this.buildProductDetail(tx, ctx.orgId, productId);
     });
+    this.menuCache.afterCatalogChange(ctx.orgId);
+    return result;
   }
 
   async uploadImage(ctx: RequestContext, productId: string, file: Express.Multer.File) {
@@ -273,7 +285,9 @@ export class ProductsService {
         }
       }
 
-      return mapProduct(result.updated, result.org.defaultCurrency, this.storage);
+      const mapped = mapProduct(result.updated, result.org.defaultCurrency, this.storage);
+      this.menuCache.afterCatalogChange(ctx.orgId);
+      return mapped;
     } catch (err: unknown) {
       if (newPrefix) {
         try {
@@ -313,6 +327,8 @@ export class ProductsService {
         );
       }
     }
-    return mapProduct(result.updated, result.org.defaultCurrency, this.storage);
+    const mapped = mapProduct(result.updated, result.org.defaultCurrency, this.storage);
+    this.menuCache.afterCatalogChange(ctx.orgId);
+    return mapped;
   }
 }

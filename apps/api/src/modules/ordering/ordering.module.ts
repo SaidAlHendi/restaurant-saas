@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { CoreModule } from '../../core/core.module';
+import { BillingModule } from '../billing/billing.module';
 import { CatalogModule } from '../catalog/catalog.module';
 import { TenancyModule } from '../tenancy/tenancy.module';
 
@@ -11,7 +12,7 @@ import { TablesController } from './tables.controller';
 import { TablesService } from './tables.service';
 
 @Module({
-  imports: [CoreModule, CatalogModule, TenancyModule],
+  imports: [CoreModule, CatalogModule, TenancyModule, BillingModule],
   controllers: [TablesController, OrdersController],
   providers: [OrderingRepository, OrderingService, TablesService],
   exports: [OrderingService],

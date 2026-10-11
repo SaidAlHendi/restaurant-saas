@@ -5,6 +5,7 @@ import { useTheme } from '@app/ui';
 
 import { devUiCopy } from './dev-ui.copy.js';
 import { useLayoutDemo } from './layout-demo.js';
+import { useQrCardDemo } from './qr-card-demo.js';
 import { useOrdersDemo } from './orders-demo.js';
 import { useImageUploadDemo } from './image-upload-demo.js';
 import { useInputsDemo, useProductFormDemo } from './product-form-demo.js';
@@ -38,7 +39,20 @@ export function useDevUiPage() {
   const copy = isArabic ? devUiCopy.ar : devUiCopy.en;
   const locale = isArabic ? 'ar-SA' : 'en-SA';
   const orders = useOrdersDemo(copy, locale);
-  const layout = useLayoutDemo(copy);
+  const layoutBase = useLayoutDemo(copy);
+  const qrCard = useQrCardDemo();
+  const layout = {
+    ...layoutBase,
+    qrCardDataUrl: qrCard.dataUrl,
+    onQrDownload: () => {
+      if (qrCard.dataUrl) {
+        const anchor = document.createElement('a');
+        anchor.href = qrCard.dataUrl;
+        anchor.download = 'demo-qr.png';
+        anchor.click();
+      }
+    },
+  };
 
   const onArabicChange = (checked: boolean) => {
     void i18n.changeLanguage(checked ? 'ar' : 'en');

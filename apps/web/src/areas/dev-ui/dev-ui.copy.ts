@@ -79,6 +79,7 @@ export interface DevUiCopy {
     };
     toasts: { show: string; success: string; error: string; info: string; warning: string };
     skeleton: string;
+    qrCard: { title: string; subtitle: string; download: string };
   };
   data: {
     search: string;
@@ -296,6 +297,11 @@ const en: DevUiCopy = {
       warning: 'Stock is low for Chicken shawarma',
     },
     skeleton: 'Skeleton',
+    qrCard: {
+      title: 'Table 12',
+      subtitle: 'Scan to open the menu',
+      download: 'Download PNG',
+    },
   },
   title: 'UI kit',
   subtitle: 'Every @app/ui component in both themes and both directions.',
@@ -551,6 +557,11 @@ const ar: DevUiCopy = {
       warning: 'المخزون منخفض لشاورما الدجاج',
     },
     skeleton: 'هيكل التحميل',
+    qrCard: {
+      title: 'طاولة 12',
+      subtitle: 'امسح الرمز لفتح القائمة',
+      download: 'تحميل PNG',
+    },
   },
   title: 'مكتبة الواجهة',
   subtitle: 'كل مكونات ‎@app/ui‎ بالثيمين وبالاتجاهين.',

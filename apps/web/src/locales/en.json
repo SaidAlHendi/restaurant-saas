@@ -63,7 +63,9 @@
       "section": "Menu",
       "categories": "Categories",
       "products": "Products",
-      "modifierGroups": "Modifier groups"
+      "modifierGroups": "Modifier groups",
+      "tables": "Tables",
+      "qrCodes": "QR codes"
     },
     "actions": {
       "save": "Save",
@@ -159,6 +161,29 @@
       "fields": {
         "priceDelta": "Price change"
       }
+    },
+    "tables": {
+      "title": "Tables",
+      "subtitle": "Dining tables for this branch.",
+      "subtitleBranch": "Branch: {{branch}}",
+      "add": "Add table",
+      "formTitle": "New table",
+      "labelColumn": "Table label",
+      "statusColumn": "Status",
+      "emptyTitle": "No tables yet",
+      "emptyDescription": "Add tables to generate table QR codes.",
+      "noBranchTitle": "Select a branch",
+      "noBranchDescription": "Choose a branch in the header to manage its tables.",
+      "rotateQr": "Rotate QR"
+    },
+    "qr": {
+      "title": "QR codes",
+      "subtitle": "Print or download codes for your public menu and tables.",
+      "download": "Download PNG",
+      "print": "Print",
+      "printTitle": "QR codes",
+      "back": "Back to QR codes",
+      "tableQrUpsell": "Table QR codes appear when your plan includes table QR and you have active tables."
     }
   }
 }

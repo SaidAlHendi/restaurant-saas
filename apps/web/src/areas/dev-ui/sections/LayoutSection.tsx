@@ -29,6 +29,7 @@ import {
   CardTitle,
   EmptyState,
   PageHeader,
+  QrCard,
   Sidebar,
   SidebarContent,
   SidebarFooter,
@@ -46,12 +47,12 @@ import {
 } from '@app/ui';
 
 import type { DevUiCopy } from '../dev-ui.copy.js';
-import type { LayoutDemo } from '../layout-demo.js';
+import type { DevUiPageViewModel } from '../use-dev-ui-page.js';
 import { ShowcaseRow, ShowcaseSection } from './ShowcaseSection.js';
 
 export interface LayoutSectionProps {
   copy: DevUiCopy;
-  layout: LayoutDemo;
+  layout: DevUiPageViewModel['layout'];
 }
 
 export function LayoutSection({ copy, layout }: LayoutSectionProps) {
@@ -230,6 +231,21 @@ export function LayoutSection({ copy, layout }: LayoutSectionProps) {
             {kind}
           </Button>
         ))}
+      </ShowcaseRow>
+
+      <ShowcaseRow label="QrCard">
+        <QrCard
+          title={l.qrCard.title}
+          subtitle={l.qrCard.subtitle}
+          qrDataUrl={layout.qrCardDataUrl ?? null}
+          loading={layout.qrCardDataUrl === null}
+          loadingLabel={l.loading}
+          href="https://menu.example/en/m/demo"
+          downloadLabel={l.qrCard.download}
+          onDownload={() => {
+            layout.onQrDownload();
+          }}
+        />
       </ShowcaseRow>
 
       <ShowcaseRow label="Spinner">

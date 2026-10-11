@@ -63,7 +63,9 @@
       "section": "القائمة",
       "categories": "التصنيفات",
       "products": "المنتجات",
-      "modifierGroups": "مجموعات الإضافات"
+      "modifierGroups": "مجموعات الإضافات",
+      "tables": "الطاولات",
+      "qrCodes": "رموز QR"
     },
     "actions": {
       "save": "حفظ",
@@ -159,6 +161,29 @@
       "fields": {
         "priceDelta": "تغيير السعر"
       }
+    },
+    "tables": {
+      "title": "الطاولات",
+      "subtitle": "طاولات تناول الطعام لهذا الفرع.",
+      "subtitleBranch": "الفرع: {{branch}}",
+      "add": "إضافة طاولة",
+      "formTitle": "طاولة جديدة",
+      "labelColumn": "اسم الطاولة",
+      "statusColumn": "الحالة",
+      "emptyTitle": "لا توجد طاولات",
+      "emptyDescription": "أضف طاولات لإنشاء رموز QR للطاولات.",
+      "noBranchTitle": "اختر فرعاً",
+      "noBranchDescription": "اختر فرعاً من أعلى الصفحة لإدارة طاولاته.",
+      "rotateQr": "تدوير QR"
+    },
+    "qr": {
+      "title": "رموز QR",
+      "subtitle": "اطبع أو حمّل رموز القائمة العامة والطاولات.",
+      "download": "تحميل PNG",
+      "print": "طباعة",
+      "printTitle": "رموز QR",
+      "back": "العودة إلى رموز QR",
+      "tableQrUpsell": "تظهر رموز QR للطاولات عند تفعيل ميزة QR للطاولات في خطتك ووجود طاولات نشطة."
     }
   }
 }

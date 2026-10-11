@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { BillingModule } from '../billing/billing.module';
+import { PublicMenuModule } from '../public-menu/public-menu.module';
 import { TenancyModule } from '../tenancy/tenancy.module';
 
 import { CatalogRepository } from './catalog.repository';
@@ -12,9 +13,10 @@ import { ProductImageService } from './product-image.service';
 import { ProductsController } from './products.controller';
 import { ProductsService } from './products.service';
 import { CatalogOrderingService } from './catalog-ordering.service';
+import { CatalogMenuCacheNotifier } from './catalog-menu-cache.notifier';
 
 @Module({
-  imports: [TenancyModule, BillingModule],
+  imports: [TenancyModule, BillingModule, PublicMenuModule],
   controllers: [CategoriesController, ProductsController, ModifierGroupsController],
   providers: [
     CatalogRepository,
@@ -23,6 +25,7 @@ import { CatalogOrderingService } from './catalog-ordering.service';
     ModifierGroupsService,
     ProductImageService,
     CatalogOrderingService,
+    CatalogMenuCacheNotifier,
   ],
   exports: [ProductsService, CategoriesService, CatalogOrderingService],
 })

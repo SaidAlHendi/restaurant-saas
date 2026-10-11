@@ -19,6 +19,7 @@ import { validateReorderIds } from './catalog-reorder';
 import { mapModifier, mapModifierGroup } from './catalog.mapper';
 import { requireLocalizedText } from './catalog-validation';
 import { CatalogRepository } from './catalog.repository';
+import { CatalogMenuCacheNotifier } from './catalog-menu-cache.notifier';
 
 @Injectable()
 export class ModifierGroupsService {
@@ -26,6 +27,7 @@ export class ModifierGroupsService {
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly repo: CatalogRepository,
     private readonly orgSettings: OrgSettingsService,
+    private readonly menuCache: CatalogMenuCacheNotifier,
   ) {}
 
   list(ctx: RequestContext) {
@@ -51,7 +53,7 @@ export class ModifierGroupsService {
   }
 
   async create(ctx: RequestContext, body: CreateModifierGroupBody) {
-    return withOrg(this.db, ctx.orgId, async (tx) => {
+    const result = await withOrg(this.db, ctx.orgId, async (tx) => {
       const org = await this.orgSettings.getCatalogSettings(tx, ctx.orgId);
       const name = requireLocalizedText(body.name, org);
       const row = await this.repo.insertModifierGroup(tx, {
@@ -63,10 +65,12 @@ export class ModifierGroupsService {
       });
       return mapModifierGroup(row);
     });
+    this.menuCache.afterCatalogChange(ctx.orgId);
+    return result;
   }
 
   async patch(ctx: RequestContext, groupId: string, body: PatchModifierGroupBody) {
-    return withOrg(this.db, ctx.orgId, async (tx) => {
+    const result = await withOrg(this.db, ctx.orgId, async (tx) => {
       const org = await this.orgSettings.getCatalogSettings(tx, ctx.orgId);
       const name = body.name !== undefined ? requireLocalizedText(body.name, org) : undefined;
       const existing = await this.repo.findModifierGroupById(tx, groupId);
@@ -88,20 +92,24 @@ export class ModifierGroupsService {
       }
       return mapModifierGroup(updated);
     });
+    this.menuCache.afterCatalogChange(ctx.orgId);
+    return result;
   }
 
   async remove(ctx: RequestContext, groupId: string) {
-    return withOrg(this.db, ctx.orgId, async (tx) => {
+    const result = await withOrg(this.db, ctx.orgId, async (tx) => {
       const deleted = await this.repo.softDeleteModifierGroup(tx, groupId);
       if (!deleted) {
         throw new NotFoundError();
       }
       return mapModifierGroup(deleted);
     });
+    this.menuCache.afterCatalogChange(ctx.orgId);
+    return result;
   }
 
   async createModifier(ctx: RequestContext, groupId: string, body: CreateModifierBody) {
-    return withOrg(this.db, ctx.orgId, async (tx) => {
+    const result = await withOrg(this.db, ctx.orgId, async (tx) => {
       const org = await this.orgSettings.getCatalogSettings(tx, ctx.orgId);
       const name = requireLocalizedText(body.name, org);
       const group = await this.repo.findModifierGroupById(tx, groupId);
@@ -120,6 +128,8 @@ export class ModifierGroupsService {
       });
       return mapModifier(row, org.defaultCurrency);
     });
+    this.menuCache.afterCatalogChange(ctx.orgId);
+    return result;
   }
 
   async patchModifier(
@@ -128,7 +138,7 @@ export class ModifierGroupsService {
     modifierId: string,
     body: PatchModifierBody,
   ) {
-    return withOrg(this.db, ctx.orgId, async (tx) => {
+    const result = await withOrg(this.db, ctx.orgId, async (tx) => {
       const org = await this.orgSettings.getCatalogSettings(tx, ctx.orgId);
       const name = body.name !== undefined ? requireLocalizedText(body.name, org) : undefined;
       const existing = await this.repo.findModifierById(tx, modifierId, groupId);
@@ -145,10 +155,12 @@ export class ModifierGroupsService {
       }
       return mapModifier(updated, org.defaultCurrency);
     });
+    this.menuCache.afterCatalogChange(ctx.orgId);
+    return result;
   }
 
   async removeModifier(ctx: RequestContext, groupId: string, modifierId: string) {
-    return withOrg(this.db, ctx.orgId, async (tx) => {
+    const result = await withOrg(this.db, ctx.orgId, async (tx) => {
       const org = await this.orgSettings.getCatalogSettings(tx, ctx.orgId);
       const existing = await this.repo.findModifierById(tx, modifierId, groupId);
       if (!existing) {
@@ -160,10 +172,12 @@ export class ModifierGroupsService {
       }
       return mapModifier(deleted, org.defaultCurrency);
     });
+    this.menuCache.afterCatalogChange(ctx.orgId);
+    return result;
   }
 
   async reorderModifiers(ctx: RequestContext, groupId: string, body: ReorderModifiersBody) {
-    return withOrg(this.db, ctx.orgId, async (tx) => {
+    const result = await withOrg(this.db, ctx.orgId, async (tx) => {
       const org = await this.orgSettings.getCatalogSettings(tx, ctx.orgId);
       const group = await this.repo.findModifierGroupById(tx, groupId);
       if (!group) {
@@ -180,5 +194,7 @@ export class ModifierGroupsService {
       const rows = await this.repo.listModifiersInGroup(tx, groupId);
       return { items: rows.map((m) => mapModifier(m, org.defaultCurrency)) };
     });
+    this.menuCache.afterCatalogChange(ctx.orgId);
+    return result;
   }
 }

@@ -1,9 +1,8 @@
 import type { DevUiCopy } from './dev-ui.copy.js';
 import type { OrdersDemo } from './orders-demo.js';
-import type { LayoutDemo } from './layout-demo.js';
 import type { ImageUploadDemo } from './image-upload-demo.js';
 import type { InputsDemo, ProductFormDemo } from './product-form-demo.js';
-import type { DevUiConfirmState, DevUiMenuState } from './use-dev-ui-page.js';
+import type { DevUiConfirmState, DevUiMenuState, DevUiPageViewModel } from './use-dev-ui-page.js';
 import { ButtonsSection } from './sections/ButtonsSection.js';
 import { ChoicesSection } from './sections/ChoicesSection.js';
 import { DataSection } from './sections/DataSection.js';
@@ -26,7 +25,7 @@ export interface ShowcaseProps {
   inputs: InputsDemo;
   imageUpload: ImageUploadDemo;
   orders: OrdersDemo;
-  layout: LayoutDemo;
+  layout: DevUiPageViewModel['layout'];
 }
 
 export function Showcase({

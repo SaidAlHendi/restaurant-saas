@@ -1,5 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 
+import { EntitlementsService } from '../billing/entitlements.service';
+
 import type { CreateDiningTableBody, PatchDiningTableBody } from '@app/shared';
 
 import type { RequestContext } from '../../core/context/request-context';
@@ -18,14 +20,33 @@ export class TablesService {
   constructor(
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly repo: OrderingRepository,
+    private readonly entitlements: EntitlementsService,
   ) {}
 
-  list(ctx: RequestContext, branchId: string, includeQrToken: boolean) {
+  async list(ctx: RequestContext, branchId: string, wantsQrToken: boolean) {
+    const includeQrToken =
+      wantsQrToken && (await this.entitlements.can(ctx.orgId, 'menu.table_qr'));
     return withOrg(this.db, ctx.orgId, async (tx) => {
       const rows = await this.repo.listTables(tx, branchId);
       return {
         items: rows.map((row) => mapDiningTable(row, includeQrToken)),
       };
+    });
+  }
+
+  rotateQr(ctx: RequestContext, branchId: string, tableId: string) {
+    return withOrg(this.db, ctx.orgId, async (tx) => {
+      const existing = await this.repo.findTableById(tx, branchId, tableId);
+      if (!existing) {
+        throw new NotFoundError();
+      }
+      const row = await this.repo.updateTable(tx, branchId, tableId, {
+        qrToken: generateQrToken(),
+      });
+      if (!row) {
+        throw new NotFoundError();
+      }
+      return mapDiningTable(row, true);
     });
   }
 
