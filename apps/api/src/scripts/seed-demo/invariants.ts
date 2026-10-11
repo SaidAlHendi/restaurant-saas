@@ -1,3 +1,5 @@
+import { computeOrderTotals, computePaymentStatus } from '@app/shared';
+
 import type { OrgSeedDefinition } from './data/types';
 import type { SeededOrg } from './seed-orgs';
 
@@ -14,7 +16,10 @@ export function invariantOrgBranchCount(seeded: SeededOrg): InvariantFailure | n
   return null;
 }
 
-export function invariantProductCount(definition: OrgSeedDefinition, actual: number): InvariantFailure | null {
+export function invariantProductCount(
+  definition: OrgSeedDefinition,
+  actual: number,
+): InvariantFailure | null {
   const expected = definition.products.filter((p) => p.isActive !== false).length;
   if (actual < expected) {
     return {
@@ -57,7 +62,9 @@ export function invariantTablesPerBranch(
   return null;
 }
 
-export function invariantCompletedOrdersPaid(unpaidCompletedCount: number): InvariantFailure | null {
+export function invariantCompletedOrdersPaid(
+  unpaidCompletedCount: number,
+): InvariantFailure | null {
   if (unpaidCompletedCount > 0) {
     return {
       code: 'COMPLETED_NOT_PAID',
@@ -104,6 +111,68 @@ export function invariantOrdersMissingPlacedEvent(missing: number): InvariantFai
   return null;
 }
 
-export function collectInvariantFailures(failures: Array<InvariantFailure | null>): InvariantFailure[] {
+export type OrderTotalsRow = {
+  id: string;
+  itemsSubtotalMinor: number;
+  subtotalMinor: number;
+  discountMinor: number;
+  taxMinor: number;
+  totalMinor: number;
+  taxRateBp: number;
+  taxInclusive: boolean;
+};
+
+/** Orders whose stored money does not match computeOrderTotals over their non-voided items. */
+export function findOrderTotalsMismatches(rows: OrderTotalsRow[]): string[] {
+  return rows
+    .filter((row) => {
+      const expected = computeOrderTotals({
+        lines: [{ lineTotalMinor: row.itemsSubtotalMinor, status: 'ready' }],
+        discountMinor: row.discountMinor,
+        taxRateBp: row.taxRateBp,
+        taxInclusive: row.taxInclusive,
+      });
+      return (
+        expected.subtotalMinor !== row.subtotalMinor ||
+        expected.taxMinor !== row.taxMinor ||
+        expected.totalMinor !== row.totalMinor
+      );
+    })
+    .map((row) => row.id);
+}
+
+export type OrderPaymentRow = {
+  id: string;
+  totalMinor: number;
+  paidMinor: number;
+  paymentStatus: string;
+};
+
+/** Orders whose payment_status is not computePaymentStatus(total, captured payments). */
+export function findPaymentStatusMismatches(rows: OrderPaymentRow[]): string[] {
+  return rows
+    .filter((row) => computePaymentStatus(row.totalMinor, row.paidMinor) !== row.paymentStatus)
+    .map((row) => row.id);
+}
+
+/** Fails with up to five example ids when any row breaks the rule described by `what`. */
+export function invariantNoOffenders(
+  code: string,
+  what: string,
+  offenderIds: string[],
+): InvariantFailure | null {
+  if (offenderIds.length === 0) {
+    return null;
+  }
+  const examples = offenderIds.slice(0, 5).join(', ');
+  return {
+    code,
+    message: `${String(offenderIds.length)} ${what} (e.g. ${examples})`,
+  };
+}
+
+export function collectInvariantFailures(
+  failures: Array<InvariantFailure | null>,
+): InvariantFailure[] {
   return failures.filter((f): f is InvariantFailure => f !== null);
 }

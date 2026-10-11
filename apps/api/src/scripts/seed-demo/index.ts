@@ -67,7 +67,11 @@ async function main(): Promise<void> {
       );
     }
 
-    await runSeedInvariants(db, seededOrgs);
+    await runSeedInvariants(db, seededOrgs, {
+      cutoff: options.anchor,
+      checkImages: options.images === 'on',
+      env,
+    });
     const counts = await countSeedOrgTables(
       db,
       seededOrgs.map((s) => s.id),

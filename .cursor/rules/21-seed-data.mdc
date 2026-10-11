@@ -11,6 +11,7 @@ Any migration or Drizzle schema change that **adds or alters a table or column**
 2. Update `SEED_COVERAGE` in `coverage.ts` — every `pgTable` in `core/db/schema` must be `seeded` or `{ skipped: reason }`.
 3. New **NOT NULL** columns need realistic values in seed inserts.
 4. New **enums** need at least one example value in seeded rows (when the table is seeded).
-5. Run locally: `pnpm db:seed:demo --reset --images=off --days=2` and fix failures before merge.
+5. Menu copy in `data/*.ts`: every `ar` string in Arabic script only (no Latin letters), enforced by `data/data.spec.ts`.
+6. Run locally: `pnpm db:seed:demo --reset --images=off --days=2` and fix failures before merge.
 
 Do **not** change `apps/api/src/scripts/seed.ts` or CI seed org ids (`demo` / `other`, `...0201` / `...0202`).
