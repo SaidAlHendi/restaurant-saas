@@ -105,8 +105,9 @@ pnpm db:seed:demo --reset --images=off --days=30
 # Smaller history (CI uses --days=2)
 pnpm db:seed:demo --images=off --days=2
 
-# Fixed anchor for reproducible rows
-pnpm db:seed:demo --anchor=2026-10-11 --images=off --days=7
+# Fixed anchor for reproducible rows (that date at 22:30 Riyadh time; default anchor = now,
+# nothing is ever written after the anchor and a few orders are still open in the kitchen)
+pnpm db:seed:demo --reset --anchor=2026-10-11 --images=off --days=7
 
 # Product photos: commit unsplash-photos.json via db:seed:images, then upload from cache
 pnpm db:seed:images          # needs UNSPLASH_ACCESS_KEY in .env (see .env.example)
@@ -125,6 +126,8 @@ pnpm db:seed:demo --images=on
 Email pattern: `{role}{n}@{org-slug}.seed.local`.
 
 **Unsplash:** create an app at [unsplash.com/oauth/applications](https://unsplash.com/oauth/applications), add `UNSPLASH_ACCESS_KEY` to `.env`, run `pnpm db:seed:images` (rate-limited; re-run to continue). Credits land in `docs/seed-image-credits.md`.
+
+**Checks:** every run ends with invariants (totals, payment status, business date, no future timestamps, image files) and exits 1 on failure. `data/data.spec.ts` keeps the menus Arabic-script only and at least 8 dishes per category.
 
 **Coverage:** `apps/api/src/scripts/seed-demo/coverage.spec.ts` fails if a Drizzle table is missing from `SEED_COVERAGE` (see `.cursor/rules/21-seed-data.mdc`).
 

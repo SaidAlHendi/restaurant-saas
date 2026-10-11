@@ -90,10 +90,10 @@ export async function seedOrganizationTree(
   await withOrg(db, orgId, async (tx) => {
     const existingOrg = await tenancyRepo.findOrganizationById(tx, orgId);
     if (!existingOrg) {
-        await tenancyRepo.insertOrganization(tx, {
-          id: orgId,
-          name: `${definition.name.ar} / ${definition.name.en}`,
-          slug: definition.slug,
+      await tenancyRepo.insertOrganization(tx, {
+        id: orgId,
+        name: `${definition.name.ar} / ${definition.name.en}`,
+        slug: definition.slug,
         country: 'SA',
         defaultCurrency: 'SAR',
         defaultLocale: definition.defaultLocale,
@@ -106,11 +106,11 @@ export async function seedOrganizationTree(
       const branchId = deterministicUuid('branch', definition.slug, branchDef.key);
       const exists = await tenancyRepo.branchSlugExistsInOrg(tx, orgId, branchDef.slug);
       if (!exists) {
-          await tenancyRepo.insertBranch(tx, {
-            id: branchId,
-            orgId,
-            name: `${branchDef.name.ar} / ${branchDef.name.en}`,
-            slug: branchDef.slug,
+        await tenancyRepo.insertBranch(tx, {
+          id: branchId,
+          orgId,
+          name: `${branchDef.name.ar} / ${branchDef.name.en}`,
+          slug: branchDef.slug,
           timezone: 'Asia/Riyadh',
           currency: 'SAR',
           taxRateBp: TAX_RATE_BP,

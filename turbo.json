@@ -61,9 +61,11 @@
       "cache": false
     },
     "db:seed:demo": {
+      "dependsOn": ["^build"],
       "cache": false
     },
     "db:seed:images": {
+      "dependsOn": ["^build"],
       "cache": false
     },
     "db:reset-test": {
