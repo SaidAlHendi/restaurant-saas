@@ -122,7 +122,9 @@ describe('DashboardOrdersView search', () => {
     });
     const { container, rerender } = render(<DashboardOrdersView {...initial} />);
     const input = within(container).getByPlaceholderText('Search');
-    fireEvent.focus(input);
+    act(() => {
+      input.focus();
+    });
     fireEvent.change(input, { target: { value: 'bur' } });
     act(() => {
       vi.advanceTimersByTime(300);

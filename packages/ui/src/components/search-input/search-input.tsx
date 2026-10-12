@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, type ComponentProps } from 'react';
+import { useRef, type ComponentProps } from 'react';
 import { SearchIcon, XIcon } from 'lucide-react';
 
 import { useSearchInput, type UseSearchInputOptions } from '../../hooks/use-search-input.js';
@@ -21,25 +21,10 @@ export function SearchInput({
   delay,
   clearLabel,
   className,
-  onFocus,
-  onBlur,
   ...props
 }: SearchInputProps) {
   const { hasText, clear, inputProps } = useSearchInput({ defaultValue, onValueChange, delay });
   const inputRef = useRef<HTMLInputElement>(null);
-  const wasFocusedRef = useRef(false);
-  const prevDefaultValueRef = useRef(defaultValue);
-
-  useLayoutEffect(() => {
-    if (prevDefaultValueRef.current === defaultValue) {
-      return;
-    }
-    prevDefaultValueRef.current = defaultValue;
-    if (wasFocusedRef.current) {
-      inputRef.current?.focus();
-    }
-  }, [defaultValue]);
-
   return (
     <div data-slot="search-input" className={cn('relative w-full', className)}>
       <SearchIcon
@@ -53,14 +38,6 @@ export function SearchInput({
         className="ps-9 pe-9 [&::-webkit-search-cancel-button]:appearance-none"
         {...props}
         {...inputProps}
-        onFocus={(event) => {
-          wasFocusedRef.current = true;
-          onFocus?.(event);
-        }}
-        onBlur={(event) => {
-          wasFocusedRef.current = false;
-          onBlur?.(event);
-        }}
       />
       {hasText ? (
         <button
