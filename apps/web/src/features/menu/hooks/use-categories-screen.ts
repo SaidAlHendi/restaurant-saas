@@ -155,6 +155,7 @@ export function useCategoriesScreen(): {
       activeLabel: t('menu.status.active'),
       locales: org.locales,
       localeLabels,
+      fieldLabels: { name: t('menu.fields.name'), description: t('menu.fields.description') },
       tabLabel: (locale) => t(`auth.locales.${locale}`, { defaultValue: locale }),
       defaultLocale: org.defaultLocale,
     },

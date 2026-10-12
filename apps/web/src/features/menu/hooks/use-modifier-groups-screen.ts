@@ -15,10 +15,7 @@ import { isMutationError } from '../menu-mutation-result.js';
 import { showMenuApiError } from '../show-menu-api-error.js';
 import type { ModifierSortableListProps } from '../sortable/modifier-sortable-list.types.js';
 import { useModifierForm, type ModifierFormValues } from './use-modifier-form.js';
-import {
-  useModifierGroupForm,
-  type ModifierGroupFormValues,
-} from './use-modifier-group-form.js';
+import { useModifierGroupForm, type ModifierGroupFormValues } from './use-modifier-group-form.js';
 import { useOptimisticReorder } from './use-optimistic-reorder.js';
 import {
   useCreateModifierGroupMutation,
@@ -227,6 +224,7 @@ export function useModifierGroupsScreen(): {
       increaseLabel: t('menu.modifierGroups.increase'),
       locales: org.locales,
       localeLabels,
+      fieldLabels: { name: t('menu.fields.name'), description: t('menu.fields.description') },
       tabLabel: (locale) => t(`auth.locales.${locale}`, { defaultValue: locale }),
       defaultLocale: org.defaultLocale,
     },
@@ -311,6 +309,7 @@ export function useModifierGroupsScreen(): {
     moneyLocale,
     locales: org.locales,
     localeLabels,
+    fieldLabels: { name: t('menu.fields.name'), description: t('menu.fields.description') },
     tabLabel: (locale) => t(`auth.locales.${locale}`, { defaultValue: locale }),
     defaultLocale: org.defaultLocale,
     form: modifierForm.form,

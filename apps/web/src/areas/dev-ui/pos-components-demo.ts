@@ -25,6 +25,25 @@ export function usePosComponentsDemo() {
       name: 'Flat white',
       priceLabel: 'SAR 18.00',
       imageUrl: null as string | null,
+      hint: 'Has options',
+      onPress: onIncrease,
+      stepper: {
+        quantity: qty,
+        onDecrease,
+        decreaseLabel: 'Decrease quantity',
+        increaseLabel: 'Increase quantity',
+      },
+    },
+    categoryTiles: [
+      { id: 'all', label: 'All', countLabel: '24 items', active: true },
+      { id: 'drinks', label: 'Hot drinks', countLabel: '8 items', active: false },
+    ],
+    openOrder: {
+      code: 'T4',
+      title: 'Order #12',
+      detail: '3 items · SAR 54.00',
+      status: 'preparing' as const,
+      statusLabel: 'Preparing',
       onPress: () => {
         /* demo */
       },

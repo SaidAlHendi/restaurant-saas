@@ -42,14 +42,10 @@ export function KdsPageView({
   }
 
   return (
-    <div className="flex h-[calc(100dvh-7.5rem)] min-h-[32rem] flex-col gap-3">
-      <ConnectionBanner
-        visible={showDisconnected}
-        message={labels.disconnected}
-        className="rounded-md"
-      />
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold">
+    <div className="flex min-h-0 flex-1 flex-col">
+      <ConnectionBanner visible={showDisconnected} message={labels.disconnected} />
+      <header className="flex min-h-16 shrink-0 flex-wrap items-center justify-between gap-3 border-b bg-background px-4 py-2 md:px-6">
+        <h1 className="text-lg font-semibold">
           {labels.title} · {branchName}
         </h1>
         <div className="flex flex-wrap items-center gap-2">
@@ -77,7 +73,7 @@ export function KdsPageView({
         </div>
       </header>
 
-      <div className="grid min-h-0 flex-1 gap-3 md:grid-cols-3">
+      <div className="grid min-h-0 flex-1 gap-4 p-4 md:grid-cols-3 md:p-6">
         {columns.map((column) => (
           <KdsColumn
             key={column.key}

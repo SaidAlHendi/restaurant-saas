@@ -6,6 +6,7 @@ import {
   RadioGroup,
   RadioGroupItem,
   Sheet,
+  SheetBody,
   SheetContent,
   SheetFooter,
   SheetHeader,
@@ -18,11 +19,7 @@ import { posLocalizedName } from '../pos-label.utils.js';
 
 type ModifierSheetVm = PosPageViewModel['modifierSheet'];
 
-export function PosModifierSheetView({
-  sheet,
-}: {
-  sheet: ModifierSheetVm;
-}) {
+export function PosModifierSheetView({ sheet }: { sheet: ModifierSheetVm }) {
   const product = sheet.product;
   if (!product) {
     return null;
@@ -30,11 +27,11 @@ export function PosModifierSheetView({
 
   return (
     <Sheet open={sheet.open} onOpenChange={sheet.onOpenChange}>
-      <SheetContent side="bottom" className="max-h-[90dvh] overflow-y-auto">
+      <SheetContent side="bottom">
         <SheetHeader>
           <SheetTitle>{sheet.productName}</SheetTitle>
         </SheetHeader>
-        <div className="flex flex-col gap-6 py-4">
+        <SheetBody className="gap-6">
           {product.modifierGroups.map((group) => (
             <div key={group.id} className="space-y-3">
               <p className="font-medium">
@@ -114,7 +111,7 @@ export function PosModifierSheetView({
           {sheet.validationError ? (
             <p className="text-destructive text-sm">{sheet.validationMessage}</p>
           ) : null}
-        </div>
+        </SheetBody>
         <SheetFooter>
           <Button type="button" size="touch" className="w-full" onClick={sheet.addToCart}>
             {sheet.addLabel}

@@ -39,6 +39,8 @@ export * from './components/image-upload/index.js';
 export * from './components/qr-card/index.js';
 export * from './components/branch-switcher/index.js';
 export * from './components/product-tile/index.js';
+export * from './components/category-tile/index.js';
+export * from './components/open-order-chip/index.js';
 export * from './components/cart-line/index.js';
 export * from './components/kds/index.js';
 

@@ -26,3 +26,14 @@ export const menuItem =
 /** Dimmed backdrop behind dialogs and sheets. */
 export const overlay =
   'fixed inset-0 z-50 bg-overlay/60 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0';
+
+/**
+ * Shared layout for dialogs and sheets: a fixed header, a scrolling body and a fixed footer,
+ * all with the same side padding. `pe-14` keeps the title clear of the close (X) button.
+ */
+export const overlayHeader = 'flex shrink-0 flex-col gap-1.5 border-b px-6 py-4 pe-14 text-start';
+export const overlayBody = 'flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-6 py-5';
+export const overlayFooter =
+  'flex shrink-0 flex-col-reverse gap-2 border-t bg-muted/50 px-6 py-4 sm:flex-row sm:justify-end';
+export const overlayTitle = 'text-lg font-semibold leading-tight text-foreground';
+export const overlayDescription = 'text-sm text-muted-foreground';

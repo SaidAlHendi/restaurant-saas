@@ -1,7 +1,7 @@
 import { PlusIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-import { Button, Sheet, SheetContent, SheetHeader, SheetTitle, Spinner } from '@app/ui';
+import { Button, Sheet, SheetBody, SheetContent, SheetHeader, SheetTitle, Spinner } from '@app/ui';
 
 import type { ModifierGroupDetail } from '@app/shared';
 
@@ -32,29 +32,31 @@ export function ModifierGroupDetailSheetView({
 }: ModifierGroupDetailSheetViewProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="overflow-y-auto sm:max-w-md">
+      <SheetContent>
         <SheetHeader>
           <SheetTitle>{title}</SheetTitle>
         </SheetHeader>
-        {isLoading ? (
-          <div className="flex justify-center p-8">
-            <Spinner label={title} />
-          </div>
-        ) : (
-          <div className="flex flex-col gap-4 py-4">
-            {canManage ? (
-              <Button type="button" size="sm" onClick={onAddModifier}>
-                <PlusIcon className="size-4" aria-hidden />
-                {addModifierLabel}
-              </Button>
-            ) : null}
-            {group && group.modifiers.length === 0 ? (
-              <p className="text-muted-foreground text-sm">{emptyModifiersTitle}</p>
-            ) : (
-              modifierList
-            )}
-          </div>
-        )}
+        <SheetBody>
+          {isLoading ? (
+            <div className="flex justify-center p-8">
+              <Spinner label={title} />
+            </div>
+          ) : (
+            <>
+              {canManage ? (
+                <Button type="button" size="sm" className="self-start" onClick={onAddModifier}>
+                  <PlusIcon className="size-4" aria-hidden />
+                  {addModifierLabel}
+                </Button>
+              ) : null}
+              {group && group.modifiers.length === 0 ? (
+                <p className="text-muted-foreground text-sm">{emptyModifiersTitle}</p>
+              ) : (
+                modifierList
+              )}
+            </>
+          )}
+        </SheetBody>
       </SheetContent>
     </Sheet>
   );

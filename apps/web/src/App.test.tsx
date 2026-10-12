@@ -1,5 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import type { MeResponse } from '@app/shared';
 import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
@@ -15,6 +15,7 @@ import {
   setBootstrapDone,
 } from './features/session/session.slice.js';
 import { initI18n, i18n } from './lib/i18n.js';
+import { TooltipProvider } from '@app/ui';
 
 const branchId = '01932a1a-7b3e-7000-8000-000000000030';
 const orgId = '01932a1a-7b3e-7000-8000-000000000010';
@@ -69,11 +70,18 @@ describe('App root', () => {
     render(
       <Provider store={createTestStore()}>
         <I18nextProvider i18n={i18n}>
-          <RouterProvider router={memoryRouter} />
+          <TooltipProvider>
+            <RouterProvider router={memoryRouter} />
+          </TooltipProvider>
         </I18nextProvider>
       </Provider>,
     );
-    expect(screen.getByRole('heading', { name: /restaurant saas/i })).toBeInTheDocument();
     expect(await screen.findByText(/welcome,\s*owner/i)).toBeInTheDocument();
+    // The shell: org name in the top bar, and sign out / dark mode / language in the sidebar.
+    expect(screen.getByRole('heading', { name: 'Demo' })).toBeInTheDocument();
+    const nav = screen.getByRole('complementary', { name: /dashboard navigation/i });
+    expect(within(nav).getByRole('button', { name: /sign out/i })).toBeInTheDocument();
+    expect(within(nav).getByRole('button', { name: /dark mode|light mode/i })).toBeInTheDocument();
+    expect(within(nav).getByRole('button', { name: 'العربية' })).toBeInTheDocument();
   });
 });

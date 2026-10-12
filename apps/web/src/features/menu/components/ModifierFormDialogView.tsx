@@ -1,6 +1,7 @@
 import {
   Button,
   Dialog,
+  DialogBody,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -30,6 +31,7 @@ export interface ModifierFormDialogViewProps {
   moneyLocale: string;
   locales: string[];
   localeLabels: Record<string, string>;
+  fieldLabels: { name: string; description: string };
   tabLabel: (locale: string) => string;
   defaultLocale: string;
   form: UseFormReturn<ModifierFormValues>;
@@ -49,6 +51,7 @@ export function ModifierFormDialogView({
   moneyLocale,
   locales,
   localeLabels,
+  fieldLabels,
   tabLabel,
   defaultLocale,
   form,
@@ -57,7 +60,7 @@ export function ModifierFormDialogView({
 }: ModifierFormDialogViewProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent closeLabel={cancelLabel}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
@@ -67,47 +70,50 @@ export function ModifierFormDialogView({
               event.preventDefault();
               onSubmit();
             }}
-            className="flex flex-col gap-4"
+            className="contents"
           >
-            <LocalizedFieldsView<ModifierFormValues>
-              control={form.control}
-              namePrefix="name"
-              locales={locales}
-              labels={localeLabels}
-              tabLabel={tabLabel}
-              requiredLocale={defaultLocale}
-            />
-            <FormField
-              control={form.control}
-              name="priceDeltaMinor"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{priceLabel}</FormLabel>
-                  <FormControl>
-                    <MoneyInput
-                      name={field.name}
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      onBlur={field.onBlur}
-                      currency={currency}
-                      locale={moneyLocale}
-                      allowNegative
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="isActive"
-              render={({ field }) => (
-                <FormItem className="flex items-center gap-3">
-                  <Switch checked={field.value} onCheckedChange={field.onChange} />
-                  <FormLabel>{activeLabel}</FormLabel>
-                </FormItem>
-              )}
-            />
-            <DialogFooter className="gap-2 sm:gap-0">
+            <DialogBody>
+              <LocalizedFieldsView<ModifierFormValues>
+                control={form.control}
+                namePrefix="name"
+                label={fieldLabels.name}
+                locales={locales}
+                labels={localeLabels}
+                tabLabel={tabLabel}
+                requiredLocale={defaultLocale}
+              />
+              <FormField
+                control={form.control}
+                name="priceDeltaMinor"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{priceLabel}</FormLabel>
+                    <FormControl>
+                      <MoneyInput
+                        name={field.name}
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        onBlur={field.onBlur}
+                        currency={currency}
+                        locale={moneyLocale}
+                        allowNegative
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="isActive"
+                render={({ field }) => (
+                  <FormItem className="flex items-center gap-3">
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    <FormLabel>{activeLabel}</FormLabel>
+                  </FormItem>
+                )}
+              />
+            </DialogBody>
+            <DialogFooter>
               <Button
                 type="button"
                 variant="outline"

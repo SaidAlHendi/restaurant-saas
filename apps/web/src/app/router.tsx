@@ -2,7 +2,9 @@ import { lazy } from 'react';
 import { createBrowserRouter, Navigate, type RouteObject } from 'react-router-dom';
 
 import { App } from '../App.js';
+import { GuestLayout } from '../areas/auth/GuestLayout.js';
 import { RequireAuth } from '../features/session/RequireAuth.js';
+import { AppShellLayout } from '../features/shell/AppShellLayout.js';
 
 const LoginPage = lazy(() => import('../areas/auth/LoginPage.js'));
 const SignupPage = lazy(() => import('../areas/auth/SignupPage.js'));
@@ -27,25 +29,25 @@ export const appRoutes: RouteObject[] = [
     element: <App />,
     children: [
       { index: true, element: <Navigate to="/dashboard" replace /> },
-      { path: 'login', element: <LoginPage /> },
-      { path: 'signup', element: <SignupPage /> },
-      { path: 'auth/*', element: <Navigate to="/login" replace /> },
-      { path: 'dashboard/*', element: <DashboardArea /> },
       {
-        path: 'pos/*',
-        element: (
-          <RequireAuth>
-            <PosArea />
-          </RequireAuth>
-        ),
+        element: <GuestLayout />,
+        children: [
+          { path: 'login', element: <LoginPage /> },
+          { path: 'signup', element: <SignupPage /> },
+        ],
       },
+      { path: 'auth/*', element: <Navigate to="/login" replace /> },
       {
-        path: 'kds/*',
         element: (
           <RequireAuth>
-            <KdsArea />
+            <AppShellLayout />
           </RequireAuth>
         ),
+        children: [
+          { path: 'dashboard/*', element: <DashboardArea /> },
+          { path: 'pos/*', element: <PosArea /> },
+          { path: 'kds/*', element: <KdsArea /> },
+        ],
       },
       {
         path: 'admin/*',

@@ -19,6 +19,13 @@ import {
 } from '../../session/session.selectors.js';
 import { useListDiningTablesQuery } from '../../tables/tables.api.js';
 import { useCreateOrderMutation, useListOrdersQuery } from '../../orders/orders.api.js';
+import {
+  ALL_CATEGORIES,
+  lastLineOfProduct,
+  posOrderStatusTone,
+  quantityByProduct,
+  visiblePosProducts,
+} from '../pos-catalog.utils.js';
 import { posLocalizedName } from '../pos-label.utils.js';
 import { buildCreateOrderBody } from '../pos-order.utils.js';
 import { posOrderTagsForEvent } from '../pos-realtime.utils.js';
@@ -43,7 +50,8 @@ export function usePosPage() {
   const hasCartLines = useAppSelector(cartHasUnsavedLines);
   const canCancelOrders = useAppSelector(selectCan('orders.cancel'));
 
-  const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
+  const [activeCategoryId, setActiveCategoryId] = useState<string>(ALL_CATEGORIES);
+  const [searchQuery, setSearchQuery] = useState('');
   const [isOnline, setIsOnline] = useState(
     typeof navigator === 'undefined' ? true : navigator.onLine,
   );
@@ -51,7 +59,6 @@ export function usePosPage() {
   const [sentOrder, setSentOrder] = useState<SentOrderSummary | null>(null);
   const [pendingBranchId, setPendingBranchId] = useState<string | null>(null);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-  const [openOrdersOpen, setOpenOrdersOpen] = useState(false);
   const [isAddingItems, setIsAddingItems] = useState(false);
   const [additionLines, setAdditionLines] = useState<CartLine[]>([]);
 
@@ -138,18 +145,26 @@ export function usePosPage() {
     };
   }, []);
 
-  useEffect(() => {
-    if (menu && menu.categories.length > 0 && activeCategoryId === null) {
-      setActiveCategoryId(menu.categories[0]?.id ?? null);
-    }
-  }, [menu, activeCategoryId]);
+  // A category from another branch's menu falls back to "All".
+  const selectedCategoryId =
+    menu?.categories.some((c) => c.id === activeCategoryId) === true
+      ? activeCategoryId
+      : ALL_CATEGORIES;
 
-  const activeCategory = useMemo(() => {
-    if (!menu || !activeCategoryId) {
-      return null;
+  const visibleProducts = useMemo(
+    () => (menu ? visiblePosProducts(menu.categories, selectedCategoryId, searchQuery) : []),
+    [menu, selectedCategoryId, searchQuery],
+  );
+
+  const imageByProductId = useMemo(() => {
+    const map = new Map<string, string | null>();
+    for (const category of menu?.categories ?? []) {
+      for (const product of category.products) {
+        map.set(product.id, product.imageUrl400);
+      }
     }
-    return menu.categories.find((c) => c.id === activeCategoryId) ?? null;
-  }, [menu, activeCategoryId]);
+    return map;
+  }, [menu]);
 
   const currency = menu?.branch.currency ?? org?.defaultCurrency ?? 'USD';
 
@@ -319,6 +334,7 @@ export function usePosPage() {
 
   const cartLines = cart.lines.map((line) => ({
     localId: line.localId,
+    imageUrl: imageByProductId.get(line.productId) ?? null,
     name: posLocalizedName(line.nameSnapshot, locale, defaultLocale),
     unitPriceLabel: formatMinor(line.unitPriceMinor),
     lineTotalLabel: formatMinor(line.unitPriceMinor * line.quantity),
@@ -346,25 +362,73 @@ export function usePosPage() {
     removeLabel: t('pos.cart.removeLine'),
   }));
 
-  const productTiles =
-    activeCategory?.products.map((product) => ({
-      id: product.id,
-      name: posLocalizedName(product.name, locale, defaultLocale),
-      priceLabel: formatMinor(product.priceMinor),
-      imageUrl: product.imageUrl400,
-      onPress: () => {
-        onProductPress(product);
-      },
-    })) ?? [];
+  // While adding items to a sent order, the cards count the additions, not the cart.
+  const stepperLines = isAddingItems ? additionLines : cart.lines;
+  const quantities = quantityByProduct(stepperLines);
 
-  const categoryTabs = menu?.categories.map((cat) => ({
-    id: cat.id,
-    label: posLocalizedName(cat.name, locale, defaultLocale),
-    isActive: cat.id === activeCategoryId,
-    onSelect: () => {
-      setActiveCategoryId(cat.id);
+  const decreaseProduct = (productId: string) => {
+    const target = lastLineOfProduct(stepperLines, productId);
+    if (!target) {
+      return;
+    }
+    if (isAddingItems) {
+      setAdditionLines((prev) =>
+        prev
+          .map((row) =>
+            row.localId === target.localId ? { ...row, quantity: row.quantity - 1 } : row,
+          )
+          .filter((row) => row.quantity > 0),
+      );
+      return;
+    }
+    dispatch(
+      cartActions.updateLineQuantity({ localId: target.localId, quantity: target.quantity - 1 }),
+    );
+  };
+
+  const productTiles = visibleProducts.map((product) => ({
+    id: product.id,
+    name: posLocalizedName(product.name, locale, defaultLocale),
+    priceLabel: formatMinor(product.priceMinor),
+    imageUrl: product.imageUrl400,
+    hint: product.modifierGroups.length > 0 ? t('pos.catalog.hasOptions') : undefined,
+    onPress: () => {
+      onProductPress(product);
+    },
+    stepper: {
+      quantity: quantities.get(product.id) ?? 0,
+      onDecrease: () => {
+        decreaseProduct(product.id);
+      },
+      decreaseLabel: t('pos.cart.decreaseQty'),
+      increaseLabel: t('pos.cart.increaseQty'),
     },
   }));
+
+  const allProductsCount =
+    menu?.categories.reduce((sum, category) => sum + category.products.length, 0) ?? 0;
+  const categoryTabs = menu
+    ? [
+        {
+          id: ALL_CATEGORIES,
+          label: t('pos.catalog.all'),
+          countLabel: t('pos.catalog.items', { count: allProductsCount }),
+          isActive: selectedCategoryId === ALL_CATEGORIES,
+          onSelect: () => {
+            setActiveCategoryId(ALL_CATEGORIES);
+          },
+        },
+        ...menu.categories.map((cat) => ({
+          id: cat.id,
+          label: posLocalizedName(cat.name, locale, defaultLocale),
+          countLabel: t('pos.catalog.items', { count: cat.products.length }),
+          isActive: cat.id === selectedCategoryId,
+          onSelect: () => {
+            setActiveCategoryId(cat.id);
+          },
+        })),
+      ]
+    : [];
 
   const sending = createState.isLoading;
   const showOfflineBanner = !isOnline || sendError;
@@ -385,8 +449,15 @@ export function usePosPage() {
     },
     isLoading,
     isError,
-    categoryTabs: categoryTabs ?? [],
+    categoryTabs,
     productTiles,
+    search: {
+      value: searchQuery,
+      onChange: setSearchQuery,
+      placeholder: t('pos.catalog.searchPlaceholder'),
+      clearLabel: t('pos.catalog.searchClear'),
+      noResults: t('pos.catalog.noResults'),
+    },
     orderType: cart.orderType,
     onOrderTypeChange: (type: CartOrderType) => {
       dispatch(cartActions.setOrderType(type));
@@ -411,29 +482,27 @@ export function usePosPage() {
       disabled: busyTableIds.has(table.id),
     })),
     openOrders: {
-      open: openOrdersOpen,
-      onToggle: () => {
-        setOpenOrdersOpen((prev) => !prev);
-      },
       isLoading: openOrdersLoading,
-      orders: (openOrdersData?.items ?? []).map((order) => ({
-        id: order.id,
-        orderNumberLabel: t('pos.result.orderNumber', { number: order.orderNumber }),
-        statusLabel: t(`pos.orderStatus.${order.status}`),
-        totalLabel: formatMinor(order.totalMinor),
-        metaLabel:
-          order.tableId !== null
-            ? (tableLabelById.get(order.tableId) ?? t('pos.orderType.dineIn'))
-            : (order.customerName ?? t('pos.orderType.takeaway')),
-        onSelect: () => {
-          setSelectedOrderId(order.id);
-        },
-      })),
+      orders: (openOrdersData?.items ?? []).map((order) => {
+        const tableLabel = order.tableId !== null ? tableLabelById.get(order.tableId) : undefined;
+        return {
+          id: order.id,
+          code: tableLabel ?? `#${String(order.orderNumber)}`,
+          title:
+            tableLabel !== undefined
+              ? t('pos.result.orderNumber', { number: order.orderNumber })
+              : (order.customerName ?? t('pos.result.orderNumber', { number: order.orderNumber })),
+          detail: `${t('pos.catalog.items', { count: order.itemCount })} · ${formatMinor(order.totalMinor)}`,
+          status: posOrderStatusTone(order.status),
+          statusLabel: t(`pos.orderStatus.${order.status}`),
+          onSelect: () => {
+            setSelectedOrderId(order.id);
+          },
+        };
+      }),
       labels: {
         title: t('pos.openOrders.title'),
         empty: t('pos.openOrders.empty'),
-        toggle: t('pos.openOrders.toggle'),
-        close: t('pos.actions.close'),
       },
     },
     orderDetail: {
@@ -482,6 +551,9 @@ export function usePosPage() {
     },
     labels: {
       cartTitle: t('pos.cart.title'),
+      cartCount: t('pos.catalog.items', {
+        count: cart.lines.reduce((sum: number, row) => sum + row.quantity, 0),
+      }),
       sendToKitchen: sending ? t('pos.sending') : t('pos.sendToKitchen'),
       orderTypeDineIn: t('pos.orderType.dineIn'),
       orderTypeTakeaway: t('pos.orderType.takeaway'),

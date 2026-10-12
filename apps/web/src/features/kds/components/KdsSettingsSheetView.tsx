@@ -3,6 +3,7 @@ import {
   Input,
   Label,
   Sheet,
+  SheetBody,
   SheetContent,
   SheetDescription,
   SheetFooter,
@@ -35,7 +36,7 @@ export function KdsSettingsSheetView({
           <SheetTitle>{title}</SheetTitle>
           <SheetDescription>{description}</SheetDescription>
         </SheetHeader>
-        <div className="flex flex-col gap-4 px-4">
+        <SheetBody>
           <div className="flex flex-col gap-2">
             <Label htmlFor="kds-amber-minutes">{amberLabel}</Label>
             <Input
@@ -65,9 +66,15 @@ export function KdsSettingsSheetView({
             />
           </div>
           {invalidMessage ? <p className="text-destructive text-sm">{invalidMessage}</p> : null}
-        </div>
+        </SheetBody>
         <SheetFooter>
-          <Button type="button" size="touch" onClick={onSave} disabled={saveDisabled}>
+          <Button
+            type="button"
+            size="touch"
+            className="w-full sm:w-auto"
+            onClick={onSave}
+            disabled={saveDisabled}
+          >
             {saveLabel}
           </Button>
         </SheetFooter>

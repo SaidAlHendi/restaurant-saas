@@ -3,7 +3,9 @@ import {
   Button,
   ConfirmDialog,
   Sheet,
+  SheetBody,
   SheetContent,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
   Textarea,
@@ -45,11 +47,11 @@ export function PosOrderDetailSheetView(props: PosOrderDetailSheetViewProps) {
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="end" className="flex w-full flex-col sm:max-w-lg" closeLabel={labels.close}>
+        <SheetContent side="end" size="lg" closeLabel={labels.close}>
           <SheetHeader>
             <SheetTitle>{labels.title}</SheetTitle>
             {order ? (
-              <div className="flex flex-wrap items-center gap-2 pt-2">
+              <div className="flex flex-wrap items-center gap-2 pt-1">
                 <span className="text-lg font-bold tabular-nums">{labels.orderNumber}</span>
                 <Badge>{labels.status}</Badge>
                 <Badge variant="outline">{labels.paymentStatus}</Badge>
@@ -57,57 +59,68 @@ export function PosOrderDetailSheetView(props: PosOrderDetailSheetViewProps) {
             ) : null}
           </SheetHeader>
           {order ? (
-            <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto py-2">
-              <dl className="grid grid-cols-2 gap-2 text-sm">
-                <dt className="text-muted-foreground">{labels.total}</dt>
-                <dd className="text-end font-semibold tabular-nums">{formatMinor(order.totalMinor)}</dd>
-                {order.dueMinor > 0 ? (
-                  <>
-                    <dt className="text-muted-foreground">{labels.due}</dt>
-                    <dd className="text-end font-semibold tabular-nums">{formatMinor(order.dueMinor)}</dd>
-                  </>
+            <>
+              <SheetBody>
+                <dl className="grid grid-cols-2 gap-2 text-sm">
+                  <dt className="text-muted-foreground">{labels.total}</dt>
+                  <dd className="text-end font-semibold tabular-nums">
+                    {formatMinor(order.totalMinor)}
+                  </dd>
+                  {order.dueMinor > 0 ? (
+                    <>
+                      <dt className="text-muted-foreground">{labels.due}</dt>
+                      <dd className="text-end font-semibold tabular-nums">
+                        {formatMinor(order.dueMinor)}
+                      </dd>
+                    </>
+                  ) : null}
+                </dl>
+                <ul className="space-y-3 border-t pt-4">
+                  {itemRows.map((row) => (
+                    <li
+                      key={row.id}
+                      className={`flex items-start justify-between gap-2 text-sm ${row.voided ? 'opacity-50 line-through' : ''}`}
+                    >
+                      <div>
+                        <span className="font-medium">
+                          {String(row.quantity)}× {row.name}
+                        </span>
+                        {row.isAddition ? (
+                          <Badge variant="outline" className="ms-2">
+                            +
+                          </Badge>
+                        ) : null}
+                      </div>
+                      <div className="flex flex-col items-end gap-1">
+                        <span className="tabular-nums">{row.lineTotalLabel}</span>
+                        {row.onVoid ? (
+                          <Button type="button" size="sm" variant="ghost" onClick={row.onVoid}>
+                            {row.voidLabel}
+                          </Button>
+                        ) : null}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                {isAddingItems ? (
+                  <p className="text-muted-foreground text-sm">
+                    {labels.sendAdditions} ({String(additionCount)})
+                  </p>
                 ) : null}
-              </dl>
-              <ul className="space-y-2 border-t pt-3">
-                {itemRows.map((row) => (
-                  <li
-                    key={row.id}
-                    className={`flex items-start justify-between gap-2 text-sm ${row.voided ? 'opacity-50 line-through' : ''}`}
-                  >
-                    <div>
-                      <span className="font-medium">
-                        {String(row.quantity)}× {row.name}
-                      </span>
-                      {row.isAddition ? (
-                        <Badge variant="outline" className="ms-2">
-                          +
-                        </Badge>
-                      ) : null}
-                    </div>
-                    <div className="flex flex-col items-end gap-1">
-                      <span className="tabular-nums">{row.lineTotalLabel}</span>
-                      {row.onVoid ? (
-                        <Button type="button" size="sm" variant="ghost" onClick={row.onVoid}>
-                          {row.voidLabel}
-                        </Button>
-                      ) : null}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-              {isAddingItems ? (
-                <p className="text-muted-foreground text-sm">
-                  {labels.sendAdditions} ({String(additionCount)})
-                </p>
-              ) : null}
-              <div className="mt-auto flex flex-col gap-2 border-t pt-4">
+              </SheetBody>
+              <SheetFooter className="flex-col sm:flex-col sm:justify-start">
                 {canPay ? (
                   <Button type="button" size="touch" onClick={onPay}>
                     {labels.pay}
                   </Button>
                 ) : null}
                 {nextStatusAction ? (
-                  <Button type="button" size="touch" variant="secondary" onClick={nextStatusAction.onClick}>
+                  <Button
+                    type="button"
+                    size="touch"
+                    variant="secondary"
+                    onClick={nextStatusAction.onClick}
+                  >
                     {nextStatusAction.label}
                   </Button>
                 ) : null}
@@ -150,8 +163,8 @@ export function PosOrderDetailSheetView(props: PosOrderDetailSheetViewProps) {
                     {labels.cancelOrder}
                   </Button>
                 ) : null}
-              </div>
-            </div>
+              </SheetFooter>
+            </>
           ) : null}
         </SheetContent>
       </Sheet>

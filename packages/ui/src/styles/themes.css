@@ -1,24 +1,27 @@
 /*
- * Themes: daisyUI "cupcake" (light, default) and "forest" (dark), mapped onto shadcn/ui tokens.
- * Source values: daisyUI v5 theme files (oklch). Apply with <html data-theme="cupcake|forest">.
+ * Themes: "cupcake" (light, default; own palette) and "forest" (dark, daisyUI v5),
+ * mapped onto shadcn/ui tokens. Apply with <html data-theme="cupcake|forest">.
  * Components must use these tokens through Tailwind classes (bg-background, text-primary, ...),
  * never raw colors.
  */
 
 :root,
-[data-theme="cupcake"] {
+[data-theme='cupcake'] {
   color-scheme: light;
-  /* daisyUI cupcake palette */
-  --base-100: oklch(97.788% 0.004 56.375);
-  --base-200: oklch(93.982% 0.007 61.449);
-  --base-300: oklch(91.586% 0.006 53.44);
-  --base-content: oklch(23.574% 0.066 313.189);
-  --brand-primary: oklch(85% 0.138 181.071);
-  --brand-primary-content: oklch(43% 0.078 188.216);
-  --brand-secondary: oklch(89% 0.061 343.231);
-  --brand-secondary-content: oklch(45% 0.187 3.815);
-  --brand-accent: oklch(90% 0.076 70.697);
-  --brand-accent-content: oklch(47% 0.157 37.304);
+  /* Light theme (name kept for saved preferences): white surfaces on a cool gray canvas,
+     green brand, warm orange accent. Tuned to the POS design reference. */
+  --base-100: oklch(100% 0 0);
+  --base-200: oklch(97.2% 0.003 247.858);
+  --base-300: oklch(93% 0.006 247.896);
+  --base-content: oklch(27.8% 0.02 256.848);
+  --brand-primary: oklch(60.5% 0.165 149.6);
+  --brand-primary-content: oklch(100% 0 0);
+  --brand-secondary: oklch(95.5% 0.045 152.5);
+  --brand-secondary-content: oklch(42% 0.11 151);
+  --brand-accent: oklch(95.5% 0.035 70);
+  --brand-accent-content: oklch(55% 0.17 45);
+  --brand-highlight: var(--brand-accent);
+  --brand-highlight-content: var(--brand-accent-content);
   --brand-neutral: oklch(27% 0.006 286.033);
   --brand-neutral-content: oklch(92% 0.004 286.32);
   --state-info: oklch(68% 0.169 237.323);
@@ -27,13 +30,13 @@
   --state-success-content: oklch(26% 0.051 172.552);
   --state-warning: oklch(79% 0.184 86.047);
   --state-warning-content: oklch(28% 0.066 53.813);
-  --state-error: oklch(64% 0.246 16.439);
-  --state-error-content: oklch(27% 0.105 12.094);
-  --radius: 1rem;
-  --border-width: 2px;
+  --state-error: oklch(60% 0.22 25);
+  --state-error-content: oklch(100% 0 0);
+  --radius: 0.75rem;
+  --border-width: 1px;
 }
 
-[data-theme="forest"] {
+[data-theme='forest'] {
   color-scheme: dark;
   /* daisyUI forest palette */
   --base-100: oklch(20.84% 0.008 17.911);
@@ -46,6 +49,9 @@
   --brand-secondary-content: oklch(13.955% 0.027 168.327);
   --brand-accent: oklch(70.628% 0.119 185.713);
   --brand-accent-content: oklch(14.125% 0.023 185.713);
+  /* Warm surface for highlighted cards (open orders); forest's accent is too bright for text. */
+  --brand-highlight: oklch(31% 0.045 55);
+  --brand-highlight-content: oklch(80% 0.14 60);
   --brand-neutral: oklch(30.698% 0.039 171.364);
   --brand-neutral-content: oklch(86.139% 0.007 171.364);
   --state-info: oklch(72.06% 0.191 231.6);
@@ -56,7 +62,7 @@
   --state-warning-content: oklch(0% 0 0);
   --state-error: oklch(71.76% 0.221 22.18);
   --state-error-content: oklch(0% 0 0);
-  --radius: 1rem;
+  --radius: 0.75rem;
   --border-width: 1px;
 }
 
@@ -83,9 +89,11 @@
   --success-foreground: var(--state-success-content);
   --warning: var(--state-warning);
   --warning-foreground: var(--state-warning-content);
+  --highlight: var(--brand-highlight);
+  --highlight-foreground: var(--brand-highlight-content);
   --info: var(--state-info);
   --info-foreground: var(--state-info-content);
-  --border: color-mix(in oklch, var(--base-content) 15%, var(--base-100));
+  --border: color-mix(in oklch, var(--base-content) 11%, var(--base-100));
   --input: color-mix(in oklch, var(--base-content) 20%, var(--base-100));
   --ring: var(--brand-primary);
   --chart-1: var(--brand-primary);
@@ -93,11 +101,11 @@
   --chart-3: var(--brand-accent);
   --chart-4: var(--state-info);
   --chart-5: var(--state-warning);
-  --sidebar: var(--base-200);
+  --sidebar: var(--base-100);
   --sidebar-foreground: var(--base-content);
   --sidebar-primary: var(--brand-primary);
   --sidebar-primary-foreground: var(--brand-primary-content);
-  --sidebar-accent: var(--base-300);
+  --sidebar-accent: var(--base-200);
   --sidebar-accent-foreground: var(--base-content);
   --sidebar-border: var(--border);
   --sidebar-ring: var(--ring);
@@ -125,6 +133,8 @@
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+  --color-highlight: var(--highlight);
+  --color-highlight-foreground: var(--highlight-foreground);
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
   --color-border: var(--border);

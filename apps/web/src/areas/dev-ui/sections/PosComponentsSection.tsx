@@ -1,4 +1,12 @@
-import { CartLine, ConnectionBanner, KdsColumn, KdsOrderCard, ProductTile } from '@app/ui';
+import {
+  CartLine,
+  CategoryTile,
+  ConnectionBanner,
+  KdsColumn,
+  KdsOrderCard,
+  OpenOrderChip,
+  ProductTile,
+} from '@app/ui';
 
 import type { PosComponentsDemo } from '../pos-components-demo.js';
 
@@ -24,6 +32,18 @@ export function PosComponentsSection({
         <div className="max-w-xs">
           <ProductTile {...demo.productTile} />
         </div>
+      </div>
+      <div className="flex flex-wrap gap-3">
+        {demo.categoryTiles.map(({ id, ...tile }) => (
+          <CategoryTile
+            key={id}
+            {...tile}
+            onPress={() => {
+              /* demo */
+            }}
+          />
+        ))}
+        <OpenOrderChip {...demo.openOrder} />
       </div>
       <div>
         <p className="mb-2 text-sm text-muted-foreground">{copy.cartLine}</p>

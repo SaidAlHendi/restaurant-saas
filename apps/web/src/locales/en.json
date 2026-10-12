@@ -175,7 +175,16 @@
       "description": "Your role cannot create orders or your plan does not include the cashier.",
       "backToDashboard": "Back to dashboard"
     },
-    "realtimeDisconnected": "Live updates disconnected — reconnecting…"
+    "realtimeDisconnected": "Live updates disconnected — reconnecting…",
+    "catalog": {
+      "all": "All",
+      "items_one": "{{count}} item",
+      "items_other": "{{count}} items",
+      "hasOptions": "Has options",
+      "searchPlaceholder": "Search products",
+      "searchClear": "Clear search",
+      "noResults": "No products match your search."
+    }
   },
   "orders": {
     "errors": {
@@ -317,6 +326,10 @@
       "printTitle": "QR codes",
       "back": "Back to QR codes",
       "tableQrUpsell": "Table QR codes appear when your plan includes table QR and you have active tables."
+    },
+    "fields": {
+      "name": "Name",
+      "description": "Description"
     }
   },
   "kds": {
@@ -362,5 +375,10 @@
       "description": "Your role cannot change order status or your plan does not include the kitchen display.",
       "backToDashboard": "Back to dashboard"
     }
+  },
+  "shell": {
+    "toggleSidebar": "Collapse or expand the menu",
+    "darkMode": "Dark mode",
+    "lightMode": "Light mode"
   }
 }
