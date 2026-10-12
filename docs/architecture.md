@@ -29,7 +29,9 @@ daily_product_sales, hourly_sales, outbox_events, audit_logs.
 - Realtime is a notification only. Clients refetch active orders on every (re)connect.
 
 ## Reporting
-- Worker updates daily/hourly aggregate tables when orders close. Dashboards read aggregates.
+- Owner **today** and daily history views read **live aggregates** from orders, payments, and order items
+  (`GET /v1/branches/:branchId/reports/daily`). The outbox worker’s `AggregateSalesJob` remains a stub;
+  `daily_sales` / hourly tables will back **advanced reports** later.
 
 ## Offline (phase 2)
 - Cashier PWA keeps menu in IndexedDB, creates orders locally, queues them, prints locally,

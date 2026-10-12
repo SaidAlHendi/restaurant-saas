@@ -44,7 +44,10 @@ Translatable text = `jsonb` like `{"ar":"…","en":"…"}`. Tax in basis points 
 - **subscriptions**: id, org_id (unique), plan_id, status (`trialing`|`active`|`past_due`|`cancelled`), branch_quantity int, provider (`paddle`), provider_customer_id, provider_subscription_id, trial_ends_at, current_period_end, updated_at
 - **billing_events**: id, provider_event_id (unique), type, payload jsonb, processed_at — webhook idempotency
 
-## Reporting (written by worker, read by dashboards)
+## Reporting
+- **MVP dashboards (roadmap 8):** computed live from `orders`, `payments`, and `order_items` per branch and
+  `business_date` (no writes to aggregate tables yet).
+- **Aggregate tables (advanced reports / worker, later):**
 - **daily_sales**: org_id, branch_id, business_date, orders_count, cancelled_count, gross_minor, discount_minor, tax_minor, net_minor, dine_in_count, takeaway_count, cash_minor, card_minor — PK(branch_id, business_date)
 - **daily_product_sales**: org_id, branch_id, business_date, product_id, quantity, revenue_minor — PK(branch_id, business_date, product_id)
 - **hourly_sales**: org_id, branch_id, business_date, hour smallint, orders_count, revenue_minor — PK(branch_id, business_date, hour)

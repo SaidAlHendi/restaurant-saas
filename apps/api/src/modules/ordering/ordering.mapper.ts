@@ -8,6 +8,7 @@ import type {
   OrderEvent,
   OrderListItem,
   Payment,
+  PaymentMethod,
 } from '@app/shared';
 
 import type {
@@ -143,15 +144,17 @@ export function mapOrderListItem(
   itemCount: number,
   paidMinor: number,
   tableLabel: string | null,
+  paymentMethods: PaymentMethod[],
 ): OrderListItem {
   return {
     ...mapOrder(row, paidMinor),
     itemCount,
     tableLabel,
+    paymentMethods,
   };
 }
 
-export function mapOrderEvent(row: EventRow): OrderEvent {
+export function mapOrderEvent(row: EventRow, actorName: string | null): OrderEvent {
   return {
     id: row.id,
     orderId: row.orderId,
@@ -160,6 +163,7 @@ export function mapOrderEvent(row: EventRow): OrderEvent {
     toStatus: row.toStatus,
     payload: row.payload as Record<string, unknown>,
     actorMembershipId: row.actorMembershipId,
+    actorName,
     createdAt: row.createdAt.toISOString(),
   };
 }

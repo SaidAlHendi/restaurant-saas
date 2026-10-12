@@ -8,7 +8,8 @@ import pg from 'pg';
 
 import { loadEnv } from '../src/config/env';
 import type { DrizzleDb } from '../src/core/db/db.module';
-import { diningTables, orders } from '../src/core/db/schema/ordering';
+import { diningTables, orderItems, orders, payments } from '../src/core/db/schema/ordering';
+import type { OrderStatus, OrderType } from '@app/shared';
 import { withOrg } from '../src/core/db/with-org';
 import { generateQrToken } from '../src/lib/qr-token';
 import { newUuidV7 } from '../src/lib/uuid';
@@ -333,6 +334,117 @@ export async function insertPlacedOrderForBusinessDate(
     });
   });
   return id;
+}
+
+export async function insertReportOrder(
+  db: DrizzleDb,
+  input: {
+    orgId: string;
+    branchId: string;
+    businessDate: string;
+    orderNumber: number;
+    createdByMembershipId: string;
+    status: OrderStatus;
+    type?: OrderType;
+    totalMinor?: number;
+    taxMinor?: number;
+    customerName?: string | null;
+  },
+): Promise<string> {
+  const id = newUuidV7();
+  const clientOrderId = newUuidV7();
+  const total = input.totalMinor ?? 2500;
+  const tax = input.taxMinor ?? 0;
+  const now = new Date();
+  const type = input.type ?? 'takeaway';
+  await withOrg(db, input.orgId, async (tx) => {
+    await tx.insert(orders).values({
+      id,
+      orgId: input.orgId,
+      branchId: input.branchId,
+      clientOrderId,
+      orderNumber: input.orderNumber,
+      businessDate: input.businessDate,
+      type,
+      status: input.status,
+      paymentStatus: input.status === 'draft' ? 'unpaid' : 'paid',
+      tableId: null,
+      customerName: input.customerName ?? null,
+      notes: null,
+      subtotalMinor: total,
+      discountMinor: 0,
+      taxMinor: tax,
+      totalMinor: total,
+      currency: 'SAR',
+      version: 1,
+      placedAt: input.status === 'draft' ? null : now,
+      createdBy: input.createdByMembershipId,
+      createdAt: now,
+      updatedAt: now,
+    });
+  });
+  return id;
+}
+
+export async function insertReportOrderItem(
+  db: DrizzleDb,
+  input: {
+    orgId: string;
+    orderId: string;
+    productId: string;
+    quantity: number;
+    lineTotalMinor: number;
+    status?: 'pending' | 'voided';
+    productNameSnapshot?: Record<string, string>;
+    createdAt?: Date;
+  },
+): Promise<string> {
+  const id = newUuidV7();
+  const unit = Math.floor(input.lineTotalMinor / input.quantity);
+  await withOrg(db, input.orgId, async (tx) => {
+    await tx.insert(orderItems).values({
+      id,
+      orgId: input.orgId,
+      orderId: input.orderId,
+      productId: input.productId,
+      productNameSnapshot: input.productNameSnapshot ?? { en: 'Item', ar: 'صنف' },
+      unitPriceMinor: unit,
+      quantity: input.quantity,
+      lineTotalMinor: input.lineTotalMinor,
+      notes: null,
+      status: input.status ?? 'pending',
+      isAddition: false,
+      createdAt: input.createdAt ?? new Date(),
+    });
+  });
+  return id;
+}
+
+export async function insertCapturedPaymentRow(
+  db: DrizzleDb,
+  input: {
+    orgId: string;
+    orderId: string;
+    createdByMembershipId: string;
+    method: 'cash' | 'card' | 'other';
+    amountMinor: number;
+  },
+): Promise<void> {
+  await withOrg(db, input.orgId, async (tx) => {
+    await tx.insert(payments).values({
+      id: newUuidV7(),
+      orgId: input.orgId,
+      orderId: input.orderId,
+      clientPaymentId: newUuidV7(),
+      method: input.method,
+      amountMinor: input.amountMinor,
+      tenderedMinor: input.method === 'cash' ? input.amountMinor : null,
+      changeMinor: input.method === 'cash' ? 0 : null,
+      status: 'captured',
+      createdBy: input.createdByMembershipId,
+      createdAt: new Date(),
+    });
+  });
 }
 
 export async function insertDiningTable(

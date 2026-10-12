@@ -52,6 +52,18 @@ function orderListParams(query: OrderListQueryInput | undefined): Record<string,
   if (query?.q !== undefined) {
     params['q'] = query.q;
   }
+  if (query?.dateFrom !== undefined) {
+    params['dateFrom'] = query.dateFrom;
+  }
+  if (query?.dateTo !== undefined) {
+    params['dateTo'] = query.dateTo;
+  }
+  if (query?.type !== undefined) {
+    params['type'] = query.type;
+  }
+  if (query?.paymentMethod !== undefined) {
+    params['paymentMethod'] = query.paymentMethod;
+  }
   return params;
 }
 

@@ -6,6 +6,7 @@ import { OutboxService } from '../../core/outbox/outbox.service';
 import { CatalogOrderingService } from '../catalog/catalog-ordering.service';
 import { OrgSettingsService } from '../tenancy/org-settings.service';
 import { TenancyRepository } from '../tenancy/tenancy.repository';
+import { IdentityService } from '../identity/identity.service';
 import { OrderingRepository } from '../ordering/ordering.repository';
 import { OrderingService } from '../ordering/ordering.service';
 
@@ -78,6 +79,10 @@ describe('OrderingService kitchen board', () => {
         { provide: OrgSettingsService, useValue: {} },
         { provide: OutboxService, useValue: { write: jest.fn() } },
         { provide: CLOCK, useValue: { now: () => new Date('2026-01-01T12:30:00.000Z') } },
+        {
+          provide: IdentityService,
+          useValue: { getDisplayNamesByMembershipIds: jest.fn() },
+        },
       ],
     }).compile();
 

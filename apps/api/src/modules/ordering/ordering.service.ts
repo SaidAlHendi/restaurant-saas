@@ -5,6 +5,7 @@ import {
   computeLineTotalMinor,
   computeOrderTotals,
   computePaymentStatus,
+  sortPaymentMethods,
 } from '@app/shared';
 import type {
   AddOrderItemsBody,
@@ -37,6 +38,7 @@ import { decodeOrderListCursor, encodeOrderListCursor } from '../../lib/order-li
 import { isPgUniqueViolation } from '../../lib/pg-errors';
 import { newUuidV7 } from '../../lib/uuid';
 import { CatalogOrderingService } from '../catalog/catalog-ordering.service';
+import { IdentityService } from '../identity/identity.service';
 import { OrgSettingsService } from '../tenancy/org-settings.service';
 import { TenancyRepository } from '../tenancy/tenancy.repository';
 
@@ -81,6 +83,7 @@ export class OrderingService {
     private readonly orgSettings: OrgSettingsService,
     private readonly catalogOrdering: CatalogOrderingService,
     private readonly outbox: OutboxService,
+    private readonly identity: IdentityService,
   ) {}
 
   async createOrder(
@@ -290,6 +293,10 @@ export class OrderingService {
       const rows = await this.repo.listOrders(tx, branchId, {
         status: query.status,
         businessDate: query.businessDate,
+        dateFrom: query.dateFrom,
+        dateTo: query.dateTo,
+        type: query.type,
+        paymentMethod: query.paymentMethod,
         activeOnly: query.activeOnly,
         todayOnlyBusinessDate,
         q: query.q,
@@ -301,6 +308,7 @@ export class OrderingService {
       const orderIds = page.map((r) => r.order.id);
       const counts = await this.repo.countItemsForOrders(tx, orderIds);
       const paidByOrder = await this.repo.sumCapturedMinorByOrderIds(tx, orderIds);
+      const methodsByOrder = await this.repo.capturedPaymentMethodsForOrders(tx, orderIds);
       const last = page[page.length - 1];
       const nextCursor =
         hasMore && last
@@ -316,6 +324,7 @@ export class OrderingService {
             counts.get(row.order.id) ?? 0,
             paidByOrder.get(row.order.id) ?? 0,
             row.tableLabel ?? null,
+            sortPaymentMethods(methodsByOrder.get(row.order.id) ?? []),
           ),
         ),
         nextCursor,
@@ -943,7 +952,13 @@ export class OrderingService {
         throw new NotFoundError();
       }
       const events = await this.repo.listOrderEvents(tx, orderId);
-      return { items: events.map(mapOrderEvent) };
+      const actorIds = events.map((e) => e.actorMembershipId);
+      const names = await this.identity.getDisplayNamesByMembershipIds(tx, actorIds);
+      return {
+        items: events.map((event) =>
+          mapOrderEvent(event, names.get(event.actorMembershipId) ?? null),
+        ),
+      };
     });
   }
 
