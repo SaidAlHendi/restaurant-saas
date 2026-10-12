@@ -26,7 +26,7 @@ import {
   tabToListQuery,
   type PosOrdersTab,
 } from '../pos-orders-list.utils.js';
-import { posOrderStatusTone } from '../pos-catalog.utils.js';
+import { orderStatusBadgeTone } from '../pos-catalog.utils.js';
 import { shouldShowSentToKitchenToast } from '../pos-payment-toast.utils.js';
 import { useGetPosMenuQuery } from '../pos.api.js';
 import { usePosOrderDetail } from './use-pos-order-detail.js';
@@ -200,7 +200,7 @@ export function usePosOrdersPage() {
       }),
       itemCount: order.itemCount,
       totalLabel: formatMinor(order.totalMinor),
-      statusTone: posOrderStatusTone(order.status),
+      statusTone: orderStatusBadgeTone(order.status),
       statusLabel:
         order.status === 'draft'
           ? t('pos.awaitingPaymentBadge')

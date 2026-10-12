@@ -1,14 +1,12 @@
 import { z } from 'zod';
 
+import { businessDateSchema } from '../dates/business-date.js';
 import { moneyMinorSchema } from '../i18n/localized-text.js';
 import { orderTypeSchema } from '../orders/enums.js';
 import { paymentMethodSchema } from '../orders/payment.js';
 
 export const dailyReportQuerySchema = z.object({
-  businessDate: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .optional(),
+  businessDate: businessDateSchema.optional(),
 });
 
 export type DailyReportQuery = z.infer<typeof dailyReportQuerySchema>;

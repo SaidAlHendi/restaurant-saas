@@ -188,6 +188,11 @@ export {
 export type { CreatePaymentBody, Payment, PaymentMethod } from './orders/payment.js';
 export { PAYMENT_METHODS_SORTED, sortPaymentMethods } from './orders/payment-methods.js';
 export {
+  businessDateSchema,
+  inclusiveBusinessDaySpan,
+} from './dates/business-date.js';
+export type { BusinessDate } from './dates/business-date.js';
+export {
   dailyReportQuerySchema,
   dailyReportSchema,
   dailyReportByTypeSchema,

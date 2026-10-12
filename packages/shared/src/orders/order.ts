@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { businessDateSchema, inclusiveBusinessDaySpan } from '../dates/business-date.js';
 import { moneyMinorSchema } from '../i18n/localized-text.js';
 import { cursorListQuerySchema, cursorListResponseSchema } from '../catalog/pagination.js';
 
@@ -118,22 +119,12 @@ export const orderListItemSchema = orderSchema.extend({
 
 export type OrderListItem = z.infer<typeof orderListItemSchema>;
 
-const businessDateParamSchema = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/);
-
-function inclusiveBusinessDaySpan(from: string, to: string): number {
-  const start = Date.parse(`${from}T00:00:00.000Z`);
-  const end = Date.parse(`${to}T00:00:00.000Z`);
-  return Math.floor((end - start) / 86_400_000) + 1;
-}
-
 export const orderListQuerySchema = cursorListQuerySchema
   .extend({
     status: orderStatusSchema.optional(),
-    businessDate: businessDateParamSchema.optional(),
-    dateFrom: businessDateParamSchema.optional(),
-    dateTo: businessDateParamSchema.optional(),
+    businessDate: businessDateSchema.optional(),
+    dateFrom: businessDateSchema.optional(),
+    dateTo: businessDateSchema.optional(),
     type: orderTypeSchema.optional(),
     paymentMethod: paymentMethodSchema.optional(),
     activeOnly: z

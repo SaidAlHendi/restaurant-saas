@@ -6,7 +6,7 @@ import type { CartLine } from '../cart/cart.types.js';
 import {
   ALL_CATEGORIES,
   lastLineOfProduct,
-  posOrderStatusTone,
+  orderStatusBadgeTone,
   quantityByProduct,
   visiblePosProducts,
 } from './pos-catalog.utils.js';
@@ -70,12 +70,12 @@ describe('cart quantities per product', () => {
   });
 });
 
-describe('posOrderStatusTone', () => {
+describe('orderStatusBadgeTone', () => {
   it('maps order statuses to badge colors', () => {
-    expect(posOrderStatusTone('placed')).toBe('new');
-    expect(posOrderStatusTone('preparing')).toBe('preparing');
-    expect(posOrderStatusTone('ready')).toBe('ready');
-    expect(posOrderStatusTone('refunded')).toBe('completed');
-    expect(posOrderStatusTone('cancelled')).toBe('cancelled');
+    expect(orderStatusBadgeTone('placed')).toBe('new');
+    expect(orderStatusBadgeTone('preparing')).toBe('preparing');
+    expect(orderStatusBadgeTone('ready')).toBe('ready');
+    expect(orderStatusBadgeTone('refunded')).toBe('completed');
+    expect(orderStatusBadgeTone('cancelled')).toBe('cancelled');
   });
 });

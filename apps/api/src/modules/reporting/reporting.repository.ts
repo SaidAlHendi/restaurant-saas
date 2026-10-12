@@ -1,4 +1,4 @@
-import { and, eq, inArray, sql } from 'drizzle-orm';
+import { and, eq, inArray, sql, type SQL } from 'drizzle-orm';
 import { Injectable } from '@nestjs/common';
 
 import type { OrderType, PaymentMethod } from '@app/shared';
@@ -7,6 +7,13 @@ import type { DrizzleTx } from '../../core/db/with-org';
 import { orders } from '../../core/db/schema/ordering';
 
 import { COUNTED_ORDER_STATUSES } from './daily-report.utils';
+
+function countedStatusesSqlInList(): SQL {
+  return sql.join(
+    COUNTED_ORDER_STATUSES.map((status) => sql`${status}`),
+    sql`, `,
+  );
+}
 
 type OrderDayRollup = {
   ordersCount: number;
@@ -19,11 +26,12 @@ type OrderDayRollup = {
 @Injectable()
 export class ReportingRepository {
   async loadOrderDayRollup(tx: DrizzleTx, branchId: string, businessDate: string): Promise<OrderDayRollup> {
+    const countedIn = countedStatusesSqlInList();
     const result = await tx.execute(sql`
       SELECT
-        COUNT(*) FILTER (WHERE status IN ('placed', 'preparing', 'ready', 'completed'))::int AS orders_count,
-        COALESCE(SUM(total_minor) FILTER (WHERE status IN ('placed', 'preparing', 'ready', 'completed')), 0)::bigint AS sales_minor,
-        COALESCE(SUM(tax_minor) FILTER (WHERE status IN ('placed', 'preparing', 'ready', 'completed')), 0)::bigint AS tax_minor,
+        COUNT(*) FILTER (WHERE status IN (${countedIn}))::int AS orders_count,
+        COALESCE(SUM(total_minor) FILTER (WHERE status IN (${countedIn})), 0)::bigint AS sales_minor,
+        COALESCE(SUM(tax_minor) FILTER (WHERE status IN (${countedIn})), 0)::bigint AS tax_minor,
         COUNT(*) FILTER (WHERE status = 'cancelled')::int AS cancelled_count,
         COUNT(*) FILTER (WHERE status = 'draft')::int AS draft_count
       FROM orders
@@ -89,13 +97,14 @@ export class ReportingRepository {
     branchId: string,
     businessDate: string,
   ): Promise<number> {
+    const countedIn = countedStatusesSqlInList();
     const result = await tx.execute(sql`
       SELECT COALESCE(SUM(p.amount_minor), 0)::bigint AS paid_minor
       FROM payments p
       INNER JOIN orders o ON o.id = p.order_id
       WHERE o.branch_id = ${branchId}::uuid
         AND o.business_date = ${businessDate}::date
-        AND o.status IN ('placed', 'preparing', 'ready', 'completed')
+        AND o.status IN (${countedIn})
         AND p.status = 'captured'
     `);
     const row = result.rows[0] as { paid_minor: string | number } | undefined;
@@ -107,13 +116,14 @@ export class ReportingRepository {
     branchId: string,
     businessDate: string,
   ): Promise<Array<{ method: PaymentMethod; paymentsCount: number; amountMinor: number }>> {
+    const countedIn = countedStatusesSqlInList();
     const result = await tx.execute(sql`
       SELECT p.method, COUNT(*)::int AS payments_count, COALESCE(SUM(p.amount_minor), 0)::bigint AS amount_minor
       FROM payments p
       INNER JOIN orders o ON o.id = p.order_id
       WHERE o.branch_id = ${branchId}::uuid
         AND o.business_date = ${businessDate}::date
-        AND o.status IN ('placed', 'preparing', 'ready', 'completed')
+        AND o.status IN (${countedIn})
         AND p.status = 'captured'
       GROUP BY p.method
     `);
@@ -139,6 +149,7 @@ export class ReportingRepository {
       revenueMinor: number;
     }>
   > {
+    const countedIn = countedStatusesSqlInList();
     const result = await tx.execute(sql`
       WITH ranked AS (
         SELECT
@@ -149,7 +160,7 @@ export class ReportingRepository {
         INNER JOIN orders o ON o.id = oi.order_id
         WHERE o.branch_id = ${branchId}::uuid
           AND o.business_date = ${businessDate}::date
-          AND o.status IN ('placed', 'preparing', 'ready', 'completed')
+          AND o.status IN (${countedIn})
           AND oi.status <> 'voided'
         GROUP BY oi.product_id
         ORDER BY quantity DESC, revenue_minor DESC, product_id
@@ -163,7 +174,7 @@ export class ReportingRepository {
         INNER JOIN orders o ON o.id = oi.order_id
         WHERE o.branch_id = ${branchId}::uuid
           AND o.business_date = ${businessDate}::date
-          AND o.status IN ('placed', 'preparing', 'ready', 'completed')
+          AND o.status IN (${countedIn})
           AND oi.status <> 'voided'
         ORDER BY oi.product_id, oi.created_at DESC, oi.id DESC
       )

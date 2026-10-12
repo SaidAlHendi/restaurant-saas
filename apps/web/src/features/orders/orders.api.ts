@@ -4,6 +4,7 @@ import {
   createOrderBodySchema,
   createPaymentBodySchema,
   orderDetailSchema,
+  orderEventListResponseSchema,
   orderListResponseSchema,
   paymentSchema,
   voidOrderItemBodySchema,
@@ -12,6 +13,7 @@ import {
   type CreateOrderBody,
   type CreatePaymentBody,
   type OrderDetail,
+  type OrderEvent,
   type OrderListQuery,
   type Payment,
   type VoidOrderItemBody,
@@ -90,6 +92,17 @@ export const ordersApi = baseApi.injectEndpoints({
       query: ({ branchId, orderId }) => `/v1/branches/${branchId}/orders/${orderId}`,
       transformResponse: (response: unknown) => orderDetailSchema.parse(response),
       providesTags: (_result, _error, arg) => [{ type: 'Order', id: arg.orderId }],
+    }),
+    listOrderEvents: builder.query<
+      { items: OrderEvent[] },
+      { branchId: string; orderId: string }
+    >({
+      query: ({ branchId, orderId }) =>
+        `/v1/branches/${branchId}/orders/${orderId}/events`,
+      transformResponse: (response: unknown) => orderEventListResponseSchema.parse(response),
+      providesTags: (_result, _error, arg) => [
+        { type: 'Order', id: `${arg.orderId}:events` },
+      ],
     }),
     createOrder: builder.mutation<
       OrderDetail,
@@ -171,6 +184,7 @@ export const ordersApi = baseApi.injectEndpoints({
 export const {
   useListOrdersQuery,
   useGetOrderQuery,
+  useListOrderEventsQuery,
   useCreateOrderMutation,
   useChangeOrderStatusMutation,
   useAddOrderItemsMutation,

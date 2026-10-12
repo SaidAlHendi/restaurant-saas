@@ -74,6 +74,16 @@ describe('Ordering list filters (e2e)', () => {
     expect(dates.has(dayB)).toBe(true);
   });
 
+  it('400 for invalid calendar dateFrom', async () => {
+    const owner = await asDemoOwner(apiAgent(app));
+    const { branchId } = await createIsolatedBranch(owner);
+    const res = await owner.get(`/v1/branches/${branchId}/orders`).query({
+      dateFrom: '2026-02-30',
+      dateTo: '2026-03-01',
+    });
+    expect(res.status).toBe(400);
+  });
+
   it('400 when dateFrom is after dateTo', async () => {
     const owner = await asDemoOwner(apiAgent(app));
     const { branchId } = await createIsolatedBranch(owner);

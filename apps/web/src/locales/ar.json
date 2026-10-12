@@ -54,12 +54,130 @@
     "canManageBranches": "يمكنك إنشاء الفروع وتعديلها.",
     "nav": {
       "home": "نظرة عامة",
+      "today": "اليوم",
+      "orders": "الطلبات",
       "menu": "القائمة",
       "cashier": "الكاشير",
       "sidebar": "تنقل لوحة التحكم",
       "closeSidebar": "إغلاق القائمة",
       "kitchen": "المطبخ",
       "branchSettings": "إعدادات الفرع"
+    },
+    "today": {
+      "title": "اليوم",
+      "pickToday": "اليوم",
+      "pickYesterday": "أمس",
+      "dateLabel": "تاريخ العمل",
+      "sales": "المبيعات",
+      "orders": "الطلبات",
+      "averageTicket": "متوسط الفاتورة",
+      "unpaid": "غير مدفوع",
+      "cancelled": "ملغاة",
+      "paymentBreakdown": "طرق الدفع",
+      "typeBreakdown": "حسب نوع الطلب",
+      "topItems": "الأكثر مبيعاً",
+      "topItemsName": "الصنف",
+      "topItemsQty": "الكمية",
+      "topItemsRevenue": "الإيراد",
+      "empty": "لا مبيعات لهذا اليوم.",
+      "error": "تعذر تحميل التقرير اليومي.",
+      "paymentMethod": {
+        "cash": "نقداً",
+        "card": "بطاقة",
+        "other": "أخرى"
+      },
+      "orderType": {
+        "dine_in": "محلي",
+        "takeaway": "سفري"
+      }
+    },
+    "orders": {
+      "title": "الطلبات",
+      "takeaway": "سفري",
+      "searchPlaceholder": "ابحث برقم الطلب أو الطاولة أو العميل",
+      "searchClear": "مسح البحث",
+      "empty": "لا طلبات تطابق الفلاتر.",
+      "error": "تعذر تحميل الطلبات.",
+      "branchDateError": "تعذر تحميل تاريخ عمل الفرع.",
+      "loadMore": "تحميل المزيد",
+      "filters": {
+        "status": "الحالة",
+        "type": "النوع",
+        "payment": "الدفع",
+        "period": "الفترة",
+        "all": "الكل",
+        "periodToday": "اليوم",
+        "periodYesterday": "أمس",
+        "periodLast7": "آخر 7 أيام",
+        "periodLast30": "آخر 30 يوماً",
+        "periodCustom": "نطاق مخصص",
+        "from": "من",
+        "to": "إلى"
+      },
+      "columns": {
+        "number": "رقم",
+        "dateTime": "التاريخ والوقت",
+        "customer": "العميل / الطاولة",
+        "items": "الأصناف",
+        "total": "الإجمالي",
+        "status": "الحالة",
+        "payment": "الدفع",
+        "sortBy": "ترتيب حسب",
+        "rowActions": "إجراءات الصف"
+      },
+      "status": {
+        "draft": "مسودة",
+        "placed": "مُرسَل",
+        "preparing": "قيد التحضير",
+        "ready": "جاهز",
+        "completed": "مكتمل",
+        "cancelled": "ملغى",
+        "refunded": "مسترد"
+      },
+      "paymentStatus": {
+        "unpaid": "غير مدفوع",
+        "partial": "جزئي",
+        "paid": "مدفوع",
+        "refunded": "مسترد"
+      },
+      "paymentMethod": {
+        "cash": "نقداً",
+        "card": "بطاقة",
+        "other": "أخرى"
+      },
+      "orderType": {
+        "dine_in": "محلي",
+        "takeaway": "سفري"
+      }
+    },
+    "orderDetail": {
+      "title": "طلب",
+      "back": "العودة للطلبات",
+      "items": "الأصناف",
+      "payments": "المدفوعات",
+      "timeline": "السجل",
+      "notFound": "الطلب غير موجود.",
+      "voidReason": "سبب الإلغاء",
+      "addition": "إضافة",
+      "actor": "بواسطة",
+      "subtotal": "المجموع الفرعي",
+      "tax": "الضريبة",
+      "total": "الإجمالي",
+      "paid": "المدفوع",
+      "due": "المتبقي"
+    }
+  },
+  "order": {
+    "events": {
+      "drafted": "تم إنشاء مسودة",
+      "placed": "أُرسل للمطبخ",
+      "statusChanged": "الحالة {{from}} ← {{to}}",
+      "itemsAdded": "أُضيف {{count}} صنف",
+      "itemVoided": "أُلغي {{name}} ({{reason}})",
+      "itemStatusChanged": "{{name}}: {{status}}",
+      "cancelled": "أُلغى ({{reason}})",
+      "paymentCaptured": "دفع {{method}} ({{amountMinor}})",
+      "unknown": "حدث: {{type}}"
     }
   },
   "settings": {

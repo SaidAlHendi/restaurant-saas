@@ -1,5 +1,6 @@
 import {
   ChefHatIcon,
+  ClipboardListIcon,
   LayoutDashboardIcon,
   SettingsIcon,
   ShoppingBagIcon,
@@ -32,6 +33,7 @@ export function useAppShell() {
   const canManageBranches = useAppSelector(selectCan('branches.manage'));
   const canUsePos = useAppSelector(selectCan('orders.create'));
   const canUseKds = useAppSelector(selectCan('orders.update_status'));
+  const canReports = useAppSelector(selectCan('reports.read'));
   const { theme, toggleTheme } = useTheme();
   const [logout, { isLoading: loggingOut }] = useLogoutMutation();
 
@@ -41,15 +43,33 @@ export function useAppShell() {
   const mobile = useDisclosure();
 
   const navItems = useMemo(() => {
-    const items: NavItem[] = [
-      {
+    const items: NavItem[] = [];
+    if (canReports) {
+      items.push(
+        {
+          id: 'today',
+          to: '/dashboard',
+          icon: LayoutDashboardIcon,
+          label: t('dashboard.nav.today'),
+          end: true,
+        },
+        {
+          id: 'orders',
+          to: '/dashboard/orders',
+          icon: ClipboardListIcon,
+          label: t('dashboard.nav.orders'),
+          end: false,
+        },
+      );
+    } else {
+      items.push({
         id: 'home',
         to: '/dashboard',
         icon: LayoutDashboardIcon,
         label: t('dashboard.nav.home'),
         end: true,
-      },
-    ];
+      });
+    }
     if (canReadMenu) {
       items.push({
         id: 'menu',
@@ -87,7 +107,7 @@ export function useAppShell() {
       });
     }
     return items;
-  }, [canManageBranches, canReadMenu, canUsePos, canUseKds, t]);
+  }, [canManageBranches, canReadMenu, canReports, canUsePos, canUseKds, t]);
 
   const activeId = activeNavItemId(navItems, location.pathname);
 

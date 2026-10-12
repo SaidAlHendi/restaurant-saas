@@ -29,7 +29,7 @@ import {
 import {
   ALL_CATEGORIES,
   lastLineOfProduct,
-  posOrderStatusTone,
+  orderStatusBadgeTone,
   quantityByProduct,
   visiblePosProducts,
 } from '../pos-catalog.utils.js';
@@ -559,7 +559,7 @@ export function usePosPage() {
               ? t('pos.result.orderNumber', { number: order.orderNumber })
               : (order.customerName ?? t('pos.result.orderNumber', { number: order.orderNumber })),
           detail: `${t('pos.catalog.items', { count: order.itemCount })} · ${formatMinor(order.totalMinor)}`,
-          status: posOrderStatusTone(order.status),
+          status: orderStatusBadgeTone(order.status),
           statusLabel:
             order.status === 'draft'
               ? t('pos.awaitingPaymentBadge')
