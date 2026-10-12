@@ -1,5 +1,6 @@
 import { Module, forwardRef } from '@nestjs/common';
 
+import { CoreModule } from '../../core/core.module';
 import { IdentityModule } from '../identity/identity.module';
 import { PublicMenuModule } from '../public-menu/public-menu.module';
 import { NotificationsModule } from '../notifications/notifications.module';
@@ -16,7 +17,12 @@ import { StaffService } from './staff.service';
 import { TenancyRepository } from './tenancy.repository';
 
 @Module({
-  imports: [forwardRef(() => IdentityModule), PublicMenuModule, NotificationsModule],
+  imports: [
+    forwardRef(() => CoreModule),
+    forwardRef(() => IdentityModule),
+    PublicMenuModule,
+    NotificationsModule,
+  ],
   controllers: [
     BranchesController,
     MembershipsController,

@@ -14,6 +14,8 @@ export type StaffRulesTarget = {
 export type StaffRulesChange = {
   roleKey?: SystemRoleKey;
   status?: 'active' | 'disabled';
+  allBranches?: boolean;
+  branchIds?: string[];
 };
 
 export type StaffRulesContext = {
@@ -48,7 +50,12 @@ export function canManageMember(
   ctx: StaffRulesContext,
 ): CanManageMemberResult {
   if (ctx.isSelf) {
-    if (change.roleKey !== undefined || change.status !== undefined) {
+    if (
+      change.roleKey !== undefined ||
+      change.status !== undefined ||
+      change.allBranches !== undefined ||
+      change.branchIds !== undefined
+    ) {
       return { ok: false, reason: 'FORBIDDEN' };
     }
   }

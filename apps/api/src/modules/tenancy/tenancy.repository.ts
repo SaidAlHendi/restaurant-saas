@@ -172,6 +172,39 @@ export class TenancyRepository {
     return rows.length;
   }
 
+  async lockActiveOwnerMembershipsForUpdate(tx: DrizzleTx, orgId: string): Promise<string[]> {
+    const ownerRole = await this.findRoleByKey(tx, 'owner');
+    if (!ownerRole) {
+      return [];
+    }
+    const rows = await tx
+      .select({ id: memberships.id })
+      .from(memberships)
+      .where(
+        and(
+          eq(memberships.orgId, orgId),
+          eq(memberships.roleId, ownerRole.id),
+          eq(memberships.status, 'active'),
+        ),
+      )
+      .for('update');
+    return rows.map((r) => r.id);
+  }
+
+  async activateInvitedMembership(tx: DrizzleTx, membershipId: string): Promise<boolean> {
+    const updated = await tx
+      .update(memberships)
+      .set({
+        status: 'active',
+        inviteTokenHash: null,
+        inviteExpiresAt: null,
+        updatedAt: new Date(),
+      })
+      .where(and(eq(memberships.id, membershipId), eq(memberships.status, 'invited')))
+      .returning({ id: memberships.id });
+    return updated[0] !== undefined;
+  }
+
   async findMembershipByOrgAndEmail(tx: DrizzleTx, orgId: string, email: string) {
     const rows = await tx
       .select({ membership: memberships })
@@ -228,7 +261,15 @@ export class TenancyRepository {
 
   async resolveInviteByTokenHash(tx: DrizzleTx, tokenHash: string) {
     const result = await tx.execute(sql`
-      SELECT * FROM public.resolve_invite(${tokenHash})
+      SELECT
+        membership_id,
+        org_id,
+        org_name,
+        email,
+        role_key,
+        status,
+        invite_expires_at
+      FROM public.resolve_invite(${tokenHash})
     `);
     const row = result.rows[0] as
       | {

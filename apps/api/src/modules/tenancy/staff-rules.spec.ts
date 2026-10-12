@@ -39,6 +39,24 @@ describe('canManageMember', () => {
     expect(result).toEqual({ ok: false, reason: 'FORBIDDEN' });
   });
 
+  it('nobody escalates own branch scope', () => {
+    const allBranches = canManageMember(
+      managerActor,
+      { membershipId: 'm1', roleKey: 'manager', status: 'active' },
+      { allBranches: true },
+      { isSelf: true, activeOwnerCount: 2 },
+    );
+    expect(allBranches).toEqual({ ok: false, reason: 'FORBIDDEN' });
+
+    const branchIds = canManageMember(
+      managerActor,
+      { membershipId: 'm1', roleKey: 'manager', status: 'active' },
+      { branchIds: ['01932a1a-7b3e-7000-8000-000000000031'] },
+      { isSelf: true, activeOwnerCount: 2 },
+    );
+    expect(branchIds).toEqual({ ok: false, reason: 'FORBIDDEN' });
+  });
+
   it('last owner cannot be demoted', () => {
     const result = canManageMember(
       ownerActor,

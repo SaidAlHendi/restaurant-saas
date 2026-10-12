@@ -13,6 +13,7 @@ import { ENV, type Env } from '../../config/config.module';
 import { CLOCK, type Clock } from '../../core/clock/clock.tokens';
 import type { RequestContext } from '../../core/context/request-context';
 import { DRIZZLE, type DrizzleDb } from '../../core/db/db.module';
+import type { DrizzleTx } from '../../core/db/with-org';
 import { withOrg } from '../../core/db/with-org';
 import {
   ConflictError,
@@ -20,13 +21,13 @@ import {
   NotFoundError,
   ValidationError,
 } from '../../core/errors/app-errors';
+import { generateInviteToken, inviteExpiresAt } from '../../lib/invite-token';
 import { isPgUniqueViolation } from '../../lib/pg-errors';
 import { newUuidV7 } from '../../lib/uuid';
+import { IdentityService } from '../identity/identity.service';
 import { MailService } from '../notifications/mail.service';
-import { IdentityRepository } from '../identity/identity.repository';
 
-import { generateInviteToken, inviteExpiresAt } from './invite-token';
-import { canInviteRole, canManageMember } from './staff-rules';
+import { canInviteRole, canManageMember, type StaffRulesChange } from './staff-rules';
 import { TenancyRepository } from './tenancy.repository';
 
 @Injectable()
@@ -34,7 +35,7 @@ export class StaffService {
   constructor(
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly tenancyRepo: TenancyRepository,
-    private readonly identityRepo: IdentityRepository,
+    private readonly identity: IdentityService,
     private readonly mail: MailService,
     @Inject(ENV) private readonly env: Env,
     @Inject(CLOCK) private readonly clock: Clock,
@@ -70,13 +71,12 @@ export class StaffService {
   }
 
   async createInvite(ctx: RequestContext, body: CreateStaffInviteBody) {
-    await this.assertBranchScope(ctx, body.allBranches, body.branchIds);
-
     const email = body.email.toLowerCase();
     const { raw, hash } = generateInviteToken();
     const expiresAt = inviteExpiresAt(this.clock.now());
 
     return withOrg(this.db, ctx.orgId, async (tx) => {
+      await this.assertBranchScope(ctx, body.allBranches, body.branchIds, tx);
       const actorRole = await this.actorRoleKey(tx, ctx);
       if (!canInviteRole(actorRole, body.roleKey)) {
         throw new ForbiddenError('Cannot invite this role');
@@ -91,9 +91,9 @@ export class StaffService {
         throw new ValidationError('Invalid role');
       }
 
-      let user = await this.identityRepo.findUserByEmail(tx, email);
+      let user = await this.identity.findUserByEmail(tx, email);
       if (!user) {
-        user = await this.identityRepo.insertUser(tx, {
+        user = await this.identity.createStaffUser(tx, {
           id: newUuidV7(),
           email,
           passwordHash: null,
@@ -207,13 +207,12 @@ export class StaffService {
   }
 
   async createPinOnly(ctx: RequestContext, body: CreatePinOnlyStaffBody) {
-    await this.assertBranchScope(ctx, body.allBranches, body.branchIds);
-
     const pinHash = await argon2.hash(body.pin, { type: argon2.argon2id });
     const userId = newUuidV7();
     const membershipId = newUuidV7();
 
     return withOrg(this.db, ctx.orgId, async (tx) => {
+      await this.assertBranchScope(ctx, body.allBranches, body.branchIds, tx);
       const actorRole = await this.actorRoleKey(tx, ctx);
       if (!canInviteRole(actorRole, body.roleKey)) {
         throw new ForbiddenError('Cannot create this role');
@@ -223,7 +222,7 @@ export class StaffService {
         throw new ValidationError('Invalid role');
       }
 
-      await this.identityRepo.insertUser(tx, {
+      await this.identity.createStaffUser(tx, {
         id: userId,
         email: null,
         passwordHash: null,
@@ -256,24 +255,48 @@ export class StaffService {
         throw new NotFoundError();
       }
 
-      const change = { roleKey: body.roleKey, status: body.status };
-      await this.assertCanManageTx(
-        tx,
-        ctx,
-        row.membership.id,
-        row.role.key as SystemRoleKey,
-        row.membership.status,
-        change,
-      );
+      const isSelf = row.membership.id === ctx.membershipId;
 
       if (body.name !== undefined && row.user.email !== null) {
         throw new ValidationError('Name can only be changed for PIN-only staff');
       }
 
+      const change: StaffRulesChange = {
+        roleKey: body.roleKey,
+        status: body.status,
+        allBranches: body.allBranches,
+        branchIds: body.branchIds,
+      };
+      const hasManagementChange =
+        change.roleKey !== undefined ||
+        change.status !== undefined ||
+        change.allBranches !== undefined ||
+        change.branchIds !== undefined;
+
+      if (!isSelf) {
+        await this.assertCanManageTx(
+          tx,
+          ctx,
+          row.membership.id,
+          row.role.key as SystemRoleKey,
+          row.membership.status,
+          change,
+        );
+      } else if (hasManagementChange) {
+        await this.assertCanManageTx(
+          tx,
+          ctx,
+          row.membership.id,
+          row.role.key as SystemRoleKey,
+          row.membership.status,
+          change,
+        );
+      }
+
       if (body.allBranches !== undefined || body.branchIds !== undefined) {
         const allBranches = body.allBranches ?? row.membership.allBranches;
         const branchIds = body.branchIds ?? (await this.tenancyRepo.listMembershipBranchIds(tx, membershipId));
-        await this.assertBranchScope(ctx, allBranches, branchIds);
+        await this.assertBranchScope(ctx, allBranches, branchIds, tx);
       }
 
       if (body.roleKey !== undefined) {
@@ -287,7 +310,7 @@ export class StaffService {
       if (body.status !== undefined) {
         await this.tenancyRepo.updateMembership(tx, membershipId, { status: body.status });
         if (body.status === 'disabled') {
-          await this.identityRepo.revokeSessionsForUserOrg(tx, row.user.id, ctx.orgId);
+          await this.identity.revokeSessionsForUserOrg(tx, row.user.id, ctx.orgId);
         }
       }
 
@@ -307,7 +330,7 @@ export class StaffService {
       }
 
       if (body.name !== undefined) {
-        await this.identityRepo.updateUserProfile(tx, row.user.id, { name: body.name });
+        await this.identity.updateUserName(tx, row.user.id, body.name);
       }
 
       const updated = await this.tenancyRepo.findMembershipWithUserRole(tx, membershipId);
@@ -381,15 +404,21 @@ export class StaffService {
   }
 
   private async assertCanManageTx(
-    tx: Parameters<Parameters<DrizzleDb['transaction']>[0]>[0],
+    tx: DrizzleTx,
     ctx: RequestContext,
     targetMembershipId: string,
     targetRoleKey: SystemRoleKey,
     targetStatus: 'active' | 'invited' | 'disabled',
-    change: { roleKey?: SystemRoleKey; status?: 'active' | 'disabled' },
+    change: StaffRulesChange,
   ): Promise<void> {
     const actorRole = await this.actorRoleKey(tx, ctx);
-    const activeOwnerCount = await this.tenancyRepo.countActiveOwners(tx, ctx.orgId);
+    let activeOwnerCount: number;
+    if (this.changeMayRemoveActiveOwner(targetRoleKey, targetStatus, change)) {
+      const locked = await this.tenancyRepo.lockActiveOwnerMembershipsForUpdate(tx, ctx.orgId);
+      activeOwnerCount = locked.length;
+    } else {
+      activeOwnerCount = await this.tenancyRepo.countActiveOwners(tx, ctx.orgId);
+    }
     const result = canManageMember(
       { membershipId: ctx.membershipId, roleKey: actorRole },
       { membershipId: targetMembershipId, roleKey: targetRoleKey, status: targetStatus },
@@ -407,10 +436,20 @@ export class StaffService {
     }
   }
 
-  private async actorRoleKey(
-    tx: Parameters<Parameters<DrizzleDb['transaction']>[0]>[0],
-    ctx: RequestContext,
-  ): Promise<SystemRoleKey> {
+  private changeMayRemoveActiveOwner(
+    targetRoleKey: SystemRoleKey,
+    targetStatus: 'active' | 'invited' | 'disabled',
+    change: StaffRulesChange,
+  ): boolean {
+    if (targetRoleKey !== 'owner' || targetStatus !== 'active') {
+      return false;
+    }
+    const demotingOwner = change.roleKey !== undefined && change.roleKey !== 'owner';
+    const disablingOwner = change.status === 'disabled';
+    return demotingOwner || disablingOwner;
+  }
+
+  private async actorRoleKey(tx: DrizzleTx, ctx: RequestContext): Promise<SystemRoleKey> {
     const row = await this.tenancyRepo.findMembershipWithUserRole(tx, ctx.membershipId);
     if (!row) {
       throw new ForbiddenError('Actor membership not found');
@@ -422,6 +461,7 @@ export class StaffService {
     ctx: RequestContext,
     allBranches: boolean,
     branchIds: string[],
+    tx: DrizzleTx,
   ): Promise<void> {
     if (allBranches) {
       return;
@@ -429,13 +469,11 @@ export class StaffService {
     if (branchIds.length === 0) {
       throw new ValidationError('At least one branch is required when allBranches is false');
     }
-    return withOrg(this.db, ctx.orgId, async (tx) => {
-      const orgBranchIds = new Set(await this.tenancyRepo.listBranchIdsForOrg(tx, ctx.orgId));
-      for (const branchId of branchIds) {
-        if (!orgBranchIds.has(branchId)) {
-          throw new ValidationError('Branch is not in this organization', { branchId });
-        }
+    for (const branchId of branchIds) {
+      const branch = await this.tenancyRepo.findBranchById(tx, branchId);
+      if (!branch || branch.orgId !== ctx.orgId) {
+        throw new ValidationError('Branch is not in this organization', { branchId });
       }
-    });
+    }
   }
 }

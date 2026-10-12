@@ -84,34 +84,69 @@ export class OrgSettingsService {
 
   async uploadLogo(ctx: RequestContext, file: Express.Multer.File) {
     this.logos.assertFileSize(file.size);
-    return withOrg(this.db, ctx.orgId, async (tx) => {
-      const org = await this.tenancyRepo.findOrganizationById(tx, ctx.orgId);
-      if (!org) {
-        throw new NotFoundError();
-      }
-      const { primaryKey } = await this.logos.processAndUpload(ctx.orgId, file.buffer);
-      await this.logos.deleteLogoKeys(org.logoKey);
-      await this.tenancyRepo.updateOrganization(tx, ctx.orgId, { logoKey: primaryKey });
-      this.purgeMenuCache(ctx.orgId);
-      const url = logoUrlFromKey(this.storage, primaryKey);
-      if (!url) {
-        throw new NotFoundError('Logo URL could not be resolved');
-      }
-      return { logoUrl: url };
-    });
+    const orgId = ctx.orgId;
+    const { primaryKey } = await this.logos.processAndUpload(orgId, file.buffer);
+
+    let previousLogoKey: string | null;
+    try {
+      previousLogoKey = await withOrg(this.db, orgId, async (tx) => {
+        const org = await this.tenancyRepo.findOrganizationById(tx, orgId);
+        if (!org) {
+          throw new NotFoundError();
+        }
+        const priorKey = org.logoKey;
+        const updated = await this.tenancyRepo.updateOrganization(tx, orgId, { logoKey: primaryKey });
+        if (!updated) {
+          throw new NotFoundError();
+        }
+        return priorKey;
+      });
+    } catch (err: unknown) {
+      await this.deleteLogoKeysBestEffort(primaryKey);
+      throw err;
+    }
+
+    if (previousLogoKey !== null && previousLogoKey.length > 0) {
+      await this.deleteLogoKeysBestEffort(previousLogoKey);
+    }
+    this.purgeMenuCache(orgId);
+
+    const url = logoUrlFromKey(this.storage, primaryKey);
+    if (!url) {
+      throw new NotFoundError('Logo URL could not be resolved');
+    }
+    return { logoUrl: url };
   }
 
   async deleteLogo(ctx: RequestContext) {
-    return withOrg(this.db, ctx.orgId, async (tx) => {
-      const org = await this.tenancyRepo.findOrganizationById(tx, ctx.orgId);
+    const orgId = ctx.orgId;
+    const previousLogoKey = await withOrg(this.db, orgId, async (tx) => {
+      const org = await this.tenancyRepo.findOrganizationById(tx, orgId);
       if (!org) {
         throw new NotFoundError();
       }
-      await this.logos.deleteLogoKeys(org.logoKey);
-      await this.tenancyRepo.updateOrganization(tx, ctx.orgId, { logoKey: null });
-      this.purgeMenuCache(ctx.orgId);
-      return { logoUrl: null };
+      const priorKey = org.logoKey;
+      const updated = await this.tenancyRepo.updateOrganization(tx, orgId, { logoKey: null });
+      if (!updated) {
+        throw new NotFoundError();
+      }
+      return priorKey;
     });
+
+    if (previousLogoKey !== null && previousLogoKey.length > 0) {
+      await this.deleteLogoKeysBestEffort(previousLogoKey);
+    }
+    this.purgeMenuCache(orgId);
+    return { logoUrl: null };
+  }
+
+  private async deleteLogoKeysBestEffort(logoKey: string): Promise<void> {
+    try {
+      await this.logos.deleteLogoKeys(logoKey);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      this.logger.warn(`Failed to delete logo objects for key ${logoKey}: ${message}`);
+    }
   }
 
   logoUrlForOrg(logoKey: string | null | undefined): string | null {

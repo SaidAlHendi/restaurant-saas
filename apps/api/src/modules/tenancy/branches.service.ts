@@ -1,8 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 
 import { BusinessRuleError, NotFoundError } from '../../core/errors/app-errors';
-import { outboxEvents } from '../../core/db/schema/infra';
 import { DRIZZLE, type DrizzleDb } from '../../core/db/db.module';
+import { OutboxService } from '../../core/outbox/outbox.service';
 import { withOrg, type DrizzleTx } from '../../core/db/with-org';
 import type { RequestContext } from '../../core/context/request-context';
 import { newUuidV7 } from '../../lib/uuid';
@@ -55,6 +55,7 @@ export class BranchesService {
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly repo: TenancyRepository,
     private readonly orgSettings: OrgSettingsService,
+    private readonly outbox: OutboxService,
   ) {}
 
   list(ctx: RequestContext) {
@@ -118,8 +119,7 @@ export class BranchesService {
         throw new NotFoundError();
       }
 
-      await tx.insert(outboxEvents).values({
-        id: newUuidV7(),
+      await this.outbox.write(tx, {
         orgId: ctx.orgId,
         branchId,
         type: OUTBOX_BRANCH_SETTINGS_UPDATED,

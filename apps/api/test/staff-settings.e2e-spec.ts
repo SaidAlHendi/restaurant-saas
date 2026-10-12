@@ -427,6 +427,42 @@ describe('Staff and settings (e2e)', () => {
       expect(demote.status).toBe(403);
     });
 
+    it('branch-limited manager cannot PATCH self to allBranches', async () => {
+      const fresh = await signupFreshOrg(app, jwt);
+      const managerEmail = `mgr-br-${newUuidV7().slice(-8)}@example.com`;
+      const inv = await fresh.ownerAgent.post('/v1/staff/invites').send({
+        email: managerEmail,
+        roleKey: 'manager',
+        allBranches: false,
+        branchIds: [fresh.branchId],
+      });
+      const mToken = extractInviteToken((inv.body as { inviteUrl: string }).inviteUrl);
+      await publicAgent.post('/v1/auth/accept-invite').send({ token: mToken, password: fresh.password });
+      const managerLogin = await publicAgent.post('/v1/auth/login').send({
+        email: managerEmail,
+        password: fresh.password,
+      });
+      const manager = withBearer(apiAgent(app), (managerLogin.body as { accessToken: string }).accessToken);
+
+      const beforeList = (await manager.get('/v1/staff')).body as {
+        items: Array<{ isSelf: boolean; id: string; allBranches: boolean; branchIds: string[] }>;
+      };
+      const selfRow = beforeList.items.find((i) => i.isSelf);
+      expect(selfRow?.allBranches).toBe(false);
+      expect(selfRow?.branchIds).toEqual([fresh.branchId]);
+
+      expect(
+        (await manager.patch(`/v1/staff/${selfRow?.id ?? ''}`).send({ allBranches: true })).status,
+      ).toBe(403);
+
+      const afterList = (await manager.get('/v1/staff')).body as {
+        items: Array<{ isSelf: boolean; allBranches: boolean; branchIds: string[] }>;
+      };
+      const afterSelf = afterList.items.find((i) => i.isSelf);
+      expect(afterSelf?.allBranches).toBe(false);
+      expect(afterSelf?.branchIds).toEqual([fresh.branchId]);
+    });
+
     it('rejects branchIds from another org on invite', async () => {
       const fresh = await signupFreshOrg(app, jwt);
       const other = await signupFreshOrg(app, jwt);

@@ -19,7 +19,7 @@ import { newUuidV7 } from '../../lib/uuid';
 import { isPgUniqueViolation } from '../../lib/pg-errors';
 import { slugifyBase, slugWithSuffix } from '../../lib/slug';
 import type { AcceptInviteBody, LoginBody, SignupBody, SwitchOrgBody, SystemRoleKey } from '@app/shared';
-import { hashInviteToken } from '../tenancy/invite-token';
+import { hashInviteToken } from '../../lib/invite-token';
 
 import {
   LOGIN_INVALID_MESSAGE,
@@ -489,11 +489,10 @@ export class AuthService implements OnModuleInit {
         }
       }
 
-      await this.tenancyRepo.updateMembership(tx, membership.id, {
-        status: 'active',
-        inviteTokenHash: null,
-        inviteExpiresAt: null,
-      });
+      const activated = await this.tenancyRepo.activateInvitedMembership(tx, membership.id);
+      if (!activated) {
+        throw new NotFoundError();
+      }
 
       const { accessToken } = await this.createSession(tx, {
         userId: user.id,
