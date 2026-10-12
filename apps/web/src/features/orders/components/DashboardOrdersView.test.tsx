@@ -155,5 +155,6 @@ describe('DashboardOrdersView search', () => {
     const inputAfterSync = within(container).getByPlaceholderText('Search');
     expect(inputAfterSync).toBe(input);
     expect(inputAfterSync).toHaveValue('bur');
+    expect(document.activeElement).toBe(inputAfterSync);
   });
 });
