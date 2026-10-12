@@ -73,3 +73,13 @@ export class TooManyRequestsError extends AppError {
     super('RATE_LIMITED', message, 429, details);
   }
 }
+
+export class LockedError extends AppError {
+  constructor(
+    code = 'PIN_LOCKED',
+    message = 'PIN is temporarily locked',
+    details: Record<string, unknown> = {},
+  ) {
+    super(code, message, 423, details);
+  }
+}

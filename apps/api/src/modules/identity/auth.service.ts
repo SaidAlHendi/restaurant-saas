@@ -3,11 +3,13 @@ import * as argon2 from 'argon2';
 import type { Request, Response } from 'express';
 
 import {
+  AppError,
   ForbiddenError,
   NotFoundError,
   UnauthorizedError,
   ValidationError,
 } from '../../core/errors/app-errors';
+import { CLOCK, type Clock } from '../../core/clock/clock.tokens';
 import { JwtAccessService } from '../../core/auth/jwt.service';
 import { RefreshTokenService } from '../../core/auth/refresh-token.service';
 import { DRIZZLE, type DrizzleDb } from '../../core/db/db.module';
@@ -16,7 +18,8 @@ import { withUser } from '../../core/db/with-user';
 import { newUuidV7 } from '../../lib/uuid';
 import { isPgUniqueViolation } from '../../lib/pg-errors';
 import { slugifyBase, slugWithSuffix } from '../../lib/slug';
-import type { SignupBody, LoginBody, SwitchOrgBody } from '@app/shared';
+import type { AcceptInviteBody, LoginBody, SignupBody, SwitchOrgBody, SystemRoleKey } from '@app/shared';
+import { hashInviteToken } from '../tenancy/invite-token';
 
 import {
   LOGIN_INVALID_MESSAGE,
@@ -37,6 +40,7 @@ export class AuthService implements OnModuleInit {
     private readonly tenancyRepo: TenancyRepository,
     private readonly jwt: JwtAccessService,
     private readonly refreshTokens: RefreshTokenService,
+    @Inject(CLOCK) private readonly clock: Clock,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -138,9 +142,10 @@ export class AuthService implements OnModuleInit {
   async login(body: LoginBody, req: Request, res: Response) {
     const email = body.email.toLowerCase();
     const user = await this.db.transaction(async (tx) => this.identityRepo.findUserByEmail(tx, email));
-    const hashToVerify = user?.passwordHash ?? (await this.ensureTimingMitigationHash());
+    const hashToVerify =
+      user?.passwordHash ?? (await this.ensureTimingMitigationHash());
     const valid = await argon2.verify(hashToVerify, body.password);
-    if (!user || !valid) {
+    if (!user || !user.passwordHash || !valid) {
       throw new UnauthorizedError('INVALID_CREDENTIALS', LOGIN_INVALID_MESSAGE);
     }
 
@@ -417,6 +422,109 @@ export class AuthService implements OnModuleInit {
       return sessionOrgId;
     }
     return this.resolveLoginOrgId(userId, lastOrgId);
+  }
+
+  async previewInvite(rawToken: string) {
+    const tokenHash = hashInviteToken(rawToken);
+    const row = await this.db.transaction(async (tx) =>
+      this.tenancyRepo.resolveInviteByTokenHash(tx, tokenHash),
+    );
+    if (!row) {
+      throw new NotFoundError();
+    }
+    const expiresAt = row.inviteExpiresAt;
+    if (expiresAt.getTime() <= this.clock.now().getTime()) {
+      throw new AppError('INVITE_EXPIRED', 'Invite has expired', 410);
+    }
+    const user = await this.db.transaction(async (tx) => {
+      await tx.execute(setOrgLocal(row.orgId));
+      const membership = await this.tenancyRepo.findMembershipById(tx, row.membershipId);
+      if (!membership) {
+        return undefined;
+      }
+      return this.identityRepo.findUserById(tx, membership.userId);
+    });
+    return {
+      orgName: row.orgName,
+      email: row.email,
+      roleKey: row.roleKey as SystemRoleKey,
+      passwordRequired: !user?.passwordHash,
+    };
+  }
+
+  async acceptInvite(body: AcceptInviteBody, req: Request, res: Response) {
+    const tokenHash = hashInviteToken(body.token);
+    const resolved = await this.db.transaction(async (tx) =>
+      this.tenancyRepo.resolveInviteByTokenHash(tx, tokenHash),
+    );
+    if (!resolved) {
+      throw new NotFoundError();
+    }
+    if (resolved.inviteExpiresAt.getTime() <= this.clock.now().getTime()) {
+      throw new AppError('INVITE_EXPIRED', 'Invite has expired', 410);
+    }
+
+    const sessionId = newUuidV7();
+    const familyId = newUuidV7();
+
+    return this.db.transaction(async (tx) => {
+      await tx.execute(setOrgLocal(resolved.orgId));
+      const membership = await this.tenancyRepo.findMembershipById(tx, resolved.membershipId);
+      if (!membership || membership.status !== 'invited') {
+        throw new NotFoundError();
+      }
+      const user = await this.identityRepo.findUserById(tx, membership.userId);
+      if (!user) {
+        throw new NotFoundError();
+      }
+
+      if (!user.passwordHash) {
+        const name = body.name ?? user.name;
+        const passwordHash = await argon2.hash(body.password, { type: argon2.argon2id });
+        await this.identityRepo.updateUserProfile(tx, user.id, { name, passwordHash });
+      } else {
+        const valid = await argon2.verify(user.passwordHash, body.password);
+        if (!valid) {
+          throw new UnauthorizedError('INVALID_CREDENTIALS', LOGIN_INVALID_MESSAGE);
+        }
+      }
+
+      await this.tenancyRepo.updateMembership(tx, membership.id, {
+        status: 'active',
+        inviteTokenHash: null,
+        inviteExpiresAt: null,
+      });
+
+      const { accessToken } = await this.createSession(tx, {
+        userId: user.id,
+        orgId: resolved.orgId,
+        sessionId,
+        familyId,
+        req,
+        res,
+      });
+
+      const org = await this.tenancyRepo.findOrganizationById(tx, resolved.orgId);
+      if (!org) {
+        throw new NotFoundError();
+      }
+
+      const refreshedUser = await this.identityRepo.findUserById(tx, user.id);
+      if (!refreshedUser) {
+        throw new NotFoundError();
+      }
+
+      return {
+        accessToken,
+        user: {
+          id: refreshedUser.id,
+          email: refreshedUser.email,
+          name: refreshedUser.name,
+          locale: refreshedUser.locale as 'ar' | 'en',
+        },
+        org: { id: org.id, name: org.name, slug: org.slug },
+      };
+    });
   }
 
   private async resolveLoginOrgId(userId: string, lastOrgId: string | null): Promise<string> {

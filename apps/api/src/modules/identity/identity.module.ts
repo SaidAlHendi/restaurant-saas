@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 
 import { AuthModule } from '../../core/auth/auth.module';
 import { TenancyModule } from '../tenancy/tenancy.module';
@@ -12,7 +12,7 @@ import { MeController } from './me.controller';
 import { MeService } from './me.service';
 
 @Module({
-  imports: [TenancyModule, AuthModule],
+  imports: [forwardRef(() => TenancyModule), AuthModule],
   controllers: [AuthController, MeController],
   providers: [IdentityRepository, IdentityService, AuthService, AuthContextService, MeService],
   exports: [AuthContextService, IdentityRepository, IdentityService],

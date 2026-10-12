@@ -20,6 +20,52 @@ export { switchOrgBodySchema, switchOrgResponseSchema } from './auth/switch-org.
 export type { SwitchOrgBody, SwitchOrgResponse } from './auth/switch-org.js';
 
 export {
+  invitePreviewResponseSchema,
+  acceptInviteBodySchema,
+  acceptInviteResponseSchema,
+} from './auth/invite.js';
+export type {
+  InvitePreviewResponse,
+  AcceptInviteBody,
+  AcceptInviteResponse,
+} from './auth/invite.js';
+
+export {
+  orgSettingsResponseSchema,
+  patchOrgSettingsBodySchema,
+  orgLogoUploadResponseSchema,
+  orgLogoDeleteResponseSchema,
+} from './org/settings.js';
+export type {
+  OrgSettingsResponse,
+  PatchOrgSettingsBody,
+  OrgLogoUploadResponse,
+  OrgLogoDeleteResponse,
+} from './org/settings.js';
+
+export {
+  staffListItemSchema,
+  staffListResponseSchema,
+  createStaffInviteBodySchema,
+  createStaffInviteResponseSchema,
+  regenerateStaffInviteResponseSchema,
+  createPinOnlyStaffBodySchema,
+  patchStaffMembershipBodySchema,
+  putStaffPinBodySchema,
+  staffPinSchema,
+} from './staff/staff.js';
+export type {
+  StaffListItem,
+  CreateStaffInviteBody,
+  CreateStaffInviteResponse,
+  CreatePinOnlyStaffBody,
+  PatchStaffMembershipBody,
+  PutStaffPinBody,
+} from './staff/staff.js';
+
+export { isValidIanaTimezone } from './branches/timezone.js';
+
+export {
   branchSchema,
   createBranchBodySchema,
   patchBranchBodySchema,
@@ -40,6 +86,9 @@ export {
   LocalizedTextValidationError,
 } from './i18n/localized-text.js';
 export type { LocalizedText, OrgLocaleContext } from './i18n/localized-text.js';
+
+export { ORG_LOCALE_CODES, orgLocaleCodeSchema, parseOrgLocalesInput } from './i18n/org-locales.js';
+export type { OrgLocaleCode } from './i18n/org-locales.js';
 
 export { currencyDigits, currencySymbol, formatMinor } from './money/currency.js';
 export { formatMoney, intlLocaleForUi } from './money/format-money.js';

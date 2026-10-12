@@ -7,6 +7,7 @@ import { withOrg } from '../../core/db/with-org';
 import { withUser } from '../../core/db/with-user';
 import type { RequestContext } from '../../core/context/request-context';
 import { IdentityRepository } from './identity.repository';
+import { OrgSettingsService } from '../tenancy/org-settings.service';
 import { TenancyRepository } from '../tenancy/tenancy.repository';
 
 @Injectable()
@@ -15,6 +16,7 @@ export class MeService {
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly identityRepo: IdentityRepository,
     private readonly tenancyRepo: TenancyRepository,
+    private readonly orgSettings: OrgSettingsService,
   ) {}
 
   async getMe(ctx: RequestContext) {
@@ -63,6 +65,7 @@ export class MeService {
         defaultLocale: org.defaultLocale,
         locales: org.locales,
         defaultCurrency: org.defaultCurrency,
+        logoUrl: this.orgSettings.logoUrlForOrg(org.logoKey),
       },
       role: {
         id: role.id,

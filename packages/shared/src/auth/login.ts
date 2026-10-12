@@ -11,7 +11,7 @@ export const loginResponseSchema = z.object({
   accessToken: z.string(),
   user: z.object({
     id: z.uuid(),
-    email: z.email(),
+    email: z.email().nullable(),
     name: z.string(),
     locale: z.enum(['ar', 'en']),
   }),

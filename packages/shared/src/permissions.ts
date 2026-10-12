@@ -1,4 +1,5 @@
 export const PERMISSION_KEYS = [
+  'org.manage',
   'branches.read',
   'branches.manage',
   'staff.read',

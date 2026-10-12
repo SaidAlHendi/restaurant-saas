@@ -34,6 +34,7 @@ const bootstrappedMe: MeResponse = {
     defaultLocale: 'en',
     locales: ['en', 'ar'],
     defaultCurrency: 'SAR',
+    logoUrl: null,
   },
   role: {
     id: '01932a1a-7b3e-7000-8000-000000000020',
