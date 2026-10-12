@@ -9,7 +9,8 @@
 - Each request runs DB work in a transaction that first sets `SET LOCAL app.org_id`.
 - Errors: `{ "error": { "code": "ORDER_INVALID_TRANSITION", "message": "...", "details": {} } }`.
   400 validation, 401 unauthenticated, 403 no permission or plan feature, 404 not found (also for
-  other tenants' resources), 409 conflict (version/state), 422 business rule, 429 rate limit.
+  other tenants' resources), 409 conflict (version/state), 422 business rule (e.g. `ORDER_INVALID_TRANSITION`,
+  `PAYMENT_METHOD_NOT_ACCEPTED` when card is disabled on the branch), 429 rate limit.
 - Idempotent creates: header `Idempotency-Key`; for orders it equals `client_order_id`.
 - Pagination: cursor-based `?cursor=&limit=` (max 100), response `{ items, nextCursor }`.
 - Money in API = integer minor units + `currency`. Dates ISO 8601 UTC; `businessDate` as `YYYY-MM-DD`.

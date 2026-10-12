@@ -4,8 +4,11 @@ import type { Agent } from 'supertest';
 import type { RequestContext } from '../src/core/context/request-context';
 import { users } from '../src/core/db/schema/identity';
 import { memberships } from '../src/core/db/schema/tenancy';
+import pg from 'pg';
+
+import { loadEnv } from '../src/config/env';
 import type { DrizzleDb } from '../src/core/db/db.module';
-import { diningTables } from '../src/core/db/schema/ordering';
+import { diningTables, orders } from '../src/core/db/schema/ordering';
 import { withOrg } from '../src/core/db/with-org';
 import { generateQrToken } from '../src/lib/qr-token';
 import { newUuidV7 } from '../src/lib/uuid';
@@ -194,6 +197,142 @@ export async function seedCatalogProduct(agent: Agent): Promise<{ categoryId: st
     throw new Error(`product create failed: ${JSON.stringify(prod.body)}`);
   }
   return { categoryId, productId: (prod.body as { id: string }).id };
+}
+
+export async function createIsolatedBranch(
+  owner: Agent,
+  opts?: { payBeforeSend?: boolean; acceptsCard?: boolean },
+): Promise<{ branchId: string }> {
+  const slug = `t-${newUuidV7().slice(-8)}`;
+  const create = await owner.post('/v1/branches').send({
+    name: `Test branch ${slug}`,
+    slug,
+    timezone: 'Asia/Riyadh',
+    currency: 'SAR',
+    taxRateBp: 1500,
+    taxInclusive: false,
+    dayStartHour: 4,
+  });
+  if (create.status !== 201) {
+    throw new Error(`branch create failed: ${JSON.stringify(create.body)}`);
+  }
+  const branchId = (create.body as { id: string }).id;
+  if (opts?.payBeforeSend !== undefined || opts?.acceptsCard !== undefined) {
+    const patchBody: { payBeforeSend?: boolean; acceptsCard?: boolean } = {};
+    if (opts.payBeforeSend !== undefined) {
+      patchBody.payBeforeSend = opts.payBeforeSend;
+    }
+    if (opts.acceptsCard !== undefined) {
+      patchBody.acceptsCard = opts.acceptsCard;
+    }
+    const patch = await owner.patch(`/v1/branches/${branchId}`).send(patchBody);
+    if (patch.status !== 200) {
+      throw new Error(`branch patch failed: ${JSON.stringify(patch.body)}`);
+    }
+  }
+  return { branchId };
+}
+
+export function postPayment(
+  client: Agent,
+  branchId: string,
+  orderId: string,
+  body: {
+    clientPaymentId: string;
+    expectedVersion: number;
+    method: 'cash' | 'card';
+    amountMinor: number;
+    tenderedMinor?: number;
+  },
+  idempotencyKey?: string,
+) {
+  const base = client.post(`/v1/branches/${branchId}/orders/${orderId}/payments`);
+  const req = idempotencyKey === undefined ? base : base.set('Idempotency-Key', idempotencyKey);
+  return req.send(body);
+}
+
+export async function listOrderEventTypes(
+  db: DrizzleDb,
+  orgId: string,
+  orderId: string,
+): Promise<string[]> {
+  let types: string[] = [];
+  await withOrg(db, orgId, async (tx) => {
+    const row = await tx.execute(sql`
+      SELECT type FROM order_events
+      WHERE order_id = ${orderId}::uuid
+      ORDER BY created_at ASC, id ASC
+    `);
+    types = row.rows.map((r) => (r as { type: string }).type);
+  });
+  return types;
+}
+
+export async function lastOutboxChangeForOrder(
+  orgId: string,
+  orderId: string,
+): Promise<string | null> {
+  const env = loadEnv();
+  if (!env.DATABASE_WORKER_URL) {
+    throw new Error('DATABASE_WORKER_URL is required for this assertion');
+  }
+  const pool = new pg.Pool({ connectionString: env.DATABASE_WORKER_URL });
+  try {
+    const result = await pool.query<{ change: string | null }>(
+      `SELECT payload->>'change' AS change FROM outbox_events
+       WHERE org_id = $1::uuid AND aggregate_id = $2::uuid
+       ORDER BY created_at DESC, id DESC
+       LIMIT 1`,
+      [orgId, orderId],
+    );
+    return result.rows[0]?.change ?? null;
+  } finally {
+    await pool.end();
+  }
+}
+
+export async function insertPlacedOrderForBusinessDate(
+  db: DrizzleDb,
+  input: {
+    orgId: string;
+    branchId: string;
+    businessDate: string;
+    orderNumber: number;
+    createdByMembershipId: string;
+    totalMinor?: number;
+  },
+): Promise<string> {
+  const id = newUuidV7();
+  const clientOrderId = newUuidV7();
+  const total = input.totalMinor ?? 2500;
+  const now = new Date();
+  await withOrg(db, input.orgId, async (tx) => {
+    await tx.insert(orders).values({
+      id,
+      orgId: input.orgId,
+      branchId: input.branchId,
+      clientOrderId,
+      orderNumber: input.orderNumber,
+      businessDate: input.businessDate,
+      type: 'takeaway',
+      status: 'placed',
+      paymentStatus: 'unpaid',
+      tableId: null,
+      customerName: null,
+      notes: null,
+      subtotalMinor: total,
+      discountMinor: 0,
+      taxMinor: 0,
+      totalMinor: total,
+      currency: 'SAR',
+      version: 1,
+      placedAt: now,
+      createdBy: input.createdByMembershipId,
+      createdAt: now,
+      updatedAt: now,
+    });
+  });
+  return id;
 }
 
 export async function insertDiningTable(

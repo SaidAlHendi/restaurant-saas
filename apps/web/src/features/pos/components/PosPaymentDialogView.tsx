@@ -33,6 +33,7 @@ export function PosPaymentDialogView(props: PosPaymentDialogViewProps) {
     currency,
     uiLocale,
     labels,
+    showCard,
   } = props;
 
   return (
@@ -64,16 +65,18 @@ export function PosPaymentDialogView(props: PosPaymentDialogViewProps) {
             >
               {labels.methodCash}
             </Button>
-            <Button
-              type="button"
-              size="touch"
-              variant={method === 'card' ? 'default' : 'outline'}
-              onClick={() => {
-                setMethod('card');
-              }}
-            >
-              {labels.methodCard}
-            </Button>
+            {showCard ? (
+              <Button
+                type="button"
+                size="touch"
+                variant={method === 'card' ? 'default' : 'outline'}
+                onClick={() => {
+                  setMethod('card');
+                }}
+              >
+                {labels.methodCard}
+              </Button>
+            ) : null}
           </div>
           {method === 'cash' ? (
             <div className="space-y-3">

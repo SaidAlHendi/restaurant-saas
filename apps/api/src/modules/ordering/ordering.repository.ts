@@ -2,6 +2,7 @@ import { and, asc, desc, eq, inArray, lt, or, sql } from 'drizzle-orm';
 import { Injectable } from '@nestjs/common';
 
 import type { OrderListCursor } from '../../lib/order-list-cursor';
+import { escapeLikePattern } from '../../lib/sql-like';
 import type { DrizzleTx } from '../../core/db/with-org';
 import {
   branchCounters,
@@ -170,19 +171,37 @@ export class OrderingRepository {
       status?: OrderStatus;
       businessDate?: string;
       activeOnly?: boolean;
+      todayOnlyBusinessDate?: string;
+      q?: string;
       cursor?: OrderListCursor;
       limit: number;
     },
   ) {
     const conditions = [eq(orders.branchId, branchId)];
     if (opts.activeOnly) {
-      conditions.push(inArray(orders.status, ['placed', 'preparing', 'ready']));
-    } else {
-      if (opts.status) {
-        conditions.push(eq(orders.status, opts.status));
-      }
-      if (opts.businessDate) {
-        conditions.push(eq(orders.businessDate, opts.businessDate));
+      conditions.push(inArray(orders.status, ['draft', 'placed', 'preparing', 'ready']));
+    }
+    if (opts.status) {
+      conditions.push(eq(orders.status, opts.status));
+    }
+    if (opts.businessDate) {
+      conditions.push(eq(orders.businessDate, opts.businessDate));
+    }
+    if (opts.todayOnlyBusinessDate) {
+      conditions.push(eq(orders.businessDate, opts.todayOnlyBusinessDate));
+    }
+    if (opts.q) {
+      const q = opts.q;
+      if (/^\d{1,9}$/.test(q)) {
+        conditions.push(eq(orders.orderNumber, Number.parseInt(q, 10)));
+      } else {
+        const pattern = `%${escapeLikePattern(q)}%`;
+        conditions.push(
+          or(
+            sql`${orders.customerName} ilike ${pattern} escape '\\'`,
+            sql`${diningTables.label} ilike ${pattern} escape '\\'`,
+          ) ?? sql`true`,
+        );
       }
     }
     if (opts.cursor) {
@@ -197,8 +216,12 @@ export class OrderingRepository {
       );
     }
     return tx
-      .select()
+      .select({
+        order: orders,
+        tableLabel: diningTables.label,
+      })
       .from(orders)
+      .leftJoin(diningTables, eq(orders.tableId, diningTables.id))
       .where(and(...conditions))
       .orderBy(desc(orders.createdAt), desc(orders.id))
       .limit(opts.limit + 1);
@@ -353,6 +376,33 @@ export class OrderingRepository {
         updatedAt: new Date(),
       })
       .where(and(eq(orders.id, orderId), eq(orders.version, expectedVersion)))
+      .returning();
+    return rows[0];
+  }
+
+  async updateOrderPaymentStatusAndPlaceFromDraft(
+    tx: DrizzleTx,
+    orderId: string,
+    expectedVersion: number,
+    paymentStatus: typeof orders.$inferSelect.paymentStatus,
+    placedAt: Date,
+  ) {
+    const rows = await tx
+      .update(orders)
+      .set({
+        paymentStatus,
+        status: 'placed',
+        placedAt,
+        version: expectedVersion + 1,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(orders.id, orderId),
+          eq(orders.version, expectedVersion),
+          eq(orders.status, 'draft'),
+        ),
+      )
       .returning();
     return rows[0];
   }

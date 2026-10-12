@@ -97,7 +97,7 @@ export function useKdsPage() {
       if (shouldRefetchForEvent(boardDataRef.current, payload, branchId)) {
         refetchBoard();
       }
-      if (settingsRef.current.soundEnabled && shouldChime(payload)) {
+      if (settingsRef.current.soundEnabled && shouldChime(boardDataRef.current, payload)) {
         chimeRef.current.play();
       }
     },

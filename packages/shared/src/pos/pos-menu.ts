@@ -14,6 +14,8 @@ export const posMenuBranchSchema = z.object({
   receiptHeader: z.string().nullable(),
   receiptFooter: z.string().nullable(),
   address: z.string().nullable(),
+  payBeforeSend: z.boolean(),
+  acceptsCard: z.boolean(),
 });
 
 export const posMenuOrgSchema = z.object({

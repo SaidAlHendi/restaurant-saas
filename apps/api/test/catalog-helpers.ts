@@ -20,6 +20,11 @@ export async function asOtherOwner(agent: Agent) {
   return authAgent(agent, accessToken);
 }
 
+export async function asDemoCashier(agent: Agent) {
+  const { accessToken } = await loginSeedUser(agent, 'cashier', 'demo');
+  return authAgent(agent, accessToken);
+}
+
 export function categoryBody(nameEn = 'Mains', nameAr = 'أطباق') {
   return {
     name: { en: nameEn, ar: nameAr },

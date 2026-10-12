@@ -10,6 +10,7 @@ import { resetSeedOrgs } from './seed-reset';
 import { hashSeedPassword, seedOrganizationTree } from './seed-orgs';
 import { seedCatalogForOrg } from './seed-catalog';
 import { seedOrderHistory } from './seed-orders';
+import { seedTodayDraftOrders } from './seed-draft-orders';
 import { seedProductImages } from './seed-images';
 import { runSeedInvariants } from './run-invariants';
 import { countSeedOrgTables, printSummaryTable } from './summary';
@@ -58,6 +59,7 @@ async function main(): Promise<void> {
     }
 
     await seedOrderHistory(db, seededOrgs, { days: options.days, anchor: options.anchor });
+    await seedTodayDraftOrders(db, seededOrgs, { anchor: options.anchor });
 
     if (options.images === 'on') {
       await seedProductImages(

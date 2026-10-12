@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import type { OrderRealtimeClientPayload } from '@app/shared';
+
 import {
   ageLevelFor,
   formatAge,
@@ -44,7 +46,6 @@ describe('age timer', () => {
   });
 
   it('corrects a fast tablet clock with the server offset', () => {
-    // Tablet is 3 minutes ahead of the server.
     const receivedAt = Date.parse('2026-10-11T12:13:00.000Z');
     const offset = serverClockOffsetMs('2026-10-11T12:10:00.000Z', receivedAt);
     expect(offset).toBe(-3 * MIN);
@@ -75,14 +76,16 @@ describe('shouldRefetchForEvent', () => {
     over: Partial<{
       orderId: string;
       version: number;
-      status: 'placed' | 'completed';
+      status: 'placed' | 'completed' | 'draft';
       branchId: string;
+      change: OrderRealtimeClientPayload['change'];
     }>,
-  ) => ({
+  ): OrderRealtimeClientPayload => ({
     orderId: card.id,
     branchId: BRANCH_ID,
-    status: 'placed' as const,
+    status: 'placed',
     version: 3,
+    change: 'status',
     ...over,
   });
 
@@ -109,22 +112,76 @@ describe('shouldRefetchForEvent', () => {
       ),
     ).toBe(false);
   });
+
+  it('does not refetch for draft status on a new order', () => {
+    const emptyBoard = { serverTime: '2026-10-11T12:00:00.000Z', orders: [] };
+    expect(
+      shouldRefetchForEvent(
+        emptyBoard,
+        event({
+          orderId: '00000000-0000-4000-8000-000000000010',
+          status: 'draft',
+          version: 1,
+          change: 'status',
+        }),
+        BRANCH_ID,
+      ),
+    ).toBe(false);
+  });
 });
 
 describe('shouldChime', () => {
-  const base = { orderId: BRANCH_ID, branchId: BRANCH_ID, status: 'placed' as const, version: 1 };
+  const orderId = '00000000-0000-4000-8000-000000000010';
+  const card = boardOrder({ id: orderId });
+  const board = { serverTime: '2026-10-11T12:00:00.000Z', orders: [card] };
+  const emptyBoard = { serverTime: '2026-10-11T12:00:00.000Z', orders: [] };
 
-  it('chimes for changes the kitchen did not make', () => {
-    for (const change of ['placed', 'items_added', 'item_voided', 'cancelled'] as const) {
-      expect(shouldChime({ ...base, change })).toBe(true);
+  const payload = (
+    over: Partial<OrderRealtimeClientPayload> & Pick<OrderRealtimeClientPayload, 'change'>,
+  ): OrderRealtimeClientPayload => ({
+    orderId,
+    branchId: BRANCH_ID,
+    status: 'placed',
+    version: 2,
+    change: over.change,
+    ...over,
+  });
+
+  it('chimes for changes the kitchen did not make when the order is on the board', () => {
+    for (const change of ['items_added', 'item_voided', 'cancelled'] as const) {
+      expect(shouldChime(board, payload({ change, status: 'placed' }))).toBe(true);
     }
+  });
+
+  it('chimes for placed when status is a board status', () => {
+    expect(shouldChime(emptyBoard, payload({ change: 'placed', status: 'placed', version: 1 }))).toBe(
+      true,
+    );
   });
 
   it('stays quiet for status, item status, payments and old events without change', () => {
     for (const change of ['status', 'item_status', 'payment'] as const) {
-      expect(shouldChime({ ...base, change })).toBe(false);
+      expect(shouldChime(board, payload({ change }))).toBe(false);
     }
-    expect(shouldChime(base)).toBe(false);
+    expect(shouldChime(board, payload({ change: 'status' }))).toBe(false);
+  });
+
+  it('does not chime for items_added on draft not on board', () => {
+    expect(
+      shouldChime(emptyBoard, payload({ status: 'draft', change: 'items_added', version: 2 })),
+    ).toBe(false);
+  });
+
+  it('does not chime for cancelled draft not on board', () => {
+    expect(
+      shouldChime(emptyBoard, payload({ status: 'draft', change: 'cancelled', version: 2 })),
+    ).toBe(false);
+  });
+
+  it('chimes for items_added when order is already on the board', () => {
+    expect(shouldChime(board, payload({ status: 'placed', change: 'items_added', version: 2 }))).toBe(
+      true,
+    );
   });
 });
 

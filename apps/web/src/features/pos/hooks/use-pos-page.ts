@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { toast } from '@app/ui';
+import type { OrderDetail, OrderStatus } from '@app/shared';
+
 import { baseApi } from '../../../app/api/base-api.js';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks.js';
 import type { RealtimeEvent } from '../../../lib/realtime.js';
@@ -18,7 +21,11 @@ import {
   selectSessionOrg,
 } from '../../session/session.selectors.js';
 import { useListDiningTablesQuery } from '../../tables/tables.api.js';
-import { useCreateOrderMutation, useListOrdersQuery } from '../../orders/orders.api.js';
+import {
+  ordersApi,
+  useCreateOrderMutation,
+  useListOrdersQuery,
+} from '../../orders/orders.api.js';
 import {
   ALL_CATEGORIES,
   lastLineOfProduct,
@@ -33,12 +40,8 @@ import { useGetPosMenuQuery } from '../pos.api.js';
 import type { PosMenuProduct } from './use-pos-modifier-sheet.js';
 import { usePosModifierSheet } from './use-pos-modifier-sheet.js';
 import { usePosOrderDetail } from './use-pos-order-detail.js';
+import { shouldShowSentToKitchenToast } from '../pos-payment-toast.utils.js';
 import { usePosPaymentDialog } from './use-pos-payment-dialog.js';
-
-export type SentOrderSummary = {
-  orderNumber: number;
-  orderId: string;
-};
 
 export function usePosPage() {
   const { t, i18n } = useTranslation();
@@ -49,6 +52,7 @@ export function usePosPage() {
   const cart = useAppSelector((state) => state.cart);
   const hasCartLines = useAppSelector(cartHasUnsavedLines);
   const canCancelOrders = useAppSelector(selectCan('orders.cancel'));
+  const canCreateOrders = useAppSelector(selectCan('orders.create'));
 
   const [activeCategoryId, setActiveCategoryId] = useState<string>(ALL_CATEGORIES);
   const [searchQuery, setSearchQuery] = useState('');
@@ -56,7 +60,7 @@ export function usePosPage() {
     typeof navigator === 'undefined' ? true : navigator.onLine,
   );
   const [sendError, setSendError] = useState(false);
-  const [sentOrder, setSentOrder] = useState<SentOrderSummary | null>(null);
+  const [checkoutOrder, setCheckoutOrder] = useState<OrderDetail | null>(null);
   const [pendingBranchId, setPendingBranchId] = useState<string | null>(null);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [isAddingItems, setIsAddingItems] = useState(false);
@@ -77,6 +81,7 @@ export function usePosPage() {
 
   // Socket events are hints: refetch the open orders list / that order when it changed.
   const openOrdersRef = useRef<Array<{ id: string; version: number }>>([]);
+  const beforePaymentStatusRef = useRef<OrderStatus | null>(null);
   const onRealtimeEvent = useCallback(
     ({ payload }: RealtimeEvent) => {
       if (!branchId) {
@@ -212,40 +217,6 @@ export function usePosPage() {
     [addAdditionLine, dispatch, isAddingItems, modifierSheet],
   );
 
-  const onSendToKitchen = useCallback(async () => {
-    if (!branchId || !menu) {
-      return;
-    }
-    setSendError(false);
-    const body = buildCreateOrderBody(cart);
-    if (!body) {
-      return;
-    }
-    if (!isOnline) {
-      setSendError(true);
-      return;
-    }
-    const result = await createOrder({
-      branchId,
-      body,
-      idempotencyKey: cart.clientOrderId,
-    });
-    if ('error' in result) {
-      setSendError(true);
-      return;
-    }
-    setSentOrder({ orderNumber: result.data.orderNumber, orderId: result.data.id });
-    dispatch(cartActions.clearCartAfterSuccessfulSend());
-  }, [branchId, cart, createOrder, dispatch, isOnline, menu]);
-
-  const onRetrySend = useCallback(() => {
-    void onSendToKitchen();
-  }, [onSendToKitchen]);
-
-  const onDismissResult = useCallback(() => {
-    setSentOrder(null);
-  }, []);
-
   const onBranchChangeRequest = useCallback(
     (nextBranchId: string) => {
       if (nextBranchId === branchId) {
@@ -317,20 +288,115 @@ export function usePosPage() {
     isAddingItems,
     setIsAddingItems,
     canCancelOrders,
+    canCreateOrders,
   });
+
+  const paymentOrder = checkoutOrder ?? orderDetail.order;
 
   const paymentDialog = usePosPaymentDialog({
     branchId,
-    order: orderDetail.order,
+    order: paymentOrder,
+    acceptsCard: menu?.branch.acceptsCard ?? true,
     onPaymentCaptured: () => {
-      void orderDetail.refetchOrder().then(() => {
-        orderDetail.printReceipt();
+      const before = beforePaymentStatusRef.current;
+      beforePaymentStatusRef.current = null;
+      const checkoutId = checkoutOrder?.id;
+      const activeBranchId = branchId;
+      setCheckoutOrder(null);
+
+      const finish = (updated: OrderDetail | undefined) => {
+        if (updated && shouldShowSentToKitchenToast(before, updated.status)) {
+          toast.success(t('pos.toast.sentToKitchen', { number: updated.orderNumber }));
+        }
+        if (updated && selectedOrderId === updated.id) {
+          orderDetail.printReceipt();
+        }
+      };
+
+      if (checkoutId && activeBranchId) {
+        void dispatch(
+          ordersApi.endpoints.getOrder.initiate(
+            { branchId: activeBranchId, orderId: checkoutId },
+            { forceRefetch: true },
+          ),
+        )
+          .unwrap()
+          .then(finish)
+          .catch(() => {});
+        return;
+      }
+      void orderDetail.refetchOrder().then((result) => {
+        finish(result.data);
+      });
+    },
+    onDismissUnpaid: () => {
+      const checkoutId = checkoutOrder?.id;
+      const activeBranchId = branchId;
+      setCheckoutOrder(null);
+      if (checkoutId && activeBranchId) {
+        void dispatch(
+          ordersApi.endpoints.getOrder.initiate(
+            { branchId: activeBranchId, orderId: checkoutId },
+            { forceRefetch: true },
+          ),
+        )
+          .unwrap()
+          .then((updated) => {
+            if (updated.status === 'draft') {
+              toast.info(t('pos.toast.awaitingPayment', { number: updated.orderNumber }));
+            }
+          })
+          .catch(() => {});
+        return;
+      }
+      void orderDetail.refetchOrder().then((result) => {
+        const updated = result.data;
+        if (updated?.status === 'draft') {
+          toast.info(t('pos.toast.awaitingPayment', { number: updated.orderNumber }));
+        }
       });
     },
     formatMinor,
     currency,
     uiLocale,
   });
+
+  const onSendToKitchen = useCallback(async () => {
+    if (!branchId || !menu) {
+      return;
+    }
+    setSendError(false);
+    const body = buildCreateOrderBody(cart);
+    if (!body) {
+      return;
+    }
+    if (!isOnline) {
+      setSendError(true);
+      return;
+    }
+    const result = await createOrder({
+      branchId,
+      body,
+      idempotencyKey: cart.clientOrderId,
+    });
+    if ('error' in result) {
+      setSendError(true);
+      return;
+    }
+    const order = result.data;
+    dispatch(cartActions.clearCartAfterSuccessfulSend());
+    if (order.status === 'draft') {
+      beforePaymentStatusRef.current = order.status;
+      setCheckoutOrder(order);
+      paymentDialog.openForOrder(order);
+      return;
+    }
+    toast.success(t('pos.toast.sentToKitchen', { number: order.orderNumber }));
+  }, [branchId, cart, createOrder, dispatch, isOnline, menu, paymentDialog, t]);
+
+  const onRetrySend = useCallback(() => {
+    void onSendToKitchen();
+  }, [onSendToKitchen]);
 
   const cartLines = cart.lines.map((line) => ({
     localId: line.localId,
@@ -494,7 +560,10 @@ export function usePosPage() {
               : (order.customerName ?? t('pos.result.orderNumber', { number: order.orderNumber })),
           detail: `${t('pos.catalog.items', { count: order.itemCount })} · ${formatMinor(order.totalMinor)}`,
           status: posOrderStatusTone(order.status),
-          statusLabel: t(`pos.orderStatus.${order.status}`),
+          statusLabel:
+            order.status === 'draft'
+              ? t('pos.awaitingPaymentBadge')
+              : t(`pos.orderStatus.${order.status}`),
           onSelect: () => {
             setSelectedOrderId(order.id);
           },
@@ -508,7 +577,11 @@ export function usePosPage() {
     orderDetail: {
       ...orderDetail,
       onPay: () => {
-        paymentDialog.openForOrder();
+        const current = orderDetail.order;
+        if (current) {
+          beforePaymentStatusRef.current = current.status;
+        }
+        paymentDialog.openForOrder(current);
       },
     },
     paymentDialog,
@@ -525,8 +598,6 @@ export function usePosPage() {
     showOfflineBanner,
     offlineMessage: !isOnline ? t('pos.offline') : t('pos.sendFailed'),
     onRetrySend,
-    sentOrder,
-    onDismissResult,
     modifierSheet: {
       ...modifierSheet,
       formatMinor,
@@ -554,7 +625,11 @@ export function usePosPage() {
       cartCount: t('pos.catalog.items', {
         count: cart.lines.reduce((sum: number, row) => sum + row.quantity, 0),
       }),
-      sendToKitchen: sending ? t('pos.sending') : t('pos.sendToKitchen'),
+      sendToKitchen: sending
+        ? t('pos.sending')
+        : menu?.branch.payBeforeSend
+          ? t('pos.payAndSend')
+          : t('pos.sendToKitchen'),
       orderTypeDineIn: t('pos.orderType.dineIn'),
       orderTypeTakeaway: t('pos.orderType.takeaway'),
       table: t('pos.table'),
@@ -563,11 +638,6 @@ export function usePosPage() {
       subtotal: t('pos.totals.subtotal'),
       tax: menu?.branch.taxInclusive ? t('pos.totals.taxIncl') : t('pos.totals.tax'),
       total: t('pos.totals.total'),
-      resultTitle: t('pos.result.title'),
-      resultOrderNumber: t('pos.result.orderNumber', {
-        number: sentOrder?.orderNumber ?? 0,
-      }),
-      newOrder: t('pos.result.newOrder'),
       loadError: t('pos.loadError'),
       cartEmpty: t('pos.cart.empty'),
       retry: t('pos.retry'),

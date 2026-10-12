@@ -1,4 +1,4 @@
-import { SendIcon, ShoppingBagIcon, UtensilsIcon } from 'lucide-react';
+import { ShoppingBagIcon, UtensilsIcon } from 'lucide-react';
 
 import {
   Alert,
@@ -57,8 +57,6 @@ export function PosPageView(props: PosPageViewModel) {
     showOfflineBanner,
     offlineMessage,
     onRetrySend,
-    sentOrder,
-    onDismissResult,
     modifierSheet,
     branchSwitchConfirm,
     openOrders,
@@ -78,23 +76,6 @@ export function PosPageView(props: PosPageViewModel) {
 
   if (isError) {
     return <p className="text-destructive p-6">{labels.loadError}</p>;
-  }
-
-  if (sentOrder) {
-    return (
-      <div className="flex flex-1 items-center justify-center p-6">
-        <div className="flex w-full max-w-md flex-col items-center rounded-2xl border bg-background p-10 text-center shadow-sm">
-          <span className="bg-secondary text-secondary-foreground flex size-14 items-center justify-center rounded-full">
-            <SendIcon aria-hidden className="size-6 rtl:-scale-x-100" />
-          </span>
-          <p className="mt-4 text-lg font-semibold">{labels.resultTitle}</p>
-          <p className="mt-1 text-3xl font-bold tabular-nums">{labels.resultOrderNumber}</p>
-          <Button type="button" className="mt-8 w-full" size="touch" onClick={onDismissResult}>
-            {labels.newOrder}
-          </Button>
-        </div>
-      </div>
-    );
   }
 
   return (

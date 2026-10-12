@@ -31,6 +31,7 @@ describe('order state machine', () => {
           continue;
         }
         const allowed =
+          (from === 'draft' && to === 'cancelled') ||
           (from === 'placed' && to === 'preparing') ||
           (from === 'preparing' && to === 'ready') ||
           (from === 'ready' && to === 'completed') ||

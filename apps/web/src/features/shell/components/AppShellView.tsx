@@ -30,6 +30,7 @@ export function AppShellView({
   onOpenMobile,
   navItems,
   menuSubNav,
+  posSubNav,
   user,
   isDark,
   onToggleTheme,
@@ -74,6 +75,19 @@ export function AppShellView({
           {menuSubNav.length > 0 ? (
             <SidebarGroup label={labels.menuSection}>
               {menuSubNav.map((item) => (
+                <SidebarItem
+                  key={item.to}
+                  icon={<span className="size-1.5 rounded-full bg-current" aria-hidden />}
+                  label={item.label}
+                  active={item.active}
+                  onClick={item.onSelect}
+                />
+              ))}
+            </SidebarGroup>
+          ) : null}
+          {posSubNav.length > 0 ? (
+            <SidebarGroup label={labels.posSection}>
+              {posSubNav.map((item) => (
                 <SidebarItem
                   key={item.to}
                   icon={<span className="size-1.5 rounded-full bg-current" aria-hidden />}

@@ -119,8 +119,24 @@ export async function seedOrganizationTree(
           address: `${branchDef.city.en}, Saudi Arabia`,
           receiptHeader: `${definition.name.en} — ${branchDef.name.en}`,
           receiptFooter: 'Shukran / Thank you',
+          payBeforeSend: branchDef.payBeforeSend ?? false,
+          acceptsCard: branchDef.acceptsCard ?? true,
           isActive: true,
         });
+      } else {
+        const branchPatch: {
+          payBeforeSend?: boolean;
+          acceptsCard?: boolean;
+        } = {};
+        if (branchDef.payBeforeSend !== undefined) {
+          branchPatch.payBeforeSend = branchDef.payBeforeSend;
+        }
+        if (branchDef.acceptsCard !== undefined) {
+          branchPatch.acceptsCard = branchDef.acceptsCard;
+        }
+        if (Object.keys(branchPatch).length > 0) {
+          await tenancyRepo.updateBranch(tx, branchId, branchPatch);
+        }
       }
       branches.push({ key: branchDef.key, id: branchId, slug: branchDef.slug });
     }

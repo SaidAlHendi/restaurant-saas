@@ -58,7 +58,21 @@
       "cashier": "الكاشير",
       "sidebar": "تنقل لوحة التحكم",
       "closeSidebar": "إغلاق القائمة",
-      "kitchen": "المطبخ"
+      "kitchen": "المطبخ",
+      "branchSettings": "إعدادات الفرع"
+    }
+  },
+  "settings": {
+    "branch": {
+      "title": "إعدادات الفرع",
+      "description": "خيارات الدفع للكاشير في هذا الفرع.",
+      "payBeforeSend": "الدفع قبل الإرسال",
+      "payBeforeSendHint": "تبقى الطلبات مسودة حتى اكتمال الدفع، ثم تُرسل للمطبخ.",
+      "acceptsCard": "قبول الدفع بالبطاقة",
+      "acceptsCardHint": "عند الإيقاف، يسجّل الكاشير النقد فقط.",
+      "save": "حفظ التغييرات",
+      "saved": "تم حفظ الإعدادات.",
+      "loadError": "تعذر تحميل إعدادات الفرع."
     }
   },
   "pos": {
@@ -68,7 +82,33 @@
     "sendFailed": "تعذر إرسال الطلب. تحقق من الاتصال وأعد المحاولة.",
     "retry": "إعادة المحاولة",
     "sendToKitchen": "إرسال للمطبخ",
+    "payAndSend": "الدفع والإرسال",
     "sending": "جاري الإرسال…",
+    "awaitingPaymentBadge": "بانتظار الدفع",
+    "toast": {
+      "sentToKitchen": "تم إرسال الطلب رقم {{number}} للمطبخ",
+      "awaitingPayment": "الطلب رقم {{number}} بانتظار الدفع"
+    },
+    "nav": {
+      "section": "الكاشير",
+      "newOrder": "طلب جديد",
+      "orders": "الطلبات"
+    },
+    "orders": {
+      "title": "الطلبات",
+      "searchPlaceholder": "بحث برقم الطلب أو الطاولة أو العميل",
+      "empty": "لا توجد طلبات في هذا العرض.",
+      "error": "تعذر تحميل الطلبات.",
+      "loadMore": "تحميل المزيد",
+      "tabs": {
+        "active": "نشطة",
+        "awaitingPayment": "بانتظار الدفع",
+        "ready": "جاهزة",
+        "completed": "مكتملة",
+        "cancelled": "ملغاة",
+        "allToday": "كل اليوم"
+      }
+    },
     "orderType": {
       "dineIn": "محلي",
       "takeaway": "سفري"
@@ -97,9 +137,7 @@
       "notePlaceholder": "ملاحظة اختيارية للمطبخ"
     },
     "result": {
-      "title": "تم إرسال الطلب",
-      "orderNumber": "طلب رقم {{number}}",
-      "newOrder": "طلب جديد"
+      "orderNumber": "طلب رقم {{number}}"
     },
     "branchSwitch": {
       "title": "تغيير الفرع؟",
@@ -201,7 +239,8 @@
       "notFound": "الطلب غير موجود.",
       "forbidden": "ليس لديك صلاحية لهذا الإجراء.",
       "notPaid": "يجب دفع الطلب قبل إنهائه.",
-      "itemVoided": "هذا الصنف ملغى."
+      "itemVoided": "هذا الصنف ملغى.",
+      "paymentMethodNotAccepted": "هذا الفرع لا يقبل الدفع بالبطاقة."
     }
   },
   "menu": {

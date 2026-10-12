@@ -27,9 +27,24 @@ describe('pos order detail actions', () => {
   });
 
   it('Cancel requires orders.cancel permission', () => {
-    expect(canShowCancelOrder(false, 'placed')).toBe(false);
-    expect(canShowCancelOrder(true, 'placed')).toBe(true);
-    expect(canShowCancelOrder(true, 'completed')).toBe(false);
+    expect(canShowCancelOrder(false, true, 'placed')).toBe(false);
+    expect(canShowCancelOrder(true, true, 'placed')).toBe(true);
+    expect(canShowCancelOrder(true, true, 'completed')).toBe(false);
+  });
+
+  it('allows draft cancel with orders.create only', () => {
+    expect(canShowCancelOrder(false, true, 'draft')).toBe(true);
+    expect(canShowCancelOrder(false, false, 'draft')).toBe(false);
+  });
+
+  it('does not offer kitchen status for draft', () => {
+    expect(
+      nextOrderStatusTarget({
+        status: 'draft',
+        paymentStatus: 'unpaid',
+        dueMinor: 100,
+      }),
+    ).toBeNull();
   });
 
   it('Void only when placed with no payments', () => {

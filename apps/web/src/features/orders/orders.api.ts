@@ -22,7 +22,10 @@ import { baseApi } from '../../app/api/base-api.js';
 
 type OrderListResponse = z.infer<typeof orderListResponseSchema>;
 
-function orderListParams(query: OrderListQuery | undefined): Record<string, string | number> {
+/** Client-side list args (Zod output makes activeOnly/todayOnly required when present). */
+export type OrderListQueryInput = Partial<Omit<OrderListQuery, 'limit'>> & { limit?: number };
+
+function orderListParams(query: OrderListQueryInput | undefined): Record<string, string | number> {
   const params: Record<string, string | number> = {};
   if (query?.limit !== undefined) {
     params['limit'] = query.limit;
@@ -41,6 +44,14 @@ function orderListParams(query: OrderListQuery | undefined): Record<string, stri
   } else if (query?.activeOnly === false) {
     params['activeOnly'] = 'false';
   }
+  if (query?.todayOnly === true) {
+    params['todayOnly'] = 'true';
+  } else if (query?.todayOnly === false) {
+    params['todayOnly'] = 'false';
+  }
+  if (query?.q !== undefined) {
+    params['q'] = query.q;
+  }
   return params;
 }
 
@@ -48,7 +59,7 @@ export const ordersApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     listOrders: builder.query<
       OrderListResponse,
-      { branchId: string; query?: OrderListQuery }
+      { branchId: string; query?: OrderListQueryInput }
     >({
       query: ({ branchId, query }) => ({
         url: `/v1/branches/${branchId}/orders`,

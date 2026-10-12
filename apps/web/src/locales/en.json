@@ -58,7 +58,21 @@
       "cashier": "Cashier",
       "sidebar": "Dashboard navigation",
       "closeSidebar": "Close menu",
-      "kitchen": "Kitchen"
+      "kitchen": "Kitchen",
+      "branchSettings": "Branch settings"
+    }
+  },
+  "settings": {
+    "branch": {
+      "title": "Branch settings",
+      "description": "Payment options for the cashier at this branch.",
+      "payBeforeSend": "Pay before send",
+      "payBeforeSendHint": "Orders stay as drafts until fully paid, then go to the kitchen.",
+      "acceptsCard": "Accept card payments",
+      "acceptsCardHint": "When off, the cashier can only record cash payments.",
+      "save": "Save changes",
+      "saved": "Settings saved.",
+      "loadError": "Could not load branch settings."
     }
   },
   "pos": {
@@ -68,7 +82,33 @@
     "sendFailed": "Could not send the order. Check your connection and retry.",
     "retry": "Retry",
     "sendToKitchen": "Send to kitchen",
+    "payAndSend": "Pay & send",
     "sending": "Sending…",
+    "awaitingPaymentBadge": "Awaiting payment",
+    "toast": {
+      "sentToKitchen": "Order #{{number}} sent to kitchen",
+      "awaitingPayment": "Order #{{number}} is waiting for payment"
+    },
+    "nav": {
+      "section": "Cashier",
+      "newOrder": "New order",
+      "orders": "Orders"
+    },
+    "orders": {
+      "title": "Orders",
+      "searchPlaceholder": "Search by number, table or customer",
+      "empty": "No orders match this view.",
+      "error": "Could not load orders.",
+      "loadMore": "Load more",
+      "tabs": {
+        "active": "Active",
+        "awaitingPayment": "Awaiting payment",
+        "ready": "Ready",
+        "completed": "Completed",
+        "cancelled": "Cancelled",
+        "allToday": "All today"
+      }
+    },
     "orderType": {
       "dineIn": "Dine in",
       "takeaway": "Takeaway"
@@ -97,9 +137,7 @@
       "notePlaceholder": "Optional note for the kitchen"
     },
     "result": {
-      "title": "Order sent",
-      "orderNumber": "Order #{{number}}",
-      "newOrder": "New order"
+      "orderNumber": "Order #{{number}}"
     },
     "branchSwitch": {
       "title": "Switch branch?",
@@ -197,7 +235,8 @@
       "notFound": "Order not found.",
       "forbidden": "You do not have permission for this action.",
       "notPaid": "The order must be paid before it can be completed.",
-      "itemVoided": "This item was voided."
+      "itemVoided": "This item was voided.",
+      "paymentMethodNotAccepted": "This branch does not accept card payments."
     }
   },
   "menu": {

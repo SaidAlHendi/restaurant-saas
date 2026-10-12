@@ -10,6 +10,8 @@ export const branchSchema = z.object({
   taxRateBp: z.number().int(),
   taxInclusive: z.boolean(),
   dayStartHour: z.number().int(),
+  payBeforeSend: z.boolean(),
+  acceptsCard: z.boolean(),
   isActive: z.boolean(),
 });
 
@@ -34,6 +36,8 @@ export const patchBranchBodySchema = z.object({
   taxRateBp: z.number().int().min(0).optional(),
   taxInclusive: z.boolean().optional(),
   dayStartHour: z.number().int().min(0).max(23).optional(),
+  payBeforeSend: z.boolean().optional(),
+  acceptsCard: z.boolean().optional(),
   isActive: z.boolean().optional(),
 });
 

@@ -6,8 +6,12 @@ export function orderIsPaid(order: Pick<OrderDetail, 'paymentStatus' | 'dueMinor
 
 export function canShowCancelOrder(
   hasCancelPermission: boolean,
+  hasCreatePermission: boolean,
   status: OrderStatus,
 ): boolean {
+  if (status === 'draft') {
+    return hasCreatePermission;
+  }
   if (!hasCancelPermission) {
     return false;
   }
@@ -21,7 +25,7 @@ export function canVoidOrderItem(
   if (itemVoided) {
     return false;
   }
-  if (order.status !== 'placed') {
+  if (order.status !== 'placed' && order.status !== 'draft') {
     return false;
   }
   if (order.payments.length > 0) {
@@ -35,6 +39,9 @@ export type NextStatusTarget = 'preparing' | 'ready' | 'completed';
 export function nextOrderStatusTarget(
   order: Pick<OrderDetail, 'status' | 'paymentStatus' | 'dueMinor'>,
 ): NextStatusTarget | null {
+  if (order.status === 'draft') {
+    return null;
+  }
   if (order.status === 'placed') {
     return 'preparing';
   }
