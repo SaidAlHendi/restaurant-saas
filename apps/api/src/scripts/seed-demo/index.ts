@@ -59,7 +59,7 @@ async function main(): Promise<void> {
     }
 
     await seedOrderHistory(db, seededOrgs, { days: options.days, anchor: options.anchor });
-    await seedTodayDraftOrders(db, seededOrgs);
+    await seedTodayDraftOrders(db, seededOrgs, { anchor: options.anchor });
 
     if (options.images === 'on') {
       await seedProductImages(

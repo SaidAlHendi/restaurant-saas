@@ -8,13 +8,18 @@ import { withOrg } from '../../core/db/with-org';
 import { computeBusinessDate } from '../../lib/business-date';
 import { newUuidV7 } from '../../lib/uuid';
 
+import type { DemoSeedCliOptions } from './cli';
 import { deterministicUuid } from './random';
 import type { SeededOrg } from './seed-orgs';
 
 const DRAFT_COUNT = 3;
 
-export async function seedTodayDraftOrders(db: DrizzleDb, seededOrgs: SeededOrg[]): Promise<void> {
-  const now = new Date();
+export async function seedTodayDraftOrders(
+  db: DrizzleDb,
+  seededOrgs: SeededOrg[],
+  options: Pick<DemoSeedCliOptions, 'anchor'>,
+): Promise<void> {
+  const anchor = options.anchor;
   for (const seeded of seededOrgs) {
     await withOrg(db, seeded.id, async (tx) => {
       const payBranches = await tx
@@ -29,7 +34,7 @@ export async function seedTodayDraftOrders(db: DrizzleDb, seededOrgs: SeededOrg[
         return;
       }
       const businessDate = computeBusinessDate({
-        now,
+        now: anchor,
         timezone: branch.timezone,
         dayStartHour: branch.dayStartHour,
       });
@@ -89,6 +94,8 @@ export async function seedTodayDraftOrders(db: DrizzleDb, seededOrgs: SeededOrg[
           version: 1,
           placedAt: null,
           createdBy: membershipId,
+          createdAt: anchor,
+          updatedAt: anchor,
         });
         await tx.insert(orderItems).values({
           id: itemId,
@@ -112,6 +119,7 @@ export async function seedTodayDraftOrders(db: DrizzleDb, seededOrgs: SeededOrg[
           toStatus: 'draft',
           payload: { itemIds: [itemId] },
           actorMembershipId: membershipId,
+          createdAt: anchor,
         });
       }
       await tx.execute(sql`
