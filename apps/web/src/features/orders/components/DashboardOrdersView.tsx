@@ -23,6 +23,7 @@ export type DashboardOrdersViewProps = DashboardOrdersPageViewModel;
 export function DashboardOrdersView(props: DashboardOrdersViewProps) {
   const {
     orgSwitcher,
+    searchInputKey,
     branchContextError,
     branchContextLoading,
     filters,
@@ -94,7 +95,7 @@ export function DashboardOrdersView(props: DashboardOrdersViewProps) {
       <PageHeader title={labels.title} actions={<DashboardOrgSwitcherActions {...orgSwitcher} />} />
       <div className="flex flex-col gap-3">
         <SearchInput
-          key={`${filters?.dateFrom ?? ''}-${filters?.q ?? ''}`}
+          key={searchInputKey}
           defaultValue={search.value}
           onValueChange={search.onChange}
           delay={300}

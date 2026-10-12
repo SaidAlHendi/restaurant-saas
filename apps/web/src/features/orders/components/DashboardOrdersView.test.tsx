@@ -1,11 +1,12 @@
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { DashboardOrdersView } from './DashboardOrdersView.js';
 import type { DashboardOrdersPageViewModel } from '../hooks/use-dashboard-orders-page.js';
 
 function minimalOrdersVm(overrides: Partial<DashboardOrdersPageViewModel> = {}): DashboardOrdersPageViewModel {
   return {
+    searchInputKey: 'branch-1',
     orgSwitcher: {
       org: { id: 'o1', name: 'Org', slug: 'org', defaultLocale: 'en', locales: ['en'], defaultCurrency: 'SAR' },
       orgs: [],
@@ -94,10 +95,65 @@ function minimalOrdersVm(overrides: Partial<DashboardOrdersPageViewModel> = {}):
 }
 
 describe('DashboardOrdersView', () => {
+  afterEach(() => {
+    cleanup();
+  });
+
   it('renders order rows from the view model', () => {
     render(<DashboardOrdersView {...minimalOrdersVm()} />);
     expect(screen.getAllByText('42').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('SAR 50.00').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Placed').length).toBeGreaterThanOrEqual(1);
+  });
+});
+
+describe('DashboardOrdersView search', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('keeps search focus and value after debounced URL sync', () => {
+    const onSearchChange = vi.fn();
+    const initial = minimalOrdersVm({
+      search: { value: '', onChange: onSearchChange, placeholder: 'Search', clearLabel: 'Clear' },
+    });
+    const { container, rerender } = render(<DashboardOrdersView {...initial} />);
+    const input = within(container).getByPlaceholderText('Search');
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: 'bur' } });
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+    expect(onSearchChange).toHaveBeenCalledWith('bur');
+
+    const syncedFilters = {
+      q: 'bur',
+      status: 'all' as const,
+      type: 'all' as const,
+      paymentMethod: 'all' as const,
+      period: 'today' as const,
+      dateFrom: '2026-03-15',
+      dateTo: '2026-03-15',
+    };
+    rerender(
+      <DashboardOrdersView
+        {...minimalOrdersVm({
+          filters: syncedFilters,
+          search: {
+            value: 'bur',
+            onChange: onSearchChange,
+            placeholder: 'Search',
+            clearLabel: 'Clear',
+          },
+        })}
+      />,
+    );
+
+    const inputAfterSync = within(container).getByPlaceholderText('Search');
+    expect(inputAfterSync).toBe(input);
+    expect(inputAfterSync).toHaveValue('bur');
   });
 });

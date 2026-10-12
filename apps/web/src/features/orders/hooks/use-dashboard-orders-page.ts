@@ -150,7 +150,9 @@ export function useDashboardOrdersPage() {
         return;
       }
       const next = { ...filters, ...patch };
-      setSearchParams(dashboardOrdersFiltersToSearchParams(next));
+      const patchKeys = Object.keys(patch);
+      const qOnly = patchKeys.length === 1 && patchKeys[0] === 'q';
+      setSearchParams(dashboardOrdersFiltersToSearchParams(next), qOnly ? { replace: true } : undefined);
     },
     [filters, setSearchParams],
   );
@@ -236,6 +238,7 @@ export function useDashboardOrdersPage() {
 
   return {
     orgSwitcher,
+    searchInputKey: branchId ?? '',
     branchContextError: branchContext.isError,
     branchContextLoading: branchContext.isLoading,
     filters,
