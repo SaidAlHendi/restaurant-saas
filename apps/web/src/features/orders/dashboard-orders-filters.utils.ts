@@ -1,4 +1,10 @@
-import type { OrderStatus, OrderType, PaymentMethod } from '@app/shared';
+import {
+  businessDateSchema,
+  inclusiveBusinessDaySpan,
+  type OrderStatus,
+  type OrderType,
+  type PaymentMethod,
+} from '@app/shared';
 
 export type DashboardOrdersPeriod = 'today' | 'yesterday' | 'last7' | 'last30' | 'custom';
 
@@ -92,14 +98,48 @@ function parsePeriod(value: string | null): DashboardOrdersPeriod {
   return 'today';
 }
 
+function parseValidCustomRange(
+  rawFrom: string | undefined,
+  rawTo: string | undefined,
+): { dateFrom: string; dateTo: string } | null {
+  if (rawFrom === undefined || rawTo === undefined) {
+    return null;
+  }
+  const fromParsed = businessDateSchema.safeParse(rawFrom);
+  const toParsed = businessDateSchema.safeParse(rawTo);
+  if (!fromParsed.success || !toParsed.success) {
+    return null;
+  }
+  const dateFrom = fromParsed.data;
+  const dateTo = toParsed.data;
+  if (dateFrom > dateTo) {
+    return null;
+  }
+  if (inclusiveBusinessDaySpan(dateFrom, dateTo) > 92) {
+    return null;
+  }
+  return { dateFrom, dateTo };
+}
+
 export function parseDashboardOrdersFilters(
   params: URLSearchParams,
   referenceBusinessDate: string,
 ): DashboardOrdersFilters {
-  const period = parsePeriod(params.get('period'));
+  let period = parsePeriod(params.get('period'));
   const rawFrom = params.get('from') ?? undefined;
   const rawTo = params.get('to') ?? undefined;
-  const range = periodToDateRange(period, referenceBusinessDate, rawFrom, rawTo);
+  let range: { dateFrom: string; dateTo: string };
+  if (period === 'custom') {
+    const custom = parseValidCustomRange(rawFrom, rawTo);
+    if (custom === null) {
+      period = 'today';
+      range = periodToDateRange('today', referenceBusinessDate);
+    } else {
+      range = custom;
+    }
+  } else {
+    range = periodToDateRange(period, referenceBusinessDate, rawFrom, rawTo);
+  }
   return {
     q: params.get('q') ?? '',
     status: parseStatus(params.get('status')),

@@ -24,6 +24,40 @@ describe('parseDashboardOrdersFilters', () => {
     expect(filters.period).toBe('today');
   });
 
+  it('falls back custom period with invalid dates to today', () => {
+    const params = new URLSearchParams({
+      period: 'custom',
+      from: '2026-02-30',
+      to: '2026-03-01',
+    });
+    const filters = parseDashboardOrdersFilters(params, ref);
+    expect(filters.period).toBe('today');
+    expect(filters.dateFrom).toBe(ref);
+    expect(filters.dateTo).toBe(ref);
+  });
+
+  it('falls back custom period when range exceeds 92 days', () => {
+    const params = new URLSearchParams({
+      period: 'custom',
+      from: '2026-01-01',
+      to: '2026-06-01',
+    });
+    const filters = parseDashboardOrdersFilters(params, ref);
+    expect(filters.period).toBe('today');
+  });
+
+  it('keeps valid custom period', () => {
+    const params = new URLSearchParams({
+      period: 'custom',
+      from: '2026-03-01',
+      to: '2026-03-10',
+    });
+    const filters = parseDashboardOrdersFilters(params, ref);
+    expect(filters.period).toBe('custom');
+    expect(filters.dateFrom).toBe('2026-03-01');
+    expect(filters.dateTo).toBe('2026-03-10');
+  });
+
   it('round-trips URL params', () => {
     const initial = parseDashboardOrdersFilters(
       new URLSearchParams('period=last7&status=placed'),

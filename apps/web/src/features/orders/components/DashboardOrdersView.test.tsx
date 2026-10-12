@@ -40,6 +40,7 @@ function minimalOrdersVm(overrides: Partial<DashboardOrdersPageViewModel> = {}):
       onCustomFromChange: () => {},
       onCustomToChange: () => {},
     },
+    showEmptyState: false,
     rows: [
       {
         id: '01932a1a-7b3e-7000-8000-000000000050',

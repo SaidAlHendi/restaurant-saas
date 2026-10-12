@@ -44,12 +44,10 @@ export function useDashboardOrdersPage() {
     [referenceBusinessDate, searchParams],
   );
 
-  const [searchQ, setSearchQ] = useState(filters?.q ?? '');
   const [cursor, setCursor] = useState<string | undefined>(undefined);
   const [accumulated, setAccumulated] = useState<OrderListItem[]>([]);
 
   useEffect(() => {
-    setSearchQ(filters?.q ?? '');
     setCursor(undefined);
     setAccumulated([]);
   }, [
@@ -61,11 +59,6 @@ export function useDashboardOrdersPage() {
     filters?.paymentMethod,
     branchId,
   ]);
-
-  useEffect(() => {
-    setCursor(undefined);
-    setAccumulated([]);
-  }, [searchQ]);
 
   const listQuery = useMemo(() => {
     if (!filters) {
@@ -79,9 +72,9 @@ export function useDashboardOrdersPage() {
       ...(filters.status !== 'all' ? { status: filters.status } : {}),
       ...(filters.type !== 'all' ? { type: filters.type } : {}),
       ...(filters.paymentMethod !== 'all' ? { paymentMethod: filters.paymentMethod } : {}),
-      ...(searchQ.trim().length > 0 ? { q: searchQ.trim() } : {}),
+      ...(filters.q.trim().length > 0 ? { q: filters.q.trim() } : {}),
     };
-  }, [cursor, filters, searchQ]);
+  }, [cursor, filters]);
 
   const skipList =
     !branchId ||
@@ -100,7 +93,12 @@ export function useDashboardOrdersPage() {
       return;
     }
     if (cursor === undefined) {
-      setAccumulated(data.items);
+      setAccumulated((prev) => {
+        if (data.items.length === 0 && prev.length > 0 && isFetching) {
+          return prev;
+        }
+        return data.items;
+      });
       return;
     }
     setAccumulated((prev) => {
@@ -108,11 +106,10 @@ export function useDashboardOrdersPage() {
       const next = data.items.filter((row) => !ids.has(row.id));
       return [...prev, ...next];
     });
-  }, [cursor, data]);
+  }, [cursor, data, isFetching]);
 
-  const reloadFirstPage = useCallback(() => {
+  const resetPagination = useCallback(() => {
     setCursor(undefined);
-    setAccumulated([]);
   }, []);
 
   const onRealtimeEvent = useCallback(
@@ -122,18 +119,18 @@ export function useDashboardOrdersPage() {
         referenceBusinessDate &&
         periodIncludesReferenceDay(filters, referenceBusinessDate)
       ) {
-        reloadFirstPage();
+        resetPagination();
         dispatch(baseApi.util.invalidateTags([{ type: 'Order', id: 'LIST' }]));
       }
     },
-    [dispatch, filters, referenceBusinessDate, reloadFirstPage],
+    [dispatch, filters, referenceBusinessDate, resetPagination],
   );
 
   useBranchRealtime({
     branchId,
     onEvent: onRealtimeEvent,
     onResync: () => {
-      reloadFirstPage();
+      resetPagination();
       dispatch(baseApi.util.invalidateTags(['Order']));
     },
   });
@@ -243,8 +240,10 @@ export function useDashboardOrdersPage() {
     branchContextLoading: branchContext.isLoading,
     filters,
     search: {
-      value: searchQ,
-      onChange: setSearchQ,
+      value: filters?.q ?? '',
+      onChange: (value: string) => {
+        updateFilters({ q: value });
+      },
       placeholder: t('dashboard.orders.searchPlaceholder'),
       clearLabel: t('dashboard.orders.searchClear'),
     },
@@ -289,7 +288,14 @@ export function useDashboardOrdersPage() {
       },
     },
     rows,
-    isLoading: branchContext.isLoading || (skipList ? false : isLoading && cursor === undefined),
+    showEmptyState:
+      accumulated.length === 0 &&
+      !branchContext.isLoading &&
+      !isError &&
+      !(skipList ? false : (isLoading || isFetching) && cursor === undefined),
+    isLoading:
+      branchContext.isLoading ||
+      (skipList ? false : isLoading && cursor === undefined && accumulated.length === 0),
     isError: branchContext.isError || isError,
     isFetching,
     loadMore:

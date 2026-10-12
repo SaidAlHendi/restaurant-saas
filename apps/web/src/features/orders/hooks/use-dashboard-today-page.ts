@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { pickLocalizedText } from '@app/shared';
+import { businessDateSchema, pickLocalizedText } from '@app/shared';
 
 import { baseApi } from '../../../app/api/base-api.js';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks.js';
@@ -24,14 +24,19 @@ export function useDashboardTodayPage() {
   const orgSwitcher = useOrgSwitcher();
   const branchContext = useBranchBusinessDate(branchId);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const lastValidDateRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (branchContext.businessDate !== null) {
       setSelectedDate(branchContext.businessDate);
+      lastValidDateRef.current = branchContext.businessDate;
     }
   }, [branchContext.businessDate, branchId]);
 
-  const activeDate = selectedDate ?? branchContext.businessDate ?? undefined;
+  const activeDate =
+    selectedDate !== null && businessDateSchema.safeParse(selectedDate).success
+      ? selectedDate
+      : (branchContext.businessDate ?? undefined);
 
   const { data, isLoading, isError, refetch } = useGetDailyReportQuery(
     { branchId: branchId ?? '', businessDate: activeDate },
@@ -96,19 +101,30 @@ export function useDashboardTodayPage() {
       void refetch();
       void branchContext.refetch();
     },
-    selectedDate: activeDate ?? '',
+    selectedDate: activeDate ?? lastValidDateRef.current ?? '',
     onSelectToday: () => {
       if (referenceToday) {
         setSelectedDate(referenceToday);
+        lastValidDateRef.current = referenceToday;
       }
     },
     onSelectYesterday: () => {
       if (referenceToday) {
-        setSelectedDate(addCalendarDays(referenceToday, -1));
+        const yesterday = addCalendarDays(referenceToday, -1);
+        setSelectedDate(yesterday);
+        lastValidDateRef.current = yesterday;
       }
     },
     onDateInputChange: (value: string) => {
-      setSelectedDate(value);
+      if (value.length === 0) {
+        return;
+      }
+      const parsed = businessDateSchema.safeParse(value);
+      if (!parsed.success) {
+        return;
+      }
+      setSelectedDate(parsed.data);
+      lastValidDateRef.current = parsed.data;
     },
     stats: data
       ? {

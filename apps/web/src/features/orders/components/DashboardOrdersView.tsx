@@ -35,6 +35,7 @@ export function DashboardOrdersView(props: DashboardOrdersViewProps) {
     paymentMethodOptions,
     period,
     rows,
+    showEmptyState,
     isLoading,
     isError,
     loadMore,
@@ -93,6 +94,7 @@ export function DashboardOrdersView(props: DashboardOrdersViewProps) {
       <PageHeader title={labels.title} actions={<DashboardOrgSwitcherActions {...orgSwitcher} />} />
       <div className="flex flex-col gap-3">
         <SearchInput
+          key={`${filters?.dateFrom ?? ''}-${filters?.q ?? ''}`}
           defaultValue={search.value}
           onValueChange={search.onChange}
           delay={300}
@@ -203,7 +205,7 @@ export function DashboardOrdersView(props: DashboardOrdersViewProps) {
               data={rows}
               getRowId={(row) => row.id}
               isLoading={isLoading}
-              emptyState={<EmptyState title={labels.empty} />}
+              emptyState={showEmptyState ? <EmptyState title={labels.empty} /> : null}
               labels={{ sortBy: labels.tableSortBy, actions: labels.tableRowActions }}
               onRowClick={(row) => {
                 row.onSelect();
@@ -211,7 +213,7 @@ export function DashboardOrdersView(props: DashboardOrdersViewProps) {
             />
           </div>
           <div className="flex flex-col gap-3 md:hidden">
-            {rows.length === 0 ? <EmptyState title={labels.empty} /> : null}
+            {showEmptyState ? <EmptyState title={labels.empty} /> : null}
             {rows.map((row) => (
               <Card
                 key={row.id}
