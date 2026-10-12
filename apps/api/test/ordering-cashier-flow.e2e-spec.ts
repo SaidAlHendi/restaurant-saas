@@ -4,12 +4,17 @@ import type { Agent } from 'supertest';
 import { DRIZZLE, type DrizzleDb } from '../src/core/db/db.module';
 import { newUuidV7 } from '../src/lib/uuid';
 
-import { asDemoCashier, asDemoOwner } from './catalog-helpers';
+import { asDemoCashier, asDemoOwner, asOtherOwner } from './catalog-helpers';
 import { createTestApp } from './create-test-app';
 import { apiAgent } from './http';
 import {
+  businessDateForBranch,
   createIsolatedBranch,
+  demoOwnerContext,
   insertDiningTable,
+  insertPlacedOrderForBusinessDate,
+  lastOutboxChangeForOrder,
+  listOrderEventTypes,
   postOrder,
   postPayment,
   seedCatalogProduct,
@@ -317,5 +322,161 @@ describe('Cashier flow (e2e)', () => {
       (item) => item.id === orderId,
     );
     expect(row?.tableLabel).toBeTruthy();
+  });
+
+  it('draft order is not on GET kitchen board', async () => {
+    const owner = await asDemoOwner(apiAgent(app));
+    const { branchId } = await createIsolatedBranch(owner, { payBeforeSend: true });
+    const { productId } = await seedCatalogProduct(agent);
+    const created = await draftOrderOnBranch(owner, branchId, productId);
+    const orderId = (created.body as { id: string }).id;
+    const board = await owner.get(`/v1/branches/${branchId}/kitchen/board`);
+    expect(board.status).toBe(200);
+    const ids = (board.body as { orders: Array<{ id: string }> }).orders.map((o) => o.id);
+    expect(ids).not.toContain(orderId);
+  });
+
+  it('full payment on draft bumps version by 1 and writes events in order', async () => {
+    const owner = await asDemoOwner(apiAgent(app));
+    const { branchId } = await createIsolatedBranch(owner, { payBeforeSend: true });
+    const { productId } = await seedCatalogProduct(agent);
+    const created = await draftOrderOnBranch(owner, branchId, productId);
+    const order = created.body as { id: string; version: number; dueMinor: number };
+    expect(order.version).toBe(1);
+    const clientPaymentId = newUuidV7();
+    const paid = await postPayment(
+      owner,
+      branchId,
+      order.id,
+      {
+        clientPaymentId,
+        expectedVersion: order.version,
+        method: 'cash',
+        amountMinor: order.dueMinor,
+        tenderedMinor: order.dueMinor,
+      },
+      clientPaymentId,
+    );
+    expect(paid.status).toBe(201);
+    const detail = await owner.get(`/v1/branches/${branchId}/orders/${order.id}`);
+    expect((detail.body as { version: number }).version).toBe(2);
+    const types = await listOrderEventTypes(db, SEED_ORG.demo.id, order.id);
+    expect(types).toEqual(['order.drafted', 'payment.captured', 'order.placed']);
+    const change = await lastOutboxChangeForOrder(SEED_ORG.demo.id, order.id);
+    expect(change).toBe('placed');
+  });
+
+  it('cancel draft with partial payment returns 422 ORDER_HAS_PAYMENTS', async () => {
+    const owner = await asDemoOwner(apiAgent(app));
+    const { branchId } = await createIsolatedBranch(owner, { payBeforeSend: true });
+    const { productId } = await seedCatalogProduct(agent);
+    const created = await draftOrderOnBranch(owner, branchId, productId);
+    const order = created.body as { id: string; version: number; totalMinor: number };
+    const clientPaymentId = newUuidV7();
+    const partial = Math.max(1, Math.floor(order.totalMinor / 4));
+    const paid = await postPayment(
+      owner,
+      branchId,
+      order.id,
+      {
+        clientPaymentId,
+        expectedVersion: order.version,
+        method: 'cash',
+        amountMinor: partial,
+        tenderedMinor: partial,
+      },
+      clientPaymentId,
+    );
+    expect(paid.status).toBe(201);
+    const afterPay = await owner.get(`/v1/branches/${branchId}/orders/${order.id}`);
+    const version = (afterPay.body as { version: number }).version;
+    const cancelled = await owner.post(`/v1/branches/${branchId}/orders/${order.id}/status`).send({
+      to: 'cancelled',
+      expectedVersion: version,
+      reason: 'Changed mind',
+    });
+    expect(cancelled.status).toBe(422);
+    expect((cancelled.body as { error: { code: string } }).error.code).toBe('ORDER_HAS_PAYMENTS');
+  });
+
+  it('replaying captured clientPaymentId returns 200 after acceptsCard is turned off', async () => {
+    const owner = await asDemoOwner(apiAgent(app));
+    const { branchId } = await createIsolatedBranch(owner, { payBeforeSend: false, acceptsCard: true });
+    const { productId } = await seedCatalogProduct(agent);
+    const created = await draftOrderOnBranch(owner, branchId, productId);
+    const order = created.body as { id: string; version: number; dueMinor: number };
+    const clientPaymentId = newUuidV7();
+    const first = await postPayment(
+      owner,
+      branchId,
+      order.id,
+      {
+        clientPaymentId,
+        expectedVersion: order.version,
+        method: 'card',
+        amountMinor: order.dueMinor,
+      },
+      clientPaymentId,
+    );
+    expect(first.status).toBe(201);
+    const patch = await owner.patch(`/v1/branches/${branchId}`).send({ acceptsCard: false });
+    expect(patch.status).toBe(200);
+    const replay = await postPayment(
+      owner,
+      branchId,
+      order.id,
+      {
+        clientPaymentId,
+        expectedVersion: order.version,
+        method: 'card',
+        amountMinor: order.dueMinor,
+      },
+      clientPaymentId,
+    );
+    expect(replay.status).toBe(200);
+  });
+
+  it('list q matches order number', async () => {
+    const owner = await asDemoOwner(apiAgent(app));
+    const { branchId } = await createIsolatedBranch(owner);
+    const { productId } = await seedCatalogProduct(agent);
+    const created = await draftOrderOnBranch(owner, branchId, productId);
+    const orderNumber = (created.body as { orderNumber: number }).orderNumber;
+    const list = await owner.get(`/v1/branches/${branchId}/orders?q=${String(orderNumber)}`);
+    expect(list.status).toBe(200);
+    const items = (list.body as { items: Array<{ orderNumber: number }> }).items;
+    expect(items.some((row) => row.orderNumber === orderNumber)).toBe(true);
+  });
+
+  it('list todayOnly excludes order with yesterday business_date', async () => {
+    const owner = await asDemoOwner(apiAgent(app));
+    const { ctx, branchId } = await demoOwnerContext(agent, db);
+    const yesterday = businessDateForBranch('Asia/Riyadh', 4, new Date(Date.now() - 86_400_000));
+    const orderNumber = 8000 + Math.floor(Math.random() * 1000);
+    const oldId = await insertPlacedOrderForBusinessDate(db, {
+      orgId: ctx.orgId,
+      branchId,
+      businessDate: yesterday,
+      orderNumber,
+      createdByMembershipId: ctx.membershipId,
+    });
+    const list = await owner.get(`/v1/branches/${branchId}/orders?todayOnly=true&limit=100`);
+    expect(list.status).toBe(200);
+    const ids = (list.body as { items: Array<{ id: string }> }).items.map((row) => row.id);
+    expect(ids).not.toContain(oldId);
+  });
+
+  it('other org gets 404 on branch orders list and PATCH', async () => {
+    const owner = await asDemoOwner(apiAgent(app));
+    const other = await asOtherOwner(apiAgent(app));
+    const { branchId } = await createIsolatedBranch(owner);
+    const { productId } = await seedCatalogProduct(agent);
+    const created = await draftOrderOnBranch(owner, branchId, productId);
+    const orderId = (created.body as { id: string }).id;
+    const list = await other.get(`/v1/branches/${branchId}/orders`);
+    expect(list.status).toBe(404);
+    const patch = await other.patch(`/v1/branches/${branchId}`).send({ payBeforeSend: false });
+    expect(patch.status).toBe(404);
+    expect(orderId.length).toBeGreaterThan(0);
   });
 });

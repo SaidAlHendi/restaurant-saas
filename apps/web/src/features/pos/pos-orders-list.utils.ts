@@ -1,4 +1,6 @@
-import type { OrderListQuery, OrderStatus } from '@app/shared';
+import type { OrderStatus } from '@app/shared';
+
+import type { OrderListQueryInput } from '../orders/orders.api.js';
 
 export type PosOrdersTab =
   | 'active'
@@ -24,8 +26,8 @@ export function parsePosOrdersTab(value: string | null): PosOrdersTab {
   return 'active';
 }
 
-export function tabToListQuery(tab: PosOrdersTab, limit: number): OrderListQuery {
-  const base: OrderListQuery = { limit };
+export function tabToListQuery(tab: PosOrdersTab, limit: number): OrderListQueryInput {
+  const base: OrderListQueryInput = { limit };
   switch (tab) {
     case 'active':
       return { ...base, activeOnly: true };
@@ -45,9 +47,9 @@ export function tabToListQuery(tab: PosOrdersTab, limit: number): OrderListQuery
 }
 
 export function mergeListQueryWithSearch(
-  query: OrderListQuery,
+  query: OrderListQueryInput,
   q: string | undefined,
-): OrderListQuery {
+): OrderListQueryInput {
   const trimmed = q?.trim();
   if (trimmed === undefined || trimmed.length === 0) {
     return query;

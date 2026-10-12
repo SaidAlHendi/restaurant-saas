@@ -14,6 +14,8 @@ const baseMenu = {
     receiptHeader: 'Welcome',
     receiptFooter: 'Thank you',
     address: 'King Fahd Rd',
+    payBeforeSend: false,
+    acceptsCard: true,
   },
   org: { name: 'Demo Restaurant', logoUrl: null },
   categories: [],

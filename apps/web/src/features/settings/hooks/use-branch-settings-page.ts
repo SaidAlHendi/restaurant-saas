@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { toast } from '@app/ui';
+
 import { useListBranchesQuery, usePatchBranchMutation } from '../../branches/branches.api.js';
+import { showMenuApiError } from '../../menu/show-menu-api-error.js';
 import { useAppSelector } from '../../../app/hooks.js';
 import { selectCurrentBranchId } from '../../session/session.selectors.js';
 
@@ -30,11 +33,16 @@ export function useBranchSettingsPage() {
     if (!branchId) {
       return;
     }
-    await patchBranch({
+    const result = await patchBranch({
       branchId,
       body: { payBeforeSend, acceptsCard },
     });
-  }, [acceptsCard, branchId, patchBranch, payBeforeSend]);
+    if ('error' in result) {
+      showMenuApiError(result.error, t);
+      return;
+    }
+    toast.success(t('settings.branch.saved'));
+  }, [acceptsCard, branchId, patchBranch, payBeforeSend, t]);
 
   return {
     isLoading,
@@ -45,7 +53,6 @@ export function useBranchSettingsPage() {
     acceptsCard,
     onAcceptsCardChange: setAcceptsCard,
     saving: patchState.isLoading,
-    saved: patchState.isSuccess,
     onSave: () => {
       void onSave();
     },
@@ -57,7 +64,6 @@ export function useBranchSettingsPage() {
       acceptsCard: t('settings.branch.acceptsCard'),
       acceptsCardHint: t('settings.branch.acceptsCardHint'),
       save: t('settings.branch.save'),
-      saved: t('settings.branch.saved'),
       loadError: t('settings.branch.loadError'),
       loading: t('common.loading'),
     },

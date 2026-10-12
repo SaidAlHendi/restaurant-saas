@@ -54,8 +54,9 @@ export function PosOrdersPageView(props: PosOrdersPageViewModel) {
         </TabsList>
         <TabsContent value={tab} className="mt-4 space-y-4">
           <SearchInput
-            value={search.value}
+            defaultValue=""
             onValueChange={search.onChange}
+            delay={300}
             placeholder={search.placeholder}
             clearLabel={search.clearLabel}
           />
@@ -65,7 +66,14 @@ export function PosOrdersPageView(props: PosOrdersPageViewModel) {
             </div>
           ) : null}
           {isError ? (
-            <EmptyState title={errorLabel} actionLabel={labels.loading} onAction={onRetry} />
+            <EmptyState
+              title={errorLabel}
+              action={
+                <Button type="button" variant="outline" onClick={onRetry}>
+                  {labels.retry}
+                </Button>
+              }
+            />
           ) : null}
           {!isLoading && !isError && rows.length === 0 ? <EmptyState title={emptyLabel} /> : null}
           {!isLoading && !isError && rows.length > 0 ? (

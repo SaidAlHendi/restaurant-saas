@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 
 import { toast } from '@app/ui';
-import type { OrderListItem } from '@app/shared';
+import type { OrderListItem, OrderStatus } from '@app/shared';
 
 import { baseApi } from '../../../app/api/base-api.js';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks.js';
@@ -27,6 +27,7 @@ import {
   type PosOrdersTab,
 } from '../pos-orders-list.utils.js';
 import { posOrderStatusTone } from '../pos-catalog.utils.js';
+import { shouldShowSentToKitchenToast } from '../pos-payment-toast.utils.js';
 import { useGetPosMenuQuery } from '../pos.api.js';
 import { usePosOrderDetail } from './use-pos-order-detail.js';
 import { usePosPaymentDialog } from './use-pos-payment-dialog.js';
@@ -43,34 +44,28 @@ export function usePosOrdersPage() {
   const canCreateOrders = useAppSelector(selectCan('orders.create'));
 
   const tab = parsePosOrdersTab(searchParams.get('tab'));
-  const [searchInput, setSearchInput] = useState('');
-  const [debouncedQ, setDebouncedQ] = useState('');
+  const [searchQ, setSearchQ] = useState('');
   const [cursor, setCursor] = useState<string | undefined>(undefined);
   const [accumulated, setAccumulated] = useState<OrderListItem[]>([]);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const beforePaymentStatusRef = useRef<OrderStatus | null>(null);
 
-  useEffect(() => {
-    const handle = window.setTimeout(() => {
-      setDebouncedQ(searchInput.trim());
-      setCursor(undefined);
-    }, 300);
-    return () => {
-      window.clearTimeout(handle);
-    };
-  }, [searchInput]);
-
-  useEffect(() => {
+  const reloadFirstPage = useCallback(() => {
     setCursor(undefined);
     setAccumulated([]);
-  }, [tab, branchId, debouncedQ]);
+  }, []);
+
+  useEffect(() => {
+    reloadFirstPage();
+  }, [tab, branchId, searchQ, reloadFirstPage]);
 
   const locale = i18n.language.startsWith('ar') ? 'ar' : 'en';
   const uiLocale = intlLocaleForUi(i18n.language);
   const defaultLocale = org?.defaultLocale ?? 'en';
 
   const listQuery = useMemo(
-    () => mergeListQueryWithSearch(tabToListQuery(tab, PAGE_SIZE), debouncedQ),
-    [tab, debouncedQ],
+    () => mergeListQueryWithSearch(tabToListQuery(tab, PAGE_SIZE), searchQ),
+    [tab, searchQ],
   );
 
   const { data, isLoading, isError, isFetching, refetch } = useListOrdersQuery(
@@ -98,19 +93,21 @@ export function usePosOrdersPage() {
       if (!branchId || payload.branchId !== branchId) {
         return;
       }
+      reloadFirstPage();
       const tags = posOrderTagsForEvent([], payload, branchId);
       if (tags.length > 0) {
         dispatch(baseApi.util.invalidateTags(tags));
       }
       dispatch(baseApi.util.invalidateTags([{ type: 'Order', id: 'LIST' }]));
     },
-    [branchId, dispatch],
+    [branchId, dispatch, reloadFirstPage],
   );
 
   const realtime = useBranchRealtime({
     branchId,
     onEvent: onRealtimeEvent,
     onResync: () => {
+      reloadFirstPage();
       dispatch(baseApi.util.invalidateTags(['Order']));
     },
   });
@@ -163,9 +160,12 @@ export function usePosOrdersPage() {
     order: orderDetail.order,
     acceptsCard: menu?.branch.acceptsCard ?? true,
     onPaymentCaptured: () => {
+      const before = beforePaymentStatusRef.current;
+      beforePaymentStatusRef.current = null;
       void orderDetail.refetchOrder().then((result) => {
-        if (result.data?.status === 'placed') {
-          toast.success(t('pos.toast.sentToKitchen', { number: result.data.orderNumber }));
+        const updated = result.data;
+        if (updated && shouldShowSentToKitchenToast(before, updated.status)) {
+          toast.success(t('pos.toast.sentToKitchen', { number: updated.orderNumber }));
         }
       });
     },
@@ -223,8 +223,7 @@ export function usePosOrdersPage() {
       },
     })),
     search: {
-      value: searchInput,
-      onChange: setSearchInput,
+      onChange: setSearchQ,
       placeholder: t('pos.orders.searchPlaceholder'),
       clearLabel: t('pos.catalog.searchClear'),
     },
@@ -251,7 +250,11 @@ export function usePosOrdersPage() {
     orderDetail: {
       ...orderDetail,
       onPay: () => {
-        paymentDialog.openForOrder();
+        const current = orderDetail.order;
+        if (current) {
+          beforePaymentStatusRef.current = current.status;
+        }
+        paymentDialog.openForOrder(current);
       },
     },
     paymentDialog,
@@ -261,6 +264,7 @@ export function usePosOrdersPage() {
     labels: {
       title: t('pos.orders.title'),
       loading: t('common.loading'),
+      retry: t('pos.retry'),
     },
   };
 }

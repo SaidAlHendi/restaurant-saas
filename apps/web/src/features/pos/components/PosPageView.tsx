@@ -1,4 +1,4 @@
-import { SendIcon, ShoppingBagIcon, UtensilsIcon } from 'lucide-react';
+import { ShoppingBagIcon, UtensilsIcon } from 'lucide-react';
 
 import {
   Alert,

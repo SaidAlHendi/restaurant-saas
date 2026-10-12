@@ -21,27 +21,39 @@ export function usePosPaymentDialog(input: {
 }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  const [dialogOrder, setDialogOrder] = useState<OrderDetail | undefined>(undefined);
   const [method, setMethod] = useState<PaymentMethod>('cash');
   const [tenderedMinor, setTenderedMinor] = useState<number | null>(null);
   const [clientPaymentId, setClientPaymentId] = useState<string | null>(null);
   const [capturePayment, captureState] = useCapturePaymentMutation();
 
-  const dueMinor = input.order?.dueMinor ?? 0;
+  const activeOrder = dialogOrder ?? input.order;
+  const dueMinor = activeOrder?.dueMinor ?? 0;
 
-  const openForOrder = useCallback(() => {
-    setMethod('cash');
-    setTenderedMinor(dueMinor > 0 ? dueMinor : null);
-    setClientPaymentId(randomUuid());
-    setOpen(true);
-  }, [dueMinor]);
+  const openForOrder = useCallback(
+    (order?: OrderDetail) => {
+      const target = order ?? input.order;
+      if (!target) {
+        return;
+      }
+      setDialogOrder(target);
+      setMethod('cash');
+      setTenderedMinor(target.dueMinor > 0 ? target.dueMinor : null);
+      setClientPaymentId(randomUuid());
+      setOpen(true);
+    },
+    [input.order],
+  );
 
   const dismiss = useCallback(() => {
-    if (input.order !== undefined && input.order.dueMinor > 0) {
+    const order = dialogOrder ?? input.order;
+    if (order !== undefined && order.dueMinor > 0) {
       input.onDismissUnpaid?.();
     }
     setOpen(false);
+    setDialogOrder(undefined);
     setClientPaymentId(null);
-  }, [input]);
+  }, [dialogOrder, input]);
 
   const quickAmounts = useMemo(() => quickTenderAmounts(dueMinor), [dueMinor]);
 
@@ -54,34 +66,34 @@ export function usePosPaymentDialog(input: {
 
   const canSubmit =
     input.branchId !== null &&
-    input.order !== undefined &&
+    activeOrder !== undefined &&
     dueMinor > 0 &&
     !captureState.isLoading &&
     (method === 'card' || (tenderedMinor !== null && tenderedMinor >= dueMinor));
 
   const submit = useCallback(async () => {
-    if (!input.branchId || !input.order || !canSubmit || clientPaymentId === null) {
+    if (!input.branchId || !activeOrder || !canSubmit || clientPaymentId === null) {
       return;
     }
     const body =
       method === 'cash'
         ? {
             clientPaymentId,
-            expectedVersion: input.order.version,
+            expectedVersion: activeOrder.version,
             method: 'cash' as const,
             amountMinor: dueMinor,
             tenderedMinor: tenderedMinor ?? dueMinor,
           }
         : {
             clientPaymentId,
-            expectedVersion: input.order.version,
+            expectedVersion: activeOrder.version,
             method: 'card' as const,
             amountMinor: dueMinor,
           };
 
     const result = await capturePayment({
       branchId: input.branchId,
-      orderId: input.order.id,
+      orderId: activeOrder.id,
       body,
       idempotencyKey: clientPaymentId,
     });
@@ -95,9 +107,11 @@ export function usePosPaymentDialog(input: {
     }
 
     setOpen(false);
+    setDialogOrder(undefined);
     setClientPaymentId(null);
     input.onPaymentCaptured();
   }, [
+    activeOrder,
     canSubmit,
     capturePayment,
     dueMinor,

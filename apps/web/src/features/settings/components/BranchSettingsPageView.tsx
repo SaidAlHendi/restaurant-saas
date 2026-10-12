@@ -12,7 +12,6 @@ export function BranchSettingsPageView(props: BranchSettingsPageViewModel) {
     acceptsCard,
     onAcceptsCardChange,
     saving,
-    saved,
     onSave,
     labels,
   } = props;
@@ -59,7 +58,6 @@ export function BranchSettingsPageView(props: BranchSettingsPageViewModel) {
       <Button type="button" size="touch" disabled={saving} onClick={onSave}>
         {labels.save}
       </Button>
-      {saved ? <p className="text-muted-foreground text-sm">{labels.saved}</p> : null}
     </div>
   );
 }

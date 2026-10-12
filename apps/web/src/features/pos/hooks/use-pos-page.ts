@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { toast } from '@app/ui';
-import type { OrderDetail } from '@app/shared';
+import type { OrderDetail, OrderStatus } from '@app/shared';
 
 import { baseApi } from '../../../app/api/base-api.js';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks.js';
@@ -21,7 +21,11 @@ import {
   selectSessionOrg,
 } from '../../session/session.selectors.js';
 import { useListDiningTablesQuery } from '../../tables/tables.api.js';
-import { useCreateOrderMutation, useListOrdersQuery } from '../../orders/orders.api.js';
+import {
+  ordersApi,
+  useCreateOrderMutation,
+  useListOrdersQuery,
+} from '../../orders/orders.api.js';
 import {
   ALL_CATEGORIES,
   lastLineOfProduct,
@@ -36,6 +40,7 @@ import { useGetPosMenuQuery } from '../pos.api.js';
 import type { PosMenuProduct } from './use-pos-modifier-sheet.js';
 import { usePosModifierSheet } from './use-pos-modifier-sheet.js';
 import { usePosOrderDetail } from './use-pos-order-detail.js';
+import { shouldShowSentToKitchenToast } from '../pos-payment-toast.utils.js';
 import { usePosPaymentDialog } from './use-pos-payment-dialog.js';
 
 export function usePosPage() {
@@ -76,6 +81,7 @@ export function usePosPage() {
 
   // Socket events are hints: refetch the open orders list / that order when it changed.
   const openOrdersRef = useRef<Array<{ id: string; version: number }>>([]);
+  const beforePaymentStatusRef = useRef<OrderStatus | null>(null);
   const onRealtimeEvent = useCallback(
     ({ payload }: RealtimeEvent) => {
       if (!branchId) {
@@ -292,19 +298,59 @@ export function usePosPage() {
     order: paymentOrder,
     acceptsCard: menu?.branch.acceptsCard ?? true,
     onPaymentCaptured: () => {
-      void orderDetail.refetchOrder().then((result) => {
-        const updated = result.data;
-        setCheckoutOrder(null);
-        if (updated?.status === 'placed') {
+      const before = beforePaymentStatusRef.current;
+      beforePaymentStatusRef.current = null;
+      const checkoutId = checkoutOrder?.id;
+      const activeBranchId = branchId;
+      setCheckoutOrder(null);
+
+      const finish = (updated: OrderDetail | undefined) => {
+        if (updated && shouldShowSentToKitchenToast(before, updated.status)) {
           toast.success(t('pos.toast.sentToKitchen', { number: updated.orderNumber }));
         }
-        orderDetail.printReceipt();
+        if (updated && selectedOrderId === updated.id) {
+          orderDetail.printReceipt();
+        }
+      };
+
+      if (checkoutId && activeBranchId) {
+        void dispatch(
+          ordersApi.endpoints.getOrder.initiate(
+            { branchId: activeBranchId, orderId: checkoutId },
+            { forceRefetch: true },
+          ),
+        )
+          .unwrap()
+          .then(finish)
+          .catch(() => {});
+        return;
+      }
+      void orderDetail.refetchOrder().then((result) => {
+        finish(result.data);
       });
     },
     onDismissUnpaid: () => {
+      const checkoutId = checkoutOrder?.id;
+      const activeBranchId = branchId;
+      setCheckoutOrder(null);
+      if (checkoutId && activeBranchId) {
+        void dispatch(
+          ordersApi.endpoints.getOrder.initiate(
+            { branchId: activeBranchId, orderId: checkoutId },
+            { forceRefetch: true },
+          ),
+        )
+          .unwrap()
+          .then((updated) => {
+            if (updated.status === 'draft') {
+              toast.info(t('pos.toast.awaitingPayment', { number: updated.orderNumber }));
+            }
+          })
+          .catch(() => {});
+        return;
+      }
       void orderDetail.refetchOrder().then((result) => {
-        const updated = result.data ?? checkoutOrder;
-        setCheckoutOrder(null);
+        const updated = result.data;
         if (updated?.status === 'draft') {
           toast.info(t('pos.toast.awaitingPayment', { number: updated.orderNumber }));
         }
@@ -340,9 +386,9 @@ export function usePosPage() {
     const order = result.data;
     dispatch(cartActions.clearCartAfterSuccessfulSend());
     if (order.status === 'draft') {
-      setSelectedOrderId(order.id);
+      beforePaymentStatusRef.current = order.status;
       setCheckoutOrder(order);
-      paymentDialog.openForOrder();
+      paymentDialog.openForOrder(order);
       return;
     }
     toast.success(t('pos.toast.sentToKitchen', { number: order.orderNumber }));
@@ -531,7 +577,11 @@ export function usePosPage() {
     orderDetail: {
       ...orderDetail,
       onPay: () => {
-        paymentDialog.openForOrder();
+        const current = orderDetail.order;
+        if (current) {
+          beforePaymentStatusRef.current = current.status;
+        }
+        paymentDialog.openForOrder(current);
       },
     },
     paymentDialog,
