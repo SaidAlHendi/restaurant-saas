@@ -20,13 +20,13 @@ import { useListDiningTablesQuery } from '../../tables/tables.api.js';
 import { posOrderTagsForEvent } from '../pos-realtime.utils.js';
 import {
   mergeListQueryWithSearch,
-  orderTypeTableLabel,
   parsePosOrdersTab,
   POS_ORDERS_TABS,
   tabToListQuery,
   type PosOrdersTab,
 } from '../pos-orders-list.utils.js';
-import { posOrderStatusTone } from '../pos-catalog.utils.js';
+import { orderTypeTableLabel } from '../../orders/order-type-table-label.utils.js';
+import { orderStatusBadgeTone } from '../../orders/orders-display.utils.js';
 import { shouldShowSentToKitchenToast } from '../pos-payment-toast.utils.js';
 import { useGetPosMenuQuery } from '../pos.api.js';
 import { usePosOrderDetail } from './use-pos-order-detail.js';
@@ -200,7 +200,7 @@ export function usePosOrdersPage() {
       }),
       itemCount: order.itemCount,
       totalLabel: formatMinor(order.totalMinor),
-      statusTone: posOrderStatusTone(order.status),
+      statusTone: orderStatusBadgeTone(order.status),
       statusLabel:
         order.status === 'draft'
           ? t('pos.awaitingPaymentBadge')

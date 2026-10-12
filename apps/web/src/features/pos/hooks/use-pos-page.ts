@@ -29,10 +29,10 @@ import {
 import {
   ALL_CATEGORIES,
   lastLineOfProduct,
-  posOrderStatusTone,
   quantityByProduct,
   visiblePosProducts,
 } from '../pos-catalog.utils.js';
+import { orderStatusBadgeTone } from '../../orders/orders-display.utils.js';
 import { posLocalizedName } from '../pos-label.utils.js';
 import { buildCreateOrderBody } from '../pos-order.utils.js';
 import { posOrderTagsForEvent } from '../pos-realtime.utils.js';
@@ -559,7 +559,7 @@ export function usePosPage() {
               ? t('pos.result.orderNumber', { number: order.orderNumber })
               : (order.customerName ?? t('pos.result.orderNumber', { number: order.orderNumber })),
           detail: `${t('pos.catalog.items', { count: order.itemCount })} · ${formatMinor(order.totalMinor)}`,
-          status: posOrderStatusTone(order.status),
+          status: orderStatusBadgeTone(order.status),
           statusLabel:
             order.status === 'draft'
               ? t('pos.awaitingPaymentBadge')

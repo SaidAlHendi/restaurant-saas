@@ -1,10 +1,23 @@
+import { lazy } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
+import { useAppSelector } from '../../app/hooks.js';
 import { MenuRoutes } from '../../features/menu/MenuRoutes.js';
+import { selectCan } from '../../features/session/session.selectors.js';
 import { BranchSettingsPage } from '../../features/settings/pages/BranchSettingsPage.js';
 import { DashboardHome } from './DashboardHome.js';
 import { DashboardShell } from './DashboardShell.js';
 import { useDashboardShell } from './use-dashboard-shell.js';
+
+const DashboardTodayPage = lazy(
+  () => import('../../features/orders/pages/DashboardTodayPage.js'),
+);
+const DashboardOrdersPage = lazy(
+  () => import('../../features/orders/pages/DashboardOrdersPage.js'),
+);
+const DashboardOrderDetailPage = lazy(
+  () => import('../../features/orders/pages/DashboardOrderDetailPage.js'),
+);
 
 function DashboardLayout() {
   const shell = useDashboardShell();
@@ -12,10 +25,23 @@ function DashboardLayout() {
 }
 
 export default function DashboardArea() {
+  const canReports = useAppSelector(selectCan('reports.read'));
+
   return (
     <Routes>
       <Route element={<DashboardLayout />}>
-        <Route index element={<DashboardHome />} />
+        <Route
+          index
+          element={
+            canReports ? <DashboardTodayPage /> : <DashboardHome />
+          }
+        />
+        {canReports ? (
+          <>
+            <Route path="orders" element={<DashboardOrdersPage />} />
+            <Route path="orders/:orderId" element={<DashboardOrderDetailPage />} />
+          </>
+        ) : null}
         <Route path="menu/*" element={<MenuRoutes />} />
         <Route path="settings/branch" element={<BranchSettingsPage />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />

@@ -93,3 +93,14 @@ export function ordersApiErrorMessage(t: OrdersErrorTranslator, code: OrdersApiE
 export function messageFromOrdersMutationError(error: unknown, t: TFunction): string {
   return ordersApiErrorMessage((key) => t(key), parseOrdersApiErrorCode(error));
 }
+
+export function isOrderNotFoundError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') {
+    return false;
+  }
+  const fetchError = error as FetchBaseQueryError;
+  if (!('status' in fetchError)) {
+    return false;
+  }
+  return fetchError.status === 404;
+}

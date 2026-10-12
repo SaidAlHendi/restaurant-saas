@@ -54,12 +54,130 @@
     "canManageBranches": "You can create and edit branches.",
     "nav": {
       "home": "Overview",
+      "today": "Today",
+      "orders": "Orders",
       "menu": "Menu",
       "cashier": "Cashier",
       "sidebar": "Dashboard navigation",
       "closeSidebar": "Close menu",
       "kitchen": "Kitchen",
       "branchSettings": "Branch settings"
+    },
+    "today": {
+      "title": "Today",
+      "pickToday": "Today",
+      "pickYesterday": "Yesterday",
+      "dateLabel": "Business date",
+      "sales": "Sales",
+      "orders": "Orders",
+      "averageTicket": "Average ticket",
+      "unpaid": "Unpaid",
+      "cancelled": "Cancelled",
+      "paymentBreakdown": "Payments",
+      "typeBreakdown": "By order type",
+      "topItems": "Top items",
+      "topItemsName": "Item",
+      "topItemsQty": "Qty",
+      "topItemsRevenue": "Revenue",
+      "empty": "No sales for this day.",
+      "error": "Could not load the daily report.",
+      "paymentMethod": {
+        "cash": "Cash",
+        "card": "Card",
+        "other": "Other"
+      },
+      "orderType": {
+        "dine_in": "Dine in",
+        "takeaway": "Takeaway"
+      }
+    },
+    "orders": {
+      "title": "Orders",
+      "takeaway": "Takeaway",
+      "searchPlaceholder": "Search by number, table or customer",
+      "searchClear": "Clear search",
+      "empty": "No orders match your filters.",
+      "error": "Could not load orders.",
+      "branchDateError": "Could not load the branch business date.",
+      "loadMore": "Load more",
+      "filters": {
+        "status": "Status",
+        "type": "Type",
+        "payment": "Payment",
+        "period": "Period",
+        "all": "All",
+        "periodToday": "Today",
+        "periodYesterday": "Yesterday",
+        "periodLast7": "Last 7 days",
+        "periodLast30": "Last 30 days",
+        "periodCustom": "Custom range",
+        "from": "From",
+        "to": "To"
+      },
+      "columns": {
+        "number": "No.",
+        "dateTime": "Date & time",
+        "customer": "Customer / table",
+        "items": "Items",
+        "total": "Total",
+        "status": "Status",
+        "payment": "Payment",
+        "sortBy": "Sort by",
+        "rowActions": "Row actions"
+      },
+      "status": {
+        "draft": "Draft",
+        "placed": "Placed",
+        "preparing": "Preparing",
+        "ready": "Ready",
+        "completed": "Completed",
+        "cancelled": "Cancelled",
+        "refunded": "Refunded"
+      },
+      "paymentStatus": {
+        "unpaid": "Unpaid",
+        "partial": "Partial",
+        "paid": "Paid",
+        "refunded": "Refunded"
+      },
+      "paymentMethod": {
+        "cash": "Cash",
+        "card": "Card",
+        "other": "Other"
+      },
+      "orderType": {
+        "dine_in": "Dine in",
+        "takeaway": "Takeaway"
+      }
+    },
+    "orderDetail": {
+      "title": "Order",
+      "back": "Back to orders",
+      "items": "Items",
+      "payments": "Payments",
+      "timeline": "Timeline",
+      "notFound": "Order not found.",
+      "voidReason": "Void reason",
+      "addition": "Addition",
+      "actor": "By",
+      "subtotal": "Subtotal",
+      "tax": "Tax",
+      "total": "Total",
+      "paid": "Paid",
+      "due": "Due"
+    }
+  },
+  "order": {
+    "events": {
+      "drafted": "Order drafted",
+      "placed": "Sent to kitchen",
+      "statusChanged": "Status {{from}} → {{to}}",
+      "itemsAdded": "{{count}} items added",
+      "itemVoided": "Voided {{name}} ({{reason}})",
+      "itemStatusChanged": "{{name}}: {{status}}",
+      "cancelled": "Cancelled ({{reason}})",
+      "paymentCaptured": "Payment {{method}} ({{amountMinor}})",
+      "unknown": "Event: {{type}}"
     }
   },
   "settings": {

@@ -99,6 +99,7 @@ export const baseApi = createApi({
     'Order',
     'KitchenBoard',
     'Branch',
+    'DailyReport',
   ],
   endpoints: (builder) => ({
     getHealth: builder.query<{ status: string }, undefined>({

@@ -42,9 +42,10 @@ Feature keys: `menu.multilang`, `menu.branding`, `menu.table_qr`, `pos.access`, 
 - Menu: categories (drag to reorder), products (name/description per language, price, photo,
   active toggle, modifier groups), modifier groups (min/max select, options with price delta).
 - QR codes: download printable PDF/PNG per menu and per table.
-- Orders: live list + history, search by number/customer, filters (status, type, date range,
-  payment method), order detail with full event timeline.
-- Today: sales total, orders count, average ticket, by payment method, top 10 items.
+- Orders (API + dashboard UI in progress): list/history with search and filters (status, type, date
+  range, payment method), order detail with event timeline (`actorName` on events).
+- Today (API + dashboard UI in progress): daily report — sales, orders, average ticket, unpaid,
+  payment-method and order-type breakdown, top 10 items (`GET .../reports/daily`).
 - Staff: invite by email or create PIN-only staff, assign role and branches.
 - Devices: pair a cashier or kitchen device with a 6-digit code; see last seen.
 - Settings: restaurant, branch, tax, receipt header/footer, business day start hour.

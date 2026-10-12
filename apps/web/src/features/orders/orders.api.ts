@@ -4,6 +4,7 @@ import {
   createOrderBodySchema,
   createPaymentBodySchema,
   orderDetailSchema,
+  orderEventListResponseSchema,
   orderListResponseSchema,
   paymentSchema,
   voidOrderItemBodySchema,
@@ -12,6 +13,7 @@ import {
   type CreateOrderBody,
   type CreatePaymentBody,
   type OrderDetail,
+  type OrderEvent,
   type OrderListQuery,
   type Payment,
   type VoidOrderItemBody,
@@ -52,6 +54,18 @@ function orderListParams(query: OrderListQueryInput | undefined): Record<string,
   if (query?.q !== undefined) {
     params['q'] = query.q;
   }
+  if (query?.dateFrom !== undefined) {
+    params['dateFrom'] = query.dateFrom;
+  }
+  if (query?.dateTo !== undefined) {
+    params['dateTo'] = query.dateTo;
+  }
+  if (query?.type !== undefined) {
+    params['type'] = query.type;
+  }
+  if (query?.paymentMethod !== undefined) {
+    params['paymentMethod'] = query.paymentMethod;
+  }
   return params;
 }
 
@@ -78,6 +92,17 @@ export const ordersApi = baseApi.injectEndpoints({
       query: ({ branchId, orderId }) => `/v1/branches/${branchId}/orders/${orderId}`,
       transformResponse: (response: unknown) => orderDetailSchema.parse(response),
       providesTags: (_result, _error, arg) => [{ type: 'Order', id: arg.orderId }],
+    }),
+    listOrderEvents: builder.query<
+      { items: OrderEvent[] },
+      { branchId: string; orderId: string }
+    >({
+      query: ({ branchId, orderId }) =>
+        `/v1/branches/${branchId}/orders/${orderId}/events`,
+      transformResponse: (response: unknown) => orderEventListResponseSchema.parse(response),
+      providesTags: (_result, _error, arg) => [
+        { type: 'Order', id: `${arg.orderId}:events` },
+      ],
     }),
     createOrder: builder.mutation<
       OrderDetail,
@@ -159,6 +184,7 @@ export const ordersApi = baseApi.injectEndpoints({
 export const {
   useListOrdersQuery,
   useGetOrderQuery,
+  useListOrderEventsQuery,
   useCreateOrderMutation,
   useChangeOrderStatusMutation,
   useAddOrderItemsMutation,

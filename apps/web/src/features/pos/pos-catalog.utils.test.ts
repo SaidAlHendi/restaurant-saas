@@ -6,7 +6,6 @@ import type { CartLine } from '../cart/cart.types.js';
 import {
   ALL_CATEGORIES,
   lastLineOfProduct,
-  posOrderStatusTone,
   quantityByProduct,
   visiblePosProducts,
 } from './pos-catalog.utils.js';
@@ -67,15 +66,5 @@ describe('cart quantities per product', () => {
   it('finds the newest line of a product', () => {
     expect(lastLineOfProduct(lines, 'p1')?.localId).toBe('c');
     expect(lastLineOfProduct(lines, 'p3')).toBeNull();
-  });
-});
-
-describe('posOrderStatusTone', () => {
-  it('maps order statuses to badge colors', () => {
-    expect(posOrderStatusTone('placed')).toBe('new');
-    expect(posOrderStatusTone('preparing')).toBe('preparing');
-    expect(posOrderStatusTone('ready')).toBe('ready');
-    expect(posOrderStatusTone('refunded')).toBe('completed');
-    expect(posOrderStatusTone('cancelled')).toBe('cancelled');
   });
 });

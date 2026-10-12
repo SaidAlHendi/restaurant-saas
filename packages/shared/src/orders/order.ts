@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { businessDateSchema, inclusiveBusinessDaySpan } from '../dates/business-date.js';
 import { moneyMinorSchema } from '../i18n/localized-text.js';
 import { cursorListQuerySchema, cursorListResponseSchema } from '../catalog/pagination.js';
 
@@ -10,7 +11,7 @@ import {
   paymentStatusSchema,
 } from './enums.js';
 import { orderLineInputSchema } from './order-line.js';
-import { paymentSchema } from './payment.js';
+import { paymentMethodSchema, paymentSchema } from './payment.js';
 
 export const createOrderBodySchema = z
   .object({
@@ -113,26 +114,50 @@ export type OrderDetail = z.infer<typeof orderDetailSchema>;
 export const orderListItemSchema = orderSchema.extend({
   itemCount: z.number().int().min(0),
   tableLabel: z.string().nullable(),
+  paymentMethods: z.array(paymentMethodSchema),
 });
 
 export type OrderListItem = z.infer<typeof orderListItemSchema>;
 
-export const orderListQuerySchema = cursorListQuerySchema.extend({
-  status: orderStatusSchema.optional(),
-  businessDate: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .optional(),
-  activeOnly: z
-    .enum(['true', 'false'])
-    .optional()
-    .transform((value) => (value === undefined ? undefined : value === 'true')),
-  todayOnly: z
-    .enum(['true', 'false'])
-    .optional()
-    .transform((value) => (value === undefined ? undefined : value === 'true')),
-  q: z.string().trim().min(1).max(50).optional(),
-});
+export const orderListQuerySchema = cursorListQuerySchema
+  .extend({
+    status: orderStatusSchema.optional(),
+    businessDate: businessDateSchema.optional(),
+    dateFrom: businessDateSchema.optional(),
+    dateTo: businessDateSchema.optional(),
+    type: orderTypeSchema.optional(),
+    paymentMethod: paymentMethodSchema.optional(),
+    activeOnly: z
+      .enum(['true', 'false'])
+      .optional()
+      .transform((value) => (value === undefined ? undefined : value === 'true')),
+    todayOnly: z
+      .enum(['true', 'false'])
+      .optional()
+      .transform((value) => (value === undefined ? undefined : value === 'true')),
+    q: z.string().trim().min(1).max(50).optional(),
+  })
+  .superRefine((query, ctx) => {
+    const { dateFrom, dateTo } = query;
+    if (dateFrom === undefined || dateTo === undefined) {
+      return;
+    }
+    if (dateFrom > dateTo) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'dateFrom must be on or before dateTo',
+        path: ['dateFrom'],
+      });
+      return;
+    }
+    if (inclusiveBusinessDaySpan(dateFrom, dateTo) > 92) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Date range must not exceed 92 days',
+        path: ['dateTo'],
+      });
+    }
+  });
 
 export type OrderListQuery = z.infer<typeof orderListQuerySchema>;
 
@@ -168,6 +193,7 @@ export const orderEventSchema = z.object({
   toStatus: orderStatusSchema.nullable(),
   payload: z.record(z.string(), z.unknown()),
   actorMembershipId: z.uuid(),
+  actorName: z.string().nullable(),
   createdAt: z.iso.datetime(),
 });
 

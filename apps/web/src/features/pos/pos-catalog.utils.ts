@@ -1,5 +1,4 @@
-import type { OrderStatus as BadgeStatus } from '@app/ui';
-import type { OrderStatus, PosMenuPayload } from '@app/shared';
+import type { PosMenuPayload } from '@app/shared';
 
 import type { CartLine } from '../cart/cart.types.js';
 
@@ -52,19 +51,3 @@ export function lastLineOfProduct(lines: CartLine[], productId: string): CartLin
   return null;
 }
 
-/** Badge color for an order status in the open orders strip. */
-export function posOrderStatusTone(status: OrderStatus): BadgeStatus {
-  switch (status) {
-    case 'preparing':
-      return 'preparing';
-    case 'ready':
-      return 'ready';
-    case 'completed':
-    case 'refunded':
-      return 'completed';
-    case 'cancelled':
-      return 'cancelled';
-    default:
-      return 'new';
-  }
-}

@@ -25,6 +25,11 @@ export async function asDemoCashier(agent: Agent) {
   return authAgent(agent, accessToken);
 }
 
+export async function asDemoManager(agent: Agent) {
+  const { accessToken } = await loginSeedUser(agent, 'manager', 'demo');
+  return authAgent(agent, accessToken);
+}
+
 export function categoryBody(nameEn = 'Mains', nameAr = 'أطباق') {
   return {
     name: { en: nameEn, ar: nameAr },

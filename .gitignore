@@ -23,3 +23,5 @@ apps/api/.seed-cache/
 apps/site/.react-router/
 .verify-pipeline.log
 .agent-quality-gate-output.txt
+.agent-gate-run.exit
+.agent-gate-run.log

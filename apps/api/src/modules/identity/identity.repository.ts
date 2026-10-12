@@ -1,4 +1,4 @@
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, eq, inArray, isNull } from 'drizzle-orm';
 import { Injectable } from '@nestjs/common';
 
 import { authSessions, users } from '../../core/db/schema/identity';
@@ -157,5 +157,27 @@ export class IdentityRepository {
   async findRoleById(tx: DrizzleTx, roleId: string) {
     const rows = await tx.select().from(roles).where(eq(roles.id, roleId)).limit(1);
     return rows[0];
+  }
+
+  async findDisplayNamesByMembershipIds(
+    tx: DrizzleTx,
+    membershipIds: string[],
+  ): Promise<Map<string, string | null>> {
+    const map = new Map<string, string | null>();
+    if (membershipIds.length === 0) {
+      return map;
+    }
+    const rows = await tx
+      .select({
+        membershipId: memberships.id,
+        name: users.name,
+      })
+      .from(memberships)
+      .leftJoin(users, eq(memberships.userId, users.id))
+      .where(inArray(memberships.id, membershipIds));
+    for (const row of rows) {
+      map.set(row.membershipId, row.name ?? null);
+    }
+    return map;
   }
 }

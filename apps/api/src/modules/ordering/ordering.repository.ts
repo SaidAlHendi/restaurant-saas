@@ -13,7 +13,7 @@ import {
   orders,
   payments,
 } from '../../core/db/schema/ordering';
-import type { OrderItemStatus, OrderStatus } from '@app/shared';
+import type { OrderItemStatus, OrderStatus, OrderType, PaymentMethod } from '@app/shared';
 
 function firstRow<T>(rows: T[]): T {
   const row = rows[0];
@@ -170,6 +170,10 @@ export class OrderingRepository {
     opts: {
       status?: OrderStatus;
       businessDate?: string;
+      dateFrom?: string;
+      dateTo?: string;
+      type?: OrderType;
+      paymentMethod?: PaymentMethod;
       activeOnly?: boolean;
       todayOnlyBusinessDate?: string;
       q?: string;
@@ -186,6 +190,26 @@ export class OrderingRepository {
     }
     if (opts.businessDate) {
       conditions.push(eq(orders.businessDate, opts.businessDate));
+    }
+    if (opts.dateFrom) {
+      conditions.push(sql`${orders.businessDate} >= ${opts.dateFrom}::date`);
+    }
+    if (opts.dateTo) {
+      conditions.push(sql`${orders.businessDate} <= ${opts.dateTo}::date`);
+    }
+    if (opts.type) {
+      conditions.push(eq(orders.type, opts.type));
+    }
+    if (opts.paymentMethod) {
+      const method = opts.paymentMethod;
+      conditions.push(
+        sql`EXISTS (
+          SELECT 1 FROM payments p
+          WHERE p.order_id = ${orders.id}
+            AND p.status = 'captured'
+            AND p.method = ${method}
+        )`,
+      );
     }
     if (opts.todayOnlyBusinessDate) {
       conditions.push(eq(orders.businessDate, opts.todayOnlyBusinessDate));
@@ -225,6 +249,31 @@ export class OrderingRepository {
       .where(and(...conditions))
       .orderBy(desc(orders.createdAt), desc(orders.id))
       .limit(opts.limit + 1);
+  }
+
+  async capturedPaymentMethodsForOrders(
+    tx: DrizzleTx,
+    orderIds: string[],
+  ): Promise<Map<string, PaymentMethod[]>> {
+    const map = new Map<string, PaymentMethod[]>();
+    if (orderIds.length === 0) {
+      return map;
+    }
+    const result = await tx
+      .select({
+        orderId: payments.orderId,
+        method: payments.method,
+      })
+      .from(payments)
+      .where(and(inArray(payments.orderId, orderIds), eq(payments.status, 'captured')))
+      .groupBy(payments.orderId, payments.method)
+      .orderBy(payments.orderId, payments.method);
+    for (const row of result) {
+      const list = map.get(row.orderId) ?? [];
+      list.push(row.method);
+      map.set(row.orderId, list);
+    }
+    return map;
   }
 
   async countItemsForOrders(tx: DrizzleTx, orderIds: string[]): Promise<Map<string, number>> {
