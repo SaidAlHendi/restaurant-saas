@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { toast } from '@app/ui';
+import type { OrderDetail } from '@app/shared';
+
 import { baseApi } from '../../../app/api/base-api.js';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks.js';
 import type { RealtimeEvent } from '../../../lib/realtime.js';
@@ -35,11 +38,6 @@ import { usePosModifierSheet } from './use-pos-modifier-sheet.js';
 import { usePosOrderDetail } from './use-pos-order-detail.js';
 import { usePosPaymentDialog } from './use-pos-payment-dialog.js';
 
-export type SentOrderSummary = {
-  orderNumber: number;
-  orderId: string;
-};
-
 export function usePosPage() {
   const { t, i18n } = useTranslation();
   const dispatch = useAppDispatch();
@@ -49,6 +47,7 @@ export function usePosPage() {
   const cart = useAppSelector((state) => state.cart);
   const hasCartLines = useAppSelector(cartHasUnsavedLines);
   const canCancelOrders = useAppSelector(selectCan('orders.cancel'));
+  const canCreateOrders = useAppSelector(selectCan('orders.create'));
 
   const [activeCategoryId, setActiveCategoryId] = useState<string>(ALL_CATEGORIES);
   const [searchQuery, setSearchQuery] = useState('');
@@ -56,7 +55,7 @@ export function usePosPage() {
     typeof navigator === 'undefined' ? true : navigator.onLine,
   );
   const [sendError, setSendError] = useState(false);
-  const [sentOrder, setSentOrder] = useState<SentOrderSummary | null>(null);
+  const [checkoutOrder, setCheckoutOrder] = useState<OrderDetail | null>(null);
   const [pendingBranchId, setPendingBranchId] = useState<string | null>(null);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [isAddingItems, setIsAddingItems] = useState(false);
@@ -212,40 +211,6 @@ export function usePosPage() {
     [addAdditionLine, dispatch, isAddingItems, modifierSheet],
   );
 
-  const onSendToKitchen = useCallback(async () => {
-    if (!branchId || !menu) {
-      return;
-    }
-    setSendError(false);
-    const body = buildCreateOrderBody(cart);
-    if (!body) {
-      return;
-    }
-    if (!isOnline) {
-      setSendError(true);
-      return;
-    }
-    const result = await createOrder({
-      branchId,
-      body,
-      idempotencyKey: cart.clientOrderId,
-    });
-    if ('error' in result) {
-      setSendError(true);
-      return;
-    }
-    setSentOrder({ orderNumber: result.data.orderNumber, orderId: result.data.id });
-    dispatch(cartActions.clearCartAfterSuccessfulSend());
-  }, [branchId, cart, createOrder, dispatch, isOnline, menu]);
-
-  const onRetrySend = useCallback(() => {
-    void onSendToKitchen();
-  }, [onSendToKitchen]);
-
-  const onDismissResult = useCallback(() => {
-    setSentOrder(null);
-  }, []);
-
   const onBranchChangeRequest = useCallback(
     (nextBranchId: string) => {
       if (nextBranchId === branchId) {
@@ -317,20 +282,75 @@ export function usePosPage() {
     isAddingItems,
     setIsAddingItems,
     canCancelOrders,
+    canCreateOrders,
   });
+
+  const paymentOrder = checkoutOrder ?? orderDetail.order;
 
   const paymentDialog = usePosPaymentDialog({
     branchId,
-    order: orderDetail.order,
+    order: paymentOrder,
+    acceptsCard: menu?.branch.acceptsCard ?? true,
     onPaymentCaptured: () => {
-      void orderDetail.refetchOrder().then(() => {
+      void orderDetail.refetchOrder().then((result) => {
+        const updated = result.data;
+        setCheckoutOrder(null);
+        if (updated?.status === 'placed') {
+          toast.success(t('pos.toast.sentToKitchen', { number: updated.orderNumber }));
+        }
         orderDetail.printReceipt();
+      });
+    },
+    onDismissUnpaid: () => {
+      void orderDetail.refetchOrder().then((result) => {
+        const updated = result.data ?? checkoutOrder;
+        setCheckoutOrder(null);
+        if (updated?.status === 'draft') {
+          toast.info(t('pos.toast.awaitingPayment', { number: updated.orderNumber }));
+        }
       });
     },
     formatMinor,
     currency,
     uiLocale,
   });
+
+  const onSendToKitchen = useCallback(async () => {
+    if (!branchId || !menu) {
+      return;
+    }
+    setSendError(false);
+    const body = buildCreateOrderBody(cart);
+    if (!body) {
+      return;
+    }
+    if (!isOnline) {
+      setSendError(true);
+      return;
+    }
+    const result = await createOrder({
+      branchId,
+      body,
+      idempotencyKey: cart.clientOrderId,
+    });
+    if ('error' in result) {
+      setSendError(true);
+      return;
+    }
+    const order = result.data;
+    dispatch(cartActions.clearCartAfterSuccessfulSend());
+    if (order.status === 'draft') {
+      setSelectedOrderId(order.id);
+      setCheckoutOrder(order);
+      paymentDialog.openForOrder();
+      return;
+    }
+    toast.success(t('pos.toast.sentToKitchen', { number: order.orderNumber }));
+  }, [branchId, cart, createOrder, dispatch, isOnline, menu, paymentDialog, t]);
+
+  const onRetrySend = useCallback(() => {
+    void onSendToKitchen();
+  }, [onSendToKitchen]);
 
   const cartLines = cart.lines.map((line) => ({
     localId: line.localId,
@@ -494,7 +514,10 @@ export function usePosPage() {
               : (order.customerName ?? t('pos.result.orderNumber', { number: order.orderNumber })),
           detail: `${t('pos.catalog.items', { count: order.itemCount })} · ${formatMinor(order.totalMinor)}`,
           status: posOrderStatusTone(order.status),
-          statusLabel: t(`pos.orderStatus.${order.status}`),
+          statusLabel:
+            order.status === 'draft'
+              ? t('pos.awaitingPaymentBadge')
+              : t(`pos.orderStatus.${order.status}`),
           onSelect: () => {
             setSelectedOrderId(order.id);
           },
@@ -525,8 +548,6 @@ export function usePosPage() {
     showOfflineBanner,
     offlineMessage: !isOnline ? t('pos.offline') : t('pos.sendFailed'),
     onRetrySend,
-    sentOrder,
-    onDismissResult,
     modifierSheet: {
       ...modifierSheet,
       formatMinor,
@@ -554,7 +575,11 @@ export function usePosPage() {
       cartCount: t('pos.catalog.items', {
         count: cart.lines.reduce((sum: number, row) => sum + row.quantity, 0),
       }),
-      sendToKitchen: sending ? t('pos.sending') : t('pos.sendToKitchen'),
+      sendToKitchen: sending
+        ? t('pos.sending')
+        : menu?.branch.payBeforeSend
+          ? t('pos.payAndSend')
+          : t('pos.sendToKitchen'),
       orderTypeDineIn: t('pos.orderType.dineIn'),
       orderTypeTakeaway: t('pos.orderType.takeaway'),
       table: t('pos.table'),
@@ -563,11 +588,6 @@ export function usePosPage() {
       subtotal: t('pos.totals.subtotal'),
       tax: menu?.branch.taxInclusive ? t('pos.totals.taxIncl') : t('pos.totals.tax'),
       total: t('pos.totals.total'),
-      resultTitle: t('pos.result.title'),
-      resultOrderNumber: t('pos.result.orderNumber', {
-        number: sentOrder?.orderNumber ?? 0,
-      }),
-      newOrder: t('pos.result.newOrder'),
       loadError: t('pos.loadError'),
       cartEmpty: t('pos.cart.empty'),
       retry: t('pos.retry'),

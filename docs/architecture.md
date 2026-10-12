@@ -18,7 +18,8 @@ daily_product_sales, hourly_sales, outbox_events, audit_logs.
 ## Orders
 - Id: UUIDv7. `client_order_id` from device, unique per branch.
 - Daily order number: `UPDATE branch_counters ... RETURNING` inside the order transaction.
-- States: draft -> placed -> preparing -> ready -> completed; placed/preparing -> cancelled;
+- States: draft -> placed (full payment only, not via POST /status) -> preparing -> ready -> completed;
+  draft -> cancelled (cashier `orders.create`); placed/preparing -> cancelled;
   completed -> refunded. Item status separate (pending/preparing/ready/voided). Payment status separate.
 - `version` column for optimistic locking; conditional updates on status.
 - Edits after sending to kitchen add new items or void items; never mutate sent items.

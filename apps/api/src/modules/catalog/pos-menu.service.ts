@@ -72,6 +72,8 @@ export class PosMenuService {
           receiptHeader: branch.receiptHeader,
           receiptFooter: branch.receiptFooter,
           address: branch.address,
+          payBeforeSend: branch.payBeforeSend,
+          acceptsCard: branch.acceptsCard,
         },
         org: {
           name: org.name,

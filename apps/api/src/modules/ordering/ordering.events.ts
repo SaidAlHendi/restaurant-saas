@@ -2,6 +2,7 @@ import type { OrderRealtimeChange, OrderStatus } from '@app/shared';
 import { orderRealtimePayloadSchema } from '@app/shared';
 
 export const ORDER_EVENT_TYPES = {
+  drafted: 'order.drafted',
   placed: 'order.placed',
   statusChanged: 'order.status_changed',
   itemsAdded: 'order.items_added',
@@ -19,6 +20,8 @@ export const REALTIME_EVENT_TYPES = {
 
 export function changeForOrderEvent(eventType: string): OrderRealtimeChange {
   switch (eventType) {
+    case ORDER_EVENT_TYPES.drafted:
+      return 'status';
     case ORDER_EVENT_TYPES.placed:
       return 'placed';
     case ORDER_EVENT_TYPES.itemsAdded:

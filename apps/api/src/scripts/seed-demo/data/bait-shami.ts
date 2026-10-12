@@ -12,12 +12,14 @@ export const baitShamiOrg: OrgSeedDefinition = {
       slug: 'riyadh',
       name: { ar: 'الرياض — العليا', en: 'Riyadh — Olaya' },
       city: { ar: 'الرياض', en: 'Riyadh' },
+      payBeforeSend: true,
     },
     {
       key: 'jeddah',
       slug: 'jeddah',
       name: { ar: 'جدة — الروضة', en: 'Jeddah — Al Rawdah' },
       city: { ar: 'جدة', en: 'Jeddah' },
+      acceptsCard: false,
     },
     {
       key: 'dammam',

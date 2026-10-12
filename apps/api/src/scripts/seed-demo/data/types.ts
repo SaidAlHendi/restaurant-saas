@@ -6,6 +6,8 @@ export type BranchDef = {
   name: LocalizedText;
   city: LocalizedText;
   taxInclusive?: boolean;
+  payBeforeSend?: boolean;
+  acceptsCard?: boolean;
 };
 
 export type CategoryDef = {

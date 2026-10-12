@@ -9,6 +9,7 @@ export type StatusTransition = {
 };
 
 const ALLOWED: StatusTransition[] = [
+  { from: 'draft', to: 'cancelled', permission: 'orders.create' },
   { from: 'placed', to: 'preparing', permission: 'orders.update_status' },
   { from: 'preparing', to: 'ready', permission: 'orders.update_status' },
   { from: 'ready', to: 'completed', permission: 'orders.update_status' },
@@ -57,7 +58,7 @@ export function itemStatusForNotReady(orderStatus: OrderStatus): 'pending' | 'pr
 }
 
 export function voidItemPermission(orderStatus: OrderStatus): PermissionKey {
-  if (orderStatus === 'placed') {
+  if (orderStatus === 'draft' || orderStatus === 'placed') {
     return 'orders.create';
   }
   if (orderStatus === 'preparing' || orderStatus === 'ready') {

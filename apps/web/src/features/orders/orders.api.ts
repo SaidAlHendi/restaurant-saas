@@ -41,6 +41,14 @@ function orderListParams(query: OrderListQuery | undefined): Record<string, stri
   } else if (query?.activeOnly === false) {
     params['activeOnly'] = 'false';
   }
+  if (query?.todayOnly === true) {
+    params['todayOnly'] = 'true';
+  } else if (query?.todayOnly === false) {
+    params['todayOnly'] = 'false';
+  }
+  if (query?.q !== undefined) {
+    params['q'] = query.q;
+  }
   return params;
 }
 

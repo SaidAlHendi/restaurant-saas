@@ -33,6 +33,8 @@ export class BranchesService {
           taxRateBp: b.taxRateBp,
           taxInclusive: b.taxInclusive,
           dayStartHour: b.dayStartHour,
+          payBeforeSend: b.payBeforeSend,
+          acceptsCard: b.acceptsCard,
           isActive: b.isActive,
         })),
       };
@@ -70,6 +72,8 @@ export class BranchesService {
         taxRateBp: branch.taxRateBp,
         taxInclusive: branch.taxInclusive,
         dayStartHour: branch.dayStartHour,
+        payBeforeSend: branch.payBeforeSend,
+        acceptsCard: branch.acceptsCard,
         isActive: branch.isActive,
       };
     });
@@ -91,6 +95,8 @@ export class BranchesService {
         taxRateBp: body.taxRateBp,
         taxInclusive: body.taxInclusive,
         dayStartHour: body.dayStartHour,
+        payBeforeSend: body.payBeforeSend,
+        acceptsCard: body.acceptsCard,
         isActive: body.isActive,
       });
       if (!updated) {
@@ -106,6 +112,8 @@ export class BranchesService {
         taxRateBp: updated.taxRateBp,
         taxInclusive: updated.taxInclusive,
         dayStartHour: updated.dayStartHour,
+        payBeforeSend: updated.payBeforeSend,
+        acceptsCard: updated.acceptsCard,
         isActive: updated.isActive,
       };
     });

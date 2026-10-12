@@ -12,7 +12,9 @@ import { cashChangeMinor, quickTenderAmounts } from '../pos-payment.utils.js';
 export function usePosPaymentDialog(input: {
   branchId: string | null;
   order: OrderDetail | undefined;
+  acceptsCard: boolean;
   onPaymentCaptured: () => void;
+  onDismissUnpaid?: () => void;
   formatMinor: (minor: number) => string;
   currency: string;
   uiLocale: string;
@@ -33,10 +35,13 @@ export function usePosPaymentDialog(input: {
     setOpen(true);
   }, [dueMinor]);
 
-  const close = useCallback(() => {
+  const dismiss = useCallback(() => {
+    if (input.order !== undefined && input.order.dueMinor > 0) {
+      input.onDismissUnpaid?.();
+    }
     setOpen(false);
     setClientPaymentId(null);
-  }, []);
+  }, [input]);
 
   const quickAmounts = useMemo(() => quickTenderAmounts(dueMinor), [dueMinor]);
 
@@ -90,6 +95,7 @@ export function usePosPaymentDialog(input: {
     }
 
     setOpen(false);
+    setClientPaymentId(null);
     input.onPaymentCaptured();
   }, [
     canSubmit,
@@ -102,10 +108,13 @@ export function usePosPaymentDialog(input: {
     clientPaymentId,
   ]);
 
+  const showCard = input.acceptsCard;
+
   return {
     open,
     openForOrder,
-    close,
+    close: dismiss,
+    showCard,
     method,
     setMethod,
     tenderedMinor,

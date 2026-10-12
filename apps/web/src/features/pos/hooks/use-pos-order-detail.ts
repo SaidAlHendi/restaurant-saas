@@ -43,6 +43,7 @@ export function usePosOrderDetail(input: {
   isAddingItems: boolean;
   setIsAddingItems: (value: boolean) => void;
   canCancelOrders: boolean;
+  canCreateOrders: boolean;
 }) {
   const { t } = useTranslation();
   const [voidItemId, setVoidItemId] = useState<string | null>(null);
@@ -250,7 +251,8 @@ export function usePosOrderDetail(input: {
   const canPay = order !== undefined && canShowPay(order);
 
   const canCancel =
-    order !== undefined && canShowCancelOrder(input.canCancelOrders, order.status);
+    order !== undefined &&
+    canShowCancelOrder(input.canCancelOrders, input.canCreateOrders, order.status);
 
   const nextStatusAction = useMemo(() => {
     if (!order) {

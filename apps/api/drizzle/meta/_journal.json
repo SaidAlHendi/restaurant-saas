@@ -71,6 +71,13 @@
       "when": 1759666500000,
       "tag": "0009_outbox_dead_at",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1759666600000,
+      "tag": "0010_branch_payment_settings",
+      "breakpoints": true
     }
   ]
 }

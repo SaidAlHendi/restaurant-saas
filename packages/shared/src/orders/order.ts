@@ -112,6 +112,7 @@ export type OrderDetail = z.infer<typeof orderDetailSchema>;
 
 export const orderListItemSchema = orderSchema.extend({
   itemCount: z.number().int().min(0),
+  tableLabel: z.string().nullable(),
 });
 
 export type OrderListItem = z.infer<typeof orderListItemSchema>;
@@ -126,6 +127,11 @@ export const orderListQuerySchema = cursorListQuerySchema.extend({
     .enum(['true', 'false'])
     .optional()
     .transform((value) => (value === undefined ? undefined : value === 'true')),
+  todayOnly: z
+    .enum(['true', 'false'])
+    .optional()
+    .transform((value) => (value === undefined ? undefined : value === 'true')),
+  q: z.string().trim().min(1).max(50).optional(),
 });
 
 export type OrderListQuery = z.infer<typeof orderListQuerySchema>;

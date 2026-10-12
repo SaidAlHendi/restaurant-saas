@@ -111,12 +111,40 @@ export async function runSeedInvariants(
 
       const missingPlaced = await tx.execute(sql`
         SELECT count(*)::int AS c FROM orders o
-        WHERE NOT EXISTS (
-          SELECT 1 FROM order_events e
-          WHERE e.order_id = o.id AND e.org_id = o.org_id AND e.type = 'order.placed'
-        )
+        WHERE o.status <> 'draft'
+          AND NOT EXISTS (
+            SELECT 1 FROM order_events e
+            WHERE e.order_id = o.id AND e.org_id = o.org_id AND e.type = 'order.placed'
+          )
       `);
       failures.push(invariantOrdersMissingPlacedEvent((missingPlaced.rows[0] as { c: number }).c));
+
+      const draftBadPlacedAt = await tx.execute(sql`
+        SELECT count(*)::int AS c FROM orders WHERE status = 'draft' AND placed_at IS NOT NULL
+      `);
+      failures.push(
+        invariantNoOffenders(
+          'DRAFT_PLACED_AT',
+          'draft order(s) with placed_at set',
+          (draftBadPlacedAt.rows[0] as { c: number }).c > 0 ? ['draft'] : [],
+        ),
+      );
+
+      const draftMissingDrafted = await tx.execute(sql`
+        SELECT count(*)::int AS c FROM orders o
+        WHERE o.status = 'draft'
+          AND NOT EXISTS (
+            SELECT 1 FROM order_events e
+            WHERE e.order_id = o.id AND e.org_id = o.org_id AND e.type = 'order.drafted'
+          )
+      `);
+      failures.push(
+        invariantNoOffenders(
+          'DRAFT_EVENT',
+          'draft order(s) missing order.drafted event',
+          (draftMissingDrafted.rows[0] as { c: number }).c > 0 ? ['draft'] : [],
+        ),
+      );
 
       const totalsRows = await tx.execute(sql`
         SELECT o.id::text AS id,

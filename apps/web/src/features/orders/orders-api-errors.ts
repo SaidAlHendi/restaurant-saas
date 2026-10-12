@@ -12,6 +12,7 @@ const KNOWN_CODES = [
   'VALIDATION_ERROR',
   'NOT_FOUND',
   'FORBIDDEN',
+  'PAYMENT_METHOD_NOT_ACCEPTED',
 ] as const;
 
 export type OrdersApiErrorCode = (typeof KNOWN_CODES)[number] | 'UNKNOWN';
@@ -82,6 +83,8 @@ export function ordersApiErrorMessage(t: OrdersErrorTranslator, code: OrdersApiE
       return t('orders.errors.notFound');
     case 'FORBIDDEN':
       return t('orders.errors.forbidden');
+    case 'PAYMENT_METHOD_NOT_ACCEPTED':
+      return t('orders.errors.paymentMethodNotAccepted');
     default:
       return t('orders.errors.generic');
   }

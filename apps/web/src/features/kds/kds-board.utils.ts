@@ -120,8 +120,19 @@ const CHIME_CHANGES: readonly OrderRealtimeChange[] = [
  * Chime for things the kitchen did not do itself. The KDS only changes order/item status, so
  * status and item_status never chime.
  */
-export function shouldChime(payload: OrderRealtimeClientPayload): boolean {
-  return CHIME_CHANGES.includes(normalizeOrderRealtimeChange(payload));
+export function shouldChime(
+  board: KitchenBoardResponse | undefined,
+  payload: OrderRealtimeClientPayload,
+): boolean {
+  const change = normalizeOrderRealtimeChange(payload);
+  if (change === 'placed') {
+    return isBoardStatus(payload.status);
+  }
+  if (!CHIME_CHANGES.includes(change)) {
+    return false;
+  }
+  const card = board?.orders.find((o) => o.id === payload.orderId);
+  return card !== undefined;
 }
 
 export function withOrderStatus(

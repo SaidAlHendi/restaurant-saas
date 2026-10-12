@@ -1,6 +1,7 @@
 import {
   ChefHatIcon,
   LayoutDashboardIcon,
+  SettingsIcon,
   ShoppingBagIcon,
   UtensilsIcon,
   type LucideIcon,
@@ -28,6 +29,7 @@ export function useAppShell() {
   const user = useAppSelector(selectSessionUser);
   const org = useAppSelector(selectSessionOrg);
   const canReadMenu = useAppSelector(selectCan('menu.read'));
+  const canManageBranches = useAppSelector(selectCan('branches.manage'));
   const canUsePos = useAppSelector(selectCan('orders.create'));
   const canUseKds = useAppSelector(selectCan('orders.update_status'));
   const { theme, toggleTheme } = useTheme();
@@ -75,8 +77,17 @@ export function useAppShell() {
         end: false,
       });
     }
+    if (canManageBranches) {
+      items.push({
+        id: 'branchSettings',
+        to: '/dashboard/settings/branch',
+        icon: SettingsIcon,
+        label: t('dashboard.nav.branchSettings'),
+        end: true,
+      });
+    }
     return items;
-  }, [canReadMenu, canUsePos, canUseKds, t]);
+  }, [canManageBranches, canReadMenu, canUsePos, canUseKds, t]);
 
   const activeId = activeNavItemId(navItems, location.pathname);
 
@@ -92,6 +103,22 @@ export function useAppShell() {
           ].map((item) => ({ ...item, active: location.pathname === item.to }))
         : [],
     [canReadMenu, location.pathname, t],
+  );
+
+  const posSubNav = useMemo(
+    () =>
+      canUsePos && location.pathname.startsWith('/pos')
+        ? [
+            { to: '/pos', label: t('pos.nav.newOrder'), end: true },
+            { to: '/pos/orders', label: t('pos.nav.orders'), end: true },
+          ].map((item) => ({
+            ...item,
+            active: item.end
+              ? location.pathname === item.to
+              : location.pathname === item.to || location.pathname.startsWith(`${item.to}/`),
+          }))
+        : [],
+    [canUsePos, location.pathname, t],
   );
 
   const onToggleCollapsed = useCallback(() => {
@@ -138,6 +165,12 @@ export function useAppShell() {
         void navigate(item.to);
       },
     })),
+    posSubNav: posSubNav.map((item) => ({
+      ...item,
+      onSelect: () => {
+        void navigate(item.to);
+      },
+    })),
     user: user ? { name: user.name, detail: user.email } : null,
     isDark,
     onToggleTheme: toggleTheme,
@@ -153,6 +186,7 @@ export function useAppShell() {
       closeSidebar: t('dashboard.nav.closeSidebar'),
       toggleSidebar: t('shell.toggleSidebar'),
       menuSection: t('menu.nav.section'),
+      posSection: t('pos.nav.section'),
       theme: isDark ? t('shell.lightMode') : t('shell.darkMode'),
       // Always shown in the language it switches to, so it can be found in either language.
       language: isArabic ? 'English' : 'العربية',

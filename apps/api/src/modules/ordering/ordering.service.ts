@@ -161,6 +161,17 @@ export class OrderingService {
       const orderNumber = await this.repo.nextOrderNumber(tx, branchId, businessDate, ctx.orgId);
       const orderId = newUuidV7();
 
+      let initialStatus: OrderStatus = 'placed';
+      let placedAt: Date | null = now;
+      if (totals.totalMinor === 0) {
+        initialStatus = 'placed';
+        placedAt = now;
+      } else if (branch.payBeforeSend) {
+        initialStatus = 'draft';
+        placedAt = null;
+      }
+      const paymentStatus = computePaymentStatus(totals.totalMinor, 0);
+
       const inserted = await this.repo.insertOrder(tx, {
         id: orderId,
         orgId: ctx.orgId,
@@ -169,8 +180,8 @@ export class OrderingService {
         orderNumber,
         businessDate,
         type: body.type,
-        status: 'placed',
-        paymentStatus: computePaymentStatus(totals.totalMinor, 0),
+        status: initialStatus,
+        paymentStatus,
         tableId: body.tableId ?? null,
         customerName: body.customerName ?? null,
         notes: body.notes ?? null,
@@ -180,7 +191,7 @@ export class OrderingService {
         totalMinor: totals.totalMinor,
         currency: branch.currency,
         version: 1,
-        placedAt: now,
+        placedAt,
         createdBy: ctx.membershipId,
       });
 
@@ -213,18 +224,31 @@ export class OrderingService {
         }
       }
 
-      await this.repo.insertOrderEvent(tx, {
-        id: newUuidV7(),
-        orgId: ctx.orgId,
-        orderId,
-        type: ORDER_EVENT_TYPES.placed,
-        fromStatus: null,
-        toStatus: 'placed',
-        payload: { itemIds: createdItemIds },
-        actorMembershipId: ctx.membershipId,
-      });
-
-      await this.writeOutbox(tx, ctx.orgId, branchId, orderId, ORDER_EVENT_TYPES.placed, inserted);
+      if (initialStatus === 'draft') {
+        await this.repo.insertOrderEvent(tx, {
+          id: newUuidV7(),
+          orgId: ctx.orgId,
+          orderId,
+          type: ORDER_EVENT_TYPES.drafted,
+          fromStatus: null,
+          toStatus: 'draft',
+          payload: { itemIds: createdItemIds },
+          actorMembershipId: ctx.membershipId,
+        });
+        await this.writeOutbox(tx, ctx.orgId, branchId, orderId, ORDER_EVENT_TYPES.drafted, inserted);
+      } else {
+        await this.repo.insertOrderEvent(tx, {
+          id: newUuidV7(),
+          orgId: ctx.orgId,
+          orderId,
+          type: ORDER_EVENT_TYPES.placed,
+          fromStatus: null,
+          toStatus: 'placed',
+          payload: { itemIds: createdItemIds },
+          actorMembershipId: ctx.membershipId,
+        });
+        await this.writeOutbox(tx, ctx.orgId, branchId, orderId, ORDER_EVENT_TYPES.placed, inserted);
+      }
 
       const detail = await this.loadOrderDetailInTx(tx, branchId, orderId);
       return { order: detail, created: true };
@@ -251,26 +275,48 @@ export class OrderingService {
           throw new ValidationError('Invalid cursor');
         }
       }
+      const branch = await this.tenancyRepo.findBranchById(tx, branchId);
+      if (!branch || branch.orgId !== ctx.orgId) {
+        throw new NotFoundError();
+      }
+      let todayOnlyBusinessDate: string | undefined;
+      if (query.todayOnly) {
+        todayOnlyBusinessDate = computeBusinessDate({
+          now: this.clock.now(),
+          timezone: branch.timezone,
+          dayStartHour: branch.dayStartHour,
+        });
+      }
       const rows = await this.repo.listOrders(tx, branchId, {
         status: query.status,
         businessDate: query.businessDate,
         activeOnly: query.activeOnly,
+        todayOnlyBusinessDate,
+        q: query.q,
         cursor,
         limit: query.limit,
       });
       const hasMore = rows.length > query.limit;
       const page = hasMore ? rows.slice(0, query.limit) : rows;
-      const orderIds = page.map((r) => r.id);
+      const orderIds = page.map((r) => r.order.id);
       const counts = await this.repo.countItemsForOrders(tx, orderIds);
       const paidByOrder = await this.repo.sumCapturedMinorByOrderIds(tx, orderIds);
       const last = page[page.length - 1];
       const nextCursor =
         hasMore && last
-          ? encodeOrderListCursor({ createdAt: last.createdAt.toISOString(), id: last.id })
+          ? encodeOrderListCursor({
+              createdAt: last.order.createdAt.toISOString(),
+              id: last.order.id,
+            })
           : null;
       return {
         items: page.map((row) =>
-          mapOrderListItem(row, counts.get(row.id) ?? 0, paidByOrder.get(row.id) ?? 0),
+          mapOrderListItem(
+            row.order,
+            counts.get(row.order.id) ?? 0,
+            paidByOrder.get(row.order.id) ?? 0,
+            row.tableLabel ?? null,
+          ),
         ),
         nextCursor,
       };
@@ -385,7 +431,11 @@ export class OrderingService {
       if (!current) {
         throw new NotFoundError();
       }
-      if (current.status !== 'placed' && current.status !== 'preparing') {
+      if (
+        current.status !== 'draft' &&
+        current.status !== 'placed' &&
+        current.status !== 'preparing'
+      ) {
         throw new BusinessRuleError('ORDER_NOT_EDITABLE', 'Order cannot be edited in this status', {
           status: current.status,
         });
@@ -421,7 +471,7 @@ export class OrderingService {
           lineTotalMinor: computeLineTotalMinor(line.unitPriceMinor, line.quantity),
           notes: line.notes ?? null,
           status: current.status === 'preparing' ? 'preparing' : 'pending',
-          isAddition: true,
+          isAddition: current.status !== 'draft',
         });
         for (const mod of line.modifiers) {
           await this.repo.insertOrderItemModifier(tx, {
@@ -500,7 +550,12 @@ export class OrderingService {
       if (!current) {
         throw new NotFoundError();
       }
-      if (current.status !== 'placed' && current.status !== 'preparing' && current.status !== 'ready') {
+      if (
+        current.status !== 'draft' &&
+        current.status !== 'placed' &&
+        current.status !== 'preparing' &&
+        current.status !== 'ready'
+      ) {
         throw new BusinessRuleError('ORDER_NOT_EDITABLE', 'Order cannot be edited in this status', {
           status: current.status,
         });
@@ -649,6 +704,18 @@ export class OrderingService {
         return { payment: mapPayment(existingPayment), created: false };
       }
 
+      const branch = await this.tenancyRepo.findBranchById(tx, branchId);
+      if (!branch || branch.orgId !== ctx.orgId) {
+        throw new NotFoundError();
+      }
+      if (body.method === 'card' && !branch.acceptsCard) {
+        throw new BusinessRuleError(
+          'PAYMENT_METHOD_NOT_ACCEPTED',
+          'Card payments are not accepted at this branch',
+          { branchId },
+        );
+      }
+
       this.assertOrderPayable(current.status);
 
       const paidMinor = await this.repo.sumCapturedMinorForOrder(tx, orderId);
@@ -702,12 +769,26 @@ export class OrderingService {
 
       const newPaidMinor = paidMinor + body.amountMinor;
       const paymentStatus = computePaymentStatus(current.totalMinor, newPaidMinor);
-      const updated = await this.repo.updateOrderPaymentStatus(
-        tx,
-        orderId,
-        body.expectedVersion,
-        paymentStatus,
-      );
+      const now = this.clock.now();
+      const placingFromDraft = paymentStatus === 'paid' && current.status === 'draft';
+
+      let updated;
+      if (placingFromDraft) {
+        updated = await this.repo.updateOrderPaymentStatusAndPlaceFromDraft(
+          tx,
+          orderId,
+          body.expectedVersion,
+          paymentStatus,
+          now,
+        );
+      } else {
+        updated = await this.repo.updateOrderPaymentStatus(
+          tx,
+          orderId,
+          body.expectedVersion,
+          paymentStatus,
+        );
+      }
       if (!updated) {
         throw new ConflictError(
           'Order version conflict',
@@ -722,7 +803,7 @@ export class OrderingService {
         orderId,
         type: ORDER_EVENT_TYPES.paymentCaptured,
         fromStatus: current.status,
-        toStatus: current.status,
+        toStatus: placingFromDraft ? 'draft' : current.status,
         payload: {
           paymentId: inserted.id,
           method: body.method,
@@ -739,6 +820,20 @@ export class OrderingService {
         ORDER_EVENT_TYPES.paymentCaptured,
         updated,
       );
+
+      if (placingFromDraft) {
+        await this.repo.insertOrderEvent(tx, {
+          id: newUuidV7(),
+          orgId: ctx.orgId,
+          orderId,
+          type: ORDER_EVENT_TYPES.placed,
+          fromStatus: 'draft',
+          toStatus: 'placed',
+          payload: {},
+          actorMembershipId: ctx.membershipId,
+        });
+        await this.writeOutbox(tx, ctx.orgId, branchId, orderId, ORDER_EVENT_TYPES.placed, updated);
+      }
 
       return { payment: mapPayment(inserted), created: true };
     });
@@ -868,7 +963,7 @@ export class OrderingService {
   }
 
   private assertOrderPayable(status: OrderStatus): void {
-    if (status === 'cancelled' || status === 'refunded' || status === 'draft') {
+    if (status === 'cancelled' || status === 'refunded') {
       throw new BusinessRuleError('ORDER_NOT_PAYABLE', 'Order cannot accept payments', { status });
     }
   }

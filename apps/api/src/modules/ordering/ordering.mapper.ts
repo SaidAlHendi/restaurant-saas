@@ -138,10 +138,16 @@ export function mapOrderDetail(
   };
 }
 
-export function mapOrderListItem(row: OrderRow, itemCount: number, paidMinor: number): OrderListItem {
+export function mapOrderListItem(
+  row: OrderRow,
+  itemCount: number,
+  paidMinor: number,
+  tableLabel: string | null,
+): OrderListItem {
   return {
     ...mapOrder(row, paidMinor),
     itemCount,
+    tableLabel,
   };
 }
 

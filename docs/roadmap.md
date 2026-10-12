@@ -9,6 +9,7 @@
 - [x] 6. Cashier PWA: create order, modifiers, dine-in/takeaway, table, notes, tax, payment, print
 - [x] 7. Kitchen display: realtime, sound, age timer, status changes, resync on reconnect
 - [x] 7b. Demo seed data
+- [x] 7c. Cashier flow: pay before send, branch payment settings, POS orders page
 - [ ] 8. Owner dashboard: current/past orders, search, filters, details, today's report
 - [ ] 9. Staff: owner/cashier/kitchen roles, PIN login, manager approval for cancel
 - [ ] 10. Billing: plans as data, 14-day trial, Paddle webhooks, entitlements; Sentry, uptime, backup restore test

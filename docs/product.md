@@ -52,7 +52,10 @@ Feature keys: `menu.multilang`, `menu.branding`, `menu.table_qr`, `pos.access`, 
 ### Cashier (PWA, touch-first)
 - PIN login on a paired device. Category grid → product tiles → modifier sheet → cart.
 - Order type: dine-in (table) / takeaway (customer name). Notes per item and per order.
-- Send to kitchen = `placed`. Pay now or later. Payment: cash (tendered → change) or card (external terminal).
+- Send to kitchen = `placed` (or `draft` when branch **pay before send** is on and total &gt; 0; full payment then sends to kitchen).
+- Pay now or later. Payment: cash (tendered → change) or card (external terminal) when branch accepts card.
+- **Orders** page: tabs (active, awaiting payment, ready, completed, cancelled, all today), search, load more.
+- Owner **branch settings**: pay before send, accept card (dashboard, `branches.manage`).
 - Print receipt (80mm) and kitchen ticket.
 - Open orders panel: tap to add items, pay, cancel (manager PIN when required).
 - Clear "sending…/offline" indicator; nothing lost on refresh.

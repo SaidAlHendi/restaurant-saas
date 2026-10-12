@@ -196,6 +196,58 @@ export async function seedCatalogProduct(agent: Agent): Promise<{ categoryId: st
   return { categoryId, productId: (prod.body as { id: string }).id };
 }
 
+export async function createIsolatedBranch(
+  owner: Agent,
+  opts?: { payBeforeSend?: boolean; acceptsCard?: boolean },
+): Promise<{ branchId: string }> {
+  const slug = `t-${newUuidV7().slice(-8)}`;
+  const create = await owner.post('/v1/branches').send({
+    name: `Test branch ${slug}`,
+    slug,
+    timezone: 'Asia/Riyadh',
+    currency: 'SAR',
+    taxRateBp: 1500,
+    taxInclusive: false,
+    dayStartHour: 4,
+  });
+  if (create.status !== 201) {
+    throw new Error(`branch create failed: ${JSON.stringify(create.body)}`);
+  }
+  const branchId = (create.body as { id: string }).id;
+  if (opts?.payBeforeSend !== undefined || opts?.acceptsCard !== undefined) {
+    const patchBody: { payBeforeSend?: boolean; acceptsCard?: boolean } = {};
+    if (opts.payBeforeSend !== undefined) {
+      patchBody.payBeforeSend = opts.payBeforeSend;
+    }
+    if (opts.acceptsCard !== undefined) {
+      patchBody.acceptsCard = opts.acceptsCard;
+    }
+    const patch = await owner.patch(`/v1/branches/${branchId}`).send(patchBody);
+    if (patch.status !== 200) {
+      throw new Error(`branch patch failed: ${JSON.stringify(patch.body)}`);
+    }
+  }
+  return { branchId };
+}
+
+export function postPayment(
+  client: Agent,
+  branchId: string,
+  orderId: string,
+  body: {
+    clientPaymentId: string;
+    expectedVersion: number;
+    method: 'cash' | 'card';
+    amountMinor: number;
+    tenderedMinor?: number;
+  },
+  idempotencyKey?: string,
+) {
+  const base = client.post(`/v1/branches/${branchId}/orders/${orderId}/payments`);
+  const req = idempotencyKey === undefined ? base : base.set('Idempotency-Key', idempotencyKey);
+  return req.send(body);
+}
+
 export async function insertDiningTable(
   db: DrizzleDb,
   orgId: string,
