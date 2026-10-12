@@ -4,6 +4,7 @@ import {
   Button,
   ConfirmDialog,
   Dialog,
+  DialogBody,
   DialogClose,
   DialogContent,
   DialogDescription,
@@ -30,6 +31,7 @@ import {
   PopoverContent,
   PopoverTrigger,
   Sheet,
+  SheetBody,
   SheetContent,
   SheetDescription,
   SheetFooter,
@@ -137,14 +139,16 @@ export function OverlaysSection({ copy, idPrefix, menu, confirm }: OverlaysSecti
               <DialogTitle>{o.dialogTitle}</DialogTitle>
               <DialogDescription>{o.dialogDescription}</DialogDescription>
             </DialogHeader>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor={id('dialog-name')}>{copy.fields.name}</Label>
-              <Input id={id('dialog-name')} defaultValue={copy.fields.namePlaceholder} />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor={id('dialog-notes')}>{copy.fields.notes}</Label>
-              <Textarea id={id('dialog-notes')} placeholder={copy.fields.notesPlaceholder} />
-            </div>
+            <DialogBody>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor={id('dialog-name')}>{copy.fields.name}</Label>
+                <Input id={id('dialog-name')} defaultValue={copy.fields.namePlaceholder} />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor={id('dialog-notes')}>{copy.fields.notes}</Label>
+                <Textarea id={id('dialog-notes')} placeholder={copy.fields.notesPlaceholder} />
+              </div>
+            </DialogBody>
             <DialogFooter>
               <DialogClose asChild>
                 <Button variant="outline">{o.close}</Button>
@@ -181,6 +185,12 @@ export function OverlaysSection({ copy, idPrefix, menu, confirm }: OverlaysSecti
                 <SheetTitle>{o.sheetTitle}</SheetTitle>
                 <SheetDescription>{o.sheetDescription}</SheetDescription>
               </SheetHeader>
+              <SheetBody>
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor={id(`sheet-name-${side}`)}>{copy.fields.name}</Label>
+                  <Input id={id(`sheet-name-${side}`)} defaultValue={copy.fields.namePlaceholder} />
+                </div>
+              </SheetBody>
               <SheetFooter>
                 <Button size="touch">{o.save}</Button>
               </SheetFooter>

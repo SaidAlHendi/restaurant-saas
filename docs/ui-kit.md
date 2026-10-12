@@ -6,9 +6,10 @@ Apps import from `@app/ui`. No other component library. No daisyUI components: d
 as the source of the two color themes.
 
 ## Themes
-- `cupcake` (light, default) and `forest` (dark), values from daisyUI v5, defined in
+- `cupcake` (light, default; own green palette tuned to the POS design reference, name kept so saved
+  preferences still work) and `forest` (dark, daisyUI v5), defined in
   `packages/ui/src/styles/themes.css` and mapped to shadcn tokens (`--background`, `--primary`, ...)
-  plus extra tokens `success`, `warning`, `info`.
+  plus extra tokens `success`, `warning`, `info` and `highlight` (warm surface, e.g. open order cards).
 - Applied with `<html data-theme="cupcake|forest">`. First visit follows `prefers-color-scheme`;
   the user's choice is saved (localStorage for guests, user profile when logged in).
 - Theme logic in `packages/ui/src/hooks/use-theme.ts`; `<ThemeToggle>` is UI only.
@@ -50,10 +51,25 @@ Built: Button, IconButton, Input, Textarea, Label, Checkbox, Switch, RadioGroup,
 Popover, DropdownMenu, Tooltip, Dialog, ConfirmDialog, Sheet, Form parts, MoneyInput, NumberInput, SearchInput,
 CursorPagination, NumberedPagination, Table, DataTable (own implementation, no TanStack), Badge + OrderStatusBadge,
 Skeleton, Card, Tabs, Spinner, EmptyState, Alert, StatCard, Toaster/toast, PageHeader, Sidebar, ThemeToggle.
+Later: ImageUpload, QrCard, BranchSwitcher, ProductTile (with − quantity + stepper), CategoryTile, CartLine,
+OpenOrderChip, KDS parts, SidebarUser, DialogBody/SheetBody.
 
 Not built yet (add when a feature needs them): ButtonGroup, PasswordInput, MultiSelect, DatePicker,
 DateRangePicker, FileUpload/ImageUpload, FilterBar, Avatar, Separator, Accordion, Money, DateTime, Progress,
 Topbar, Container, Stack/Grid helpers, LanguageSwitcher.
+
+## Dialogs and sheets
+Every Dialog and Sheet uses the same three parts, so spacing is the same everywhere:
+`DialogHeader`/`SheetHeader` (title, description; border below), `DialogBody`/`SheetBody` (scrolls; fields
+with a 20px gap) and `DialogFooter`/`SheetFooter` (actions on a muted strip; border above). Padding is 24px
+on both sides. A form that wraps body and footer uses `className="contents"`. Width comes from `size`
+(`sm`/`md`/`lg`), not from one-off `max-w-*` classes. Pass `closeLabel` to show the X button.
+
+## App shell
+`apps/web` screens behind login (dashboard, POS, kitchen) render inside one full-height shell: the
+Sidebar with navigation, and in its footer dark mode, language (saved per device, `app.lang`), the signed-in
+user and sign out. The desktop sidebar can collapse to icons (saved in `app.sidebarCollapsed`; collapsed by
+default below 1280px). Each screen draws its own top bar.
 
 ## Component API conventions
 - Controlled and uncontrolled support where shadcn supports it (`value`/`onValueChange`, `defaultValue`).

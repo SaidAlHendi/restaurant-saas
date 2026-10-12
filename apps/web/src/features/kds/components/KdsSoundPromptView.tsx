@@ -37,7 +37,7 @@ export function KdsSoundPromptView({
         }
       }}
     >
-      <DialogContent className="max-w-md">
+      <DialogContent size="sm">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>

@@ -1,6 +1,7 @@
 import {
   Button,
   Dialog,
+  DialogBody,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -28,6 +29,7 @@ export interface CategoryFormDialogViewProps {
   activeLabel: string;
   locales: string[];
   localeLabels: Record<string, string>;
+  fieldLabels: { name: string; description: string };
   tabLabel: (locale: string) => string;
   defaultLocale: string;
   form: UseFormReturn<CategoryFormValues>;
@@ -46,6 +48,7 @@ export function CategoryFormDialogView({
   activeLabel,
   locales,
   localeLabels,
+  fieldLabels,
   tabLabel,
   defaultLocale,
   form,
@@ -54,7 +57,7 @@ export function CategoryFormDialogView({
 }: CategoryFormDialogViewProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent closeLabel={cancelLabel}>
         <DialogHeader>
           <DialogTitle>{mode === 'create' ? titleCreate : titleEdit}</DialogTitle>
         </DialogHeader>
@@ -64,27 +67,30 @@ export function CategoryFormDialogView({
               event.preventDefault();
               onSubmit();
             }}
-            className="flex flex-col gap-4"
+            className="contents"
           >
-            <LocalizedFieldsView<CategoryFormValues>
-              control={form.control}
-              namePrefix="name"
-              locales={locales}
-              labels={localeLabels}
-              tabLabel={tabLabel}
-              requiredLocale={defaultLocale}
-            />
-            <FormField
-              control={form.control}
-              name="isActive"
-              render={({ field }) => (
-                <FormItem className="flex items-center gap-3">
-                  <Switch checked={field.value} onCheckedChange={field.onChange} />
-                  <FormLabel>{activeLabel}</FormLabel>
-                </FormItem>
-              )}
-            />
-            <DialogFooter className="gap-2 sm:gap-0">
+            <DialogBody>
+              <LocalizedFieldsView<CategoryFormValues>
+                control={form.control}
+                namePrefix="name"
+                label={fieldLabels.name}
+                locales={locales}
+                labels={localeLabels}
+                tabLabel={tabLabel}
+                requiredLocale={defaultLocale}
+              />
+              <FormField
+                control={form.control}
+                name="isActive"
+                render={({ field }) => (
+                  <FormItem className="flex items-center gap-3">
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    <FormLabel>{activeLabel}</FormLabel>
+                  </FormItem>
+                )}
+              />
+            </DialogBody>
+            <DialogFooter>
               <Button
                 type="button"
                 variant="outline"

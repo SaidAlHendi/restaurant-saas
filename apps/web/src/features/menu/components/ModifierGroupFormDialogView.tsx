@@ -1,6 +1,7 @@
 import {
   Button,
   Dialog,
+  DialogBody,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -33,6 +34,7 @@ export interface ModifierGroupFormDialogViewProps {
   increaseLabel: string;
   locales: string[];
   localeLabels: Record<string, string>;
+  fieldLabels: { name: string; description: string };
   tabLabel: (locale: string) => string;
   defaultLocale: string;
   form: UseFormReturn<ModifierGroupFormValues>;
@@ -54,6 +56,7 @@ export function ModifierGroupFormDialogView({
   increaseLabel,
   locales,
   localeLabels,
+  fieldLabels,
   tabLabel,
   defaultLocale,
   form,
@@ -62,7 +65,7 @@ export function ModifierGroupFormDialogView({
 }: ModifierGroupFormDialogViewProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent closeLabel={cancelLabel}>
         <DialogHeader>
           <DialogTitle>{mode === 'create' ? titleCreate : titleEdit}</DialogTitle>
         </DialogHeader>
@@ -72,59 +75,62 @@ export function ModifierGroupFormDialogView({
               event.preventDefault();
               onSubmit();
             }}
-            className="flex flex-col gap-4"
+            className="contents"
           >
-            <LocalizedFieldsView<ModifierGroupFormValues>
-              control={form.control}
-              namePrefix="name"
-              locales={locales}
-              labels={localeLabels}
-              tabLabel={tabLabel}
-              requiredLocale={defaultLocale}
-            />
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormField
+            <DialogBody>
+              <LocalizedFieldsView<ModifierGroupFormValues>
                 control={form.control}
-                name="minSelect"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{minLabel}</FormLabel>
-                    <FormControl>
-                      <NumberInput
-                        name={field.name}
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        min={0}
-                        decrementLabel={decreaseLabel}
-                        incrementLabel={increaseLabel}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                namePrefix="name"
+                label={fieldLabels.name}
+                locales={locales}
+                labels={localeLabels}
+                tabLabel={tabLabel}
+                requiredLocale={defaultLocale}
               />
-              <FormField
-                control={form.control}
-                name="maxSelect"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{maxLabel}</FormLabel>
-                    <FormControl>
-                      <NumberInput
-                        name={field.name}
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        min={1}
-                        decrementLabel={decreaseLabel}
-                        incrementLabel={increaseLabel}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <DialogFooter className="gap-2 sm:gap-0">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="minSelect"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{minLabel}</FormLabel>
+                      <FormControl>
+                        <NumberInput
+                          name={field.name}
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          min={0}
+                          decrementLabel={decreaseLabel}
+                          incrementLabel={increaseLabel}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="maxSelect"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{maxLabel}</FormLabel>
+                      <FormControl>
+                        <NumberInput
+                          name={field.name}
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          min={1}
+                          decrementLabel={decreaseLabel}
+                          incrementLabel={increaseLabel}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </DialogBody>
+            <DialogFooter>
               <Button
                 type="button"
                 variant="outline"

@@ -2,7 +2,7 @@ import type * as React from 'react';
 import * as AlertDialogPrimitive from '@radix-ui/react-alert-dialog';
 
 import { cn } from '../../lib/cn.js';
-import { overlay } from '../../lib/styles.js';
+import { overlay, overlayDescription, overlayFooter, overlayTitle } from '../../lib/styles.js';
 import { Button } from '../button/button.js';
 
 export interface ConfirmDialogProps {
@@ -49,21 +49,21 @@ export function ConfirmDialog({
         <AlertDialogPrimitive.Content
           data-slot="confirm-dialog-content"
           className={cn(
-            'fixed inset-0 z-50 m-auto grid h-fit w-full max-w-[calc(100%-2rem)] gap-4 rounded-lg border bg-background p-6 shadow-lg duration-200 sm:max-w-md',
+            'fixed inset-0 z-50 m-auto flex h-fit w-full max-w-[calc(100%-2rem)] flex-col overflow-hidden rounded-xl border bg-background shadow-xl duration-200 sm:max-w-md',
             'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
           )}
         >
-          <div className="flex flex-col gap-2 text-center sm:text-start">
-            <AlertDialogPrimitive.Title className="text-lg font-semibold">
+          <div className="flex flex-col gap-2 px-6 py-5 text-start">
+            <AlertDialogPrimitive.Title className={overlayTitle}>
               {title}
             </AlertDialogPrimitive.Title>
             {description ? (
-              <AlertDialogPrimitive.Description className="text-sm text-muted-foreground">
+              <AlertDialogPrimitive.Description className={overlayDescription}>
                 {description}
               </AlertDialogPrimitive.Description>
             ) : null}
           </div>
-          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <div className={overlayFooter}>
             <AlertDialogPrimitive.Cancel asChild>
               <Button variant="outline" disabled={isConfirming}>
                 {cancelLabel}

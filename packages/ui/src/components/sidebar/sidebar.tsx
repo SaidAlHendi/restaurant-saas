@@ -42,7 +42,7 @@ export function Sidebar({
           aria-label={label}
           className={cn(
             'hidden h-full shrink-0 flex-col border-e bg-sidebar text-sidebar-foreground transition-[width] duration-200 md:flex',
-            collapsed ? 'w-16' : 'w-64',
+            collapsed ? 'w-[4.5rem]' : 'w-64',
             className,
           )}
           {...props}
@@ -80,7 +80,7 @@ export function SidebarHeader({ className, ...props }: React.ComponentProps<'div
   return (
     <div
       data-slot="sidebar-header"
-      className={cn('flex h-14 items-center gap-2 border-b px-3', className)}
+      className={cn('flex h-16 shrink-0 items-center gap-2 px-4', className)}
       {...props}
     />
   );
@@ -90,7 +90,7 @@ export function SidebarContent({ className, ...props }: React.ComponentProps<'di
   return (
     <div
       data-slot="sidebar-content"
-      className={cn('flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-2 py-3', className)}
+      className={cn('flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-3 py-2', className)}
       {...props}
     />
   );
@@ -100,7 +100,7 @@ export function SidebarFooter({ className, ...props }: React.ComponentProps<'div
   return (
     <div
       data-slot="sidebar-footer"
-      className={cn('flex flex-col gap-2 border-t p-2', className)}
+      className={cn('flex shrink-0 flex-col gap-1 border-t px-3 py-3', className)}
       {...props}
     />
   );
@@ -117,14 +117,14 @@ export function SidebarGroup({ label, className, children, ...props }: SidebarGr
       {label ? (
         <p
           className={cn(
-            'px-2 pb-1 text-xs font-medium text-muted-foreground',
+            'px-3 pb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground',
             collapsed && 'sr-only',
           )}
         >
           {label}
         </p>
       ) : null}
-      <ul className="flex flex-col gap-0.5">{children}</ul>
+      <ul className="flex flex-col gap-1">{children}</ul>
     </div>
   );
 }
@@ -160,10 +160,10 @@ export function SidebarItem({
       aria-current={active ? 'page' : undefined}
       aria-label={collapsed ? label : undefined}
       className={cn(
-        'flex h-9 w-full items-center gap-3 rounded-md px-2 text-sm font-medium text-sidebar-foreground transition-colors',
+        'flex h-11 w-full items-center gap-3 rounded-lg px-3 text-sm font-medium text-muted-foreground transition-colors',
         'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-        'data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-primary-foreground',
-        '[&_svg]:size-4 [&_svg]:shrink-0',
+        'data-[active=true]:bg-secondary data-[active=true]:font-semibold data-[active=true]:text-secondary-foreground',
+        '[&_svg]:size-5 [&_svg]:shrink-0',
         collapsed && 'justify-center px-0',
         focusRing,
         'focus-visible:ring-offset-sidebar',
@@ -207,4 +207,48 @@ export function SidebarItem({
 /** Button that collapses the desktop sidebar or opens the mobile one. */
 export function SidebarTrigger(props: Omit<IconButtonProps, 'icon'>) {
   return <IconButton icon={<PanelLeftIcon className="rtl:-scale-x-100" />} {...props} />;
+}
+
+export interface SidebarUserProps extends React.ComponentProps<'div'> {
+  name: string;
+  /** Second line, e.g. the email or the role. */
+  detail?: string;
+}
+
+/** Signed-in user: initials avatar, name and detail (avatar only when collapsed). */
+export function SidebarUser({ name, detail, className, ...props }: SidebarUserProps) {
+  const { collapsed } = useSidebarContext();
+  const initials = name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join('');
+  return (
+    <div
+      data-slot="sidebar-user"
+      className={cn(
+        'flex items-center gap-3 px-1.5 py-1',
+        collapsed && 'justify-center px-0',
+        className,
+      )}
+      title={collapsed ? name : undefined}
+      {...props}
+    >
+      <span
+        aria-hidden
+        className="flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary text-sm font-semibold text-secondary-foreground"
+      >
+        {initials || '?'}
+      </span>
+      {collapsed ? (
+        <span className="sr-only">{name}</span>
+      ) : (
+        <span className="flex min-w-0 flex-col">
+          <span className="truncate text-sm font-medium">{name}</span>
+          {detail ? <span className="truncate text-xs text-muted-foreground">{detail}</span> : null}
+        </span>
+      )}
+    </div>
+  );
 }

@@ -23,10 +23,7 @@ import { isMutationError } from '../menu-mutation-result.js';
 import { showMenuApiError } from '../show-menu-api-error.js';
 import { useCatalogOrg } from './use-catalog-org.js';
 import { useProductForm, type ProductFormOutput } from './use-product-form.js';
-import {
-  useProductImageUpload,
-  type ProductImageUploadError,
-} from './use-product-image-upload.js';
+import { useProductImageUpload, type ProductImageUploadError } from './use-product-image-upload.js';
 
 function imageUploadErrorMessage(t: (key: string) => string, code: ProductImageUploadError | null) {
   if (!code) {
@@ -63,10 +60,7 @@ export function useProductsScreen(): ProductsPageViewProps {
       })),
     [categories, org.defaultLocale, org.uiLocale],
   );
-  const categoryIds = useMemo(
-    () => categoryOptions.map((item) => item.id),
-    [categoryOptions],
-  );
+  const categoryIds = useMemo(() => categoryOptions.map((item) => item.id), [categoryOptions]);
 
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -312,6 +306,7 @@ export function useProductsScreen(): ProductsPageViewProps {
       canManage,
       locales: org.locales,
       localeLabels,
+      fieldLabels: { name: t('menu.fields.name'), description: t('menu.fields.description') },
       tabLabel: (locale) => t(`auth.locales.${locale}`, { defaultValue: locale }),
       defaultLocale: org.defaultLocale,
       currency: org.defaultCurrency,
@@ -322,8 +317,7 @@ export function useProductsScreen(): ProductsPageViewProps {
       activeLabel: t('menu.status.active'),
       modifierGroups,
       modifierGroupsLabel: t('menu.products.fields.modifierGroups'),
-      modifierGroupLabel: (group) =>
-        pickLocalizedName(group.name, org.uiLocale, org.defaultLocale),
+      modifierGroupLabel: (group) => pickLocalizedName(group.name, org.uiLocale, org.defaultLocale),
       imageUpload: {
         previewUrl: imageUpload.previewUrl,
         label: t('menu.products.imageLabel'),

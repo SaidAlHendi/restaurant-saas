@@ -175,7 +175,20 @@
       "description": "دورك لا يسمح بإنشاء الطلبات أو خطتك لا تشمل الكاشير.",
       "backToDashboard": "العودة للوحة التحكم"
     },
-    "realtimeDisconnected": "انقطع التحديث اللحظي — جارٍ إعادة الاتصال…"
+    "realtimeDisconnected": "انقطع التحديث اللحظي — جارٍ إعادة الاتصال…",
+    "catalog": {
+      "all": "الكل",
+      "items_zero": "لا أصناف",
+      "items_one": "صنف واحد",
+      "items_two": "صنفان",
+      "items_few": "{{count}} أصناف",
+      "items_many": "{{count}} صنفًا",
+      "items_other": "{{count}} صنف",
+      "hasOptions": "له خيارات",
+      "searchPlaceholder": "ابحث عن منتج",
+      "searchClear": "مسح البحث",
+      "noResults": "لا توجد منتجات مطابقة."
+    }
   },
   "orders": {
     "errors": {
@@ -317,6 +330,10 @@
       "printTitle": "رموز QR",
       "back": "العودة إلى رموز QR",
       "tableQrUpsell": "تظهر رموز QR للطاولات عند تفعيل ميزة QR للطاولات في خطتك ووجود طاولات نشطة."
+    },
+    "fields": {
+      "name": "الاسم",
+      "description": "الوصف"
     }
   },
   "kds": {
@@ -362,5 +379,10 @@
       "description": "دورك لا يسمح بتغيير حالة الطلب أو خطتك لا تشمل شاشة المطبخ.",
       "backToDashboard": "العودة للوحة التحكم"
     }
+  },
+  "shell": {
+    "toggleSidebar": "طيّ القائمة أو توسيعها",
+    "darkMode": "الوضع الداكن",
+    "lightMode": "الوضع الفاتح"
   }
 }

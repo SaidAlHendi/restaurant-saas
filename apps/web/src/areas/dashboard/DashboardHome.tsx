@@ -1,32 +1,16 @@
-import {
-  Button,
-  Card,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@app/ui';
+import { Card, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@app/ui';
 
 import { useDashboardPage } from './use-dashboard-page.js';
 
 export function DashboardHome() {
-  const {
-    t,
-    user,
-    org,
-    orgs,
-    canManageBranches,
-    switchingOrg,
-    loggingOut,
-    onOrgChange,
-    onLogout,
-  } = useDashboardPage();
+  const { t, user, org, orgs, canManageBranches, switchingOrg, onOrgChange } = useDashboardPage();
 
   return (
     <div className="flex flex-col gap-6">
       <Card className="p-6">
-        <h2 className="text-lg font-semibold">{t('dashboard.welcome', { name: user?.name ?? '' })}</h2>
+        <h2 className="text-lg font-semibold">
+          {t('dashboard.welcome', { name: user?.name ?? '' })}
+        </h2>
         <p className="text-muted-foreground mt-1 text-sm">{t('dashboard.subtitle')}</p>
       </Card>
 
@@ -57,11 +41,6 @@ export function DashboardHome() {
         {canManageBranches ? (
           <p className="text-muted-foreground text-sm">{t('dashboard.canManageBranches')}</p>
         ) : null}
-        <div>
-          <Button type="button" variant="outline" onClick={() => void onLogout()} disabled={loggingOut}>
-            {t('auth.logout')}
-          </Button>
-        </div>
       </Card>
     </div>
   );

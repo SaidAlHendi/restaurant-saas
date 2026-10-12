@@ -5,11 +5,6 @@
 /* Let apps that import this file also generate the classes used inside packages/ui. */
 @source '../';
 
-/* Cupcake's brand teal is too light for a focus ring on its cream background; use its dark teal. */
-[data-theme='cupcake'] {
-  --ring: var(--brand-primary-content);
-}
-
 /* Backdrop color for dialogs and sheets: the theme's neutral (dark in both themes). */
 @theme inline {
   --color-overlay: var(--brand-neutral);

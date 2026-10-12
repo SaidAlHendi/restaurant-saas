@@ -1,6 +1,7 @@
 import {
   Button,
   Dialog,
+  DialogBody,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -43,72 +44,75 @@ export function PosPaymentDialogView(props: PosPaymentDialogViewProps) {
         }
       }}
     >
-      <DialogContent className="max-w-md">
+      <DialogContent size="sm" closeLabel={labels.cancel}>
         <DialogHeader>
           <DialogTitle>{labels.title}</DialogTitle>
         </DialogHeader>
-        <p className="text-muted-foreground text-sm">
-          {labels.due}: <span className="text-foreground font-semibold tabular-nums">{dueLabel}</span>
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            size="touch"
-            variant={method === 'cash' ? 'default' : 'outline'}
-            onClick={() => {
-              setMethod('cash');
-            }}
-          >
-            {labels.methodCash}
-          </Button>
-          <Button
-            type="button"
-            size="touch"
-            variant={method === 'card' ? 'default' : 'outline'}
-            onClick={() => {
-              setMethod('card');
-            }}
-          >
-            {labels.methodCard}
-          </Button>
-        </div>
-        {method === 'cash' ? (
-          <div className="space-y-3">
-            <div className="space-y-1">
-              <Label htmlFor="pos-tendered">{labels.tendered}</Label>
-              <MoneyInput
-                id="pos-tendered"
-                currency={currency}
-                locale={uiLocale}
-                size="touch"
-                value={tenderedMinor}
-                onValueChange={setTenderedMinor}
-              />
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {quickAmounts.map((amount) => (
-                <Button
-                  key={String(amount)}
-                  type="button"
-                  size="sm"
-                  variant="secondary"
-                  className="min-h-12"
-                  onClick={() => {
-                    setTenderedMinor(amount);
-                  }}
-                >
-                  {props.formatMinorLabel(amount)}
-                </Button>
-              ))}
-            </div>
-            {changeLabel ? (
-              <p className="text-sm">
-                {labels.change}: <span className="font-semibold tabular-nums">{changeLabel}</span>
-              </p>
-            ) : null}
+        <DialogBody>
+          <p className="text-muted-foreground text-sm">
+            {labels.due}:{' '}
+            <span className="text-foreground font-semibold tabular-nums">{dueLabel}</span>
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              size="touch"
+              variant={method === 'cash' ? 'default' : 'outline'}
+              onClick={() => {
+                setMethod('cash');
+              }}
+            >
+              {labels.methodCash}
+            </Button>
+            <Button
+              type="button"
+              size="touch"
+              variant={method === 'card' ? 'default' : 'outline'}
+              onClick={() => {
+                setMethod('card');
+              }}
+            >
+              {labels.methodCard}
+            </Button>
           </div>
-        ) : null}
-        <DialogFooter className="gap-2 sm:gap-0">
+          {method === 'cash' ? (
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <Label htmlFor="pos-tendered">{labels.tendered}</Label>
+                <MoneyInput
+                  id="pos-tendered"
+                  currency={currency}
+                  locale={uiLocale}
+                  size="touch"
+                  value={tenderedMinor}
+                  onValueChange={setTenderedMinor}
+                />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {quickAmounts.map((amount) => (
+                  <Button
+                    key={String(amount)}
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    className="min-h-12"
+                    onClick={() => {
+                      setTenderedMinor(amount);
+                    }}
+                  >
+                    {props.formatMinorLabel(amount)}
+                  </Button>
+                ))}
+              </div>
+              {changeLabel ? (
+                <p className="text-sm">
+                  {labels.change}: <span className="font-semibold tabular-nums">{changeLabel}</span>
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+        </DialogBody>
+        <DialogFooter>
           <Button type="button" variant="outline" size="touch" onClick={close}>
             {labels.cancel}
           </Button>

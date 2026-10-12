@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
   Sheet,
+  SheetBody,
   SheetContent,
   SheetFooter,
   SheetHeader,
@@ -40,6 +41,7 @@ export interface ProductFormSheetViewProps {
   canManage: boolean;
   locales: string[];
   localeLabels: Record<string, string>;
+  fieldLabels: { name: string; description: string };
   tabLabel: (locale: string) => string;
   defaultLocale: string;
   currency: string;
@@ -79,6 +81,7 @@ export function ProductFormSheetView({
   canManage,
   locales,
   localeLabels,
+  fieldLabels,
   tabLabel,
   defaultLocale,
   currency,
@@ -94,7 +97,7 @@ export function ProductFormSheetView({
 }: ProductFormSheetViewProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="overflow-y-auto sm:max-w-lg">
+      <SheetContent size="lg" closeLabel={cancelLabel}>
         <SheetHeader>
           <SheetTitle>{title}</SheetTitle>
         </SheetHeader>
@@ -104,129 +107,137 @@ export function ProductFormSheetView({
               event.preventDefault();
               onSubmit();
             }}
-            className="flex flex-col gap-4 py-4"
+            className="contents"
           >
-            <FormField
-              control={form.control}
-              name="categoryId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{categoryLabel}</FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange} disabled={!canManage}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </FormItem>
-              )}
-            />
-            <LocalizedFieldsView<ProductFormValues>
-              control={form.control}
-              namePrefix="name"
-              locales={locales}
-              labels={localeLabels}
-              tabLabel={tabLabel}
-              requiredLocale={defaultLocale}
-            />
-            <LocalizedFieldsView<ProductFormValues>
-              control={form.control}
-              namePrefix="description"
-              locales={locales}
-              labels={localeLabels}
-              tabLabel={tabLabel}
-            />
-            <FormField
-              control={form.control}
-              name="priceMinor"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{priceLabel}</FormLabel>
-                  <FormControl>
-                    <MoneyInput
-                      name={field.name}
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      onBlur={field.onBlur}
-                      currency={currency}
-                      locale={moneyLocale}
-                      disabled={!canManage}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="isActive"
-              render={({ field }) => (
-                <FormItem className="flex items-center gap-3">
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    disabled={!canManage}
-                  />
-                  <FormLabel>{activeLabel}</FormLabel>
-                </FormItem>
-              )}
-            />
-            {modifierGroups.length > 0 ? (
+            <SheetBody>
               <FormField
                 control={form.control}
-                name="modifierGroupIds"
+                name="categoryId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{modifierGroupsLabel}</FormLabel>
-                    <div className="flex flex-col gap-2">
-                      {modifierGroups.map((group) => {
-                        const checked = field.value.includes(group.id);
-                        return (
-                          <label key={group.id} className="flex items-center gap-2 text-sm">
-                            <Checkbox
-                              checked={checked}
-                              disabled={!canManage}
-                              onCheckedChange={(value) => {
-                                const next = value
-                                  ? [...field.value, group.id]
-                                  : field.value.filter((id) => id !== group.id);
-                                field.onChange(next);
-                              }}
-                            />
-                            {modifierGroupLabel(group)}
-                          </label>
-                        );
-                      })}
-                    </div>
+                    <FormLabel>{categoryLabel}</FormLabel>
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      disabled={!canManage}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {categories.map((category) => (
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </FormItem>
                 )}
               />
-            ) : null}
-            {imageUpload.show ? (
-              <ImageUpload
-                previewUrl={imageUpload.previewUrl}
-                label={imageUpload.label}
-                hint={imageUpload.hint}
-                chooseLabel={imageUpload.chooseLabel}
-                uploadingLabel={imageUpload.uploadingLabel}
-                removeLabel={imageUpload.removeLabel}
-                previewAlt={imageUpload.previewAlt}
-                error={imageUpload.error}
-                isUploading={imageUpload.isUploading}
-                disabled={!canManage}
-                onFileSelect={imageUpload.onFileSelect}
-                onRemove={imageUpload.onRemove}
+              <LocalizedFieldsView<ProductFormValues>
+                control={form.control}
+                namePrefix="name"
+                label={fieldLabels.name}
+                locales={locales}
+                labels={localeLabels}
+                tabLabel={tabLabel}
+                requiredLocale={defaultLocale}
               />
-            ) : null}
-            <SheetFooter className="gap-2 pt-2">
+              <LocalizedFieldsView<ProductFormValues>
+                control={form.control}
+                namePrefix="description"
+                label={fieldLabels.description}
+                locales={locales}
+                labels={localeLabels}
+                tabLabel={tabLabel}
+              />
+              <FormField
+                control={form.control}
+                name="priceMinor"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{priceLabel}</FormLabel>
+                    <FormControl>
+                      <MoneyInput
+                        name={field.name}
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        onBlur={field.onBlur}
+                        currency={currency}
+                        locale={moneyLocale}
+                        disabled={!canManage}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="isActive"
+                render={({ field }) => (
+                  <FormItem className="flex items-center gap-3">
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      disabled={!canManage}
+                    />
+                    <FormLabel>{activeLabel}</FormLabel>
+                  </FormItem>
+                )}
+              />
+              {modifierGroups.length > 0 ? (
+                <FormField
+                  control={form.control}
+                  name="modifierGroupIds"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{modifierGroupsLabel}</FormLabel>
+                      <div className="flex flex-col gap-2">
+                        {modifierGroups.map((group) => {
+                          const checked = field.value.includes(group.id);
+                          return (
+                            <label key={group.id} className="flex items-center gap-2 text-sm">
+                              <Checkbox
+                                checked={checked}
+                                disabled={!canManage}
+                                onCheckedChange={(value) => {
+                                  const next = value
+                                    ? [...field.value, group.id]
+                                    : field.value.filter((id) => id !== group.id);
+                                  field.onChange(next);
+                                }}
+                              />
+                              {modifierGroupLabel(group)}
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </FormItem>
+                  )}
+                />
+              ) : null}
+              {imageUpload.show ? (
+                <ImageUpload
+                  previewUrl={imageUpload.previewUrl}
+                  label={imageUpload.label}
+                  hint={imageUpload.hint}
+                  chooseLabel={imageUpload.chooseLabel}
+                  uploadingLabel={imageUpload.uploadingLabel}
+                  removeLabel={imageUpload.removeLabel}
+                  previewAlt={imageUpload.previewAlt}
+                  error={imageUpload.error}
+                  isUploading={imageUpload.isUploading}
+                  disabled={!canManage}
+                  onFileSelect={imageUpload.onFileSelect}
+                  onRemove={imageUpload.onRemove}
+                />
+              ) : null}
+            </SheetBody>
+            <SheetFooter>
               <Button
                 type="button"
                 variant="outline"

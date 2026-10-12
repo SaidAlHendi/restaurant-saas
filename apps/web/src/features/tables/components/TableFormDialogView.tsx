@@ -3,6 +3,7 @@ import type { ComponentProps } from 'react';
 import {
   Button,
   Dialog,
+  DialogBody,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -45,25 +46,27 @@ export function TableFormDialogView({
 }: TableFormDialogViewProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent closeLabel={cancelLabel}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={onSubmit} className="flex flex-col gap-4">
-            <FormField
-              control={form.control}
-              name="label"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{labelFieldLabel}</FormLabel>
-                  <FormControl>
-                    <Input autoComplete="off" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <form onSubmit={onSubmit} className="contents">
+            <DialogBody>
+              <FormField
+                control={form.control}
+                name="label"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{labelFieldLabel}</FormLabel>
+                    <FormControl>
+                      <Input autoComplete="off" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </DialogBody>
             <DialogFooter>
               <Button
                 type="button"
