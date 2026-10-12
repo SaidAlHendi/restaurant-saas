@@ -7,6 +7,7 @@ import { loginBodySchema, type LoginBody } from '@app/shared';
 
 import { useAppDispatch } from '../../app/hooks.js';
 import { useLoginMutation, authApi } from '../../features/auth/auth.api.js';
+import { landingPathForPermissions } from '../../features/session/landing-path.js';
 import { hydrateFromMe, setAccessToken } from '../../features/session/session.slice.js';
 
 export function useLoginPage() {
@@ -25,7 +26,7 @@ export function useLoginPage() {
     dispatch(setAccessToken(result.accessToken));
     const me = await dispatch(authApi.endpoints.getMe.initiate(undefined)).unwrap();
     dispatch(hydrateFromMe(me));
-    void navigate('/dashboard', { replace: true });
+    void navigate(landingPathForPermissions(me.permissions), { replace: true });
   });
 
   const errorMessage =

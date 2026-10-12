@@ -7,7 +7,7 @@
 - [x] 4. Public menu page (cached at CDN) + QR codes
 - [x] 5. Order model: tables, state machine, counters, idempotency, events, outbox
 - [x] 6. Cashier PWA: create order, modifiers, dine-in/takeaway, table, notes, tax, payment, print
-- [ ] 7. Kitchen display: realtime, sound, age timer, status changes, resync on reconnect
+- [x] 7. Kitchen display: realtime, sound, age timer, status changes, resync on reconnect
 - [x] 7b. Demo seed data
 - [ ] 8. Owner dashboard: current/past orders, search, filters, details, today's report
 - [ ] 9. Staff: owner/cashier/kitchen roles, PIN login, manager approval for cancel

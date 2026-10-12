@@ -8,10 +8,13 @@ import {
 } from '@app/shared';
 import type {
   AddOrderItemsBody,
+  ChangeOrderItemStatusBody,
   ChangeOrderStatusBody,
   CreateOrderBody,
   CreatePaymentBody,
+  KitchenBoardResponse,
   OrderListQuery,
+  OrderItemStatus,
   OrderStatus,
   Payment,
   VoidOrderItemBody,
@@ -40,12 +43,20 @@ import { TenancyRepository } from '../tenancy/tenancy.repository';
 import {
   ORDER_EVENT_TYPES,
   buildRealtimePayload,
+  changeForOrderEvent,
   realtimeTypeForOrderEvent,
 } from './ordering.events';
-import { mapOrderDetail, mapOrderEvent, mapOrderListItem, mapPayment } from './ordering.mapper';
+import {
+  mapKitchenBoardResponse,
+  mapOrderDetail,
+  mapOrderEvent,
+  mapOrderListItem,
+  mapPayment,
+} from './ordering.mapper';
 import { OrderingRepository } from './ordering.repository';
 import {
   assertTransition,
+  itemStatusForNotReady,
   itemStatusForOrderStatus,
   voidItemPermission,
 } from './state-machine';
@@ -733,6 +744,103 @@ export class OrderingService {
     });
   }
 
+  async getKitchenBoard(ctx: RequestContext, branchId: string): Promise<KitchenBoardResponse> {
+    const serverTime = this.clock.now().toISOString();
+    return withOrg(this.db, ctx.orgId, async (tx) => {
+      const branch = await this.tenancyRepo.findBranchById(tx, branchId);
+      if (!branch || branch.orgId !== ctx.orgId) {
+        throw new NotFoundError();
+      }
+      const orderRows = await this.repo.listKitchenBoardOrders(tx, branchId, 200);
+      const orderIds = orderRows.map((row) => row.id);
+      const itemRows = await this.repo.listOrderItemsForOrderIds(tx, orderIds);
+      const itemIds = itemRows.map((row) => row.id);
+      const modifierRows = await this.repo.listOrderItemModifiersForItemIds(tx, itemIds);
+      const tableIds = [
+        ...new Set(
+          orderRows
+            .map((row) => row.tableId)
+            .filter((id): id is string => id !== null && id.length > 0),
+        ),
+      ];
+      const tableRows = await this.repo.listTableLabelsForBranch(tx, branchId, tableIds);
+      const labelByTableId = new Map(tableRows.map((row) => [row.id, row.label]));
+      return mapKitchenBoardResponse({
+        serverTime,
+        orderRows,
+        itemRows,
+        modifierRows,
+        labelByTableId,
+      });
+    });
+  }
+
+  async changeOrderItemStatus(
+    ctx: RequestContext,
+    branchId: string,
+    orderId: string,
+    itemId: string,
+    body: ChangeOrderItemStatusBody,
+  ) {
+    return withOrg(this.db, ctx.orgId, async (tx) => {
+      const current = await this.repo.findOrderById(tx, branchId, orderId);
+      if (!current) {
+        throw new NotFoundError();
+      }
+      if (current.status !== 'placed' && current.status !== 'preparing') {
+        throw new BusinessRuleError('ORDER_NOT_EDITABLE', 'Order cannot be edited in this status', {
+          status: current.status,
+        });
+      }
+
+      const item = await this.repo.findOrderItem(tx, orderId, itemId);
+      if (!item) {
+        throw new NotFoundError();
+      }
+      if (item.status === 'voided') {
+        throw new BusinessRuleError('ITEM_VOIDED', 'Item is voided', { itemId });
+      }
+
+      const targetStatus: OrderItemStatus =
+        body.to === 'ready' ? 'ready' : itemStatusForNotReady(current.status);
+
+      const updated = await this.repo.bumpOrderVersion(tx, orderId, body.expectedVersion);
+      if (!updated) {
+        const detail = await this.loadOrderDetailInTx(tx, branchId, orderId);
+        throw new ConflictError(
+          'Order version conflict',
+          { order: detail },
+          'ORDER_VERSION_CONFLICT',
+        );
+      }
+
+      const fromStatus = item.status;
+      await this.repo.updateOrderItemStatus(tx, orderId, itemId, targetStatus);
+
+      await this.repo.insertOrderEvent(tx, {
+        id: newUuidV7(),
+        orgId: ctx.orgId,
+        orderId,
+        type: ORDER_EVENT_TYPES.itemStatusChanged,
+        fromStatus: current.status,
+        toStatus: current.status,
+        payload: { itemId, from: fromStatus, to: targetStatus },
+        actorMembershipId: ctx.membershipId,
+      });
+
+      await this.writeOutbox(
+        tx,
+        ctx.orgId,
+        branchId,
+        orderId,
+        ORDER_EVENT_TYPES.itemStatusChanged,
+        updated,
+      );
+
+      return this.loadOrderDetailInTx(tx, branchId, orderId);
+    });
+  }
+
   async listEvents(ctx: RequestContext, branchId: string, orderId: string) {
     return withOrg(this.db, ctx.orgId, async (tx) => {
       const order = await this.repo.findOrderById(tx, branchId, orderId);
@@ -778,6 +886,7 @@ export class OrderingService {
       branchId,
       status: order.status,
       version: order.version,
+      change: changeForOrderEvent(eventType),
     });
     await this.outbox.write(tx, {
       orgId,

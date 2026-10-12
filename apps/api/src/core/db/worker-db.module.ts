@@ -1,4 +1,4 @@
-import { Inject, Module, OnModuleDestroy } from '@nestjs/common';
+import { Inject, Module, OnApplicationShutdown } from '@nestjs/common';
 import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres';
 import pg from 'pg';
 
@@ -33,10 +33,10 @@ export type WorkerDrizzleTx = Parameters<Parameters<WorkerDrizzleDb['transaction
   ],
   exports: [WORKER_DRIZZLE, WORKER_PG_POOL],
 })
-export class WorkerDbModule implements OnModuleDestroy {
+export class WorkerDbModule implements OnApplicationShutdown {
   constructor(@Inject(WORKER_PG_POOL) private readonly pool: pg.Pool) {}
 
-  async onModuleDestroy(): Promise<void> {
+  async onApplicationShutdown(): Promise<void> {
     await this.pool.end();
   }
 }

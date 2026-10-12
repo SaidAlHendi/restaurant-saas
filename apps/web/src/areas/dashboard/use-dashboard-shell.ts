@@ -1,4 +1,4 @@
-import { LayoutDashboardIcon, ShoppingBagIcon, UtensilsIcon } from 'lucide-react';
+import { ChefHatIcon, LayoutDashboardIcon, ShoppingBagIcon, UtensilsIcon } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -21,6 +21,7 @@ export function useDashboardShell() {
   const dispatch = useAppDispatch();
   const canReadMenu = useAppSelector(selectCan('menu.read'));
   const canUsePos = useAppSelector(selectCan('orders.create'));
+  const canUseKds = useAppSelector(selectCan('orders.update_status'));
   const org = useAppSelector(selectSessionOrg);
   const branches = useAppSelector(selectSessionBranches);
   const currentBranchId = useAppSelector(selectCurrentBranchId);
@@ -56,8 +57,17 @@ export function useDashboardShell() {
         end: true,
       });
     }
+    if (canUseKds) {
+      items.push({
+        id: 'kitchen',
+        to: '/kds',
+        icon: ChefHatIcon,
+        label: t('dashboard.nav.kitchen'),
+        end: true,
+      });
+    }
     return items;
-  }, [canReadMenu, canUsePos, t]);
+  }, [canReadMenu, canUsePos, canUseKds, t]);
 
   const menuSubNav = useMemo(
     () =>

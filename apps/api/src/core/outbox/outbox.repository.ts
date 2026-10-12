@@ -30,6 +30,7 @@ export class OutboxRepository {
       .where(
         and(
           isNull(outboxEvents.publishedAt),
+          isNull(outboxEvents.deadAt),
           or(isNull(outboxEvents.nextAttemptAt), lte(outboxEvents.nextAttemptAt, now)),
         ),
       )
@@ -73,7 +74,7 @@ export class OutboxRepository {
     await tx
       .update(outboxEvents)
       .set({
-        publishedAt: new Date(),
+        deadAt: new Date(),
         lastError: errorMessage.slice(0, 2000),
         nextAttemptAt: null,
         attempts,

@@ -70,6 +70,7 @@ export function Showcase({
           title: copy.sections.pos,
           productTile: copy.pos.productTile,
           cartLine: copy.pos.cartLine,
+          kds: copy.pos.kds,
         }}
         demo={posComponents}
       />

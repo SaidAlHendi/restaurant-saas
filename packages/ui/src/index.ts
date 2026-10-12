@@ -40,6 +40,7 @@ export * from './components/qr-card/index.js';
 export * from './components/branch-switcher/index.js';
 export * from './components/product-tile/index.js';
 export * from './components/cart-line/index.js';
+export * from './components/kds/index.js';
 
 // Hooks
 export * from './hooks/use-theme.js';

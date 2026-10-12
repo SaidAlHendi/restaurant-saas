@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, lt, or, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, lt, or, sql } from 'drizzle-orm';
 import { Injectable } from '@nestjs/common';
 
 import type { OrderListCursor } from '../../lib/order-list-cursor';
@@ -12,7 +12,7 @@ import {
   orders,
   payments,
 } from '../../core/db/schema/ordering';
-import type { OrderStatus } from '@app/shared';
+import type { OrderItemStatus, OrderStatus } from '@app/shared';
 
 function firstRow<T>(rows: T[]): T {
   const row = rows[0];
@@ -409,6 +409,75 @@ export class OrderingRepository {
       .from(orderEvents)
       .where(eq(orderEvents.orderId, orderId))
       .orderBy(orderEvents.createdAt, orderEvents.id);
+  }
+
+  async listKitchenBoardOrders(tx: DrizzleTx, branchId: string, limit: number) {
+    return tx
+      .select()
+      .from(orders)
+      .where(
+        and(
+          eq(orders.branchId, branchId),
+          inArray(orders.status, ['placed', 'preparing', 'ready']),
+        ),
+      )
+      .orderBy(asc(orders.placedAt), asc(orders.id))
+      .limit(limit);
+  }
+
+  async listOrderItemsForOrderIds(tx: DrizzleTx, orderIds: string[]) {
+    if (orderIds.length === 0) {
+      return [];
+    }
+    return tx
+      .select()
+      .from(orderItems)
+      .where(inArray(orderItems.orderId, orderIds))
+      .orderBy(orderItems.createdAt, orderItems.id);
+  }
+
+  async listOrderItemModifiersForItemIds(tx: DrizzleTx, itemIds: string[]) {
+    if (itemIds.length === 0) {
+      return [];
+    }
+    return tx
+      .select()
+      .from(orderItemModifiers)
+      .where(inArray(orderItemModifiers.orderItemId, itemIds))
+      .orderBy(orderItemModifiers.id);
+  }
+
+  async listTableLabelsForBranch(tx: DrizzleTx, branchId: string, tableIds: string[]) {
+    if (tableIds.length === 0) {
+      return [];
+    }
+    return tx
+      .select({ id: diningTables.id, label: diningTables.label })
+      .from(diningTables)
+      .where(and(eq(diningTables.branchId, branchId), inArray(diningTables.id, tableIds)));
+  }
+
+  async updateOrderItemStatus(
+    tx: DrizzleTx,
+    orderId: string,
+    itemId: string,
+    status: OrderItemStatus,
+  ) {
+    const rows = await tx
+      .update(orderItems)
+      .set({ status })
+      .where(and(eq(orderItems.id, itemId), eq(orderItems.orderId, orderId)))
+      .returning();
+    return rows[0];
+  }
+
+  async bumpOrderVersion(tx: DrizzleTx, orderId: string, expectedVersion: number) {
+    const rows = await tx
+      .update(orders)
+      .set({ version: expectedVersion + 1, updatedAt: new Date() })
+      .where(and(eq(orders.id, orderId), eq(orders.version, expectedVersion)))
+      .returning();
+    return rows[0];
   }
 
   async getCounterValue(tx: DrizzleTx, branchId: string, businessDate: string) {

@@ -1,9 +1,20 @@
 import { BusinessRuleError } from '../../core/errors/app-errors';
 
-import { ALL_ORDER_STATUSES, assertTransition, findTransition } from './state-machine';
+import {
+  ALL_ORDER_STATUSES,
+  assertTransition,
+  findTransition,
+  itemStatusForNotReady,
+} from './state-machine';
 
 describe('order state machine', () => {
   const targets: typeof ALL_ORDER_STATUSES = ALL_ORDER_STATUSES;
+
+  it('maps not_ready item targets from order status', () => {
+    expect(itemStatusForNotReady('placed')).toBe('pending');
+    expect(itemStatusForNotReady('preparing')).toBe('preparing');
+    expect(() => itemStatusForNotReady('ready')).toThrow(BusinessRuleError);
+  });
 
   it('allows documented transitions with permissions', () => {
     expect(findTransition('placed', 'preparing')?.permission).toBe('orders.update_status');

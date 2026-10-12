@@ -6,6 +6,7 @@ import { Logger } from 'nestjs-pino';
 
 import { AppModule } from './app.module';
 import { loadEnv } from './config/env';
+import { SocketIoRedisIoAdapter } from './core/realtime/socket-io-redis.adapter';
 import { startWorkerContext } from './worker.bootstrap';
 
 async function bootstrap(): Promise<void> {
@@ -18,6 +19,10 @@ async function bootstrap(): Promise<void> {
     credentials: true,
   });
   app.enableShutdownHooks();
+
+  const redisAdapter = new SocketIoRedisIoAdapter(app);
+  redisAdapter.connectToRedis();
+  app.useWebSocketAdapter(redisAdapter);
 
   if (env.APP_ROLE === 'worker' || env.APP_ROLE === 'all') {
     await startWorkerContext();

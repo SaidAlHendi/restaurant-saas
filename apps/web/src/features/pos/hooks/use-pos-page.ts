@@ -1,12 +1,15 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { baseApi } from '../../../app/api/base-api.js';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks.js';
+import type { RealtimeEvent } from '../../../lib/realtime.js';
 import { formatMoney, intlLocaleForUi } from '../../../lib/money.js';
 import { randomUuid } from '../../../lib/uuid.js';
 import { cartActions, cartHasUnsavedLines } from '../../cart/cart.slice.js';
 import type { CartLine, CartLineInput, CartOrderType } from '../../cart/cart.types.js';
 import { cartTotalsPreview, mergeCartLine } from '../../cart/cart.utils.js';
+import { useBranchRealtime } from '../../realtime/use-branch-realtime.js';
 import { applyDashboardBranchChange } from '../../session/apply-dashboard-branch-change.js';
 import {
   selectCan,
@@ -18,6 +21,7 @@ import { useListDiningTablesQuery } from '../../tables/tables.api.js';
 import { useCreateOrderMutation, useListOrdersQuery } from '../../orders/orders.api.js';
 import { posLocalizedName } from '../pos-label.utils.js';
 import { buildCreateOrderBody } from '../pos-order.utils.js';
+import { posOrderTagsForEvent } from '../pos-realtime.utils.js';
 import { useGetPosMenuQuery } from '../pos.api.js';
 import type { PosMenuProduct } from './use-pos-modifier-sheet.js';
 import { usePosModifierSheet } from './use-pos-modifier-sheet.js';
@@ -54,15 +58,48 @@ export function usePosPage() {
   const locale = i18n.language.startsWith('ar') ? 'ar' : 'en';
   const uiLocale = intlLocaleForUi(i18n.language);
 
-  const { data: menu, isLoading, isError } = useGetPosMenuQuery(branchId ?? '', {
+  const {
+    data: menu,
+    isLoading,
+    isError,
+  } = useGetPosMenuQuery(branchId ?? '', {
     skip: !branchId,
   });
   const { data: tablesData } = useListDiningTablesQuery(branchId ?? '', { skip: !branchId });
   const [createOrder, createState] = useCreateOrderMutation();
+
+  // Socket events are hints: refetch the open orders list / that order when it changed.
+  const openOrdersRef = useRef<Array<{ id: string; version: number }>>([]);
+  const onRealtimeEvent = useCallback(
+    ({ payload }: RealtimeEvent) => {
+      if (!branchId) {
+        return;
+      }
+      const tags = posOrderTagsForEvent(openOrdersRef.current, payload, branchId);
+      if (tags.length > 0) {
+        dispatch(baseApi.util.invalidateTags(tags));
+      }
+    },
+    [branchId, dispatch],
+  );
+  const onRealtimeResync = useCallback(() => {
+    dispatch(baseApi.util.invalidateTags(['Order']));
+  }, [dispatch]);
+  const realtime = useBranchRealtime({
+    branchId,
+    onEvent: onRealtimeEvent,
+    onResync: onRealtimeResync,
+  });
+
   const { data: openOrdersData, isLoading: openOrdersLoading } = useListOrdersQuery(
     { branchId: branchId ?? '', query: { activeOnly: true, limit: 100 } },
-    { skip: !branchId, pollingInterval: 10_000 },
+    // Polling is only a fallback while the socket is down.
+    { skip: !branchId, pollingInterval: realtime.isOnline ? 0 : 60_000 },
   );
+
+  useEffect(() => {
+    openOrdersRef.current = openOrdersData?.items ?? [];
+  }, [openOrdersData]);
 
   const defaultLocale = org?.defaultLocale ?? 'en';
 
@@ -224,8 +261,7 @@ export function usePosPage() {
     setPendingBranchId(null);
   }, []);
 
-  const branchName =
-    branches.find((b) => b.id === branchId)?.name ?? t('pos.branchUnknown');
+  const branchName = branches.find((b) => b.id === branchId)?.name ?? t('pos.branchUnknown');
 
   const tableOptions = useMemo(() => {
     const items = tablesData?.items ?? [];
@@ -336,6 +372,10 @@ export function usePosPage() {
 
   return {
     branchName,
+    realtimeBanner: {
+      visible: !realtime.isOnline && realtime.state !== 'connecting',
+      message: t('pos.realtimeDisconnected'),
+    },
     branchSwitcher: {
       branches: branches.map((b) => ({ id: b.id, name: b.name })),
       value: branchId,

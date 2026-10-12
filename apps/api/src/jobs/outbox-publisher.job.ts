@@ -8,7 +8,7 @@ export class OutboxPublisherJob implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(OutboxPublisherJob.name);
   private timeout: ReturnType<typeof setTimeout> | undefined;
   private stopped = false;
-  private tickInFlight = false;
+  private inFlightTick: Promise<void> | undefined;
 
   constructor(
     @Inject(ENV) private readonly env: Env,
@@ -20,12 +20,29 @@ export class OutboxPublisherJob implements OnModuleInit, OnModuleDestroy {
     this.logger.log(`Outbox publisher interval ${String(this.env.OUTBOX_PUBLISHER_INTERVAL_MS)}ms`);
   }
 
-  onModuleDestroy(): void {
+  async onModuleDestroy(): Promise<void> {
     this.stopped = true;
     if (this.timeout !== undefined) {
       clearTimeout(this.timeout);
       this.timeout = undefined;
     }
+    const tick = this.inFlightTick;
+    if (!tick) {
+      return;
+    }
+    const capMs = this.env.OUTBOX_SHUTDOWN_TIMEOUT_MS;
+    await new Promise<void>((resolve) => {
+      const timeout = setTimeout(() => {
+        this.logger.warn(
+          `Outbox publisher shutdown timed out after ${String(capMs)}ms with a tick still in flight`,
+        );
+        resolve();
+      }, capMs);
+      void tick.finally(() => {
+        clearTimeout(timeout);
+        resolve();
+      });
+    });
   }
 
   scheduleNextTick(delayMs: number): void {
@@ -38,19 +55,19 @@ export class OutboxPublisherJob implements OnModuleInit, OnModuleDestroy {
   }
 
   async runTick(): Promise<void> {
-    if (this.stopped || this.tickInFlight) {
+    if (this.stopped || this.inFlightTick) {
       return;
     }
-    this.tickInFlight = true;
+    this.inFlightTick = this.executeTick();
     try {
-      await this.tick();
+      await this.inFlightTick;
     } finally {
-      this.tickInFlight = false;
+      this.inFlightTick = undefined;
       this.scheduleNextTick(this.env.OUTBOX_PUBLISHER_INTERVAL_MS);
     }
   }
 
-  async tick(): Promise<void> {
+  private async executeTick(): Promise<void> {
     try {
       await this.publisher.publishNextBatch();
     } catch (err: unknown) {

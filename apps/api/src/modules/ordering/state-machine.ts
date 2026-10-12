@@ -43,6 +43,19 @@ export function itemStatusForOrderStatus(status: OrderStatus): 'pending' | 'prep
   return null;
 }
 
+/** Target item status when marking `not_ready` from the KDS. */
+export function itemStatusForNotReady(orderStatus: OrderStatus): 'pending' | 'preparing' {
+  if (orderStatus === 'placed') {
+    return 'pending';
+  }
+  if (orderStatus === 'preparing') {
+    return 'preparing';
+  }
+  throw new BusinessRuleError('ORDER_NOT_EDITABLE', 'Order cannot be edited in this status', {
+    status: orderStatus,
+  });
+}
+
 export function voidItemPermission(orderStatus: OrderStatus): PermissionKey {
   if (orderStatus === 'placed') {
     return 'orders.create';

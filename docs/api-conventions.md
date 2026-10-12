@@ -14,6 +14,7 @@
 - Pagination: cursor-based `?cursor=&limit=` (max 100), response `{ items, nextCursor }`.
 - Money in API = integer minor units + `currency`. Dates ISO 8601 UTC; `businessDate` as `YYYY-MM-DD`.
 - Realtime: Socket.io namespace `/rt`, room `branch:{branchId}`; events `order.placed`,
-  `order.updated`, `order.item_updated`, `menu.availability_changed`, each `{ orderId, version, ... }`.
+  `order.updated`, `order.item_updated`, `menu.availability_changed`, each `{ orderId, version, change, ... }`
+  (`change` identifies what happened: `placed`, `status`, `items_added`, `item_voided`, `item_status`, `cancelled`, `payment`).
 - Naming: routes kebab-case plural nouns (`/v1/branches/:branchId/orders`), JSON camelCase,
   DB snake_case.
