@@ -29,10 +29,10 @@ import {
 import {
   ALL_CATEGORIES,
   lastLineOfProduct,
-  orderStatusBadgeTone,
   quantityByProduct,
   visiblePosProducts,
 } from '../pos-catalog.utils.js';
+import { orderStatusBadgeTone } from '../../orders/orders-display.utils.js';
 import { posLocalizedName } from '../pos-label.utils.js';
 import { buildCreateOrderBody } from '../pos-order.utils.js';
 import { posOrderTagsForEvent } from '../pos-realtime.utils.js';

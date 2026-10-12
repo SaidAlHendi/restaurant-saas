@@ -51,4 +51,3 @@ export function lastLineOfProduct(lines: CartLine[], productId: string): CartLin
   return null;
 }
 
-export { orderStatusBadgeTone } from '../orders/orders-display.utils.js';

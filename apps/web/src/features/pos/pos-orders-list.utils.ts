@@ -57,7 +57,6 @@ export function mergeListQueryWithSearch(
   return { ...query, q: trimmed };
 }
 
-export { orderTypeTableLabel } from '../orders/order-type-table-label.utils.js';
 
 export function isDraftStatus(status: OrderStatus): boolean {
   return status === 'draft';
