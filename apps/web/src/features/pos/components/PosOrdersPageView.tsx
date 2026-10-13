@@ -31,13 +31,19 @@ export function PosOrdersPageView(props: PosOrdersPageViewModel) {
     orderDetail,
     paymentDialog,
     onRetry,
+    lock,
     labels,
   } = props;
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
       <ConnectionBanner visible={realtimeBanner.visible} message={realtimeBanner.message} />
-      <h1 className="text-xl font-semibold">{labels.title}</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-xl font-semibold">{labels.title}</h1>
+        <Button type="button" size="sm" variant="outline" onClick={lock.onPress}>
+          {lock.label}
+        </Button>
+      </div>
       <Tabs value={tab}>
         <TabsList className="flex h-auto flex-wrap gap-1">
           {tabs.map((tab) => (

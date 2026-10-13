@@ -1,10 +1,16 @@
-import { Body, Controller, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req, Res } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
 
 import { Public } from '../../core/auth/public.decorator';
 import { AuthService } from './auth.service';
-import { LoginBodyDto, SignupBodyDto, SwitchOrgBodyDto } from './dto/auth.dto';
+import {
+  AcceptInviteBodyDto,
+  LoginBodyDto,
+  PinLoginBodyDto,
+  SignupBodyDto,
+  SwitchOrgBodyDto,
+} from './dto/auth.dto';
 import { Authenticated } from '../../core/auth/authenticated.decorator';
 import { Ctx } from '../../core/context/context.decorator';
 import type { RequestContext } from '../../core/context/request-context';
@@ -18,6 +24,23 @@ export class AuthController {
   @Post('signup')
   signup(@Body() body: SignupBodyDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
     return this.auth.signup(body, req, res);
+  }
+
+  @Public()
+  @Get('invites/:token')
+  previewInvite(@Param('token') token: string) {
+    return this.auth.previewInvite(token);
+  }
+
+  @Public()
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @Post('accept-invite')
+  acceptInvite(
+    @Body() body: AcceptInviteBodyDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.auth.acceptInvite(body, req, res);
   }
 
   @Public()
@@ -38,6 +61,18 @@ export class AuthController {
   @Post('logout')
   logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     return this.auth.logout(req, res);
+  }
+
+  @Authenticated()
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @Post('pin-login')
+  pinLogin(
+    @Ctx() ctx: RequestContext,
+    @Body() body: PinLoginBodyDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.auth.pinLogin(ctx, body, req, res);
   }
 
   @Authenticated()

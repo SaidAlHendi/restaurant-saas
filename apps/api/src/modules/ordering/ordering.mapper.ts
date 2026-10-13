@@ -154,7 +154,11 @@ export function mapOrderListItem(
   };
 }
 
-export function mapOrderEvent(row: EventRow, actorName: string | null): OrderEvent {
+export function mapOrderEvent(
+  row: EventRow,
+  actorName: string | null,
+  approverName: string | null,
+): OrderEvent {
   return {
     id: row.id,
     orderId: row.orderId,
@@ -164,6 +168,8 @@ export function mapOrderEvent(row: EventRow, actorName: string | null): OrderEve
     payload: row.payload as Record<string, unknown>,
     actorMembershipId: row.actorMembershipId,
     actorName,
+    approvedByMembershipId: row.approvedByMembershipId,
+    approverName,
     createdAt: row.createdAt.toISOString(),
   };
 }

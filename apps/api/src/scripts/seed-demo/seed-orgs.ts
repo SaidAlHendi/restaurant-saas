@@ -1,5 +1,7 @@
 import * as argon2 from 'argon2';
+import { eq } from 'drizzle-orm';
 import type { DrizzleDb } from '../../core/db/db.module';
+import { users } from '../../core/db/schema/identity';
 import { membershipBranches, memberships } from '../../core/db/schema/tenancy';
 import { withOrg } from '../../core/db/with-org';
 import { IdentityRepository } from '../../modules/identity/identity.repository';
@@ -13,6 +15,7 @@ import { TenancyRepository } from '../../modules/tenancy/tenancy.repository';
 import { OrderingRepository } from '../../modules/ordering/ordering.repository';
 
 import type { OrgSeedDefinition } from './data/types';
+import { DEMO_STAFF_PINS } from './pins';
 import { hashSeedString, deterministicQrToken, deterministicUuid } from './random';
 
 export type SeededBranch = {
@@ -61,6 +64,32 @@ async function ensureUser(
   return inserted.id;
 }
 
+function pinForStaffLocal(localPart: string): string | null {
+  if (localPart === 'owner1') {
+    return DEMO_STAFF_PINS.owner;
+  }
+  if (localPart === 'manager1') {
+    return DEMO_STAFF_PINS.manager;
+  }
+  if (localPart === 'cashier1') {
+    return DEMO_STAFF_PINS.cashier1;
+  }
+  if (localPart === 'cashier2') {
+    return DEMO_STAFF_PINS.cashier2;
+  }
+  if (localPart.startsWith('kitchen')) {
+    return DEMO_STAFF_PINS.kitchen1;
+  }
+  if (localPart.startsWith('cashier')) {
+    return DEMO_STAFF_PINS.cashier1;
+  }
+  return null;
+}
+
+async function hashStaffPin(pin: string): Promise<string> {
+  return argon2.hash(pin, { type: argon2.argon2id });
+}
+
 async function ensureMembership(
   tenancyRepo: TenancyRepository,
   identityRepo: IdentityRepository,
@@ -69,6 +98,9 @@ async function ensureMembership(
 ): Promise<string> {
   const byUser = await identityRepo.findMembershipForUserOrg(tx, row.userId, row.orgId);
   if (byUser) {
+    if (row.pinHash !== undefined && row.pinHash !== null) {
+      await tenancyRepo.updateMembership(tx, byUser.id, { pinHash: row.pinHash });
+    }
     return byUser.id;
   }
   const inserted = await tenancyRepo.insertMembership(tx, row);
@@ -142,6 +174,9 @@ export async function seedOrganizationTree(
     }
 
     const locale = definition.defaultLocale;
+    const ownerPinHash = await hashStaffPin(DEMO_STAFF_PINS.owner);
+    const managerPinHash = await hashStaffPin(DEMO_STAFF_PINS.manager);
+
     const ownerUserId = await ensureUser(identityRepo, tx, {
       id: deterministicUuid('user', definition.slug, 'owner1'),
       email: staffEmail(definition.slug, 'owner1'),
@@ -157,6 +192,7 @@ export async function seedOrganizationTree(
       roleId: SYSTEM_OWNER_ROLE_ID,
       allBranches: true,
       status: 'active',
+      pinHash: ownerPinHash,
     });
 
     const managerUserId = await ensureUser(identityRepo, tx, {
@@ -174,6 +210,7 @@ export async function seedOrganizationTree(
       roleId: SYSTEM_MANAGER_ROLE_ID,
       allBranches: true,
       status: 'active',
+      pinHash: managerPinHash,
     });
 
     let cashierIndex = 1;
@@ -182,6 +219,9 @@ export async function seedOrganizationTree(
       for (let c = 0; c < 2; c += 1) {
         const local = `cashier${String(cashierIndex)}`;
         cashierIndex += 1;
+        const cashierPin = pinForStaffLocal(local);
+        const cashierPinHash =
+          cashierPin !== null ? await hashStaffPin(cashierPin) : undefined;
         const userId = await ensureUser(identityRepo, tx, {
           id: deterministicUuid('user', definition.slug, local),
           email: staffEmail(definition.slug, local),
@@ -197,6 +237,7 @@ export async function seedOrganizationTree(
           roleId: SYSTEM_CASHIER_ROLE_ID,
           allBranches: false,
           status: 'active',
+          pinHash: cashierPinHash,
         });
         await tx
           .insert(membershipBranches)
@@ -206,6 +247,7 @@ export async function seedOrganizationTree(
 
       const kitchenLocal = `kitchen${String(kitchenIndex)}`;
       kitchenIndex += 1;
+      const kitchenPinHash = await hashStaffPin(DEMO_STAFF_PINS.kitchen1);
       const kitchenUserId = await ensureUser(identityRepo, tx, {
         id: deterministicUuid('user', definition.slug, kitchenLocal),
         email: staffEmail(definition.slug, kitchenLocal),
@@ -221,6 +263,7 @@ export async function seedOrganizationTree(
         roleId: SYSTEM_KITCHEN_ROLE_ID,
         allBranches: false,
         status: 'active',
+        pinHash: kitchenPinHash,
       });
       await tx
         .insert(membershipBranches)
@@ -245,6 +288,30 @@ export async function seedOrganizationTree(
         }
       }
     }
+
+    const pinOnlyName = locale === 'ar' ? 'كاشير PIN' : 'PIN Cashier';
+    const pinOnlyUserId = deterministicUuid('user', definition.slug, 'pin-only-cashier');
+    const pinOnlyMembershipId = deterministicUuid('membership', definition.slug, 'pin-only-cashier');
+    const pinOnlyPinHash = await hashStaffPin(DEMO_STAFF_PINS.pinOnlyCashier);
+    const existingPinUser = await tx.select().from(users).where(eq(users.id, pinOnlyUserId)).limit(1);
+    if (existingPinUser[0] === undefined) {
+      await identityRepo.insertUser(tx, {
+        id: pinOnlyUserId,
+        email: null,
+        passwordHash: null,
+        name: pinOnlyName,
+        locale,
+      });
+    }
+    await ensureMembership(tenancyRepo, identityRepo, tx, {
+      id: pinOnlyMembershipId,
+      orgId,
+      userId: pinOnlyUserId,
+      roleId: SYSTEM_CASHIER_ROLE_ID,
+      allBranches: true,
+      status: 'active',
+      pinHash: pinOnlyPinHash,
+    });
   });
 
   return { definition, id: orgId, branches };

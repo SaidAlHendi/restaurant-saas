@@ -26,8 +26,10 @@ describe('pos order detail actions', () => {
     ).toBe('completed');
   });
 
-  it('Cancel requires orders.cancel permission', () => {
-    expect(canShowCancelOrder(false, true, 'placed')).toBe(false);
+  it('Cancel on placed/preparing/ready without orders.cancel for cashiers', () => {
+    expect(canShowCancelOrder(false, true, 'placed')).toBe(true);
+    expect(canShowCancelOrder(false, true, 'preparing')).toBe(true);
+    expect(canShowCancelOrder(false, true, 'ready')).toBe(true);
     expect(canShowCancelOrder(true, true, 'placed')).toBe(true);
     expect(canShowCancelOrder(true, true, 'completed')).toBe(false);
   });
@@ -47,9 +49,10 @@ describe('pos order detail actions', () => {
     ).toBeNull();
   });
 
-  it('Void only when placed with no payments', () => {
+  it('Void when placed/preparing/ready with no payments', () => {
     expect(canVoidOrderItem({ status: 'placed', payments: [] }, false)).toBe(true);
-    expect(canVoidOrderItem({ status: 'preparing', payments: [] }, false)).toBe(false);
+    expect(canVoidOrderItem({ status: 'preparing', payments: [] }, false)).toBe(true);
+    expect(canVoidOrderItem({ status: 'ready', payments: [] }, false)).toBe(true);
     expect(
       canVoidOrderItem(
         {

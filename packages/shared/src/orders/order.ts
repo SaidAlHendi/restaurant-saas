@@ -12,6 +12,7 @@ import {
 } from './enums.js';
 import { orderLineInputSchema } from './order-line.js';
 import { paymentMethodSchema, paymentSchema } from './payment.js';
+import { orderApprovalSchema } from './approval.js';
 
 export const createOrderBodySchema = z
   .object({
@@ -167,6 +168,7 @@ export const changeOrderStatusBodySchema = z.object({
   to: orderStatusSchema,
   expectedVersion: z.number().int().min(1),
   reason: z.string().trim().min(1).max(500).optional(),
+  approval: orderApprovalSchema.optional(),
 });
 
 export type ChangeOrderStatusBody = z.infer<typeof changeOrderStatusBodySchema>;
@@ -181,6 +183,7 @@ export type AddOrderItemsBody = z.infer<typeof addOrderItemsBodySchema>;
 export const voidOrderItemBodySchema = z.object({
   expectedVersion: z.number().int().min(1),
   reason: z.string().trim().min(1).max(500),
+  approval: orderApprovalSchema.optional(),
 });
 
 export type VoidOrderItemBody = z.infer<typeof voidOrderItemBodySchema>;
@@ -194,6 +197,8 @@ export const orderEventSchema = z.object({
   payload: z.record(z.string(), z.unknown()),
   actorMembershipId: z.uuid(),
   actorName: z.string().nullable(),
+  approvedByMembershipId: z.uuid().nullable(),
+  approverName: z.string().nullable(),
   createdAt: z.iso.datetime(),
 });
 

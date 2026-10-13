@@ -71,7 +71,10 @@ Feature keys: `menu.multilang`, `menu.branding`, `menu.table_qr`, `pos.access`, 
 - Order number restarts at 1 each business day per branch.
 - Totals computed on the server. Tax inclusive or exclusive per branch.
 - After `placed`, items are never edited in place: add items or void items (with reason).
-- Cancel: reason required; after `preparing` requires manager approval.
+- Cancel: reason required; cashiers need a manager PIN on `placed`+ orders. Voiding items after the order is
+  `preparing` or `ready` also requires manager approval (same PIN payload on the void request).
+- PIN login (`POST /v1/auth/pin-login` with `X-Branch-Id`) switches the device session to another staff member
+  who has branch access; `GET /v1/branches/:branchId/pin-users` lists PIN holders for the picker (no secrets).
 - Orders are never deleted.
 
 ## Out of scope for MVP

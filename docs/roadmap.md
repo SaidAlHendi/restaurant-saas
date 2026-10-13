@@ -10,7 +10,7 @@
 - [x] 7. Kitchen display: realtime, sound, age timer, status changes, resync on reconnect
 - [x] 7b. Demo seed data
 - [x] 7c. Cashier flow: pay before send, branch payment settings, POS orders page
-- [ ] 8. Owner dashboard: current/past orders, search, filters, details, today's report
+- [x] 8. Owner dashboard: current/past orders, search, filters, details, today's report
 - [ ] 9. Staff and Settings: one dashboard Settings area with tabs Restaurant (name, logo, languages, tax), Branch (details, receipt header/footer, business day start, payment settings from 7c) and Staff & roles (owner/manager/cashier/kitchen, invite, PIN login, manager approval for cancel)
 - [ ] 10. Billing: plans as data, 14-day trial, Paddle webhooks, entitlements; Sentry, uptime, backup restore test
 - [ ] 11. Pilot in one real restaurant for a full weekend

@@ -1,6 +1,18 @@
 {
   "common": {
-    "loading": "جاري التحميل"
+    "loading": "جاري التحميل",
+    "cancel": "إلغاء",
+    "errors": {
+      "generic": "حدث خطأ. حاول مرة أخرى.",
+      "validation": "تحقق من الحقول وحاول مرة أخرى.",
+      "notFound": "غير موجود.",
+      "lastOwner": "لا يمكن إزالة أو تغيير آخر مالك.",
+      "forbidden": "ليس لديك صلاحية لإدارة هذا العضو.",
+      "staffAlreadyMember": "هذا الشخص موجود بالفعل في فريقك.",
+      "membershipNotActiveOrDisabled": "لا يمكن تحديث هذا العضو بهذه الطريقة.",
+      "fileTooLarge": "الملف كبير جداً.",
+      "unsupportedImageType": "اختر صورة JPEG أو PNG أو WebP."
+    }
   },
   "app": {
     "title": "مطاعم SaaS",
@@ -41,6 +53,20 @@
     },
     "errors": {
       "generic": "حدث خطأ. حاول مرة أخرى."
+    },
+    "validation": {
+      "nameRequired": "أدخل اسمك."
+    },
+    "invite": {
+      "title": "قبول الدعوة",
+      "description": "انضم إلى فريقك على Restaurant SaaS.",
+      "org": "المطعم",
+      "role": "الدور",
+      "submit": "قبول وتسجيل الدخول",
+      "expired": "هذه الدعوة غير صالحة أو منتهية.",
+      "noLongerValid": "هذه الدعوة لم تعد صالحة. اطلب رابطاً جديداً.",
+      "wrongPassword": "كلمة مرور خاطئة. استخدم كلمة مرور حسابك الحالي.",
+      "error": "تعذر قبول الدعوة. حاول مرة أخرى."
     }
   },
   "dashboard": {
@@ -61,7 +87,8 @@
       "sidebar": "تنقل لوحة التحكم",
       "closeSidebar": "إغلاق القائمة",
       "kitchen": "المطبخ",
-      "branchSettings": "إعدادات الفرع"
+      "branchSettings": "إعدادات الفرع",
+      "settings": "الإعدادات"
     },
     "today": {
       "title": "اليوم",
@@ -160,6 +187,7 @@
       "voidReason": "سبب الإلغاء",
       "addition": "إضافة",
       "actor": "بواسطة",
+      "approvedBy": "وافق عليه",
       "subtotal": "المجموع الفرعي",
       "tax": "الضريبة",
       "total": "الإجمالي",
@@ -181,16 +209,150 @@
     }
   },
   "settings": {
+    "title": "الإعدادات",
+    "description": "إعدادات المطعم والفرع والفريق.",
+    "tabs": {
+      "restaurant": "المطعم",
+      "branch": "الفرع",
+      "staff": "الفريق والأدوار"
+    },
+    "restaurant": {
+      "title": "المطعم",
+      "description": "الاسم والشعار واللغات في القائمة والإيصالات.",
+      "name": "اسم المطعم",
+      "slug": "الرابط العام",
+      "currency": "العملة الافتراضية",
+      "locales": "لغات القائمة",
+      "localeEn": "English",
+      "localeAr": "العربية",
+      "defaultLocale": "اللغة الافتراضية",
+      "logo": "الشعار",
+      "logoChoose": "رفع الشعار",
+      "logoUploading": "جاري الرفع…",
+      "logoRemove": "إزالة الشعار",
+      "logoPreviewAlt": "معاينة شعار المطعم",
+      "logoTypeError": "استخدم JPEG أو PNG أو WebP.",
+      "localesInvalid": "اختر لغة واحدة على الأقل بدون تكرار.",
+      "defaultLocaleInvalid": "يجب أن تكون اللغة الافتراضية ضمن اللغات المفعّلة.",
+      "save": "حفظ التغييرات",
+      "saved": "تم حفظ إعدادات المطعم.",
+      "loadError": "تعذر تحميل إعدادات المطعم."
+    },
     "branch": {
       "title": "إعدادات الفرع",
-      "description": "خيارات الدفع للكاشير في هذا الفرع.",
+      "description": "الضريبة والإيصالات ويوم العمل وخيارات الدفع للفرع الحالي.",
       "payBeforeSend": "الدفع قبل الإرسال",
       "payBeforeSendHint": "تبقى الطلبات مسودة حتى اكتمال الدفع، ثم تُرسل للمطبخ.",
       "acceptsCard": "قبول الدفع بالبطاقة",
       "acceptsCardHint": "عند الإيقاف، يسجّل الكاشير النقد فقط.",
+      "taxPercent": "نسبة الضريبة (%)",
+      "taxPercentHint": "من 0 إلى 100، بحد أقصى منزلتين عشريتين.",
+      "taxInvalid": "أدخل نسبة ضريبة صالحة بين 0 و 100.",
+      "taxInclusive": "الأسعار شاملة الضريبة",
+      "taxInclusiveHint": "أسعار القائمة تشمل الضريبة.",
+      "dayStartHour": "بداية يوم العمل (الساعة)",
+      "dayStartHourHint": "0–23 بتوقيت الفرع؛ التقارير تستخدم هذا الوقت.",
+      "dayStartInvalid": "أدخل ساعة بين 0 و 23.",
+      "timezone": "المنطقة الزمنية",
+      "address": "العنوان على الإيصال",
+      "receiptHeader": "ترويسة الإيصال",
+      "receiptFooter": "تذييل الإيصال",
+      "receiptPreview": "معاينة الإيصال",
+      "receiptTaxInclusive": "ش.ض",
+      "receiptOrderNumber": "طلب",
+      "receiptCash": "نقداً",
+      "receiptCard": "بطاقة",
+      "receiptOther": "أخرى",
+      "receiptTendered": "المُسلّم",
+      "receiptChange": "الباقي",
+      "taxDayNote": "الضريبة وبداية يوم العمل تُطبّق على الطلبات الجديدة؛ شاشات الكاشier تتحدّث عند تغيير الإعدادات.",
       "save": "حفظ التغييرات",
       "saved": "تم حفظ الإعدادات.",
       "loadError": "تعذر تحميل إعدادات الفرع."
+    },
+    "staff": {
+      "title": "الفريق والأدوار",
+      "description": "ادعُ الزملاء، عيّن الأدوار وأدر دخول PIN.",
+      "addStaff": "إضافة موظف",
+      "loadError": "تعذر تحميل الفريق.",
+      "empty": "لا يوجد موظفون بعد.",
+      "columnName": "الاسم",
+      "columnEmail": "البريد / الدخول",
+      "columnRole": "الدور",
+      "columnStatus": "الحالة",
+      "columnPin": "PIN",
+      "actions": "إجراءات",
+      "disable": "تعطيل",
+      "enable": "تفعيل",
+      "regenerateInvite": "نسخ رابط دعوة جديد",
+      "revokeInvite": "إلغاء الدعوة",
+      "inviteDialogTitle": "دعوة بالبريد",
+      "inviteEmail": "البريد الإلكتروني",
+      "inviteRole": "الدور",
+      "inviteSubmit": "إرسال الدعوة",
+      "inviteCopied": "تم نسخ رابط الدعوة.",
+      "inviteCreated": "تم إنشاء الدعوة.",
+      "inviteRegenerated": "رابط دعوة جديد جاهز.",
+      "inviteRevoked": "تم إلغاء الدعوة.",
+      "saved": "تم تحديث الموظف.",
+      "pendingEmail": "دعوة معلّقة",
+      "pinOnly": "PIN فقط",
+      "pinSet": "PIN مفعّل",
+      "pinNone": "بدون PIN",
+      "status": {
+        "active": "نشط",
+        "invited": "مدعو",
+        "disabled": "معطّل"
+      },
+      "roles": {
+        "owner": "مالك",
+        "manager": "مدير",
+        "cashier": "كاشير",
+        "kitchen": "مطبخ"
+      },
+      "roleDescriptions": {
+        "owner": "صلاحيات كاملة للإعدادات والفوترة وجميع الفروع.",
+        "manager": "إدارة الفريق والقائمة والتقارير للفروع المعيّنة.",
+        "cashier": "تسجيل الطلبات والمدفوعات على الكاشير.",
+        "kitchen": "عرض وتحديث الطلبات على شاشة المطبخ."
+      },
+      "addStaffInvite": "دعوة بالبريد",
+      "addStaffPinOnly": "حساب PIN فقط",
+      "edit": "تعديل",
+      "setPin": "تعيين PIN",
+      "removePin": "إزالة PIN",
+      "pinOnlyDialogTitle": "إضافة موظف PIN فقط",
+      "editDialogTitle": "تعديل الموظف",
+      "pinDialogTitle": "تعيين PIN",
+      "removePinDialogTitle": "إزالة PIN؟",
+      "disableDialogTitle": "تعطيل الموظف؟",
+      "disableDialogDescription": "سيفقد الوصول فوراً:",
+      "revokeDialogTitle": "إلغاء الدعوة؟",
+      "revokeDialogDescription": "رابط الدعوة لن يعمل بعد الآن لـ:",
+      "inviteLinkDialogTitle": "رابط الدعوة",
+      "inviteLinkValidFor": "شارك هذا الرابط. صالح لمدة 7 أيام.",
+      "inviteLinkCopy": "نسخ الرابط",
+      "inviteCopyFailed": "تعذر النسخ تلقائياً. حدّد الرابط وانسخه يدوياً.",
+      "inviteEmailInvalid": "أدخل بريداً إلكترونياً صالحاً.",
+      "pinOnlyNameRequired": "أدخل اسماً للعرض.",
+      "branchesRequired": "اختر فرعاً واحداً على الأقل أو كل الفروع.",
+      "pinOnlyName": "الاسم المعروض",
+      "pinOnlySubmit": "إنشاء الحساب",
+      "pinLabel": "PIN (4–6 أرقام)",
+      "pinConfirmLabel": "تأكيد PIN",
+      "allBranches": "كل الفروع",
+      "branches": "الفروع",
+      "saveEdit": "حفظ",
+      "confirm": "تأكيد",
+      "pinOnlyCreated": "تم إنشاء موظف PIN فقط.",
+      "pinSaved": "تم تحديث PIN.",
+      "pinRemoved": "تمت إزالة PIN.",
+      "pinError": {
+        "too_short": "PIN يجب أن يكون 4 أرقام على الأقل.",
+        "too_long": "PIN يجب ألا يزيد عن 6 أرقام.",
+        "not_digits": "PIN أرقام فقط.",
+        "mismatch": "PIN غير متطابق."
+      }
     }
   },
   "pos": {
@@ -313,7 +475,24 @@
       "voidItem": "إبطال",
       "voidTitle": "إبطال الصنف؟",
       "voidReason": "سبب الإبطال",
-      "voidConfirm": "إبطال الصنف"
+      "voidConfirm": "إبطال الصنف",
+      "approvalTitle": "موافقة المدير",
+      "approvalHint": "يجب على المدير أو المالك إدخال الرمز السري للتأكيد.",
+      "approvalNext": "متابعة",
+      "pickApprover": "اختر المعتمد",
+      "emptyApprovers": "لا يوجد مديرون برمز سري في هذا الفرع."
+    },
+    "lock": {
+      "button": "قفل",
+      "title": "أدخل الرمز السري",
+      "subtitle": "اختر اسمك وأدخل الرمز السري لاستخدام الكاشير.",
+      "pickUser": "من يسجّل الدخول؟",
+      "emptyUsers": "لا يوجد موظفون برمز سري في هذا الفرع.",
+      "backspace": "مسح",
+      "submit": "فتح",
+      "lockedCountdown": "حاول مرة أخرى بعد",
+      "switchUser": "تبديل المستخدم",
+      "pinDigits": "الرمز السري، {{count}} أرقام"
     },
     "print": {
       "receipt": "فاتورة",
@@ -358,7 +537,10 @@
       "forbidden": "ليس لديك صلاحية لهذا الإجراء.",
       "notPaid": "يجب دفع الطلب قبل إنهائه.",
       "itemVoided": "هذا الصنف ملغى.",
-      "paymentMethodNotAccepted": "هذا الفرع لا يقبل الدفع بالبطاقة."
+      "paymentMethodNotAccepted": "هذا الفرع لا يقبل الدفع بالبطاقة.",
+      "managerApprovalRequired": "يلزم موافقة المدير لهذا الإجراء.",
+      "pinInvalid": "رمز سري غير صحيح. حاول مرة أخرى.",
+      "pinLocked": "محاولات كثيرة. انتظر قبل المحاولة مرة أخرى."
     }
   },
   "menu": {

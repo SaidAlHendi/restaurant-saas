@@ -1,9 +1,11 @@
 import { z } from 'zod';
 
+import { orgLocaleCodeSchema } from '../i18n/org-locales.js';
+
 export const meResponseSchema = z.object({
   user: z.object({
     id: z.uuid(),
-    email: z.email(),
+    email: z.email().nullable(),
     name: z.string(),
     locale: z.enum(['ar', 'en']),
   }),
@@ -11,9 +13,10 @@ export const meResponseSchema = z.object({
     id: z.uuid(),
     name: z.string(),
     slug: z.string(),
-    defaultLocale: z.string(),
-    locales: z.array(z.string()),
+    defaultLocale: orgLocaleCodeSchema,
+    locales: z.array(orgLocaleCodeSchema).min(1),
     defaultCurrency: z.string().length(3),
+    logoUrl: z.url().nullable(),
   }),
   role: z.object({
     id: z.uuid(),

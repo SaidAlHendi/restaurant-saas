@@ -7,7 +7,15 @@ import type { DashboardTodayPageViewModel } from '../hooks/use-dashboard-today-p
 function minimalTodayVm(overrides: Partial<DashboardTodayPageViewModel> = {}): DashboardTodayPageViewModel {
   return {
     orgSwitcher: {
-      org: { id: 'o1', name: 'Org', slug: 'org', defaultLocale: 'en', locales: ['en'], defaultCurrency: 'SAR' },
+      org: {
+        id: 'o1',
+        name: 'Org',
+        slug: 'org',
+        defaultLocale: 'en',
+        locales: ['en'],
+        defaultCurrency: 'SAR',
+        logoUrl: null,
+      },
       orgs: [],
       showOrgSwitcher: false,
       switchingOrg: false,

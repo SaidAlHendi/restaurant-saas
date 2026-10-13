@@ -1,5 +1,6 @@
-import type { FetchBaseQueryError } from '@reduxjs/toolkit/query';
 import type { TFunction } from 'i18next';
+
+import { parseApiError } from '../../lib/api-error-message.js';
 
 const KNOWN_CODES = [
   'CATEGORY_HAS_ACTIVE_PRODUCTS',
@@ -12,24 +13,12 @@ const KNOWN_CODES = [
 export type MenuApiErrorCode = (typeof KNOWN_CODES)[number] | 'UNKNOWN';
 
 export function parseMenuApiErrorCode(error: unknown): MenuApiErrorCode {
-  if (!error || typeof error !== 'object') {
+  const parsed = parseApiError(error);
+  if (parsed.code === null) {
     return 'UNKNOWN';
   }
-  const fetchError = error as FetchBaseQueryError;
-  if (!('status' in fetchError)) {
-    return 'UNKNOWN';
-  }
-  const data = fetchError.data;
-  if (!data || typeof data !== 'object') {
-    return 'UNKNOWN';
-  }
-  const nested = data as { error?: { code?: unknown } };
-  const code = nested.error?.code;
-  if (typeof code !== 'string') {
-    return 'UNKNOWN';
-  }
-  if ((KNOWN_CODES as readonly string[]).includes(code)) {
-    return code as MenuApiErrorCode;
+  if ((KNOWN_CODES as readonly string[]).includes(parsed.code)) {
+    return parsed.code as MenuApiErrorCode;
   }
   return 'UNKNOWN';
 }

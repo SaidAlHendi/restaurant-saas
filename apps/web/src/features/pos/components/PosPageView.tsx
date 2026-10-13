@@ -63,6 +63,7 @@ export function PosPageView(props: PosPageViewModel) {
     orderDetail,
     paymentDialog,
     addingItemsHint,
+    lock,
     labels,
   } = props;
 
@@ -92,6 +93,9 @@ export function PosPageView(props: PosPageViewModel) {
           clearLabel={search.clearLabel}
         />
         <div className="ms-auto flex min-w-0 items-center gap-3">
+          <Button type="button" size="sm" variant="outline" onClick={lock.onPress}>
+            {lock.label}
+          </Button>
           <BranchSwitcher {...branchSwitcher} className="w-56 max-w-full" />
         </div>
       </header>

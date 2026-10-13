@@ -42,9 +42,11 @@ import { usePosModifierSheet } from './use-pos-modifier-sheet.js';
 import { usePosOrderDetail } from './use-pos-order-detail.js';
 import { shouldShowSentToKitchenToast } from '../pos-payment-toast.utils.js';
 import { usePosPaymentDialog } from './use-pos-payment-dialog.js';
+import { usePosLockRequest } from '../pos-lock-context.js';
 
 export function usePosPage() {
   const { t, i18n } = useTranslation();
+  const requestLock = usePosLockRequest();
   const dispatch = useAppDispatch();
   const org = useAppSelector(selectSessionOrg);
   const branches = useAppSelector(selectSessionBranches);
@@ -512,6 +514,10 @@ export function usePosPage() {
       onValueChange: onBranchChangeRequest,
       ariaLabel: t('dashboard.branchSwitcherLabel'),
       placeholder: t('dashboard.selectBranch'),
+    },
+    lock: {
+      label: t('pos.lock.button'),
+      onPress: requestLock,
     },
     isLoading,
     isError,

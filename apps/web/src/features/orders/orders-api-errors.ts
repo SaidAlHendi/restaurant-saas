@@ -13,6 +13,9 @@ const KNOWN_CODES = [
   'NOT_FOUND',
   'FORBIDDEN',
   'PAYMENT_METHOD_NOT_ACCEPTED',
+  'MANAGER_APPROVAL_REQUIRED',
+  'PIN_INVALID',
+  'PIN_LOCKED',
 ] as const;
 
 export type OrdersApiErrorCode = (typeof KNOWN_CODES)[number] | 'UNKNOWN';
@@ -85,6 +88,12 @@ export function ordersApiErrorMessage(t: OrdersErrorTranslator, code: OrdersApiE
       return t('orders.errors.forbidden');
     case 'PAYMENT_METHOD_NOT_ACCEPTED':
       return t('orders.errors.paymentMethodNotAccepted');
+    case 'MANAGER_APPROVAL_REQUIRED':
+      return t('orders.errors.managerApprovalRequired');
+    case 'PIN_INVALID':
+      return t('orders.errors.pinInvalid');
+    case 'PIN_LOCKED':
+      return t('orders.errors.pinLocked');
     default:
       return t('orders.errors.generic');
   }

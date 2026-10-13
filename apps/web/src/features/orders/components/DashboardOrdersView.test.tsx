@@ -8,7 +8,15 @@ function minimalOrdersVm(overrides: Partial<DashboardOrdersPageViewModel> = {}):
   return {
     searchInputKey: 'branch-1',
     orgSwitcher: {
-      org: { id: 'o1', name: 'Org', slug: 'org', defaultLocale: 'en', locales: ['en'], defaultCurrency: 'SAR' },
+      org: {
+        id: 'o1',
+        name: 'Org',
+        slug: 'org',
+        defaultLocale: 'en',
+        locales: ['en'],
+        defaultCurrency: 'SAR',
+        logoUrl: null,
+      },
       orgs: [],
       showOrgSwitcher: false,
       switchingOrg: false,

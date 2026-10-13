@@ -12,6 +12,7 @@ const config: Config = {
     '^(\\.{1,2}/.*)\\.js$': '$1',
     '^@app/shared$': '<rootDir>/../../../packages/shared/src/index.ts',
   },
+  forceExit: true,
   transform: {
     '^.+\\.ts$': [
       'ts-jest',

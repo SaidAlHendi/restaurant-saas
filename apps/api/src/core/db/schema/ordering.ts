@@ -245,6 +245,7 @@ export const orderEvents = pgTable(
     toStatus: orderStatusEnum('to_status'),
     payload: jsonb('payload').notNull(),
     actorMembershipId: uuid('actor_membership_id').notNull(),
+    approvedByMembershipId: uuid('approved_by_membership_id'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [

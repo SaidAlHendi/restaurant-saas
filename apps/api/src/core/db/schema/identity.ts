@@ -6,8 +6,8 @@ export const platformRoleEnum = pgEnum('platform_role', ['super', 'support', 'bi
 
 export const users = pgTable('users', {
   id: uuid('id').primaryKey(),
-  email: text('email').notNull().unique(),
-  passwordHash: text('password_hash').notNull(),
+  email: text('email').unique(),
+  passwordHash: text('password_hash'),
   name: text('name').notNull(),
   locale: text('locale').notNull().default('en'),
   isPlatformAdmin: boolean('is_platform_admin').notNull().default(false),

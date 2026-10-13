@@ -8,6 +8,7 @@ import { AppShellLayout } from '../features/shell/AppShellLayout.js';
 
 const LoginPage = lazy(() => import('../areas/auth/LoginPage.js'));
 const SignupPage = lazy(() => import('../areas/auth/SignupPage.js'));
+const AcceptInvitePage = lazy(() => import('../features/auth/pages/AcceptInvitePage.js'));
 const DashboardArea = lazy(() => import('../areas/dashboard/DashboardArea.js'));
 const PosArea = lazy(() => import('../areas/pos/PosArea.js'));
 const KdsArea = lazy(() => import('../areas/kds/KdsArea.js'));
@@ -34,6 +35,7 @@ export const appRoutes: RouteObject[] = [
         children: [
           { path: 'login', element: <LoginPage /> },
           { path: 'signup', element: <SignupPage /> },
+          { path: 'invite/:token', element: <AcceptInvitePage /> },
         ],
       },
       { path: 'auth/*', element: <Navigate to="/login" replace /> },

@@ -338,21 +338,57 @@ export class OrderingService {
     orderId: string,
     body: ChangeOrderStatusBody,
   ) {
+    if (
+      body.to === 'cancelled' &&
+      (body.reason === undefined || body.reason.trim().length === 0)
+    ) {
+      throw new ValidationError('Cancel reason is required', {}, 'VALIDATION_ERROR');
+    }
+
+    const preflight = await withOrg(this.db, ctx.orgId, async (tx) => {
+      const current = await this.repo.findOrderById(tx, branchId, orderId);
+      if (!current) {
+        throw new NotFoundError();
+      }
+      if (current.version !== body.expectedVersion) {
+        const detail = await this.loadOrderDetailInTx(tx, branchId, orderId);
+        throw new ConflictError(
+          'Order version conflict',
+          { order: detail },
+          'ORDER_VERSION_CONFLICT',
+        );
+      }
+      return { status: current.status };
+    });
+
+    const transition = assertTransition(preflight.status, body.to);
+    let approvedByMembershipId: string | null = null;
+    if (!ctx.permissions.includes(transition.permission)) {
+      if (transition.permission === 'orders.cancel') {
+        approvedByMembershipId = await this.resolveCancelApprovalOutside(
+          ctx,
+          branchId,
+          body.approval,
+        );
+      } else {
+        throw new ForbiddenError('Insufficient permission');
+      }
+    }
+
     return withOrg(this.db, ctx.orgId, async (tx) => {
       const current = await this.repo.findOrderById(tx, branchId, orderId);
       if (!current) {
         throw new NotFoundError();
       }
 
-      const transition = assertTransition(current.status, body.to);
-      if (!ctx.permissions.includes(transition.permission)) {
-        throw new ForbiddenError('Insufficient permission');
+      if (current.version !== body.expectedVersion) {
+        const detail = await this.loadOrderDetailInTx(tx, branchId, orderId);
+        throw new ConflictError(
+          'Order version conflict',
+          { order: detail },
+          'ORDER_VERSION_CONFLICT',
+        );
       }
-
-      if (body.to === 'cancelled' && (!body.reason || body.reason.length === 0)) {
-        throw new ValidationError('Cancel reason is required');
-      }
-      // TODO(step 9): manager approval for cancel after placed
 
       if (body.to === 'completed' && current.paymentStatus !== 'paid') {
         throw new BusinessRuleError('ORDER_NOT_PAID', 'Order must be fully paid before completing', {
@@ -421,6 +457,7 @@ export class OrderingService {
         toStatus: body.to,
         payload: body.reason ? { reason: body.reason } : {},
         actorMembershipId: ctx.membershipId,
+        approvedByMembershipId,
       });
 
       await this.writeOutbox(tx, ctx.orgId, branchId, orderId, eventType, updated);
@@ -554,6 +591,46 @@ export class OrderingService {
     itemId: string,
     body: VoidOrderItemBody,
   ) {
+    const preflight = await withOrg(this.db, ctx.orgId, async (tx) => {
+      const current = await this.repo.findOrderById(tx, branchId, orderId);
+      if (!current) {
+        throw new NotFoundError();
+      }
+      if (
+        current.status !== 'draft' &&
+        current.status !== 'placed' &&
+        current.status !== 'preparing' &&
+        current.status !== 'ready'
+      ) {
+        throw new BusinessRuleError('ORDER_NOT_EDITABLE', 'Order cannot be edited in this status', {
+          status: current.status,
+        });
+      }
+      if (current.version !== body.expectedVersion) {
+        const detail = await this.loadOrderDetailInTx(tx, branchId, orderId);
+        throw new ConflictError(
+          'Order version conflict',
+          { order: detail },
+          'ORDER_VERSION_CONFLICT',
+        );
+      }
+      return { status: current.status };
+    });
+
+    const permission = voidItemPermission(preflight.status);
+    let approvedByMembershipId: string | null = null;
+    if (!ctx.permissions.includes(permission)) {
+      if (permission === 'orders.cancel') {
+        approvedByMembershipId = await this.resolveCancelApprovalOutside(
+          ctx,
+          branchId,
+          body.approval,
+        );
+      } else {
+        throw new ForbiddenError('Insufficient permission');
+      }
+    }
+
     return withOrg(this.db, ctx.orgId, async (tx) => {
       const current = await this.repo.findOrderById(tx, branchId, orderId);
       if (!current) {
@@ -570,15 +647,11 @@ export class OrderingService {
         });
       }
 
-      const permission = voidItemPermission(current.status);
-      if (!ctx.permissions.includes(permission)) {
-        throw new ForbiddenError('Insufficient permission');
-      }
-
       if (current.version !== body.expectedVersion) {
+        const detail = await this.loadOrderDetailInTx(tx, branchId, orderId);
         throw new ConflictError(
           'Order version conflict',
-          {},
+          { order: detail },
           'ORDER_VERSION_CONFLICT',
         );
       }
@@ -656,6 +729,7 @@ export class OrderingService {
         toStatus: current.status,
         payload: { itemId, reason: body.reason },
         actorMembershipId: ctx.membershipId,
+        approvedByMembershipId,
       });
 
       await this.writeOutbox(
@@ -952,14 +1026,47 @@ export class OrderingService {
         throw new NotFoundError();
       }
       const events = await this.repo.listOrderEvents(tx, orderId);
-      const actorIds = events.map((e) => e.actorMembershipId);
-      const names = await this.identity.getDisplayNamesByMembershipIds(tx, actorIds);
+      const membershipIds = new Set<string>();
+      for (const event of events) {
+        membershipIds.add(event.actorMembershipId);
+        if (event.approvedByMembershipId !== null) {
+          membershipIds.add(event.approvedByMembershipId);
+        }
+      }
+      const names = await this.identity.getDisplayNamesByMembershipIds(tx, [...membershipIds]);
       return {
         items: events.map((event) =>
-          mapOrderEvent(event, names.get(event.actorMembershipId) ?? null),
+          mapOrderEvent(
+            event,
+            names.get(event.actorMembershipId) ?? null,
+            event.approvedByMembershipId !== null
+              ? (names.get(event.approvedByMembershipId) ?? null)
+              : null,
+          ),
         ),
       };
     });
+  }
+
+  private async resolveCancelApprovalOutside(
+    ctx: RequestContext,
+    branchId: string,
+    approval: ChangeOrderStatusBody['approval'] | VoidOrderItemBody['approval'],
+  ): Promise<string> {
+    if (approval === undefined) {
+      throw new ForbiddenError(
+        'Manager approval is required',
+        {},
+        'MANAGER_APPROVAL_REQUIRED',
+      );
+    }
+    return this.identity.verifyApproverPin(
+      ctx.orgId,
+      branchId,
+      approval.membershipId,
+      approval.pin,
+      'orders.cancel',
+    );
   }
 
   private async loadOrderDetail(orgId: string, branchId: string, orderId: string) {

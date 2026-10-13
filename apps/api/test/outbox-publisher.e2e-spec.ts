@@ -100,7 +100,7 @@ describe('Outbox publisher (e2e)', () => {
     recording.failOnId = undefined;
     await workerDb.execute(sql`
       UPDATE outbox_events SET published_at = now()
-      WHERE org_id = ${SEED_ORG.demo.id}::uuid AND published_at IS NULL
+      WHERE published_at IS NULL
     `);
   });
 

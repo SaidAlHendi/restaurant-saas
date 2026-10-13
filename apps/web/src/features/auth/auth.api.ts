@@ -1,4 +1,7 @@
 import {
+  acceptInviteBodySchema,
+  acceptInviteResponseSchema,
+  invitePreviewResponseSchema,
   loginBodySchema,
   loginResponseSchema,
   meResponseSchema,
@@ -7,6 +10,10 @@ import {
   signupResponseSchema,
   switchOrgBodySchema,
   switchOrgResponseSchema,
+  pinLoginBodySchema,
+  type PinLoginBody,
+  type AcceptInviteBody,
+  type InvitePreviewResponse,
   type LoginBody,
   type MeResponse,
   type RefreshResponse,
@@ -52,6 +59,18 @@ export const authApi = baseApi.injectEndpoints({
       providesTags: ['Me'],
       transformResponse: (response: unknown) => meResponseSchema.parse(response),
     }),
+    previewInvite: builder.query<InvitePreviewResponse, string>({
+      query: (token) => `/v1/auth/invites/${encodeURIComponent(token)}`,
+      transformResponse: (response: unknown) => invitePreviewResponseSchema.parse(response),
+    }),
+    acceptInvite: builder.mutation({
+      query: (body: AcceptInviteBody) => ({
+        url: '/v1/auth/accept-invite',
+        method: 'POST',
+        body: acceptInviteBodySchema.parse(body),
+      }),
+      transformResponse: (response: unknown) => acceptInviteResponseSchema.parse(response),
+    }),
     switchOrg: builder.mutation({
       query: (body: SwitchOrgBody) => ({
         url: '/v1/auth/switch-org',
@@ -60,6 +79,14 @@ export const authApi = baseApi.injectEndpoints({
       }),
       transformResponse: (response: unknown) => switchOrgResponseSchema.parse(response),
       invalidatesTags: ['Me'],
+    }),
+    pinLogin: builder.mutation({
+      query: (body: PinLoginBody) => ({
+        url: '/v1/auth/pin-login',
+        method: 'POST',
+        body: pinLoginBodySchema.parse(body),
+      }),
+      transformResponse: (response: unknown) => loginResponseSchema.parse(response),
     }),
   }),
 });
@@ -71,4 +98,7 @@ export const {
   useLogoutMutation,
   useGetMeQuery,
   useSwitchOrgMutation,
+  usePreviewInviteQuery,
+  useAcceptInviteMutation,
+  usePinLoginMutation,
 } = authApi;

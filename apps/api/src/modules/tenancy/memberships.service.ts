@@ -24,7 +24,7 @@ export class MembershipsService {
           return {
             id: row.membership.id,
             userId: row.user.id,
-            userEmail: row.user.email,
+            userEmail: row.user.email ?? null,
             userName: row.user.name,
             roleKey: row.role.key,
             roleName: row.role.name,

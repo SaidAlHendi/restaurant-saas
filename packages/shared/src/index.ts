@@ -20,6 +20,76 @@ export { switchOrgBodySchema, switchOrgResponseSchema } from './auth/switch-org.
 export type { SwitchOrgBody, SwitchOrgResponse } from './auth/switch-org.js';
 
 export {
+  canAssignRole,
+  canInviteRole,
+  canManageMember,
+} from './auth/staff-rules.js';
+export type {
+  CanManageMemberResult,
+  StaffRulesActor,
+  StaffRulesChange,
+  StaffRulesContext,
+  StaffRulesTarget,
+} from './auth/staff-rules.js';
+
+export {
+  invitePreviewResponseSchema,
+  acceptInviteBodySchema,
+  acceptInviteResponseSchema,
+} from './auth/invite.js';
+export type {
+  InvitePreviewResponse,
+  AcceptInviteBody,
+  AcceptInviteResponse,
+} from './auth/invite.js';
+
+export {
+  orgSettingsResponseSchema,
+  patchOrgSettingsBodySchema,
+  orgLogoUploadResponseSchema,
+  orgLogoDeleteResponseSchema,
+} from './org/settings.js';
+export type {
+  OrgSettingsResponse,
+  PatchOrgSettingsBody,
+  OrgLogoUploadResponse,
+  OrgLogoDeleteResponse,
+} from './org/settings.js';
+
+export {
+  staffListItemSchema,
+  staffListResponseSchema,
+  createStaffInviteBodySchema,
+  createStaffInviteResponseSchema,
+  regenerateStaffInviteResponseSchema,
+  createPinOnlyStaffBodySchema,
+  patchStaffMembershipBodySchema,
+  putStaffPinBodySchema,
+  staffPinSchema,
+  pinOnlyRoleKeySchema,
+} from './staff/staff.js';
+export type {
+  StaffListItem,
+  StaffListResponse,
+  CreateStaffInviteBody,
+  CreateStaffInviteResponse,
+  CreatePinOnlyStaffBody,
+  PatchStaffMembershipBody,
+  PutStaffPinBody,
+} from './staff/staff.js';
+
+export { pinUserListItemSchema, pinUserListResponseSchema } from './staff/pin-users.js';
+export type { PinUserListItem, PinUserListResponse } from './staff/pin-users.js';
+
+export { pinLoginBodySchema } from './auth/pin-login.js';
+export type { PinLoginBody } from './auth/pin-login.js';
+
+export { orderApprovalSchema } from './orders/approval.js';
+export type { OrderApproval } from './orders/approval.js';
+
+export { isValidIanaTimezone } from './branches/timezone.js';
+
+export {
   branchSchema,
   createBranchBodySchema,
   patchBranchBodySchema,
@@ -40,6 +110,9 @@ export {
   LocalizedTextValidationError,
 } from './i18n/localized-text.js';
 export type { LocalizedText, OrgLocaleContext } from './i18n/localized-text.js';
+
+export { ORG_LOCALE_CODES, orgLocaleCodeSchema, parseOrgLocalesInput } from './i18n/org-locales.js';
+export type { OrgLocaleCode } from './i18n/org-locales.js';
 
 export { currencyDigits, currencySymbol, formatMinor } from './money/currency.js';
 export { formatMoney, intlLocaleForUi } from './money/format-money.js';

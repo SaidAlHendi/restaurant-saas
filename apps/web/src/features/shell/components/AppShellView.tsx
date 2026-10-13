@@ -118,7 +118,9 @@ export function AppShellView({
               onClick={onLogout}
             />
           </SidebarGroup>
-          {user ? <SidebarUser name={user.name} detail={user.detail} className="mt-1" /> : null}
+          {user ? (
+            <SidebarUser name={user.name} detail={user.detail ?? undefined} className="mt-1" />
+          ) : null}
           <div className="hidden md:block">
             <SidebarTrigger
               label={labels.toggleSidebar}

@@ -118,6 +118,7 @@ export function DashboardOrderDetailView(props: DashboardOrderDetailViewProps) {
               <p className="text-muted-foreground text-xs">
                 {row.timeLabel}
                 {row.actorName ? ` · ${labels.actor}: ${row.actorName}` : ''}
+                {row.approverName ? ` · ${labels.approvedBy}: ${row.approverName}` : ''}
               </p>
             </li>
           ))}

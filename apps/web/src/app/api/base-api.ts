@@ -36,7 +36,12 @@ const rawBaseQuery = fetchBaseQuery({
 });
 
 function isAuthRefreshUrl(url: string): boolean {
-  return url.includes('/v1/auth/refresh') || url.includes('/v1/auth/login') || url.includes('/v1/auth/signup');
+  return (
+    url.includes('/v1/auth/refresh') ||
+    url.includes('/v1/auth/login') ||
+    url.includes('/v1/auth/signup') ||
+    url.includes('/v1/auth/pin-login')
+  );
 }
 
 async function performRefresh(api: {
@@ -100,6 +105,8 @@ export const baseApi = createApi({
     'KitchenBoard',
     'Branch',
     'DailyReport',
+    'OrgSettings',
+    'Staff',
   ],
   endpoints: (builder) => ({
     getHealth: builder.query<{ status: string }, undefined>({

@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const membershipListItemSchema = z.object({
   id: z.uuid(),
   userId: z.uuid(),
-  userEmail: z.email(),
+  userEmail: z.email().nullable(),
   userName: z.string(),
   roleKey: z.string(),
   roleName: z.string(),

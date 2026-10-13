@@ -95,6 +95,11 @@ export const memberships = pgTable(
       .notNull()
       .references(() => roles.id),
     pinHash: text('pin_hash'),
+    pinFailedAttempts: integer('pin_failed_attempts').notNull().default(0),
+    pinLockedUntil: timestamp('pin_locked_until', { withTimezone: true }),
+    inviteTokenHash: text('invite_token_hash'),
+    inviteExpiresAt: timestamp('invite_expires_at', { withTimezone: true }),
+    invitedByMembershipId: uuid('invited_by_membership_id'),
     allBranches: boolean('all_branches').notNull().default(true),
     status: membershipStatusEnum('status').notNull().default('active'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),

@@ -56,6 +56,30 @@ export class IdentityRepository {
       .where(eq(users.id, userId));
   }
 
+  async updateUserProfile(
+    tx: DrizzleTx,
+    userId: string,
+    patch: { name?: string; passwordHash?: string },
+  ) {
+    await tx
+      .update(users)
+      .set({ ...patch, updatedAt: new Date() })
+      .where(eq(users.id, userId));
+  }
+
+  async revokeSessionsForUserOrg(tx: DrizzleTx, userId: string, orgId: string) {
+    await tx
+      .update(authSessions)
+      .set({ revokedAt: new Date() })
+      .where(
+        and(
+          eq(authSessions.userId, userId),
+          eq(authSessions.orgId, orgId),
+          isNull(authSessions.revokedAt),
+        ),
+      );
+  }
+
   async insertSession(tx: DrizzleTx, row: typeof authSessions.$inferInsert) {
     const inserted = await tx.insert(authSessions).values(row).returning();
     return firstInsertedRow(inserted);

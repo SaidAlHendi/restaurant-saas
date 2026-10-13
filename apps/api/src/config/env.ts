@@ -40,6 +40,7 @@ const envSchema = z.object({
   S3_SECRET_ACCESS_KEY: z.preprocess(emptyStringToUndefined, z.string().optional()),
   S3_PUBLIC_BASE_URL: optionalUrl,
   UNSPLASH_ACCESS_KEY: z.preprocess(emptyStringToUndefined, z.string().optional()),
+  WEB_APP_URL: z.preprocess(emptyStringToUndefined, z.url().default('http://localhost:5173')),
 }).superRefine((data, ctx) => {
   if (
     (data.APP_ROLE === 'worker' || data.APP_ROLE === 'all') &&

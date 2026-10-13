@@ -1,6 +1,18 @@
 {
   "common": {
-    "loading": "Loading"
+    "loading": "Loading",
+    "cancel": "Cancel",
+    "errors": {
+      "generic": "Something went wrong. Please try again.",
+      "validation": "Please check the form and try again.",
+      "notFound": "Not found.",
+      "lastOwner": "You cannot remove or change the last owner.",
+      "forbidden": "You do not have permission to manage this member.",
+      "staffAlreadyMember": "This person is already on your team.",
+      "membershipNotActiveOrDisabled": "This member cannot be updated that way.",
+      "fileTooLarge": "The file is too large.",
+      "unsupportedImageType": "Choose a JPEG, PNG, or WebP image."
+    }
   },
   "app": {
     "title": "Restaurant SaaS",
@@ -41,6 +53,20 @@
     },
     "errors": {
       "generic": "Something went wrong. Please try again."
+    },
+    "validation": {
+      "nameRequired": "Enter your name."
+    },
+    "invite": {
+      "title": "Accept invitation",
+      "description": "Join your team on Restaurant SaaS.",
+      "org": "Restaurant",
+      "role": "Role",
+      "submit": "Accept and sign in",
+      "expired": "This invitation is invalid or has expired.",
+      "noLongerValid": "This invite is no longer valid. Ask for a new link.",
+      "wrongPassword": "Wrong password. Use your existing account password.",
+      "error": "Could not accept the invitation. Please try again."
     }
   },
   "dashboard": {
@@ -61,7 +87,8 @@
       "sidebar": "Dashboard navigation",
       "closeSidebar": "Close menu",
       "kitchen": "Kitchen",
-      "branchSettings": "Branch settings"
+      "branchSettings": "Branch settings",
+      "settings": "Settings"
     },
     "today": {
       "title": "Today",
@@ -160,6 +187,7 @@
       "voidReason": "Void reason",
       "addition": "Addition",
       "actor": "By",
+      "approvedBy": "Approved by",
       "subtotal": "Subtotal",
       "tax": "Tax",
       "total": "Total",
@@ -181,16 +209,150 @@
     }
   },
   "settings": {
+    "title": "Settings",
+    "description": "Restaurant, branch and team configuration.",
+    "tabs": {
+      "restaurant": "Restaurant",
+      "branch": "Branch",
+      "staff": "Staff & roles"
+    },
+    "restaurant": {
+      "title": "Restaurant",
+      "description": "Name, logo and languages shown on menus and receipts.",
+      "name": "Restaurant name",
+      "slug": "Public slug",
+      "currency": "Default currency",
+      "locales": "Menu languages",
+      "localeEn": "English",
+      "localeAr": "Arabic",
+      "defaultLocale": "Default language",
+      "logo": "Logo",
+      "logoChoose": "Upload logo",
+      "logoUploading": "Uploading…",
+      "logoRemove": "Remove logo",
+      "logoPreviewAlt": "Restaurant logo preview",
+      "logoTypeError": "Use JPEG, PNG or WebP.",
+      "localesInvalid": "Choose at least one language with no duplicates.",
+      "defaultLocaleInvalid": "Default language must be one of the enabled languages.",
+      "save": "Save changes",
+      "saved": "Restaurant settings saved.",
+      "loadError": "Could not load restaurant settings."
+    },
     "branch": {
       "title": "Branch settings",
-      "description": "Payment options for the cashier at this branch.",
+      "description": "Tax, receipts, business day and cashier payment options for the current branch.",
       "payBeforeSend": "Pay before send",
       "payBeforeSendHint": "Orders stay as drafts until fully paid, then go to the kitchen.",
       "acceptsCard": "Accept card payments",
       "acceptsCardHint": "When off, the cashier can only record cash payments.",
+      "taxPercent": "Tax rate (%)",
+      "taxPercentHint": "Enter 0–100, up to two decimal places.",
+      "taxInvalid": "Enter a valid tax rate between 0 and 100.",
+      "taxInclusive": "Tax inclusive prices",
+      "taxInclusiveHint": "Menu prices already include tax.",
+      "dayStartHour": "Business day starts at (hour)",
+      "dayStartHourHint": "0–23 in the branch timezone; reports use this cutoff.",
+      "dayStartInvalid": "Enter an hour between 0 and 23.",
+      "timezone": "Timezone",
+      "address": "Address on receipt",
+      "receiptHeader": "Receipt header",
+      "receiptFooter": "Receipt footer",
+      "receiptPreview": "Receipt preview",
+      "receiptTaxInclusive": "incl.",
+      "receiptOrderNumber": "Order",
+      "receiptCash": "Cash",
+      "receiptCard": "Card",
+      "receiptOther": "Other",
+      "receiptTendered": "Tendered",
+      "receiptChange": "Change",
+      "taxDayNote": "Tax rate and business day start apply to new orders; open cashier screens refresh when settings change.",
       "save": "Save changes",
       "saved": "Settings saved.",
       "loadError": "Could not load branch settings."
+    },
+    "staff": {
+      "title": "Staff & roles",
+      "description": "Invite teammates, assign roles and manage PIN login.",
+      "addStaff": "Add staff",
+      "loadError": "Could not load staff.",
+      "empty": "No staff members yet.",
+      "columnName": "Name",
+      "columnEmail": "Email / login",
+      "columnRole": "Role",
+      "columnStatus": "Status",
+      "columnPin": "PIN",
+      "actions": "Actions",
+      "disable": "Disable",
+      "enable": "Enable",
+      "regenerateInvite": "Copy new invite link",
+      "revokeInvite": "Revoke invite",
+      "inviteDialogTitle": "Invite by email",
+      "inviteEmail": "Email",
+      "inviteRole": "Role",
+      "inviteSubmit": "Send invite",
+      "inviteCopied": "Invite link copied.",
+      "inviteCreated": "Invite created.",
+      "inviteRegenerated": "New invite link ready.",
+      "inviteRevoked": "Invite revoked.",
+      "saved": "Staff updated.",
+      "pendingEmail": "Pending invite",
+      "pinOnly": "PIN only",
+      "pinSet": "PIN set",
+      "pinNone": "No PIN",
+      "status": {
+        "active": "Active",
+        "invited": "Invited",
+        "disabled": "Disabled"
+      },
+      "roles": {
+        "owner": "Owner",
+        "manager": "Manager",
+        "cashier": "Cashier",
+        "kitchen": "Kitchen"
+      },
+      "roleDescriptions": {
+        "owner": "Full access to settings, billing and all branches.",
+        "manager": "Manage staff, menu and reports for assigned branches.",
+        "cashier": "Take orders and payments on the cashier.",
+        "kitchen": "View and update orders on the kitchen display."
+      },
+      "addStaffInvite": "Invite by email",
+      "addStaffPinOnly": "PIN-only account",
+      "edit": "Edit",
+      "setPin": "Set PIN",
+      "removePin": "Remove PIN",
+      "pinOnlyDialogTitle": "Add PIN-only staff",
+      "editDialogTitle": "Edit staff member",
+      "pinDialogTitle": "Set PIN",
+      "removePinDialogTitle": "Remove PIN?",
+      "disableDialogTitle": "Disable staff member?",
+      "disableDialogDescription": "They will lose access immediately:",
+      "revokeDialogTitle": "Revoke invitation?",
+      "revokeDialogDescription": "The invite link will stop working for:",
+      "inviteLinkDialogTitle": "Invitation link",
+      "inviteLinkValidFor": "Share this link. It is valid for 7 days.",
+      "inviteLinkCopy": "Copy link",
+      "inviteCopyFailed": "Could not copy automatically. Select the link and copy it manually.",
+      "inviteEmailInvalid": "Enter a valid email address.",
+      "pinOnlyNameRequired": "Enter a display name.",
+      "branchesRequired": "Select at least one branch or choose all branches.",
+      "pinOnlyName": "Display name",
+      "pinOnlySubmit": "Create account",
+      "pinLabel": "PIN (4–6 digits)",
+      "pinConfirmLabel": "Confirm PIN",
+      "allBranches": "All branches",
+      "branches": "Branches",
+      "saveEdit": "Save",
+      "confirm": "Confirm",
+      "pinOnlyCreated": "PIN-only staff member created.",
+      "pinSaved": "PIN updated.",
+      "pinRemoved": "PIN removed.",
+      "pinError": {
+        "too_short": "PIN must be at least 4 digits.",
+        "too_long": "PIN must be at most 6 digits.",
+        "not_digits": "PIN must contain digits only.",
+        "mismatch": "PINs do not match."
+      }
     }
   },
   "pos": {
@@ -313,7 +475,24 @@
       "voidItem": "Void",
       "voidTitle": "Void item?",
       "voidReason": "Reason for void",
-      "voidConfirm": "Void item"
+      "voidConfirm": "Void item",
+      "approvalTitle": "Manager approval",
+      "approvalHint": "A manager or owner must enter their PIN to confirm.",
+      "approvalNext": "Continue",
+      "pickApprover": "Choose approver",
+      "emptyApprovers": "No managers with a PIN are available at this branch."
+    },
+    "lock": {
+      "button": "Lock",
+      "title": "Enter your PIN",
+      "subtitle": "Choose your name and enter your PIN to use the cashier.",
+      "pickUser": "Who is signing in?",
+      "emptyUsers": "No staff with a PIN are set up for this branch.",
+      "backspace": "Back",
+      "submit": "Unlock",
+      "lockedCountdown": "Try again in",
+      "switchUser": "Switch user",
+      "pinDigits": "PIN, {{count}} digits"
     },
     "print": {
       "receipt": "Receipt",
@@ -354,7 +533,10 @@
       "forbidden": "You do not have permission for this action.",
       "notPaid": "The order must be paid before it can be completed.",
       "itemVoided": "This item was voided.",
-      "paymentMethodNotAccepted": "This branch does not accept card payments."
+      "paymentMethodNotAccepted": "This branch does not accept card payments.",
+      "managerApprovalRequired": "Manager approval is required for this action.",
+      "pinInvalid": "Incorrect PIN. Try again.",
+      "pinLocked": "Too many attempts. Wait before trying again."
     }
   },
   "menu": {

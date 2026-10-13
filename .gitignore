@@ -17,6 +17,8 @@ coverage/
 
 # Local scripts and build caches
 .tmp-*
+scripts/_tmp-*
+.commit-msg.tmp
 *.tsbuildinfo
 apps/api/.storage/
 apps/api/.seed-cache/

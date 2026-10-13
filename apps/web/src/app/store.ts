@@ -12,6 +12,7 @@ import '../features/orders/orders.api.js';
 import '../features/reports/reports.api.js';
 import '../features/kds/kds.api.js';
 import '../features/branches/branches.api.js';
+import '../features/settings/settings.api.js';
 
 export const store = configureStore({
   reducer: {

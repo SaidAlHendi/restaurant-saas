@@ -13,6 +13,7 @@ import { seedOrderHistory } from './seed-orders';
 import { seedTodayDraftOrders } from './seed-draft-orders';
 import { seedProductImages } from './seed-images';
 import { runSeedInvariants } from './run-invariants';
+import { printDemoPinLegend } from './pins';
 import { countSeedOrgTables, printSummaryTable } from './summary';
 
 async function main(): Promise<void> {
@@ -79,6 +80,7 @@ async function main(): Promise<void> {
       seededOrgs.map((s) => s.id),
     );
     printSummaryTable(counts);
+    printDemoPinLegend(seededOrgs.map((s) => s.definition.slug));
   } finally {
     await pool.end();
   }

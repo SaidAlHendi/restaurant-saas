@@ -31,6 +31,9 @@ export function useAppShell() {
   const org = useAppSelector(selectSessionOrg);
   const canReadMenu = useAppSelector(selectCan('menu.read'));
   const canManageBranches = useAppSelector(selectCan('branches.manage'));
+  const canManageOrg = useAppSelector(selectCan('org.manage'));
+  const canReadStaff = useAppSelector(selectCan('staff.read'));
+  const canOpenSettings = canManageOrg || canManageBranches || canReadStaff;
   const canUsePos = useAppSelector(selectCan('orders.create'));
   const canUseKds = useAppSelector(selectCan('orders.update_status'));
   const canReports = useAppSelector(selectCan('reports.read'));
@@ -97,17 +100,17 @@ export function useAppShell() {
         end: false,
       });
     }
-    if (canManageBranches) {
+    if (canOpenSettings) {
       items.push({
-        id: 'branchSettings',
-        to: '/dashboard/settings/branch',
+        id: 'settings',
+        to: '/dashboard/settings',
         icon: SettingsIcon,
-        label: t('dashboard.nav.branchSettings'),
-        end: true,
+        label: t('dashboard.nav.settings'),
+        end: false,
       });
     }
     return items;
-  }, [canManageBranches, canReadMenu, canReports, canUsePos, canUseKds, t]);
+  }, [canOpenSettings, canReadMenu, canReports, canUsePos, canUseKds, t]);
 
   const activeId = activeNavItemId(navItems, location.pathname);
 
