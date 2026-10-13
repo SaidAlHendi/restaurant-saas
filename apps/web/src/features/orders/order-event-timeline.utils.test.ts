@@ -14,6 +14,8 @@ function baseEvent(overrides: Partial<OrderEvent>): OrderEvent {
     payload: {},
     actorMembershipId: '01932a1a-7b3e-7000-8000-000000000088',
     actorName: 'Alex',
+    approvedByMembershipId: null,
+    approverName: null,
     createdAt: '2026-03-01T12:00:00.000Z',
     ...overrides,
   };
