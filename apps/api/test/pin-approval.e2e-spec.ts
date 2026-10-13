@@ -151,14 +151,26 @@ describe('PIN users, login, and cancel approval (e2e)', () => {
     const cashier = branchAgent(clockApp, fresh.cashierToken, fresh.branchId);
     const { orderId, version } = await placePlacedOrder(cashier, fresh.branchId, fresh.productId);
 
-    for (let i = 0; i < 5; i += 1) {
-      await cashier.post(`/v1/branches/${fresh.branchId}/orders/${orderId}/status`).send({
+    for (let i = 0; i < 4; i += 1) {
+      const attempt = await cashier.post(`/v1/branches/${fresh.branchId}/orders/${orderId}/status`).send({
         to: 'cancelled',
         expectedVersion: version,
         reason: 'x',
         approval: { membershipId: fresh.managerMembershipId, pin: '0000' },
       });
+      expect(attempt.status).toBe(401);
+      expect((attempt.body as ApiError).error.code).toBe('PIN_INVALID');
     }
+
+    const fifth = await cashier.post(`/v1/branches/${fresh.branchId}/orders/${orderId}/status`).send({
+      to: 'cancelled',
+      expectedVersion: version,
+      reason: 'x',
+      approval: { membershipId: fresh.managerMembershipId, pin: '0000' },
+    });
+    expect(fifth.status).toBe(423);
+    expect((fifth.body as ApiError).error.code).toBe('PIN_LOCKED');
+    expect((fifth.body as ApiError).error.details?.lockedUntil).toEqual(expect.any(String));
 
     const locked = await cashier.post(`/v1/branches/${fresh.branchId}/orders/${orderId}/status`).send({
       to: 'cancelled',
@@ -183,6 +195,38 @@ describe('PIN users, login, and cancel approval (e2e)', () => {
     expect([200, 201]).toContain(pinLoginOk.status);
 
     await clockApp.close();
+  });
+
+  it('concurrent wrong approval PINs cap at five 401s then 423', async () => {
+    const fresh = await setupFreshOrgWithPins(app, jwt);
+    const cashier = branchAgent(app, fresh.cashierToken, fresh.branchId);
+    const { orderId, version } = await placePlacedOrder(cashier, fresh.branchId, fresh.productId);
+
+    const attempts = await Promise.all(
+      Array.from({ length: 8 }, (_, idx) =>
+        cashier.post(`/v1/branches/${fresh.branchId}/orders/${orderId}/status`).send({
+          to: 'cancelled',
+          expectedVersion: version,
+          reason: `parallel-${String(idx)}`,
+          approval: { membershipId: fresh.managerMembershipId, pin: `9${String(idx).padStart(3, '0')}` },
+        }),
+      ),
+    );
+
+    const invalid = attempts.filter((r) => r.status === 401);
+    const locked = attempts.filter((r) => r.status === 423);
+    expect(invalid.length).toBeLessThanOrEqual(5);
+    expect(locked.length).toBeGreaterThanOrEqual(3);
+    expect(invalid.length + locked.length).toBe(8);
+    expect(locked.every((r) => (r.body as ApiError).error.code === 'PIN_LOCKED')).toBe(true);
+
+    const followUp = await cashier.post(`/v1/branches/${fresh.branchId}/orders/${orderId}/status`).send({
+      to: 'cancelled',
+      expectedVersion: version,
+      reason: 'after-lock',
+      approval: { membershipId: fresh.managerMembershipId, pin: fresh.managerPin },
+    });
+    expect(followUp.status).toBe(423);
   });
 
   it('pin-login requires X-Branch-Id', async () => {
