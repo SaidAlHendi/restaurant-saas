@@ -1,4 +1,6 @@
-import { canAssignRole, canInviteRole, canManageMember } from './staff-rules';
+import { describe, expect, it } from 'vitest';
+
+import { canAssignRole, canInviteRole, canManageMember } from './staff-rules.js';
 
 describe('canManageMember', () => {
   const ownerActor = { membershipId: 'a1', roleKey: 'owner' as const };

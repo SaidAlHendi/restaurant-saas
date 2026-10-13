@@ -1,4 +1,4 @@
-import type { SystemRoleKey } from '@app/shared';
+import type { SystemRoleKey } from '../permissions.js';
 
 export type StaffRulesActor = {
   membershipId: string;

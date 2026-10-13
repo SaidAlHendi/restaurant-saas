@@ -1,12 +1,15 @@
 import { Inject, Injectable } from '@nestjs/common';
 import * as argon2 from 'argon2';
 
-import type {
-  CreatePinOnlyStaffBody,
-  CreateStaffInviteBody,
-  PatchStaffMembershipBody,
-  PutStaffPinBody,
-  SystemRoleKey,
+import {
+  canInviteRole,
+  canManageMember,
+  type CreatePinOnlyStaffBody,
+  type CreateStaffInviteBody,
+  type PatchStaffMembershipBody,
+  type PutStaffPinBody,
+  type StaffRulesChange,
+  type SystemRoleKey,
 } from '@app/shared';
 
 import { ENV, type Env } from '../../config/config.module';
@@ -27,7 +30,6 @@ import { newUuidV7 } from '../../lib/uuid';
 import { IdentityService } from '../identity/identity.service';
 import { MailService } from '../notifications/mail.service';
 
-import { canInviteRole, canManageMember, type StaffRulesChange } from './staff-rules';
 import { TenancyRepository } from './tenancy.repository';
 
 @Injectable()

@@ -20,6 +20,19 @@ export { switchOrgBodySchema, switchOrgResponseSchema } from './auth/switch-org.
 export type { SwitchOrgBody, SwitchOrgResponse } from './auth/switch-org.js';
 
 export {
+  canAssignRole,
+  canInviteRole,
+  canManageMember,
+} from './auth/staff-rules.js';
+export type {
+  CanManageMemberResult,
+  StaffRulesActor,
+  StaffRulesChange,
+  StaffRulesContext,
+  StaffRulesTarget,
+} from './auth/staff-rules.js';
+
+export {
   invitePreviewResponseSchema,
   acceptInviteBodySchema,
   acceptInviteResponseSchema,
