@@ -11,8 +11,14 @@ export function messageFromApiError(error: unknown, t: TFunction): string {
   if (parsed.code === 'NOT_FOUND') {
     return t('common.errors.notFound');
   }
-  if (parsed.message && parsed.message.length > 0) {
-    return parsed.message;
+  if (parsed.code === 'LAST_OWNER') {
+    return t('common.errors.lastOwner');
+  }
+  if (parsed.code === 'FORBIDDEN') {
+    return t('common.errors.forbidden');
+  }
+  if (parsed.code === 'STAFF_ALREADY_MEMBER') {
+    return t('common.errors.staffAlreadyMember');
   }
   return t('common.errors.generic');
 }

@@ -5,7 +5,10 @@
     "errors": {
       "generic": "Something went wrong. Please try again.",
       "validation": "Please check the form and try again.",
-      "notFound": "Not found."
+      "notFound": "Not found.",
+      "lastOwner": "You cannot remove or change the last owner.",
+      "forbidden": "You do not have permission to manage this member.",
+      "staffAlreadyMember": "This person is already on your team."
     }
   },
   "app": {
@@ -55,6 +58,7 @@
       "role": "Role",
       "submit": "Accept and sign in",
       "expired": "This invitation is invalid or has expired.",
+      "noLongerValid": "This invite is no longer valid. Ask for a new link.",
       "wrongPassword": "Wrong password. Use your existing account password.",
       "error": "Could not accept the invitation. Please try again."
     }
@@ -324,6 +328,7 @@
       "inviteLinkCopy": "Copy link",
       "inviteCopyFailed": "Could not copy automatically. Select the link and copy it manually.",
       "inviteEmailInvalid": "Enter a valid email address.",
+      "pinOnlyNameRequired": "Enter a display name.",
       "branchesRequired": "Select at least one branch or choose all branches.",
       "pinOnlyName": "Display name",
       "pinOnlySubmit": "Create account",

@@ -127,6 +127,7 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
     onSubmitInvite,
     pinOnlyName,
     onPinOnlyNameChange,
+    pinOnlyNameError,
     pinOnlyRole,
     onPinOnlyRoleChange,
     pinOnlyScope,
@@ -399,6 +400,7 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
                   onPinOnlyNameChange(e.target.value);
                 }}
               />
+              {pinOnlyNameError ? <p className="text-destructive text-sm">{pinOnlyNameError}</p> : null}
             </div>
             <StaffRoleSelect
               label={labels.inviteRole}

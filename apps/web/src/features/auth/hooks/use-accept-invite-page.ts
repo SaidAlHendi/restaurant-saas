@@ -6,7 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
 
 import { useAppDispatch } from '../../../app/hooks.js';
-import { acceptInviteErrorMessage, isInviteExpiredError } from '../auth-invite-errors.utils.js';
+import { acceptInviteErrorMessage } from '../auth-invite-errors.utils.js';
 import { authApi, useAcceptInviteMutation, usePreviewInviteQuery } from '../auth.api.js';
 import { landingPathForPermissions } from '../../session/landing-path.js';
 import { hydrateFromMe, setAccessToken } from '../../session/session.slice.js';
@@ -40,11 +40,7 @@ export function useAcceptInvitePage() {
     return t(`settings.staff.roles.${key}`);
   }, [preview.data?.roleKey, t]);
 
-  const previewErrorMessage = preview.isError
-    ? isInviteExpiredError(preview.error)
-      ? t('auth.invite.expired')
-      : t('auth.invite.error')
-    : null;
+  const previewErrorMessage = preview.isError ? acceptInviteErrorMessage(preview.error, t) : null;
 
   const onSubmit = form.handleSubmit(async (values) => {
     setSubmitError(null);
@@ -87,7 +83,6 @@ export function useAcceptInvitePage() {
       password: t('auth.fields.password'),
       submit: t('auth.invite.submit'),
       loading: t('common.loading'),
-      expired: t('auth.invite.expired'),
     },
   };
 }

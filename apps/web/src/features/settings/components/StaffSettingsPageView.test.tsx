@@ -77,6 +77,7 @@ function minimalStaffVm(overrides: Partial<StaffSettingsPageViewModel> = {}): St
     onSubmitInvite: () => {},
     pinOnlyName: '',
     onPinOnlyNameChange: () => {},
+    pinOnlyNameError: null,
     pinOnlyRole: 'cashier',
     onPinOnlyRoleChange: () => {},
     pinOnlyScope: { allBranches: true, branchIds: [] },

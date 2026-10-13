@@ -39,7 +39,7 @@ export function AcceptInvitePageView(props: AcceptInvitePageViewModel) {
   if (previewError) {
     return (
       <Card className="mx-auto max-w-md p-6">
-        <p className="text-destructive">{labels.expired}</p>
+        <p className="text-destructive">{errorMessage}</p>
       </Card>
     );
   }

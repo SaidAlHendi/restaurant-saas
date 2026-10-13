@@ -109,6 +109,7 @@ export function useStaffSettingsPage() {
   const [inviteScopeError, setInviteScopeError] = useState<string | null>(null);
 
   const [pinOnlyName, setPinOnlyName] = useState('');
+  const [pinOnlyNameError, setPinOnlyNameError] = useState<string | null>(null);
   const [pinOnlyRole, setPinOnlyRole] = useState<SystemRoleKey>('cashier');
   const [pinOnlyScope, setPinOnlyScope] = useState<BranchScopeState>(emptyScope);
   const [pinOnlyScopeError, setPinOnlyScopeError] = useState<string | null>(null);
@@ -368,8 +369,10 @@ export function useStaffSettingsPage() {
   const onSubmitPinOnly = useCallback(async () => {
     const name = pinOnlyName.trim();
     if (name.length === 0) {
+      setPinOnlyNameError(t('settings.staff.pinOnlyNameRequired'));
       return;
     }
+    setPinOnlyNameError(null);
     const pinCheck = validatePinForm(pinOnlyPin, pinOnlyPinConfirm);
     if (!pinCheck.ok) {
       setPinOnlyPinError(t(`settings.staff.pinError.${pinCheck.reason}`));
@@ -398,6 +401,7 @@ export function useStaffSettingsPage() {
     }
     setPinOnlyOpen(false);
     setPinOnlyName('');
+    setPinOnlyNameError(null);
     setPinOnlyPin('');
     setPinOnlyPinConfirm('');
     setPinOnlyScope(emptyScope());
@@ -550,7 +554,11 @@ export function useStaffSettingsPage() {
       void onSubmitInvite();
     },
     pinOnlyName,
-    onPinOnlyNameChange: setPinOnlyName,
+    onPinOnlyNameChange: (value: string) => {
+      setPinOnlyName(value);
+      setPinOnlyNameError(null);
+    },
+    pinOnlyNameError,
     pinOnlyRole,
     onPinOnlyRoleChange: (value: string) => {
       const parsed = parseSystemRoleKey(value);

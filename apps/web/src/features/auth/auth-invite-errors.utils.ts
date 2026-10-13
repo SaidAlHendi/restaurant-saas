@@ -7,6 +7,9 @@ export function acceptInviteErrorMessage(error: unknown, t: TFunction): string {
   if (parsed.status === 410 || parsed.code === 'INVITE_EXPIRED') {
     return t('auth.invite.expired');
   }
+  if (parsed.status === 404 && parsed.code === 'NOT_FOUND') {
+    return t('auth.invite.noLongerValid');
+  }
   if (parsed.status === 401 || parsed.code === 'INVALID_CREDENTIALS') {
     return t('auth.invite.wrongPassword');
   }
@@ -15,5 +18,8 @@ export function acceptInviteErrorMessage(error: unknown, t: TFunction): string {
 
 export function isInviteExpiredError(error: unknown): boolean {
   const parsed = parseApiError(error);
+  if (parsed.status === 404 && parsed.code === 'NOT_FOUND') {
+    return true;
+  }
   return parsed.status === 410 || parsed.code === 'INVITE_EXPIRED';
 }
