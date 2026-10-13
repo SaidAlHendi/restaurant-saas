@@ -7,7 +7,7 @@ import { withOrg, type DrizzleTx } from '../../core/db/with-org';
 import type { RequestContext } from '../../core/context/request-context';
 import { newUuidV7 } from '../../lib/uuid';
 import { slugifyBase, slugWithSuffix } from '../../lib/slug';
-import type { Branch, CreateBranchBody, PatchBranchBody } from '@app/shared';
+import type { Branch, CreateBranchBody, PatchBranchBody, SystemRoleKey } from '@app/shared';
 
 import { OUTBOX_BRANCH_SETTINGS_UPDATED } from './tenancy.constants';
 import { TenancyRepository } from './tenancy.repository';
@@ -63,6 +63,23 @@ export class BranchesService {
       const rows = await this.repo.listBranches(tx, ctx.orgId);
       return {
         items: rows.map((b) => mapBranchRow(b)),
+      };
+    });
+  }
+
+  listPinUsers(ctx: RequestContext, branchId: string) {
+    return withOrg(this.db, ctx.orgId, async (tx) => {
+      const branch = await this.repo.findBranchById(tx, branchId);
+      if (!branch || branch.orgId !== ctx.orgId) {
+        throw new NotFoundError();
+      }
+      const rows = await this.repo.listPinUsersForBranch(tx, branchId);
+      return {
+        items: rows.map((row) => ({
+          membershipId: row.membership_id,
+          name: row.name,
+          roleKey: row.role_key as SystemRoleKey,
+        })),
       };
     });
   }

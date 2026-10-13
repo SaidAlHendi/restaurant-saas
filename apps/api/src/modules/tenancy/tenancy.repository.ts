@@ -259,6 +259,50 @@ export class TenancyRepository {
     return rows.map((r) => r.id);
   }
 
+  async membershipHasBranchAccess(
+    tx: DrizzleTx,
+    membershipId: string,
+    branchId: string,
+  ): Promise<boolean> {
+    const membership = await this.findMembershipById(tx, membershipId);
+    if (!membership) {
+      return false;
+    }
+    if (membership.allBranches) {
+      return true;
+    }
+    const branchIds = await this.listMembershipBranchIds(tx, membershipId);
+    return branchIds.includes(branchId);
+  }
+
+  async listPinUsersForBranch(tx: DrizzleTx, branchId: string) {
+    const result = await tx.execute(sql`
+      SELECT
+        m.id AS membership_id,
+        u.name,
+        r.key AS role_key
+      FROM memberships m
+      INNER JOIN users u ON u.id = m.user_id
+      INNER JOIN roles r ON r.id = m.role_id
+      WHERE m.status = 'active'::membership_status
+        AND m.pin_hash IS NOT NULL
+        AND length(m.pin_hash) > 0
+        AND (
+          m.all_branches = true
+          OR EXISTS (
+            SELECT 1 FROM membership_branches mb
+            WHERE mb.membership_id = m.id AND mb.branch_id = ${branchId}::uuid
+          )
+        )
+      ORDER BY u.name ASC, m.id ASC
+    `);
+    return result.rows as Array<{
+      membership_id: string;
+      name: string;
+      role_key: string;
+    }>;
+  }
+
   async resolveInviteByTokenHash(tx: DrizzleTx, tokenHash: string) {
     const result = await tx.execute(sql`
       SELECT

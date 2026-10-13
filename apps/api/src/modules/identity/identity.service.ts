@@ -1,9 +1,12 @@
 import { Injectable } from '@nestjs/common';
 
+import type { PermissionKey } from '@app/shared';
+
 import type { DrizzleTx } from '../../core/db/with-org';
 import type { users } from '../../core/db/schema/identity';
 
 import { IdentityRepository } from './identity.repository';
+import { PinVerificationService } from './pin-verification.service';
 
 export type CreateStaffUserInput = {
   id: string;
@@ -15,7 +18,10 @@ export type CreateStaffUserInput = {
 
 @Injectable()
 export class IdentityService {
-  constructor(private readonly repo: IdentityRepository) {}
+  constructor(
+    private readonly repo: IdentityRepository,
+    private readonly pinVerification: PinVerificationService,
+  ) {}
 
   async getDisplayNamesByMembershipIds(
     tx: DrizzleTx,
@@ -45,5 +51,33 @@ export class IdentityService {
 
   revokeSessionsForUserOrg(tx: DrizzleTx, userId: string, orgId: string): Promise<void> {
     return this.repo.revokeSessionsForUserOrg(tx, userId, orgId);
+  }
+
+  verifyMembershipPin(
+    tx: DrizzleTx,
+    orgId: string,
+    branchId: string,
+    membershipId: string,
+    pin: string,
+  ): Promise<void> {
+    return this.pinVerification.verifyMembershipPin(tx, orgId, branchId, membershipId, pin);
+  }
+
+  verifyApproverPin(
+    tx: DrizzleTx,
+    orgId: string,
+    branchId: string,
+    membershipId: string,
+    pin: string,
+    requiredPermission: PermissionKey,
+  ): Promise<void> {
+    return this.pinVerification.verifyApproverPin(
+      tx,
+      orgId,
+      branchId,
+      membershipId,
+      pin,
+      requiredPermission,
+    );
   }
 }

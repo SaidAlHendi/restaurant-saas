@@ -3,7 +3,13 @@
 - REST over JSON, prefix `/v1`. NestJS controllers with DTOs built from the Zod schemas in `packages/shared` (nestjs-zod) for body,
   params, query and response (also generates OpenAPI).
 - Auth: short-lived JWT access token (15 min) + httpOnly refresh cookie for dashboard users.
-  Staff PIN login (step 9+) switches the refresh session to another member in the same org. Device pairing (`X-Staff-Session`) is deferred.
+  Staff PIN login switches the refresh session to another member in the same org (`POST /v1/auth/pin-login`,
+  requires `X-Branch-Id`; revokes the prior session). Device pairing (`X-Staff-Session`) is deferred.
+- Ordering cancel/void (step 9b): `POST .../orders/:id/status` and `POST .../items/:itemId/void` accept optional
+  `approval: { membershipId, pin }` when the actor lacks `orders.cancel`. Wrong PIN → 401 `PIN_INVALID`; approver
+  without permission → 403; missing approval → 403 `MANAGER_APPROVAL_REQUIRED`. Stale `expectedVersion` → 409
+  `ORDER_VERSION_CONFLICT` before PIN is checked. Five failed PIN attempts lock the target membership for 5 minutes (`PIN_LOCKED`).
+- `GET /v1/branches/:branchId/pin-users` — staff with a PIN and access to that branch (`orders.read`).
 - Request context resolved by middleware: `{ userId?, membershipId?, orgId, branchIds, deviceId?, permissions }`.
   Handlers never read org from body/params. Branch ids in the path are checked against `branchIds`.
 - Each request runs DB work in a transaction that first sets `SET LOCAL app.org_id`.

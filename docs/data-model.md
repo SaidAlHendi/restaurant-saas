@@ -36,7 +36,7 @@ Translatable text = `jsonb` like `{"ar":"…","en":"…"}`. Tax in basis points 
 - **order_items**: id, org_id, order_id, product_id, product_name_snapshot jsonb, unit_price_minor, quantity int, line_total_minor, notes, status (`pending`|`preparing`|`ready`|`voided`), is_addition bool, voided_at, void_reason, voided_by, created_at — INDEX(order_id)
 - **order_item_modifiers**: id, org_id, order_item_id, modifier_id, name_snapshot jsonb, price_delta_minor
 - **payments**: id, org_id, order_id, method (`cash`|`card`|`other`), amount_minor, tendered_minor, change_minor, status (`captured`|`refunded`), created_by, created_at
-- **order_events** (append-only): id, org_id, order_id, type, from_status, to_status, payload jsonb, actor_membership_id, approved_by_membership_id (nullable FK → memberships), created_at — `device_id` deferred; `app_user` has INSERT+SELECT only (no UPDATE/DELETE); INDEX(order_id, created_at)
+- **order_events** (append-only): id, org_id, order_id, type, from_status, to_status, payload jsonb, actor_membership_id, approved_by_membership_id (nullable FK → memberships — set when cancel/void used manager PIN approval), created_at — `device_id` deferred; `app_user` has INSERT+SELECT only (no UPDATE/DELETE); INDEX(order_id, created_at)
 
 ## Billing
 - **plans**: id, key (`free`|`menu`|`restaurant`|`business`), name, price_minor, currency, interval, is_public

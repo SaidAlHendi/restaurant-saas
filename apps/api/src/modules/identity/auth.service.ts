@@ -1,4 +1,4 @@
-import { Inject, Injectable, type OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, forwardRef, type OnModuleInit } from '@nestjs/common';
 import * as argon2 from 'argon2';
 import type { Request, Response } from 'express';
 
@@ -18,7 +18,15 @@ import { withUser } from '../../core/db/with-user';
 import { newUuidV7 } from '../../lib/uuid';
 import { isPgUniqueViolation } from '../../lib/pg-errors';
 import { slugifyBase, slugWithSuffix } from '../../lib/slug';
-import type { AcceptInviteBody, LoginBody, SignupBody, SwitchOrgBody, SystemRoleKey } from '@app/shared';
+import type {
+  AcceptInviteBody,
+  LoginBody,
+  PinLoginBody,
+  SignupBody,
+  SwitchOrgBody,
+  SystemRoleKey,
+} from '@app/shared';
+import type { RequestContext } from '../../core/context/request-context';
 import { hashInviteToken } from '../../lib/invite-token';
 
 import {
@@ -26,6 +34,7 @@ import {
   SYSTEM_OWNER_ROLE_ID,
 } from './constants';
 import { IdentityRepository } from './identity.repository';
+import { IdentityService } from './identity.service';
 import { TenancyRepository } from '../tenancy/tenancy.repository';
 
 type Tx = Parameters<Parameters<DrizzleDb['transaction']>[0]>[0];
@@ -37,6 +46,8 @@ export class AuthService implements OnModuleInit {
   constructor(
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly identityRepo: IdentityRepository,
+    @Inject(forwardRef(() => IdentityService))
+    private readonly identity: IdentityService,
     private readonly tenancyRepo: TenancyRepository,
     private readonly jwt: JwtAccessService,
     private readonly refreshTokens: RefreshTokenService,
@@ -520,6 +531,60 @@ export class AuthService implements OnModuleInit {
           email: refreshedUser.email,
           name: refreshedUser.name,
           locale: refreshedUser.locale as 'ar' | 'en',
+        },
+        org: { id: org.id, name: org.name, slug: org.slug },
+      };
+    });
+  }
+
+  async pinLogin(ctx: RequestContext, body: PinLoginBody, req: Request, res: Response) {
+    if (ctx.currentBranchId === undefined) {
+      throw new ValidationError('X-Branch-Id header is required');
+    }
+    const branchId = ctx.currentBranchId;
+    const orgId = ctx.orgId;
+
+    const sessionId = newUuidV7();
+    const familyId = newUuidV7();
+
+    return this.db.transaction(async (tx) => {
+      await tx.execute(setOrgLocal(orgId));
+      await this.identity.verifyMembershipPin(tx, orgId, branchId, body.membershipId, body.pin);
+
+      const target = await this.tenancyRepo.findMembershipWithUserRole(tx, body.membershipId);
+      if (!target) {
+        throw new NotFoundError();
+      }
+      const user = await this.identityRepo.findUserById(tx, target.user.id);
+      if (!user) {
+        throw new NotFoundError();
+      }
+
+      await this.identityRepo.revokeSession(tx, ctx.sessionId);
+
+      const { accessToken } = await this.createSession(tx, {
+        userId: user.id,
+        orgId,
+        sessionId,
+        familyId,
+        req,
+        res,
+      });
+
+      await this.identityRepo.updateUserLastLogin(tx, user.id);
+
+      const org = await this.tenancyRepo.findOrganizationById(tx, orgId);
+      if (!org) {
+        throw new NotFoundError();
+      }
+
+      return {
+        accessToken,
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          locale: user.locale as 'ar' | 'en',
         },
         org: { id: org.id, name: org.name, slug: org.slug },
       };

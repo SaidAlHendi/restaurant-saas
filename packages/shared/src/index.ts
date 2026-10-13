@@ -63,6 +63,15 @@ export type {
   PutStaffPinBody,
 } from './staff/staff.js';
 
+export { pinUserListItemSchema, pinUserListResponseSchema } from './staff/pin-users.js';
+export type { PinUserListItem, PinUserListResponse } from './staff/pin-users.js';
+
+export { pinLoginBodySchema } from './auth/pin-login.js';
+export type { PinLoginBody } from './auth/pin-login.js';
+
+export { orderApprovalSchema } from './orders/approval.js';
+export type { OrderApproval } from './orders/approval.js';
+
 export { isValidIanaTimezone } from './branches/timezone.js';
 
 export {

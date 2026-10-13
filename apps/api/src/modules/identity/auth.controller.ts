@@ -4,7 +4,13 @@ import type { Request, Response } from 'express';
 
 import { Public } from '../../core/auth/public.decorator';
 import { AuthService } from './auth.service';
-import { AcceptInviteBodyDto, LoginBodyDto, SignupBodyDto, SwitchOrgBodyDto } from './dto/auth.dto';
+import {
+  AcceptInviteBodyDto,
+  LoginBodyDto,
+  PinLoginBodyDto,
+  SignupBodyDto,
+  SwitchOrgBodyDto,
+} from './dto/auth.dto';
 import { Authenticated } from '../../core/auth/authenticated.decorator';
 import { Ctx } from '../../core/context/context.decorator';
 import type { RequestContext } from '../../core/context/request-context';
@@ -55,6 +61,18 @@ export class AuthController {
   @Post('logout')
   logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     return this.auth.logout(req, res);
+  }
+
+  @Authenticated()
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @Post('pin-login')
+  pinLogin(
+    @Ctx() ctx: RequestContext,
+    @Body() body: PinLoginBodyDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.auth.pinLogin(ctx, body, req, res);
   }
 
   @Authenticated()

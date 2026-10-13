@@ -4,9 +4,11 @@ import {
   loginBodySchema,
   signupBodySchema,
   switchOrgBodySchema,
+  pinLoginBodySchema,
 } from '@app/shared';
 
 export class SignupBodyDto extends createZodDto(signupBodySchema) {}
 export class LoginBodyDto extends createZodDto(loginBodySchema) {}
 export class SwitchOrgBodyDto extends createZodDto(switchOrgBodySchema) {}
 export class AcceptInviteBodyDto extends createZodDto(acceptInviteBodySchema) {}
+export class PinLoginBodyDto extends createZodDto(pinLoginBodySchema) {}

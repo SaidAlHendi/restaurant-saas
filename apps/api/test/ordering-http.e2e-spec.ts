@@ -111,7 +111,7 @@ describe('Ordering HTTP (e2e)', () => {
     expect((moved.body as { status: string }).status).toBe('preparing');
   });
 
-  it('403 cashier cannot cancel a preparing order', async () => {
+  it('403 cashier cancel preparing order requires manager approval', async () => {
     const owner = await asDemoOwner(apiAgent(app));
     const clientOrderId = newUuidV7();
     const created = await postOrder(
@@ -138,6 +138,7 @@ describe('Ordering HTTP (e2e)', () => {
       reason: 'No longer needed',
     });
     expect(cancelled.status).toBe(403);
+    expect((cancelled.body as { error: { code: string } }).error.code).toBe('MANAGER_APPROVAL_REQUIRED');
   });
 
   it('404 for other org order and table', async () => {
