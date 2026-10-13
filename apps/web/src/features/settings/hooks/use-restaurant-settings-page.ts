@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { ORG_LOCALE_CODES, type OrgLocaleCode } from '@app/shared';
 import { toast } from '@app/ui';
 
-import { showMenuApiError } from '../../menu/show-menu-api-error.js';
+import { showApiError } from '../../../lib/show-api-error.js';
+import { useSettingsPageAccess } from './use-settings-page-access.js';
 import { validateOrgLocalesForm } from '../org-locales-form.utils.js';
 import {
   useDeleteOrgLogoMutation,
@@ -17,7 +18,8 @@ const ALLOWED_LOGO_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
 export function useRestaurantSettingsPage() {
   const { t } = useTranslation();
-  const { data, isLoading, isError } = useGetOrgSettingsQuery(undefined);
+  const { allowed, redirectTo } = useSettingsPageAccess('org.manage');
+  const { data, isLoading, isError } = useGetOrgSettingsQuery(undefined, { skip: !allowed });
   const [patchSettings, patchState] = usePatchOrgSettingsMutation();
   const [uploadLogo, uploadState] = useUploadOrgLogoMutation();
   const [deleteLogo, deleteState] = useDeleteOrgLogoMutation();
@@ -90,7 +92,7 @@ export function useRestaurantSettingsPage() {
       defaultLocale: validation.patch.defaultLocale,
     });
     if ('error' in result) {
-      showMenuApiError(result.error, t);
+      showApiError(result.error, t);
       return;
     }
     toast.success(t('settings.restaurant.saved'));
@@ -104,7 +106,7 @@ export function useRestaurantSettingsPage() {
       }
       void uploadLogo(file).then((result) => {
         if ('error' in result) {
-          showMenuApiError(result.error, t);
+          showApiError(result.error, t);
         }
       });
     },
@@ -114,7 +116,7 @@ export function useRestaurantSettingsPage() {
   const onLogoRemove = useCallback(() => {
     void deleteLogo(undefined).then((result) => {
       if ('error' in result) {
-        showMenuApiError(result.error, t);
+        showApiError(result.error, t);
       }
     });
   }, [deleteLogo, t]);
@@ -126,7 +128,8 @@ export function useRestaurantSettingsPage() {
   }));
 
   return {
-    isLoading,
+    redirectTo,
+    isLoading: allowed ? isLoading : false,
     isError,
     name,
     onNameChange: setName,

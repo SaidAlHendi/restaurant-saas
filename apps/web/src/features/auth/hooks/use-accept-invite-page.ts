@@ -1,11 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
 
 import { useAppDispatch } from '../../../app/hooks.js';
+import { acceptInviteErrorMessage, isInviteExpiredError } from '../auth-invite-errors.utils.js';
 import { authApi, useAcceptInviteMutation, usePreviewInviteQuery } from '../auth.api.js';
 import { landingPathForPermissions } from '../../session/landing-path.js';
 import { hydrateFromMe, setAccessToken } from '../../session/session.slice.js';
@@ -24,6 +25,7 @@ export function useAcceptInvitePage() {
   const dispatch = useAppDispatch();
   const preview = usePreviewInviteQuery(token, { skip: token.length === 0 });
   const [acceptInvite, acceptState] = useAcceptInviteMutation();
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const form = useForm<AcceptInviteFormValues, unknown, AcceptInviteFormValues>({
     resolver: zodResolver(acceptInviteFormSchema),
@@ -38,20 +40,30 @@ export function useAcceptInvitePage() {
     return t(`settings.staff.roles.${key}`);
   }, [preview.data?.roleKey, t]);
 
+  const previewErrorMessage = preview.isError
+    ? isInviteExpiredError(preview.error)
+      ? t('auth.invite.expired')
+      : t('auth.invite.error')
+    : null;
+
   const onSubmit = form.handleSubmit(async (values) => {
-    const result = await acceptInvite({
-      token,
-      name: values.name,
-      password: values.password,
-    }).unwrap();
-    dispatch(setAccessToken(result.accessToken));
-    const me = await dispatch(authApi.endpoints.getMe.initiate(undefined)).unwrap();
-    dispatch(hydrateFromMe(me));
-    void navigate(landingPathForPermissions(me.permissions), { replace: true });
+    setSubmitError(null);
+    try {
+      const result = await acceptInvite({
+        token,
+        name: values.name,
+        password: values.password,
+      }).unwrap();
+      dispatch(setAccessToken(result.accessToken));
+      const me = await dispatch(authApi.endpoints.getMe.initiate(undefined)).unwrap();
+      dispatch(hydrateFromMe(me));
+      void navigate(landingPathForPermissions(me.permissions), { replace: true });
+    } catch (err: unknown) {
+      setSubmitError(acceptInviteErrorMessage(err, t));
+    }
   });
 
-  const errorMessage =
-    preview.isError || acceptState.isError ? t('auth.invite.error') : null;
+  const errorMessage = submitError ?? previewErrorMessage;
 
   return {
     token,

@@ -4,6 +4,8 @@ import { renderReceiptHtml, type ReceiptPrintLabels } from '../../lib/print/rece
 
 export function branchReceiptPreviewHtml(input: {
   branchName: string;
+  orgName: string;
+  orgLogoUrl: string | null;
   currency: string;
   taxRateBp: number;
   taxInclusive: boolean;
@@ -29,7 +31,7 @@ export function branchReceiptPreviewHtml(input: {
       payBeforeSend: false,
       acceptsCard: true,
     },
-    org: { name: 'Preview', logoUrl: null },
+    org: { name: input.orgName, logoUrl: input.orgLogoUrl },
     categories: [],
   };
 

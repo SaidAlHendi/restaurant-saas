@@ -1,7 +1,12 @@
 {
   "common": {
     "loading": "جاري التحميل",
-    "cancel": "إلغاء"
+    "cancel": "إلغاء",
+    "errors": {
+      "generic": "حدث خطأ. حاول مرة أخرى.",
+      "validation": "تحقق من الحقول وحاول مرة أخرى.",
+      "notFound": "غير موجود."
+    }
   },
   "app": {
     "title": "مطاعم SaaS",
@@ -50,7 +55,8 @@
       "role": "الدور",
       "submit": "قبول وتسجيل الدخول",
       "expired": "هذه الدعوة غير صالحة أو منتهية.",
-      "error": "تعذر قبول الدعوة. تحقق من كلمة المرور وحاول مرة أخرى."
+      "wrongPassword": "كلمة مرور خاطئة. استخدم كلمة مرور حسابك الحالي.",
+      "error": "تعذر قبول الدعوة. حاول مرة أخرى."
     }
   },
   "dashboard": {
@@ -293,6 +299,48 @@
         "manager": "مدير",
         "cashier": "كاشير",
         "kitchen": "مطبخ"
+      },
+      "roleDescriptions": {
+        "owner": "صلاحيات كاملة للإعدادات والفوترة وجميع الفروع.",
+        "manager": "إدارة الفريق والقائمة والتقارير للفروع المعيّنة.",
+        "cashier": "تسجيل الطلبات والمدفوعات على الكاشير.",
+        "kitchen": "عرض وتحديث الطلبات على شاشة المطبخ."
+      },
+      "addStaffInvite": "دعوة بالبريد",
+      "addStaffPinOnly": "حساب PIN فقط",
+      "edit": "تعديل",
+      "setPin": "تعيين PIN",
+      "removePin": "إزالة PIN",
+      "pinOnlyDialogTitle": "إضافة موظف PIN فقط",
+      "editDialogTitle": "تعديل الموظف",
+      "pinDialogTitle": "تعيين PIN",
+      "removePinDialogTitle": "إزالة PIN؟",
+      "disableDialogTitle": "تعطيل الموظف؟",
+      "disableDialogDescription": "سيفقد الوصول فوراً:",
+      "revokeDialogTitle": "إلغاء الدعوة؟",
+      "revokeDialogDescription": "رابط الدعوة لن يعمل بعد الآن لـ:",
+      "inviteLinkDialogTitle": "رابط الدعوة",
+      "inviteLinkValidFor": "شارك هذا الرابط. صالح لمدة 7 أيام.",
+      "inviteLinkCopy": "نسخ الرابط",
+      "inviteCopyFailed": "تعذر النسخ تلقائياً. حدّد الرابط وانسخه يدوياً.",
+      "inviteEmailInvalid": "أدخل بريداً إلكترونياً صالحاً.",
+      "branchesRequired": "اختر فرعاً واحداً على الأقل أو كل الفروع.",
+      "pinOnlyName": "الاسم المعروض",
+      "pinOnlySubmit": "إنشاء الحساب",
+      "pinLabel": "PIN (4–6 أرقام)",
+      "pinConfirmLabel": "تأكيد PIN",
+      "allBranches": "كل الفروع",
+      "branches": "الفروع",
+      "saveEdit": "حفظ",
+      "confirm": "تأكيد",
+      "pinOnlyCreated": "تم إنشاء موظف PIN فقط.",
+      "pinSaved": "تم تحديث PIN.",
+      "pinRemoved": "تمت إزالة PIN.",
+      "pinError": {
+        "too_short": "PIN يجب أن يكون 4 أرقام على الأقل.",
+        "too_long": "PIN يجب ألا يزيد عن 6 أرقام.",
+        "not_digits": "PIN أرقام فقط.",
+        "mismatch": "PIN غير متطابق."
       }
     }
   },

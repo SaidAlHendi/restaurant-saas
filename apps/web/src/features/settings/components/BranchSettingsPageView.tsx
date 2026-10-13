@@ -167,6 +167,7 @@ export function BranchSettingsPageView(props: BranchSettingsPageViewModel) {
         <iframe
           title={labels.receiptPreview}
           className="bg-background h-64 w-full rounded-md border"
+          sandbox=""
           srcDoc={receiptPreviewHtml}
         />
       </div>

@@ -1,7 +1,12 @@
 {
   "common": {
     "loading": "Loading",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "errors": {
+      "generic": "Something went wrong. Please try again.",
+      "validation": "Please check the form and try again.",
+      "notFound": "Not found."
+    }
   },
   "app": {
     "title": "Restaurant SaaS",
@@ -50,7 +55,8 @@
       "role": "Role",
       "submit": "Accept and sign in",
       "expired": "This invitation is invalid or has expired.",
-      "error": "Could not accept the invitation. Check your password and try again."
+      "wrongPassword": "Wrong password. Use your existing account password.",
+      "error": "Could not accept the invitation. Please try again."
     }
   },
   "dashboard": {
@@ -293,6 +299,48 @@
         "manager": "Manager",
         "cashier": "Cashier",
         "kitchen": "Kitchen"
+      },
+      "roleDescriptions": {
+        "owner": "Full access to settings, billing and all branches.",
+        "manager": "Manage staff, menu and reports for assigned branches.",
+        "cashier": "Take orders and payments on the cashier.",
+        "kitchen": "View and update orders on the kitchen display."
+      },
+      "addStaffInvite": "Invite by email",
+      "addStaffPinOnly": "PIN-only account",
+      "edit": "Edit",
+      "setPin": "Set PIN",
+      "removePin": "Remove PIN",
+      "pinOnlyDialogTitle": "Add PIN-only staff",
+      "editDialogTitle": "Edit staff member",
+      "pinDialogTitle": "Set PIN",
+      "removePinDialogTitle": "Remove PIN?",
+      "disableDialogTitle": "Disable staff member?",
+      "disableDialogDescription": "They will lose access immediately:",
+      "revokeDialogTitle": "Revoke invitation?",
+      "revokeDialogDescription": "The invite link will stop working for:",
+      "inviteLinkDialogTitle": "Invitation link",
+      "inviteLinkValidFor": "Share this link. It is valid for 7 days.",
+      "inviteLinkCopy": "Copy link",
+      "inviteCopyFailed": "Could not copy automatically. Select the link and copy it manually.",
+      "inviteEmailInvalid": "Enter a valid email address.",
+      "branchesRequired": "Select at least one branch or choose all branches.",
+      "pinOnlyName": "Display name",
+      "pinOnlySubmit": "Create account",
+      "pinLabel": "PIN (4–6 digits)",
+      "pinConfirmLabel": "Confirm PIN",
+      "allBranches": "All branches",
+      "branches": "Branches",
+      "saveEdit": "Save",
+      "confirm": "Confirm",
+      "pinOnlyCreated": "PIN-only staff member created.",
+      "pinSaved": "PIN updated.",
+      "pinRemoved": "PIN removed.",
+      "pinError": {
+        "too_short": "PIN must be at least 4 digits.",
+        "too_long": "PIN must be at most 6 digits.",
+        "not_digits": "PIN must contain digits only.",
+        "mismatch": "PINs do not match."
       }
     }
   },

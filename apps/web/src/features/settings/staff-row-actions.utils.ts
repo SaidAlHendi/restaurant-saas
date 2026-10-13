@@ -16,7 +16,7 @@ export type StaffRowActions = {
 
 export type StaffRowActionsInput = {
   actorMembershipId: string;
-  actorRoleKey: SystemRoleKey;
+  actorRoleKey: SystemRoleKey | null;
   hasStaffManage: boolean;
   activeOwnerCount: number;
   target: Pick<
@@ -29,7 +29,7 @@ function canManage(
   input: StaffRowActionsInput,
   change: Parameters<typeof canManageMember>[2],
 ): boolean {
-  if (!input.hasStaffManage) {
+  if (!input.hasStaffManage || input.actorRoleKey === null) {
     return false;
   }
   const target = {
@@ -46,6 +46,18 @@ function canManage(
 }
 
 export function staffRowActions(input: StaffRowActionsInput): StaffRowActions {
+  if (!input.actorMembershipId || input.actorRoleKey === null) {
+    return {
+      canEditMembership: false,
+      canDisable: false,
+      canEnable: false,
+      canRegenerateInvite: false,
+      canRevokeInvite: false,
+      canSetPin: false,
+      canRemovePin: false,
+    };
+  }
+
   const { target, hasStaffManage } = input;
   const canEditMembership =
     hasStaffManage &&

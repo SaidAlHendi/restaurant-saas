@@ -8,6 +8,7 @@ function minimalBranchVm(
   overrides: Partial<BranchSettingsPageViewModel> = {},
 ): BranchSettingsPageViewModel {
   return {
+    redirectTo: null,
     isLoading: false,
     isError: false,
     branchName: 'Main',

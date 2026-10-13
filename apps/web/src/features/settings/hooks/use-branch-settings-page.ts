@@ -6,18 +6,20 @@ import { toast } from '@app/ui';
 import { useAppSelector } from '../../../app/hooks.js';
 import { formatMoney, intlLocaleForUi } from '../../../lib/money.js';
 import { useListBranchesQuery, usePatchBranchMutation } from '../../branches/branches.api.js';
-import { showMenuApiError } from '../../menu/show-menu-api-error.js';
+import { showApiError } from '../../../lib/show-api-error.js';
 import { selectCurrentBranchId, selectSessionOrg } from '../../session/session.selectors.js';
+import { useSettingsPageAccess } from './use-settings-page-access.js';
 import { branchReceiptPreviewHtml } from '../branch-receipt-preview.utils.js';
 import { filterTimezoneOptions } from '../branch-timezone.utils.js';
 import { parseTaxPercentInput, taxBpToPercentInput } from '../tax-rate.utils.js';
 
 export function useBranchSettingsPage() {
   const { t, i18n } = useTranslation();
+  const { allowed, redirectTo } = useSettingsPageAccess('branches.manage');
   const branchId = useAppSelector(selectCurrentBranchId);
   const org = useAppSelector(selectSessionOrg);
   const uiLocale = intlLocaleForUi(i18n.language);
-  const { data, isLoading, isError } = useListBranchesQuery(undefined);
+  const { data, isLoading, isError } = useListBranchesQuery(undefined, { skip: !allowed });
   const [patchBranch, patchState] = usePatchBranchMutation();
 
   const branch = useMemo(
@@ -96,6 +98,8 @@ export function useBranchSettingsPage() {
     const taxRateBp = parsedTax.ok ? parsedTax.bp : branch.taxRateBp;
     return branchReceiptPreviewHtml({
       branchName: branch.name,
+      orgName: org?.name ?? branch.name,
+      orgLogoUrl: org?.logoUrl ?? null,
       currency: branch.currency,
       taxRateBp,
       taxInclusive,
@@ -130,6 +134,8 @@ export function useBranchSettingsPage() {
     taxPercent,
     timezone,
     uiLocale,
+    org?.logoUrl,
+    org?.name,
   ]);
 
   const onSave = useCallback(async () => {
@@ -162,7 +168,7 @@ export function useBranchSettingsPage() {
       },
     });
     if ('error' in result) {
-      showMenuApiError(result.error, t);
+      showApiError(result.error, t);
       return;
     }
     toast.success(t('settings.branch.saved'));
@@ -182,7 +188,8 @@ export function useBranchSettingsPage() {
   ]);
 
   return {
-    isLoading,
+    redirectTo,
+    isLoading: allowed ? isLoading : false,
     isError,
     branchName: branch?.name ?? '',
     payBeforeSend,
