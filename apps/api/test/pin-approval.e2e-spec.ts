@@ -109,6 +109,28 @@ describe('PIN users, login, and cancel approval (e2e)', () => {
     expect(cancelled?.actorName).not.toBeNull();
   });
 
+  it('cancel without reason does not verify PIN or lock the approver', async () => {
+    const fresh = await setupFreshOrgWithPins(app, jwt);
+    const cashier = branchAgent(app, fresh.cashierToken, fresh.branchId);
+    const { orderId, version } = await placePlacedOrder(cashier, fresh.branchId, fresh.productId);
+
+    for (let i = 0; i < 5; i += 1) {
+      const res = await cashier.post(`/v1/branches/${fresh.branchId}/orders/${orderId}/status`).send({
+        to: 'cancelled',
+        expectedVersion: version,
+        approval: { membershipId: fresh.managerMembershipId, pin: fresh.managerPin },
+      });
+      expect(res.status).toBe(400);
+      expect((res.body as ApiError).error.code).toBe('VALIDATION_ERROR');
+    }
+
+    const pinLoginOk = await cashier.post('/v1/auth/pin-login').send({
+      membershipId: fresh.managerMembershipId,
+      pin: fresh.managerPin,
+    });
+    expect([200, 201]).toContain(pinLoginOk.status);
+  });
+
   it('wrong approval PIN returns 401 and leaves order unchanged', async () => {
     const fresh = await setupFreshOrgWithPins(app, jwt);
     const cashier = branchAgent(app, fresh.cashierToken, fresh.branchId);

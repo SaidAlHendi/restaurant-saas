@@ -89,6 +89,57 @@ export class PinVerificationService implements OnModuleInit {
     await this.verifyPinCore(tx, orgId, branchId, membershipId, pin, requiredPermission);
   }
 
+  /** Verifies approver PIN outside a long-running order transaction (returns approver membership id). */
+  async verifyApproverPinStandalone(
+    orgId: string,
+    branchId: string,
+    membershipId: string,
+    pin: string,
+    requiredPermission: PermissionKey,
+  ): Promise<string> {
+    const pinHash = await this.db.transaction(async (tx) => {
+      await tx.execute(setOrgLocal(orgId));
+      const row = await this.tenancyRepo.findMembershipWithUserRole(tx, membershipId);
+      if (!row || row.membership.orgId !== orgId) {
+        throw new NotFoundError();
+      }
+      if (row.membership.status !== 'active') {
+        throw new NotFoundError();
+      }
+      const permissions = await this.tenancyRepo.loadRolePermissions(tx, row.role.id);
+      if (!permissions.includes(requiredPermission)) {
+        throw new ForbiddenError('Approver lacks permission');
+      }
+      const hasBranch = await this.tenancyRepo.membershipHasBranchAccess(tx, membershipId, branchId);
+      if (!hasBranch) {
+        throw new ForbiddenError('Approver lacks branch access');
+      }
+      return row.membership.pinHash;
+    });
+
+    const reserved = await this.reservePinAttempt(orgId, membershipId);
+    const valid = await this.verifyPinValue(pin, pinHash);
+
+    if (valid) {
+      await this.db.transaction(async (tx) => {
+        await tx.execute(setOrgLocal(orgId));
+        await this.tenancyRepo.updateMembership(tx, membershipId, {
+          pinFailedAttempts: 0,
+          pinLockedUntil: null,
+        });
+      });
+      return membershipId;
+    }
+
+    if (reserved.pinFailedAttempts >= PIN_LOCK_FAILURE_THRESHOLD) {
+      throw new LockedError('PIN_LOCKED', 'PIN is temporarily locked', {
+        lockedUntil: lockedUntilIso(reserved.pinLockedUntil, this.clock.now()),
+      });
+    }
+
+    throw new UnauthorizedError('PIN_INVALID', 'Invalid PIN');
+  }
+
   private async verifyPinCore(
     tx: DrizzleTx,
     orgId: string,

@@ -8,7 +8,10 @@
       "notFound": "غير موجود.",
       "lastOwner": "لا يمكن إزالة أو تغيير آخر مالك.",
       "forbidden": "ليس لديك صلاحية لإدارة هذا العضو.",
-      "staffAlreadyMember": "هذا الشخص موجود بالفعل في فريقك."
+      "staffAlreadyMember": "هذا الشخص موجود بالفعل في فريقك.",
+      "membershipNotActiveOrDisabled": "لا يمكن تحديث هذا العضو بهذه الطريقة.",
+      "fileTooLarge": "الملف كبير جداً.",
+      "unsupportedImageType": "اختر صورة JPEG أو PNG أو WebP."
     }
   },
   "app": {
@@ -50,6 +53,9 @@
     },
     "errors": {
       "generic": "حدث خطأ. حاول مرة أخرى."
+    },
+    "validation": {
+      "nameRequired": "أدخل اسمك."
     },
     "invite": {
       "title": "قبول الدعوة",

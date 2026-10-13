@@ -4,6 +4,7 @@ import * as argon2 from 'argon2';
 import {
   canInviteRole,
   canManageMember,
+  pinOnlyRoleKeySchema,
   type CreatePinOnlyStaffBody,
   type CreateStaffInviteBody,
   type PatchStaffMembershipBody,
@@ -77,7 +78,7 @@ export class StaffService {
     const { raw, hash } = generateInviteToken();
     const expiresAt = inviteExpiresAt(this.clock.now());
 
-    return withOrg(this.db, ctx.orgId, async (tx) => {
+    const created = await withOrg(this.db, ctx.orgId, async (tx) => {
       await this.assertBranchScope(ctx, body.allBranches, body.branchIds, tx);
       const actorRole = await this.actorRoleKey(tx, ctx);
       if (!canInviteRole(actorRole, body.roleKey)) {
@@ -132,22 +133,30 @@ export class StaffService {
         await this.tenancyRepo.replaceMembershipBranches(tx, membershipId, ctx.orgId, body.branchIds);
       }
 
+      const orgName = (await this.tenancyRepo.findOrganizationById(tx, ctx.orgId))?.name ?? '';
       const inviteUrl = `${this.env.WEB_APP_URL}/invite/${raw}`;
-      this.mail.sendInvite({ to: email, inviteUrl, orgName: (await this.tenancyRepo.findOrganizationById(tx, ctx.orgId))?.name ?? '' });
 
       return {
         membershipId,
         inviteUrl,
         inviteExpiresAt: expiresAt.toISOString(),
+        mail: { to: email, inviteUrl, orgName },
       };
     });
+
+    this.mail.sendInvite(created.mail);
+    return {
+      membershipId: created.membershipId,
+      inviteUrl: created.inviteUrl,
+      inviteExpiresAt: created.inviteExpiresAt,
+    };
   }
 
   async regenerateInvite(ctx: RequestContext, membershipId: string) {
     const { raw, hash } = generateInviteToken();
     const expiresAt = inviteExpiresAt(this.clock.now());
 
-    return withOrg(this.db, ctx.orgId, async (tx) => {
+    const regenerated = await withOrg(this.db, ctx.orgId, async (tx) => {
       const row = await this.tenancyRepo.findMembershipWithUserRole(tx, membershipId);
       if (!row || row.membership.orgId !== ctx.orgId) {
         throw new NotFoundError();
@@ -161,6 +170,7 @@ export class StaffService {
         row.membership.id,
         row.role.key as SystemRoleKey,
         row.membership.status,
+        row.membership.allBranches,
         {},
       );
 
@@ -170,20 +180,28 @@ export class StaffService {
       });
 
       const inviteUrl = `${this.env.WEB_APP_URL}/invite/${raw}`;
-      if (row.user.email) {
-        this.mail.sendInvite({
-          to: row.user.email,
-          inviteUrl,
-          orgName: (await this.tenancyRepo.findOrganizationById(tx, ctx.orgId))?.name ?? '',
-        });
-      }
+      const orgName = (await this.tenancyRepo.findOrganizationById(tx, ctx.orgId))?.name ?? '';
+      const mail =
+        row.user.email !== null
+          ? { to: row.user.email, inviteUrl, orgName }
+          : null;
 
       return {
         membershipId,
         inviteUrl,
         inviteExpiresAt: expiresAt.toISOString(),
+        mail,
       };
     });
+
+    if (regenerated.mail !== null) {
+      this.mail.sendInvite(regenerated.mail);
+    }
+    return {
+      membershipId: regenerated.membershipId,
+      inviteUrl: regenerated.inviteUrl,
+      inviteExpiresAt: regenerated.inviteExpiresAt,
+    };
   }
 
   async revokeInvite(ctx: RequestContext, membershipId: string) {
@@ -201,6 +219,7 @@ export class StaffService {
         row.membership.id,
         row.role.key as SystemRoleKey,
         row.membership.status,
+        row.membership.allBranches,
         {},
       );
 
@@ -275,24 +294,33 @@ export class StaffService {
         change.allBranches !== undefined ||
         change.branchIds !== undefined;
 
-      if (!isSelf) {
+      if (!isSelf || hasManagementChange) {
         await this.assertCanManageTx(
           tx,
           ctx,
           row.membership.id,
           row.role.key as SystemRoleKey,
           row.membership.status,
+          row.membership.allBranches,
           change,
         );
-      } else if (hasManagementChange) {
-        await this.assertCanManageTx(
-          tx,
-          ctx,
-          row.membership.id,
-          row.role.key as SystemRoleKey,
-          row.membership.status,
-          change,
-        );
+      }
+
+      if (body.status !== undefined) {
+        if (row.membership.status === 'invited') {
+          throw new ValidationError(
+            'Only active or disabled members can change status',
+            {},
+            'MEMBERSHIP_NOT_ACTIVE_OR_DISABLED',
+          );
+        }
+      }
+
+      if (body.roleKey !== undefined && row.user.email === null) {
+        const roleCheck = pinOnlyRoleKeySchema.safeParse(body.roleKey);
+        if (!roleCheck.success) {
+          throw new ValidationError('PIN-only staff cannot be assigned this role', {}, 'VALIDATION_ERROR');
+        }
       }
 
       if (body.allBranches !== undefined || body.branchIds !== undefined) {
@@ -363,6 +391,7 @@ export class StaffService {
           row.membership.id,
           row.role.key as SystemRoleKey,
           row.membership.status,
+          row.membership.allBranches,
           {},
         );
       }
@@ -393,6 +422,7 @@ export class StaffService {
           row.membership.id,
           row.role.key as SystemRoleKey,
           row.membership.status,
+          row.membership.allBranches,
           {},
         );
       }
@@ -411,8 +441,11 @@ export class StaffService {
     targetMembershipId: string,
     targetRoleKey: SystemRoleKey,
     targetStatus: 'active' | 'invited' | 'disabled',
+    targetAllBranches: boolean,
     change: StaffRulesChange,
   ): Promise<void> {
+    await this.assertActorCanManageMemberBranches(tx, ctx, targetMembershipId, targetAllBranches);
+
     const actorRole = await this.actorRoleKey(tx, ctx);
     let activeOwnerCount: number;
     if (this.changeMayRemoveActiveOwner(targetRoleKey, targetStatus, change)) {
@@ -434,7 +467,28 @@ export class StaffService {
       if (result.reason === 'LAST_OWNER') {
         throw new ConflictError('Cannot remove the last owner', {}, 'LAST_OWNER');
       }
-      throw new ForbiddenError('Cannot manage this member');
+      throw new ForbiddenError('Cannot manage this member', {}, 'FORBIDDEN');
+    }
+  }
+
+  private async assertActorCanManageMemberBranches(
+    tx: DrizzleTx,
+    ctx: RequestContext,
+    targetMembershipId: string,
+    targetAllBranches: boolean,
+  ): Promise<void> {
+    if (ctx.allBranches) {
+      return;
+    }
+    if (targetAllBranches) {
+      throw new ForbiddenError('Cannot manage this member', {}, 'FORBIDDEN');
+    }
+    const targetBranchIds = await this.tenancyRepo.listMembershipBranchIds(tx, targetMembershipId);
+    const allowed = new Set(ctx.branchIds);
+    for (const branchId of targetBranchIds) {
+      if (!allowed.has(branchId)) {
+        throw new ForbiddenError('Cannot manage this member', {}, 'FORBIDDEN');
+      }
     }
   }
 
@@ -465,6 +519,17 @@ export class StaffService {
     branchIds: string[],
     tx: DrizzleTx,
   ): Promise<void> {
+    if (!ctx.allBranches) {
+      if (allBranches) {
+        throw new ForbiddenError('Cannot assign all branches', {}, 'FORBIDDEN');
+      }
+      const allowed = new Set(ctx.branchIds);
+      for (const branchId of branchIds) {
+        if (!allowed.has(branchId)) {
+          throw new ForbiddenError('Branch is outside your scope', {}, 'FORBIDDEN');
+        }
+      }
+    }
     if (allBranches) {
       return;
     }

@@ -8,7 +8,10 @@
       "notFound": "Not found.",
       "lastOwner": "You cannot remove or change the last owner.",
       "forbidden": "You do not have permission to manage this member.",
-      "staffAlreadyMember": "This person is already on your team."
+      "staffAlreadyMember": "This person is already on your team.",
+      "membershipNotActiveOrDisabled": "This member cannot be updated that way.",
+      "fileTooLarge": "The file is too large.",
+      "unsupportedImageType": "Choose a JPEG, PNG, or WebP image."
     }
   },
   "app": {
@@ -50,6 +53,9 @@
     },
     "errors": {
       "generic": "Something went wrong. Please try again."
+    },
+    "validation": {
+      "nameRequired": "Enter your name."
     },
     "invite": {
       "title": "Accept invitation",

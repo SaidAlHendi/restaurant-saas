@@ -338,13 +338,18 @@ export class OrderingService {
     orderId: string,
     body: ChangeOrderStatusBody,
   ) {
-    return withOrg(this.db, ctx.orgId, async (tx) => {
+    if (
+      body.to === 'cancelled' &&
+      (body.reason === undefined || body.reason.trim().length === 0)
+    ) {
+      throw new ValidationError('Cancel reason is required', {}, 'VALIDATION_ERROR');
+    }
+
+    const preflight = await withOrg(this.db, ctx.orgId, async (tx) => {
       const current = await this.repo.findOrderById(tx, branchId, orderId);
       if (!current) {
         throw new NotFoundError();
       }
-
-      const transition = assertTransition(current.status, body.to);
       if (current.version !== body.expectedVersion) {
         const detail = await this.loadOrderDetailInTx(tx, branchId, orderId);
         throw new ConflictError(
@@ -353,23 +358,36 @@ export class OrderingService {
           'ORDER_VERSION_CONFLICT',
         );
       }
+      return { status: current.status };
+    });
 
-      let approvedByMembershipId: string | null = null;
-      if (!ctx.permissions.includes(transition.permission)) {
-        if (transition.permission === 'orders.cancel') {
-          approvedByMembershipId = await this.resolveCancelApproval(
-            ctx,
-            tx,
-            branchId,
-            body.approval,
-          );
-        } else {
-          throw new ForbiddenError('Insufficient permission');
-        }
+    const transition = assertTransition(preflight.status, body.to);
+    let approvedByMembershipId: string | null = null;
+    if (!ctx.permissions.includes(transition.permission)) {
+      if (transition.permission === 'orders.cancel') {
+        approvedByMembershipId = await this.resolveCancelApprovalOutside(
+          ctx,
+          branchId,
+          body.approval,
+        );
+      } else {
+        throw new ForbiddenError('Insufficient permission');
+      }
+    }
+
+    return withOrg(this.db, ctx.orgId, async (tx) => {
+      const current = await this.repo.findOrderById(tx, branchId, orderId);
+      if (!current) {
+        throw new NotFoundError();
       }
 
-      if (body.to === 'cancelled' && (!body.reason || body.reason.length === 0)) {
-        throw new ValidationError('Cancel reason is required');
+      if (current.version !== body.expectedVersion) {
+        const detail = await this.loadOrderDetailInTx(tx, branchId, orderId);
+        throw new ConflictError(
+          'Order version conflict',
+          { order: detail },
+          'ORDER_VERSION_CONFLICT',
+        );
       }
 
       if (body.to === 'completed' && current.paymentStatus !== 'paid') {
@@ -573,6 +591,46 @@ export class OrderingService {
     itemId: string,
     body: VoidOrderItemBody,
   ) {
+    const preflight = await withOrg(this.db, ctx.orgId, async (tx) => {
+      const current = await this.repo.findOrderById(tx, branchId, orderId);
+      if (!current) {
+        throw new NotFoundError();
+      }
+      if (
+        current.status !== 'draft' &&
+        current.status !== 'placed' &&
+        current.status !== 'preparing' &&
+        current.status !== 'ready'
+      ) {
+        throw new BusinessRuleError('ORDER_NOT_EDITABLE', 'Order cannot be edited in this status', {
+          status: current.status,
+        });
+      }
+      if (current.version !== body.expectedVersion) {
+        const detail = await this.loadOrderDetailInTx(tx, branchId, orderId);
+        throw new ConflictError(
+          'Order version conflict',
+          { order: detail },
+          'ORDER_VERSION_CONFLICT',
+        );
+      }
+      return { status: current.status };
+    });
+
+    const permission = voidItemPermission(preflight.status);
+    let approvedByMembershipId: string | null = null;
+    if (!ctx.permissions.includes(permission)) {
+      if (permission === 'orders.cancel') {
+        approvedByMembershipId = await this.resolveCancelApprovalOutside(
+          ctx,
+          branchId,
+          body.approval,
+        );
+      } else {
+        throw new ForbiddenError('Insufficient permission');
+      }
+    }
+
     return withOrg(this.db, ctx.orgId, async (tx) => {
       const current = await this.repo.findOrderById(tx, branchId, orderId);
       if (!current) {
@@ -596,21 +654,6 @@ export class OrderingService {
           { order: detail },
           'ORDER_VERSION_CONFLICT',
         );
-      }
-
-      const permission = voidItemPermission(current.status);
-      let approvedByMembershipId: string | null = null;
-      if (!ctx.permissions.includes(permission)) {
-        if (permission === 'orders.cancel') {
-          approvedByMembershipId = await this.resolveCancelApproval(
-            ctx,
-            tx,
-            branchId,
-            body.approval,
-          );
-        } else {
-          throw new ForbiddenError('Insufficient permission');
-        }
       }
 
       if (await this.repo.hasCapturedPayments(tx, orderId)) {
@@ -1005,9 +1048,8 @@ export class OrderingService {
     });
   }
 
-  private async resolveCancelApproval(
+  private async resolveCancelApprovalOutside(
     ctx: RequestContext,
-    tx: DrizzleTx,
     branchId: string,
     approval: ChangeOrderStatusBody['approval'] | VoidOrderItemBody['approval'],
   ): Promise<string> {
@@ -1018,15 +1060,13 @@ export class OrderingService {
         'MANAGER_APPROVAL_REQUIRED',
       );
     }
-    await this.identity.verifyApproverPin(
-      tx,
+    return this.identity.verifyApproverPinStandalone(
       ctx.orgId,
       branchId,
       approval.membershipId,
       approval.pin,
       'orders.cancel',
     );
-    return approval.membershipId;
   }
 
   private async loadOrderDetail(orgId: string, branchId: string, orderId: string) {

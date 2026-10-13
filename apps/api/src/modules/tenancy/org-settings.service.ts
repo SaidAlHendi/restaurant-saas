@@ -52,7 +52,7 @@ export class OrgSettingsService {
   }
 
   async patchSettings(ctx: RequestContext, body: PatchOrgSettingsBody) {
-    return withOrg(this.db, ctx.orgId, async (tx) => {
+    const result = await withOrg(this.db, ctx.orgId, async (tx) => {
       const org = await this.tenancyRepo.findOrganizationById(tx, ctx.orgId);
       if (!org) {
         throw new NotFoundError();
@@ -74,12 +74,18 @@ export class OrgSettingsService {
         throw new NotFoundError();
       }
 
-      if (body.locales !== undefined || body.defaultLocale !== undefined) {
-        this.purgeMenuCache(ctx.orgId);
-      }
-
       return this.mapOrgSettings(tx, ctx.orgId);
     });
+
+    if (
+      body.name !== undefined ||
+      body.locales !== undefined ||
+      body.defaultLocale !== undefined
+    ) {
+      this.purgeMenuCache(ctx.orgId);
+    }
+
+    return result;
   }
 
   async uploadLogo(ctx: RequestContext, file: Express.Multer.File) {

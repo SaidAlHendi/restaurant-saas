@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   assignableRoleKeys,
+  assignableRoleKeysForPinOnlyMember,
   invitableRoleKeys,
   pinOnlyInvitableRoleKeys,
 } from './staff-role-options.utils.js';
@@ -27,6 +28,12 @@ describe('invitableRoleKeys', () => {
 
   it('manager can invite cashier and kitchen only', () => {
     expect(invitableRoleKeys('manager')).toEqual(['cashier', 'kitchen']);
+  });
+});
+
+describe('assignableRoleKeysForPinOnlyMember', () => {
+  it('excludes owner for PIN-only edit', () => {
+    expect(assignableRoleKeysForPinOnlyMember('owner')).toEqual(['manager', 'cashier', 'kitchen']);
   });
 });
 

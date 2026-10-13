@@ -27,6 +27,15 @@ describe('messageFromApiError', () => {
     expect(messageFromApiError(apiError(409, 'STAFF_ALREADY_MEMBER', 'Already a member'), t)).toBe(
       'common.errors.staffAlreadyMember',
     );
+    expect(
+      messageFromApiError(apiError(400, 'MEMBERSHIP_NOT_ACTIVE_OR_DISABLED', 'Bad status'), t),
+    ).toBe('common.errors.membershipNotActiveOrDisabled');
+    expect(messageFromApiError(apiError(400, 'FILE_TOO_LARGE', 'Huge'), t)).toBe(
+      'common.errors.fileTooLarge',
+    );
+    expect(messageFromApiError(apiError(400, 'UNSUPPORTED_IMAGE_TYPE', 'GIF'), t)).toBe(
+      'common.errors.unsupportedImageType',
+    );
   });
 
   it('ignores server English message and uses generic fallback', () => {

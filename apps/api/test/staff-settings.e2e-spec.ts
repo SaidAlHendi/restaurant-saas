@@ -330,6 +330,12 @@ describe('Staff and settings (e2e)', () => {
       const oldPreview = await publicAgent.get(`/v1/auth/invites/${tokenExisting}`);
       expect(oldPreview.status).toBe(404);
 
+      const oldAccept = await publicAgent.post('/v1/auth/accept-invite').send({
+        token: tokenExisting,
+        password: existingUserOrg.password,
+      });
+      expect(oldAccept.status).toBe(404);
+
       await fresh.ownerAgent.delete(`/v1/staff/${membershipId}/invite`);
       const afterRevoke = await publicAgent.get(
         `/v1/auth/invites/${extractInviteToken((regen.body as { inviteUrl: string }).inviteUrl)}`,
@@ -427,6 +433,70 @@ describe('Staff and settings (e2e)', () => {
       expect(demote.status).toBe(403);
     });
 
+    it('branch-scoped manager cannot escalate branch scope or manage staff outside their branches', async () => {
+      const fresh = await signupFreshOrg(app, jwt);
+      const branchB = await fresh.ownerAgent.post('/v1/branches').send({
+        name: 'Branch B',
+        timezone: 'Asia/Riyadh',
+        currency: 'SAR',
+      });
+      expect(branchB.status).toBe(201);
+      const branchBId = (branchB.body as { id: string }).id;
+
+      const managerEmail = `mgr-sc-${newUuidV7().slice(-8)}@example.com`;
+      const inv = await fresh.ownerAgent.post('/v1/staff/invites').send({
+        email: managerEmail,
+        roleKey: 'manager',
+        allBranches: false,
+        branchIds: [fresh.branchId],
+      });
+      const mToken = extractInviteToken((inv.body as { inviteUrl: string }).inviteUrl);
+      await publicAgent.post('/v1/auth/accept-invite').send({ token: mToken, password: fresh.password });
+      const managerLogin = await publicAgent.post('/v1/auth/login').send({
+        email: managerEmail,
+        password: fresh.password,
+      });
+      const manager = withBearer(apiAgent(app), (managerLogin.body as { accessToken: string }).accessToken);
+
+      expect(
+        (
+          await manager.post('/v1/staff/invites').send({
+            email: `b-${newUuidV7().slice(-8)}@example.com`,
+            roleKey: 'cashier',
+            allBranches: false,
+            branchIds: [branchBId],
+          })
+        ).status,
+      ).toBe(403);
+
+      expect(
+        (
+          await manager.post('/v1/staff/invites').send({
+            email: `all-${newUuidV7().slice(-8)}@example.com`,
+            roleKey: 'cashier',
+            allBranches: true,
+            branchIds: [],
+          })
+        ).status,
+      ).toBe(403);
+
+      const pinOnlyB = await fresh.ownerAgent.post('/v1/staff/pin-only').send({
+        name: 'Cashier B',
+        roleKey: 'cashier',
+        allBranches: false,
+        branchIds: [branchBId],
+        pin: '5555',
+      });
+      expect(pinOnlyB.status).toBe(201);
+      const cashierBId = (
+        (await fresh.ownerAgent.get('/v1/staff')).body as { items: Array<{ name: string; id: string }> }
+      ).items.find((i) => i.name === 'Cashier B')?.id;
+
+      expect(
+        (await manager.patch(`/v1/staff/${cashierBId ?? ''}`).send({ status: 'disabled' })).status,
+      ).toBe(403);
+    });
+
     it('branch-limited manager cannot PATCH self to allBranches', async () => {
       const fresh = await signupFreshOrg(app, jwt);
       const managerEmail = `mgr-br-${newUuidV7().slice(-8)}@example.com`;
@@ -498,6 +568,41 @@ describe('Staff and settings (e2e)', () => {
 
       await fresh.ownerAgent.patch(`/v1/staff/${memberId ?? ''}`).send({ status: 'disabled' });
       expect((await withBearer(apiAgent(app), memberToken).get('/v1/me')).status).toBe(401);
+    });
+
+    it('rejects activating invited membership via PATCH and owner role on PIN-only staff', async () => {
+      const fresh = await signupFreshOrg(app, jwt);
+      const email = `inv-patch-${newUuidV7().slice(-8)}@example.com`;
+      const created = await fresh.ownerAgent.post('/v1/staff/invites').send({
+        email,
+        roleKey: 'cashier',
+        allBranches: true,
+        branchIds: [],
+      });
+      const invitedId = (created.body as { membershipId: string }).membershipId;
+
+      const activate = await fresh.ownerAgent
+        .patch(`/v1/staff/${invitedId}`)
+        .send({ status: 'active' });
+      expect(activate.status).toBe(400);
+      expect((activate.body as ApiError).error.code).toBe('MEMBERSHIP_NOT_ACTIVE_OR_DISABLED');
+
+      await fresh.ownerAgent.post('/v1/staff/pin-only').send({
+        name: 'No Email',
+        roleKey: 'cashier',
+        allBranches: true,
+        branchIds: [],
+        pin: '6666',
+      });
+      const pinOnlyId = (
+        (await fresh.ownerAgent.get('/v1/staff')).body as { items: Array<{ name: string; id: string }> }
+      ).items.find((i) => i.name === 'No Email')?.id;
+
+      const demote = await fresh.ownerAgent
+        .patch(`/v1/staff/${pinOnlyId ?? ''}`)
+        .send({ roleKey: 'owner' });
+      expect(demote.status).toBe(400);
+      expect((demote.body as ApiError).error.code).toBe('VALIDATION_ERROR');
     });
 
     it('validates PIN format; self can set; cashier cannot set other PIN', async () => {

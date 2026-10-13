@@ -12,7 +12,7 @@ import { landingPathForPermissions } from '../../session/landing-path.js';
 import { hydrateFromMe, setAccessToken } from '../../session/session.slice.js';
 
 const acceptInviteFormSchema = z.object({
-  name: z.string().trim().min(1).max(200).optional(),
+  name: z.string().trim().max(200),
   password: z.string().min(10).max(128),
 });
 
@@ -26,6 +26,8 @@ export function useAcceptInvitePage() {
   const preview = usePreviewInviteQuery(token, { skip: token.length === 0 });
   const [acceptInvite, acceptState] = useAcceptInviteMutation();
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const passwordRequired = preview.data?.passwordRequired ?? true;
 
   const form = useForm<AcceptInviteFormValues, unknown, AcceptInviteFormValues>({
     resolver: zodResolver(acceptInviteFormSchema),
@@ -42,18 +44,27 @@ export function useAcceptInvitePage() {
 
   const previewErrorMessage = preview.isError ? acceptInviteErrorMessage(preview.error, t) : null;
 
-  const onSubmit = form.handleSubmit(async (values) => {
+  const onSubmit = form.handleSubmit(async (values: AcceptInviteFormValues) => {
     setSubmitError(null);
+    const trimmedName = values.name.trim();
+    if (passwordRequired && trimmedName.length === 0) {
+      form.setError('name', { message: t('auth.validation.nameRequired') });
+      return;
+    }
     try {
       const result = await acceptInvite({
         token,
-        name: values.name,
         password: values.password,
+        ...(passwordRequired && trimmedName.length > 0 ? { name: trimmedName } : {}),
       }).unwrap();
       dispatch(setAccessToken(result.accessToken));
-      const me = await dispatch(authApi.endpoints.getMe.initiate(undefined)).unwrap();
-      dispatch(hydrateFromMe(me));
-      void navigate(landingPathForPermissions(me.permissions), { replace: true });
+      try {
+        const me = await dispatch(authApi.endpoints.getMe.initiate(undefined)).unwrap();
+        dispatch(hydrateFromMe(me));
+        void navigate(landingPathForPermissions(me.permissions), { replace: true });
+      } catch {
+        void navigate('/dashboard', { replace: true });
+      }
     } catch (err: unknown) {
       setSubmitError(acceptInviteErrorMessage(err, t));
     }
@@ -68,7 +79,7 @@ export function useAcceptInvitePage() {
     orgName: preview.data?.orgName ?? '',
     email: preview.data?.email ?? '',
     roleLabel,
-    passwordRequired: preview.data?.passwordRequired ?? true,
+    passwordRequired,
     form,
     onSubmit,
     submitting: acceptState.isLoading,

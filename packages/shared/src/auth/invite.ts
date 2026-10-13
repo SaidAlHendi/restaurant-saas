@@ -12,9 +12,14 @@ export const invitePreviewResponseSchema = z.object({
 
 export type InvitePreviewResponse = z.infer<typeof invitePreviewResponseSchema>;
 
+const optionalInviteNameSchema = z.preprocess(
+  (val) => (typeof val === 'string' && val.trim() === '' ? undefined : val),
+  z.string().trim().min(1).max(200).optional(),
+);
+
 export const acceptInviteBodySchema = z.object({
   token: z.string().min(1).max(512),
-  name: z.string().trim().min(1).max(200).optional(),
+  name: optionalInviteNameSchema,
   password: z.string().min(10).max(128),
 });
 

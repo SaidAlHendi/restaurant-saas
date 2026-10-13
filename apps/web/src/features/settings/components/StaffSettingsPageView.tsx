@@ -169,10 +169,12 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
     disableConfirmOpen,
     onDisableConfirmOpenChange,
     disableMemberName,
+    disableConfirmSubmitting,
     onConfirmDisable,
     revokeConfirmOpen,
     onRevokeConfirmOpenChange,
     revokeMemberName,
+    revokeConfirmSubmitting,
     onConfirmRevoke,
     inviteLinkOpen,
     onInviteLinkOpenChange,
@@ -571,6 +573,7 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
         confirmLabel={labels.disable}
         cancelLabel={labels.cancel}
         variant="destructive"
+        isConfirming={disableConfirmSubmitting}
         onConfirm={() => {
           onConfirmDisable();
         }}
@@ -584,6 +587,7 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
         confirmLabel={labels.revokeInvite}
         cancelLabel={labels.cancel}
         variant="destructive"
+        isConfirming={revokeConfirmSubmitting}
         onConfirm={() => {
           onConfirmRevoke();
         }}

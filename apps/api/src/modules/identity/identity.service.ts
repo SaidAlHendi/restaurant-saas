@@ -80,4 +80,20 @@ export class IdentityService {
       requiredPermission,
     );
   }
+
+  verifyApproverPinStandalone(
+    orgId: string,
+    branchId: string,
+    membershipId: string,
+    pin: string,
+    requiredPermission: PermissionKey,
+  ): Promise<string> {
+    return this.pinVerification.verifyApproverPinStandalone(
+      orgId,
+      branchId,
+      membershipId,
+      pin,
+      requiredPermission,
+    );
+  }
 }

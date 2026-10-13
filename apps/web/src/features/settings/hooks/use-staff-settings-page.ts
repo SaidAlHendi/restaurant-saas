@@ -8,15 +8,21 @@ import { toast } from '@app/ui';
 import { showApiError } from '../../../lib/show-api-error.js';
 import { useAppSelector } from '../../../app/hooks.js';
 import { selectCan, selectSessionBranches, selectSessionRole } from '../../session/session.selectors.js';
-import { validateBranchScope } from '../staff-branches-form.utils.js';
 import { validatePinForm } from '../staff-pin-form.utils.js';
 import {
   assignableRoleKeys,
+  assignableRoleKeysForPinOnlyMember,
   invitableRoleKeys,
   parseSystemRoleKey,
   asPinOnlyRoleKey,
   pinOnlyInvitableRoleKeys,
 } from '../staff-role-options.utils.js';
+import {
+  emptyScope,
+  scopePayload,
+  toggleBranchInScope,
+  type BranchScopeState,
+} from '../staff-scope-form.utils.js';
 import { staffRowActions } from '../staff-row-actions.utils.js';
 import {
   useCreatePinOnlyStaffMutation,
@@ -59,13 +65,6 @@ export type StaffTableRow = {
   onRevokeInvite: (() => void) | null;
 };
 
-type BranchScopeState = {
-  allBranches: boolean;
-  branchIds: string[];
-};
-
-const emptyScope = (): BranchScopeState => ({ allBranches: true, branchIds: [] });
-
 function roleOptionsForKeys(
   keys: SystemRoleKey[],
   label: (key: SystemRoleKey) => string,
@@ -94,7 +93,7 @@ export function useStaffSettingsPage() {
 
   const [patchStaff, patchStaffState] = usePatchStaffMembershipMutation();
   const [regenerateInvite] = useRegenerateStaffInviteMutation();
-  const [revokeInvite] = useRevokeStaffInviteMutation();
+  const [revokeInvite, revokeInviteState] = useRevokeStaffInviteMutation();
   const [createInvite, createInviteState] = useCreateStaffInviteMutation();
   const [createPinOnly, createPinOnlyState] = useCreatePinOnlyStaffMutation();
   const [putStaffPin, putPinState] = usePutStaffPinMutation();
@@ -119,6 +118,7 @@ export function useStaffSettingsPage() {
 
   const [editOpen, setEditOpen] = useState(false);
   const [editMemberId, setEditMemberId] = useState<string | null>(null);
+  const [editMemberIsPinOnly, setEditMemberIsPinOnly] = useState(false);
   const [editRole, setEditRole] = useState<SystemRoleKey>('cashier');
   const [editScope, setEditScope] = useState<BranchScopeState>(emptyScope);
   const [editScopeError, setEditScopeError] = useState<string | null>(null);
@@ -164,10 +164,12 @@ export function useStaffSettingsPage() {
     () => roleOptionsForKeys(invitableRoleKeys(actorRoleKey), roleLabel, roleDescription),
     [actorRoleKey, roleDescription, roleLabel],
   );
-  const editRoleOptions = useMemo(
-    () => roleOptionsForKeys(assignableRoleKeys(actorRoleKey), roleLabel, roleDescription),
-    [actorRoleKey, roleDescription, roleLabel],
-  );
+  const editRoleOptions = useMemo(() => {
+    const keys = editMemberIsPinOnly
+      ? assignableRoleKeysForPinOnlyMember(actorRoleKey)
+      : assignableRoleKeys(actorRoleKey);
+    return roleOptionsForKeys(keys, roleLabel, roleDescription);
+  }, [actorRoleKey, editMemberIsPinOnly, roleDescription, roleLabel]);
   const pinOnlyRoleOptions = useMemo(
     () => roleOptionsForKeys(pinOnlyInvitableRoleKeys(actorRoleKey), roleLabel, roleDescription),
     [actorRoleKey, roleDescription, roleLabel],
@@ -223,16 +225,25 @@ export function useStaffSettingsPage() {
     [patchStaff, t],
   );
 
-  const openEditForMember = useCallback((member: StaffListItem) => {
-    setEditMemberId(member.id);
-    setEditRole(member.roleKey);
-    setEditScope({
-      allBranches: member.allBranches,
-      branchIds: member.allBranches ? [] : [...member.branchIds],
-    });
-    setEditScopeError(null);
-    setEditOpen(true);
-  }, []);
+  const openEditForMember = useCallback(
+    (member: StaffListItem) => {
+      const activeBranchIds = new Set(
+        sessionBranches.filter((b) => b.isActive).map((b) => b.id),
+      );
+      setEditMemberId(member.id);
+      setEditMemberIsPinOnly(member.email === null);
+      setEditRole(member.roleKey);
+      setEditScope({
+        allBranches: member.allBranches,
+        branchIds: member.allBranches
+          ? []
+          : member.branchIds.filter((id) => activeBranchIds.has(id)),
+      });
+      setEditScopeError(null);
+      setEditOpen(true);
+    },
+    [sessionBranches],
+  );
 
   const rows: StaffTableRow[] = useMemo(() => {
     return (data?.items ?? []).map((member) => {
@@ -329,14 +340,6 @@ export function useStaffSettingsPage() {
     hasStaffManage &&
     actorRoleKey !== null &&
     (invitableRoleKeys(actorRoleKey).length > 0 || pinOnlyInvitableRoleKeys(actorRoleKey).length > 0);
-
-  const scopePayload = (scope: BranchScopeState) => {
-    const validated = validateBranchScope(scope);
-    if (!validated.ok) {
-      return null;
-    }
-    return { allBranches: validated.allBranches, branchIds: validated.branchIds };
-  };
 
   const onSubmitInvite = useCallback(async () => {
     const emailParsed = z.email().safeParse(inviteEmail.trim());
@@ -499,16 +502,6 @@ export function useStaffSettingsPage() {
     );
   }, [inviteLinkUrl, t]);
 
-  const toggleBranchInScope = useCallback(
-    (scope: BranchScopeState, branchId: string, checked: boolean): BranchScopeState => {
-      if (checked) {
-        return { ...scope, branchIds: [...scope.branchIds, branchId] };
-      }
-      return { ...scope, branchIds: scope.branchIds.filter((id) => id !== branchId) };
-    },
-    [],
-  );
-
   return {
     redirectTo,
     isLoading,
@@ -636,12 +629,14 @@ export function useStaffSettingsPage() {
     disableConfirmOpen,
     onDisableConfirmOpenChange: setDisableConfirmOpen,
     disableMemberName,
+    disableConfirmSubmitting: patchStaffState.isLoading,
     onConfirmDisable: () => {
       void onConfirmDisable();
     },
     revokeConfirmOpen,
     onRevokeConfirmOpenChange: setRevokeConfirmOpen,
     revokeMemberName,
+    revokeConfirmSubmitting: revokeInviteState.isLoading,
     onConfirmRevoke: () => {
       void onConfirmRevoke();
     },

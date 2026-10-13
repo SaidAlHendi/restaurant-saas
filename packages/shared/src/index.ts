@@ -66,6 +66,7 @@ export {
   patchStaffMembershipBodySchema,
   putStaffPinBodySchema,
   staffPinSchema,
+  pinOnlyRoleKeySchema,
 } from './staff/staff.js';
 export type {
   StaffListItem,

@@ -500,7 +500,12 @@ export class AuthService implements OnModuleInit {
         }
       }
 
-      const activated = await this.tenancyRepo.activateInvitedMembership(tx, membership.id);
+      const activated = await this.tenancyRepo.activateInvitedMembership(
+        tx,
+        membership.id,
+        tokenHash,
+        this.clock.now(),
+      );
       if (!activated) {
         throw new NotFoundError();
       }

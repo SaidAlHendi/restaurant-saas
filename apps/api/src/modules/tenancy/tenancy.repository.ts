@@ -1,4 +1,4 @@
-import { and, asc, eq, sql } from 'drizzle-orm';
+import { and, asc, eq, gt, sql } from 'drizzle-orm';
 import { Injectable } from '@nestjs/common';
 
 import { users } from '../../core/db/schema/identity';
@@ -191,16 +191,28 @@ export class TenancyRepository {
     return rows.map((r) => r.id);
   }
 
-  async activateInvitedMembership(tx: DrizzleTx, membershipId: string): Promise<boolean> {
+  async activateInvitedMembership(
+    tx: DrizzleTx,
+    membershipId: string,
+    inviteTokenHash: string,
+    now: Date,
+  ): Promise<boolean> {
     const updated = await tx
       .update(memberships)
       .set({
         status: 'active',
         inviteTokenHash: null,
         inviteExpiresAt: null,
-        updatedAt: new Date(),
+        updatedAt: now,
       })
-      .where(and(eq(memberships.id, membershipId), eq(memberships.status, 'invited')))
+      .where(
+        and(
+          eq(memberships.id, membershipId),
+          eq(memberships.status, 'invited'),
+          eq(memberships.inviteTokenHash, inviteTokenHash),
+          gt(memberships.inviteExpiresAt, now),
+        ),
+      )
       .returning({ id: memberships.id });
     return updated[0] !== undefined;
   }
