@@ -475,7 +475,22 @@
       "voidItem": "إبطال",
       "voidTitle": "إبطال الصنف؟",
       "voidReason": "سبب الإبطال",
-      "voidConfirm": "إبطال الصنف"
+      "voidConfirm": "إبطال الصنف",
+      "approvalTitle": "موافقة المدير",
+      "approvalHint": "يجب على المدير أو المالك إدخال الرمز السري للتأكيد.",
+      "approvalNext": "متابعة",
+      "pickApprover": "اختر المعتمد",
+      "emptyApprovers": "لا يوجد مديرون برمز سري في هذا الفرع."
+    },
+    "lock": {
+      "button": "قفل",
+      "title": "أدخل الرمز السري",
+      "subtitle": "اختر اسمك وأدخل الرمز السري لاستخدام الكاشير.",
+      "pickUser": "من يسجّل الدخول؟",
+      "emptyUsers": "لا يوجد موظفون برمز سري في هذا الفرع.",
+      "backspace": "مسح",
+      "submit": "فتح",
+      "lockedCountdown": "حاول مرة أخرى بعد"
     },
     "print": {
       "receipt": "فاتورة",
@@ -520,7 +535,10 @@
       "forbidden": "ليس لديك صلاحية لهذا الإجراء.",
       "notPaid": "يجب دفع الطلب قبل إنهائه.",
       "itemVoided": "هذا الصنف ملغى.",
-      "paymentMethodNotAccepted": "هذا الفرع لا يقبل الدفع بالبطاقة."
+      "paymentMethodNotAccepted": "هذا الفرع لا يقبل الدفع بالبطاقة.",
+      "managerApprovalRequired": "يلزم موافقة المدير لهذا الإجراء.",
+      "pinInvalid": "رمز سري غير صحيح. حاول مرة أخرى.",
+      "pinLocked": "محاولات كثيرة. انتظر قبل المحاولة مرة أخرى."
     }
   },
   "menu": {

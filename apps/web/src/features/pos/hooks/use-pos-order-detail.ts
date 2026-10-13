@@ -21,6 +21,10 @@ import {
 import { parseOrdersApiErrorCode } from '../../orders/orders-api-errors.js';
 import { showOrdersApiError } from '../../orders/show-orders-api-error.js';
 import { buildAddOrderItemsBody } from '../pos-add-items.utils.js';
+import {
+  cancelOrderNeedsApproval,
+  voidItemNeedsApproval,
+} from '../pos-approval.utils.js';
 import { posLocalizedName } from '../pos-label.utils.js';
 import {
   canShowCancelOrder,
@@ -28,6 +32,7 @@ import {
   canVoidOrderItem,
   nextOrderStatusTarget,
 } from '../pos-order-detail.utils.js';
+import { usePosOrderActionDialog } from './use-pos-order-action-dialog.js';
 
 export function usePosOrderDetail(input: {
   branchId: string | null;
@@ -47,8 +52,6 @@ export function usePosOrderDetail(input: {
 }) {
   const { t } = useTranslation();
   const [voidItemId, setVoidItemId] = useState<string | null>(null);
-  const [voidReason, setVoidReason] = useState('');
-  const [cancelReason, setCancelReason] = useState('');
   const [cancelOpen, setCancelOpen] = useState(false);
 
   const skip = !input.branchId || !input.orderId;
@@ -114,32 +117,91 @@ export function usePosOrderDetail(input: {
     void runStatusChange('ready');
   }, [runStatusChange]);
 
-  const confirmCancel = useCallback(() => {
-    void runStatusChange('cancelled', cancelReason.trim());
-    setCancelOpen(false);
-    setCancelReason('');
-  }, [cancelReason, runStatusChange]);
+  const cancelNeedsApproval =
+    order !== undefined &&
+    cancelOrderNeedsApproval(order.status, input.canCancelOrders);
 
-  const submitVoidItem = useCallback(async () => {
-    if (!input.branchId || !order || !voidItemId || voidReason.trim().length === 0) {
-      return;
-    }
-    const result = await voidItem({
-      branchId: input.branchId,
-      orderId: order.id,
-      itemId: voidItemId,
-      body: {
-        expectedVersion: order.version,
-        reason: voidReason.trim(),
-      },
-    });
-    if ('error' in result) {
-      handleConflict(result.error);
-      return;
-    }
-    setVoidItemId(null);
-    setVoidReason('');
-  }, [handleConflict, input.branchId, order, voidItem, voidItemId, voidReason]);
+  const voidNeedsApproval =
+    order !== undefined &&
+    voidItemNeedsApproval(
+      order.status,
+      input.canCancelOrders,
+      input.canCreateOrders,
+    );
+
+  const cancelDialog = usePosOrderActionDialog({
+    branchId: input.branchId,
+    open: cancelOpen,
+    needsApproval: cancelNeedsApproval,
+    onClose: () => {
+      setCancelOpen(false);
+    },
+    submitting: changeState.isLoading,
+    title: t('pos.orderDetail.cancelTitle'),
+    reasonLabel: t('pos.orderDetail.cancelReason'),
+    confirmLabel: t('pos.orderDetail.cancelConfirm'),
+    cancelLabel: t('pos.actions.cancel'),
+    onExecute: async ({ reason, approval }) => {
+      if (!input.branchId || !order) {
+        return { ok: false as const, error: new Error('missing order') };
+      }
+      const result = await changeStatus({
+        branchId: input.branchId,
+        orderId: order.id,
+        body: {
+          to: 'cancelled',
+          expectedVersion: order.version,
+          reason,
+          ...(approval !== undefined ? { approval } : {}),
+        },
+      });
+      if ('error' in result) {
+        if (parseOrdersApiErrorCode(result.error) === 'ORDER_VERSION_CONFLICT') {
+          void refetch();
+        }
+        return { ok: false as const, error: result.error };
+      }
+      input.onClose();
+      return { ok: true as const };
+    },
+  });
+
+  const voidDialog = usePosOrderActionDialog({
+    branchId: input.branchId,
+    open: voidItemId !== null,
+    needsApproval: voidNeedsApproval,
+    onClose: () => {
+      setVoidItemId(null);
+    },
+    submitting: voidState.isLoading,
+    title: t('pos.orderDetail.voidTitle'),
+    reasonLabel: t('pos.orderDetail.voidReason'),
+    confirmLabel: t('pos.orderDetail.voidConfirm'),
+    cancelLabel: t('pos.actions.cancel'),
+    onExecute: async ({ reason, approval }) => {
+      if (!input.branchId || !order || voidItemId === null) {
+        return { ok: false as const, error: new Error('missing order') };
+      }
+      const result = await voidItem({
+        branchId: input.branchId,
+        orderId: order.id,
+        itemId: voidItemId,
+        body: {
+          expectedVersion: order.version,
+          reason,
+          ...(approval !== undefined ? { approval } : {}),
+        },
+      });
+      if ('error' in result) {
+        if (parseOrdersApiErrorCode(result.error) === 'ORDER_VERSION_CONFLICT') {
+          void refetch();
+        }
+        return { ok: false as const, error: result.error };
+      }
+      setVoidItemId(null);
+      return { ok: true as const };
+    },
+  });
 
   const submitAdditions = useCallback(async () => {
     if (!input.branchId || !order) {
@@ -301,33 +363,11 @@ export function usePosOrderDetail(input: {
     additionCount: input.additionLines.length,
     voidDialog: {
       open: voidItemId !== null,
-      reason: voidReason,
-      onReasonChange: setVoidReason,
-      onConfirm: () => {
-        void submitVoidItem();
-      },
-      onCancel: () => {
-        setVoidItemId(null);
-        setVoidReason('');
-      },
-      submitting: voidState.isLoading,
-      title: t('pos.orderDetail.voidTitle'),
-      reasonLabel: t('pos.orderDetail.voidReason'),
-      confirmLabel: t('pos.orderDetail.voidConfirm'),
-      cancelLabel: t('pos.actions.cancel'),
+      ...voidDialog,
     },
     cancelDialog: {
       open: cancelOpen,
-      reason: cancelReason,
-      onReasonChange: setCancelReason,
-      onConfirm: confirmCancel,
-      onCancel: () => {
-        setCancelOpen(false);
-      },
-      title: t('pos.orderDetail.cancelTitle'),
-      reasonLabel: t('pos.orderDetail.cancelReason'),
-      confirmLabel: t('pos.orderDetail.cancelConfirm'),
-      cancelLabel: t('pos.actions.cancel'),
+      ...cancelDialog,
     },
     openCancelDialog: () => {
       setCancelOpen(true);

@@ -1,4 +1,9 @@
-import { posMenuPayloadSchema, type PosMenuPayload } from '@app/shared';
+import {
+  pinUserListResponseSchema,
+  posMenuPayloadSchema,
+  type PinUserListResponse,
+  type PosMenuPayload,
+} from '@app/shared';
 
 import { baseApi } from '../../app/api/base-api.js';
 
@@ -9,7 +14,11 @@ export const posApi = baseApi.injectEndpoints({
       transformResponse: (response: unknown) => posMenuPayloadSchema.parse(response),
       providesTags: (_result, _err, branchId) => [{ type: 'PosMenu', id: branchId }],
     }),
+    listPinUsers: builder.query<PinUserListResponse, string>({
+      query: (branchId) => `/v1/branches/${branchId}/pin-users`,
+      transformResponse: (response: unknown) => pinUserListResponseSchema.parse(response),
+    }),
   }),
 });
 
-export const { useGetPosMenuQuery } = posApi;
+export const { useGetPosMenuQuery, useListPinUsersQuery } = posApi;

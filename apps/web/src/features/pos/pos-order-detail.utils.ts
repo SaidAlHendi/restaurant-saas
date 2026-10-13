@@ -12,10 +12,13 @@ export function canShowCancelOrder(
   if (status === 'draft') {
     return hasCreatePermission;
   }
-  if (!hasCancelPermission) {
+  if (status === 'completed' || status === 'cancelled') {
     return false;
   }
-  return status !== 'completed' && status !== 'cancelled';
+  if (hasCancelPermission) {
+    return true;
+  }
+  return status === 'placed' || status === 'preparing' || status === 'ready';
 }
 
 export function canVoidOrderItem(
@@ -25,7 +28,12 @@ export function canVoidOrderItem(
   if (itemVoided) {
     return false;
   }
-  if (order.status !== 'placed' && order.status !== 'draft') {
+  if (
+    order.status !== 'placed' &&
+    order.status !== 'draft' &&
+    order.status !== 'preparing' &&
+    order.status !== 'ready'
+  ) {
     return false;
   }
   if (order.payments.length > 0) {

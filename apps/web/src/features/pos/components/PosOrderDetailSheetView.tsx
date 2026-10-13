@@ -1,17 +1,16 @@
 import {
   Badge,
   Button,
-  ConfirmDialog,
   Sheet,
   SheetBody,
   SheetContent,
   SheetFooter,
   SheetHeader,
   SheetTitle,
-  Textarea,
 } from '@app/ui';
 
 import type { PosOrderDetailViewModel } from '../hooks/use-pos-order-detail.js';
+import { PosOrderActionDialogView } from './PosOrderActionDialogView.js';
 
 export type PosOrderDetailSheetViewProps = PosOrderDetailViewModel & {
   onPay: () => void;
@@ -168,51 +167,8 @@ export function PosOrderDetailSheetView(props: PosOrderDetailSheetViewProps) {
           ) : null}
         </SheetContent>
       </Sheet>
-      <ConfirmDialog
-        open={voidDialog.open}
-        title={voidDialog.title}
-        description={
-          <Textarea
-            value={voidDialog.reason}
-            onChange={(event) => {
-              voidDialog.onReasonChange(event.target.value);
-            }}
-            placeholder={voidDialog.reasonLabel}
-            rows={3}
-          />
-        }
-        confirmLabel={voidDialog.confirmLabel}
-        cancelLabel={voidDialog.cancelLabel}
-        onConfirm={voidDialog.onConfirm}
-        isConfirming={voidDialog.submitting}
-        onOpenChange={(next) => {
-          if (!next) {
-            voidDialog.onCancel();
-          }
-        }}
-      />
-      <ConfirmDialog
-        open={cancelDialog.open}
-        title={cancelDialog.title}
-        description={
-          <Textarea
-            value={cancelDialog.reason}
-            onChange={(event) => {
-              cancelDialog.onReasonChange(event.target.value);
-            }}
-            placeholder={cancelDialog.reasonLabel}
-            rows={3}
-          />
-        }
-        confirmLabel={cancelDialog.confirmLabel}
-        cancelLabel={cancelDialog.cancelLabel}
-        onConfirm={cancelDialog.onConfirm}
-        onOpenChange={(next) => {
-          if (!next) {
-            cancelDialog.onCancel();
-          }
-        }}
-      />
+      <PosOrderActionDialogView {...voidDialog} />
+      <PosOrderActionDialogView {...cancelDialog} />
     </>
   );
 }

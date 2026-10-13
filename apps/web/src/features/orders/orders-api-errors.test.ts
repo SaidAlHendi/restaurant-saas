@@ -59,4 +59,12 @@ describe('ordersApiErrorMessage', () => {
   it('maps version conflict key', () => {
     expect(ordersApiErrorMessage(t, 'ORDER_VERSION_CONFLICT')).toBe('orders.errors.versionConflict');
   });
+
+  it('maps pin and approval error keys', () => {
+    expect(ordersApiErrorMessage(t, 'MANAGER_APPROVAL_REQUIRED')).toBe(
+      'orders.errors.managerApprovalRequired',
+    );
+    expect(ordersApiErrorMessage(t, 'PIN_INVALID')).toBe('orders.errors.pinInvalid');
+    expect(ordersApiErrorMessage(t, 'PIN_LOCKED')).toBe('orders.errors.pinLocked');
+  });
 });

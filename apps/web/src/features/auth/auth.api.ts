@@ -10,6 +10,8 @@ import {
   signupResponseSchema,
   switchOrgBodySchema,
   switchOrgResponseSchema,
+  pinLoginBodySchema,
+  type PinLoginBody,
   type AcceptInviteBody,
   type InvitePreviewResponse,
   type LoginBody,
@@ -78,6 +80,14 @@ export const authApi = baseApi.injectEndpoints({
       transformResponse: (response: unknown) => switchOrgResponseSchema.parse(response),
       invalidatesTags: ['Me'],
     }),
+    pinLogin: builder.mutation({
+      query: (body: PinLoginBody) => ({
+        url: '/v1/auth/pin-login',
+        method: 'POST',
+        body: pinLoginBodySchema.parse(body),
+      }),
+      transformResponse: (response: unknown) => loginResponseSchema.parse(response),
+    }),
   }),
 });
 
@@ -90,4 +100,5 @@ export const {
   useSwitchOrgMutation,
   usePreviewInviteQuery,
   useAcceptInviteMutation,
+  usePinLoginMutation,
 } = authApi;

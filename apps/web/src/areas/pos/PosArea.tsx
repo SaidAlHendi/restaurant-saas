@@ -3,7 +3,8 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { Spinner } from '@app/ui';
 
-import { PosNoAccessView } from '../../features/pos/components/PosNoAccessView.js';
+import { PosLockScreenView } from '../../features/pos/components/PosLockScreenView.js';
+import { PosLockContext } from '../../features/pos/pos-lock-context.js';
 import { usePosArea } from '../../features/pos/hooks/use-pos-area.js';
 
 const PosPage = lazy(() => import('./PosPage.js'));
@@ -20,23 +21,25 @@ export default function PosArea() {
     );
   }
 
-  if (!vm.canUsePos) {
-    return <PosNoAccessView noAccess={vm.noAccess} />;
+  if (vm.showLockScreen) {
+    return <PosLockScreenView {...vm.lockScreen} />;
   }
 
   return (
-    <Suspense
-      fallback={
-        <div className="flex justify-center p-8">
-          <Spinner label={vm.t('common.loading')} />
-        </div>
-      }
-    >
-      <Routes>
-        <Route index element={<PosPage />} />
-        <Route path="orders" element={<PosOrdersPage />} />
-        <Route path="*" element={<Navigate to="/pos" replace />} />
-      </Routes>
-    </Suspense>
+    <PosLockContext.Provider value={{ requestLock: vm.requestLock }}>
+      <Suspense
+        fallback={
+          <div className="flex justify-center p-8">
+            <Spinner label={vm.t('common.loading')} />
+          </div>
+        }
+      >
+        <Routes>
+          <Route index element={<PosPage />} />
+          <Route path="orders" element={<PosOrdersPage />} />
+          <Route path="*" element={<Navigate to="/pos" replace />} />
+        </Routes>
+      </Suspense>
+    </PosLockContext.Provider>
   );
 }

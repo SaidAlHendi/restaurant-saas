@@ -475,7 +475,22 @@
       "voidItem": "Void",
       "voidTitle": "Void item?",
       "voidReason": "Reason for void",
-      "voidConfirm": "Void item"
+      "voidConfirm": "Void item",
+      "approvalTitle": "Manager approval",
+      "approvalHint": "A manager or owner must enter their PIN to confirm.",
+      "approvalNext": "Continue",
+      "pickApprover": "Choose approver",
+      "emptyApprovers": "No managers with a PIN are available at this branch."
+    },
+    "lock": {
+      "button": "Lock",
+      "title": "Enter your PIN",
+      "subtitle": "Choose your name and enter your PIN to use the cashier.",
+      "pickUser": "Who is signing in?",
+      "emptyUsers": "No staff with a PIN are set up for this branch.",
+      "backspace": "Back",
+      "submit": "Unlock",
+      "lockedCountdown": "Try again in"
     },
     "print": {
       "receipt": "Receipt",
@@ -516,7 +531,10 @@
       "forbidden": "You do not have permission for this action.",
       "notPaid": "The order must be paid before it can be completed.",
       "itemVoided": "This item was voided.",
-      "paymentMethodNotAccepted": "This branch does not accept card payments."
+      "paymentMethodNotAccepted": "This branch does not accept card payments.",
+      "managerApprovalRequired": "Manager approval is required for this action.",
+      "pinInvalid": "Incorrect PIN. Try again.",
+      "pinLocked": "Too many attempts. Wait before trying again."
     }
   },
   "menu": {
