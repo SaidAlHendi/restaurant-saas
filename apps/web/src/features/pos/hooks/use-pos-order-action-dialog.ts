@@ -16,6 +16,7 @@ import {
 import { parsePinLockedUntilIso, formatPinLockCountdown } from '../pos-pin-lock.utils.js';
 import { useListPinUsersQuery } from '../pos.api.js';
 import { usePosPinPad } from './use-pos-pin-pad.js';
+import { usePosPinPadKeyboard } from './use-pos-pin-pad-keyboard.js';
 
 export function usePosOrderActionDialog(input: {
   branchId: string | null;
@@ -154,6 +155,30 @@ export function usePosOrderActionDialog(input: {
       ? t('pos.orderDetail.approvalNext')
       : input.confirmLabel;
 
+  const selectApprover = useCallback(
+    (membershipId: string) => {
+      setSelectedMembershipId(membershipId);
+      setErrorMessage(null);
+      setLockedUntilIso(null);
+      pinPad.clear();
+    },
+    [pinPad],
+  );
+
+  const approvalCanSubmit =
+    step === 'approval' &&
+    selectedMembershipId !== null &&
+    pinPad.canSubmit &&
+    lockCountdown === null;
+
+  usePosPinPadKeyboard({
+    enabled: input.open && step === 'approval',
+    canSubmit: approvalCanSubmit,
+    onDigit: pinPad.appendDigit,
+    onBackspace: pinPad.backspace,
+    onSubmit: onPrimary,
+  });
+
   return {
     step,
     reason,
@@ -164,13 +189,12 @@ export function usePosOrderActionDialog(input: {
       roleLabel: t(`settings.staff.roles.${user.roleKey}`),
       selected: selectedMembershipId === user.membershipId,
       onSelect: () => {
-        setSelectedMembershipId(user.membershipId);
-        setErrorMessage(null);
-        pinPad.clear();
+        selectApprover(user.membershipId);
       },
     })),
     pinPad: {
       digits: pinPad.digits,
+      pinDigitsLabel: t('pos.lock.pinDigits', { count: String(pinPad.digits.length) }),
       canSubmit: pinPad.canSubmit,
       onDigit: pinPad.appendDigit,
       onBackspace: pinPad.backspace,

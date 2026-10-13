@@ -490,7 +490,9 @@
       "emptyUsers": "لا يوجد موظفون برمز سري في هذا الفرع.",
       "backspace": "مسح",
       "submit": "فتح",
-      "lockedCountdown": "حاول مرة أخرى بعد"
+      "lockedCountdown": "حاول مرة أخرى بعد",
+      "switchUser": "تبديل المستخدم",
+      "pinDigits": "الرمز السري، {{count}} أرقام"
     },
     "print": {
       "receipt": "فاتورة",

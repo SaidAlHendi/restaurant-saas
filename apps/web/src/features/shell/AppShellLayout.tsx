@@ -3,10 +3,12 @@ import { Outlet } from 'react-router-dom';
 
 import { Spinner } from '@app/ui';
 
+import { usePosDeviceLockRedirect } from '../pos/hooks/use-pos-device-lock-redirect.js';
 import { AppShellView } from './components/AppShellView.js';
 import { useAppShell } from './use-app-shell.js';
 
 export function AppShellLayout() {
+  usePosDeviceLockRedirect();
   const vm = useAppShell();
   return (
     <AppShellView {...vm}>

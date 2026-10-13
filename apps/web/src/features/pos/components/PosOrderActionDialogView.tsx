@@ -86,6 +86,7 @@ export function PosOrderActionDialogView(props: PosOrderActionDialogViewModel & 
             ) : null}
             <PosPinPadView
               digits={pinPad.digits}
+              pinDigitsLabel={pinPad.pinDigitsLabel}
               canSubmit={!primaryDisabled}
               submitting={isConfirming}
               onDigit={pinPad.onDigit}

@@ -2,6 +2,7 @@ import { Button } from '@app/ui';
 
 export type PosPinPadViewProps = {
   digits: string;
+  pinDigitsLabel: string;
   canSubmit: boolean;
   submitting: boolean;
   onDigit: (digit: string) => void;
@@ -21,15 +22,15 @@ const DIGIT_ROWS = [
 ] as const;
 
 export function PosPinPadView(props: PosPinPadViewProps) {
-  const { digits, canSubmit, submitting, onDigit, onBackspace, onSubmit, labels } = props;
+  const { digits, pinDigitsLabel, canSubmit, submitting, onDigit, onBackspace, onSubmit, labels } =
+    props;
   const masked = '•'.repeat(digits.length);
-
   return (
     <div className="mx-auto w-full max-w-xs space-y-4">
       <p
         className="text-center font-mono text-2xl tracking-widest"
         aria-live="polite"
-        aria-label={masked.length > 0 ? labels.submit : undefined}
+        aria-label={pinDigitsLabel}
       >
         {masked.length > 0 ? masked : '—'}
       </p>

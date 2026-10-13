@@ -490,7 +490,9 @@
       "emptyUsers": "No staff with a PIN are set up for this branch.",
       "backspace": "Back",
       "submit": "Unlock",
-      "lockedCountdown": "Try again in"
+      "lockedCountdown": "Try again in",
+      "switchUser": "Switch user",
+      "pinDigits": "PIN, {{count}} digits"
     },
     "print": {
       "receipt": "Receipt",

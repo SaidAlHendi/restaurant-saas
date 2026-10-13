@@ -9,6 +9,7 @@ import { hydrateFromMe, setAccessToken } from '../../session/session.slice.js';
 import { formatPinLockCountdown, parsePinLockedUntilIso } from '../pos-pin-lock.utils.js';
 import { useListPinUsersQuery } from '../pos.api.js';
 import { usePosPinPad } from './use-pos-pin-pad.js';
+import { usePosPinPadKeyboard } from './use-pos-pin-pad-keyboard.js';
 
 export function usePosLockScreen(input: {
   branchId: string | null;
@@ -49,8 +50,18 @@ export function usePosLockScreen(input: {
     return formatPinLockCountdown(lockedUntilIso, nowMs);
   }, [lockedUntilIso, nowMs]);
 
+  const selectUser = useCallback(
+    (membershipId: string) => {
+      setSelectedMembershipId(membershipId);
+      setErrorMessage(null);
+      setLockedUntilIso(null);
+      pinPad.clear();
+    },
+    [pinPad],
+  );
+
   const submitPin = useCallback(async () => {
-    if (selectedMembershipId === null || !pinPad.canSubmit) {
+    if (selectedMembershipId === null || !pinPad.canSubmit || lockCountdown !== null) {
       return;
     }
     setErrorMessage(null);
@@ -79,7 +90,20 @@ export function usePosLockScreen(input: {
     setSelectedMembershipId(null);
     setLockedUntilIso(null);
     input.onUnlocked();
-  }, [dispatch, input, pinLogin, pinPad, selectedMembershipId, t]);
+  }, [dispatch, input, lockCountdown, pinLogin, pinPad, selectedMembershipId, t]);
+
+  const canSubmitPin =
+    pinPad.canSubmit && selectedMembershipId !== null && lockCountdown === null;
+
+  usePosPinPadKeyboard({
+    enabled: input.enabled,
+    canSubmit: canSubmitPin,
+    onDigit: pinPad.appendDigit,
+    onBackspace: pinPad.backspace,
+    onSubmit: () => {
+      void submitPin();
+    },
+  });
 
   return {
     loading: pinUsersQuery.isLoading,
@@ -89,14 +113,13 @@ export function usePosLockScreen(input: {
       roleLabel: t(`settings.staff.roles.${user.roleKey}`),
       selected: selectedMembershipId === user.membershipId,
       onSelect: () => {
-        setSelectedMembershipId(user.membershipId);
-        setErrorMessage(null);
-        pinPad.clear();
+        selectUser(user.membershipId);
       },
     })),
     pinPad: {
       digits: pinPad.digits,
-      canSubmit: pinPad.canSubmit && selectedMembershipId !== null && lockCountdown === null,
+      pinDigitsLabel: t('pos.lock.pinDigits', { count: String(pinPad.digits.length) }),
+      canSubmit: canSubmitPin,
       onDigit: pinPad.appendDigit,
       onBackspace: pinPad.backspace,
       onSubmit: () => {

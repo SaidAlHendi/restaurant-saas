@@ -51,6 +51,7 @@ export function PosLockScreenView(props: PosLockScreenViewModel) {
       ) : null}
       <PosPinPadView
         digits={pinPad.digits}
+        pinDigitsLabel={pinPad.pinDigitsLabel}
         canSubmit={pinPad.canSubmit}
         submitting={pinPad.submitting}
         onDigit={pinPad.onDigit}

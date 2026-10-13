@@ -25,6 +25,7 @@ function minimalLockVm(overrides: Partial<PosLockScreenViewModel> = {}): PosLock
     ],
     pinPad: {
       digits: '12',
+      pinDigitsLabel: 'PIN, 2 digits',
       canSubmit: false,
       onDigit: vi.fn(),
       onBackspace: vi.fn(),

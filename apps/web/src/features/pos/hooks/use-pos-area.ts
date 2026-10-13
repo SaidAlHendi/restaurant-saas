@@ -3,6 +3,10 @@ import { useTranslation } from 'react-i18next';
 
 import { useAppSelector } from '../../../app/hooks.js';
 import {
+  readPosDeviceLocked,
+  writePosDeviceLocked,
+} from '../pos-device-lock-storage.js';
+import {
   selectBootstrapDone,
   selectCan,
   selectCurrentBranchId,
@@ -14,12 +18,16 @@ export function usePosArea() {
   const bootstrapDone = useAppSelector(selectBootstrapDone);
   const canUsePos = useAppSelector(selectCan('orders.create'));
   const branchId = useAppSelector(selectCurrentBranchId);
-  const [manualLocked, setManualLocked] = useState(false);
+  const [deviceLocked, setDeviceLocked] = useState(() => readPosDeviceLocked());
+  const [pinSwitchOpen, setPinSwitchOpen] = useState(false);
 
-  const showLockScreen = manualLocked || !canUsePos;
+  const showLockScreen = deviceLocked || pinSwitchOpen;
+  const showNoAccess = !canUsePos && !showLockScreen;
 
   const onUnlocked = useCallback(() => {
-    setManualLocked(false);
+    writePosDeviceLocked(false);
+    setDeviceLocked(false);
+    setPinSwitchOpen(false);
   }, []);
 
   const lockScreen = usePosLockScreen({
@@ -29,15 +37,31 @@ export function usePosArea() {
   });
 
   const requestLock = useCallback(() => {
-    setManualLocked(true);
+    writePosDeviceLocked(true);
+    setDeviceLocked(true);
+  }, []);
+
+  const openPinSwitch = useCallback(() => {
+    setPinSwitchOpen(true);
   }, []);
 
   return {
     t,
     bootstrapDone,
+    canUsePos,
     showLockScreen,
+    showNoAccess,
     lockScreen,
     requestLock,
+    openPinSwitch,
+    noAccess: {
+      title: t('pos.noAccess.title'),
+      description: t('pos.noAccess.description'),
+      backLabel: t('pos.noAccess.backToDashboard'),
+      backTo: '/dashboard',
+      switchUserLabel: t('pos.lock.switchUser'),
+      onSwitchUser: openPinSwitch,
+    },
   };
 }
 

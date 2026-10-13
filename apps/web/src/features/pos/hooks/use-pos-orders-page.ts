@@ -31,11 +31,13 @@ import { shouldShowSentToKitchenToast } from '../pos-payment-toast.utils.js';
 import { useGetPosMenuQuery } from '../pos.api.js';
 import { usePosOrderDetail } from './use-pos-order-detail.js';
 import { usePosPaymentDialog } from './use-pos-payment-dialog.js';
+import { usePosLockRequest } from '../pos-lock-context.js';
 
 const PAGE_SIZE = 20;
 
 export function usePosOrdersPage() {
   const { t, i18n } = useTranslation();
+  const requestLock = usePosLockRequest();
   const dispatch = useAppDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
   const branchId = useAppSelector(selectCurrentBranchId);
@@ -260,6 +262,10 @@ export function usePosOrdersPage() {
     paymentDialog,
     onRetry: () => {
       void refetch();
+    },
+    lock: {
+      label: t('pos.lock.button'),
+      onPress: requestLock,
     },
     labels: {
       title: t('pos.orders.title'),

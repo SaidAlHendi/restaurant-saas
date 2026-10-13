@@ -4,7 +4,12 @@ import type { MeResponse } from '@app/shared';
 import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 import { RouterProvider, createMemoryRouter } from 'react-router-dom';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+
+import {
+  POS_DEVICE_LOCKED_STORAGE_KEY,
+  writePosDeviceLocked,
+} from './features/pos/pos-device-lock-storage.js';
 
 import { appRoutes } from './app/router.js';
 import { baseApi } from './app/api/base-api.js';
@@ -62,7 +67,31 @@ function createTestStore() {
 }
 
 describe('App root', () => {
+  afterEach(() => {
+    window.localStorage.removeItem(POS_DEVICE_LOCKED_STORAGE_KEY);
+  });
+
+  it('redirects dashboard to POS when device lock flag is set', async () => {
+    await initI18n();
+    writePosDeviceLocked(true);
+    await import('./areas/pos/PosArea.js');
+    await import('./areas/dashboard/DashboardArea.js');
+    const memoryRouter = createMemoryRouter(appRoutes, { initialEntries: ['/dashboard'] });
+    render(
+      <Provider store={createTestStore()}>
+        <I18nextProvider i18n={i18n}>
+          <TooltipProvider>
+            <RouterProvider router={memoryRouter} />
+          </TooltipProvider>
+        </I18nextProvider>
+      </Provider>,
+    );
+    expect(await screen.findByRole('heading', { name: /enter your pin/i })).toBeInTheDocument();
+    expect(memoryRouter.state.location.pathname).toMatch(/^\/pos/);
+  });
+
   it('renders dashboard shell when session is bootstrapped', async () => {
+    window.localStorage.removeItem(POS_DEVICE_LOCKED_STORAGE_KEY);
     await initI18n();
     // DashboardArea is lazy and now pulls in the menu feature; load it before render so the
     // Suspense fallback does not outlast findByText's 1s window on a slow CI runner.
@@ -80,7 +109,12 @@ describe('App root', () => {
     expect(await screen.findByText(/welcome,\s*owner/i)).toBeInTheDocument();
     // The shell: org name in the top bar, and sign out / dark mode / language in the sidebar.
     expect(screen.getByRole('heading', { name: 'Demo' })).toBeInTheDocument();
-    const nav = screen.getByRole('complementary', { name: /dashboard navigation/i });
+    const navList = screen.getAllByRole('complementary', { name: /dashboard navigation/i });
+    expect(navList.length).toBeGreaterThan(0);
+    const nav = navList[0];
+    if (nav === undefined) {
+      throw new Error('Expected dashboard navigation landmark');
+    }
     expect(within(nav).getByRole('button', { name: /sign out/i })).toBeInTheDocument();
     expect(within(nav).getByRole('button', { name: /dark mode|light mode/i })).toBeInTheDocument();
     expect(within(nav).getByRole('button', { name: 'العربية' })).toBeInTheDocument();
