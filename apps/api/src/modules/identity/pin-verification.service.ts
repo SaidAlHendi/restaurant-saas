@@ -75,22 +75,11 @@ export class PinVerificationService implements OnModuleInit {
     membershipId: string,
     pin: string,
   ): Promise<void> {
-    await this.verifyPinCore(tx, orgId, branchId, membershipId, pin, null);
-  }
-
-  async verifyApproverPin(
-    tx: DrizzleTx,
-    orgId: string,
-    branchId: string,
-    membershipId: string,
-    pin: string,
-    requiredPermission: PermissionKey,
-  ): Promise<void> {
-    await this.verifyPinCore(tx, orgId, branchId, membershipId, pin, requiredPermission);
+    await this.verifyPinCore(tx, orgId, branchId, membershipId, pin);
   }
 
   /** Verifies approver PIN outside a long-running order transaction (returns approver membership id). */
-  async verifyApproverPinStandalone(
+  async verifyApproverPin(
     orgId: string,
     branchId: string,
     membershipId: string,
@@ -146,7 +135,6 @@ export class PinVerificationService implements OnModuleInit {
     branchId: string,
     membershipId: string,
     pin: string,
-    requiredPermission: PermissionKey | null,
   ): Promise<void> {
     const row = await this.tenancyRepo.findMembershipWithUserRole(tx, membershipId);
     if (!row || row.membership.orgId !== orgId) {
@@ -154,13 +142,6 @@ export class PinVerificationService implements OnModuleInit {
     }
     if (row.membership.status !== 'active') {
       throw new NotFoundError();
-    }
-
-    if (requiredPermission !== null) {
-      const permissions = await this.tenancyRepo.loadRolePermissions(tx, row.role.id);
-      if (!permissions.includes(requiredPermission)) {
-        throw new ForbiddenError('Approver lacks permission');
-      }
     }
 
     const hasBranch = await this.tenancyRepo.membershipHasBranchAccess(tx, membershipId, branchId);

@@ -64,31 +64,13 @@ export class IdentityService {
   }
 
   verifyApproverPin(
-    tx: DrizzleTx,
-    orgId: string,
-    branchId: string,
-    membershipId: string,
-    pin: string,
-    requiredPermission: PermissionKey,
-  ): Promise<void> {
-    return this.pinVerification.verifyApproverPin(
-      tx,
-      orgId,
-      branchId,
-      membershipId,
-      pin,
-      requiredPermission,
-    );
-  }
-
-  verifyApproverPinStandalone(
     orgId: string,
     branchId: string,
     membershipId: string,
     pin: string,
     requiredPermission: PermissionKey,
   ): Promise<string> {
-    return this.pinVerification.verifyApproverPinStandalone(
+    return this.pinVerification.verifyApproverPin(
       orgId,
       branchId,
       membershipId,

@@ -1060,7 +1060,7 @@ export class OrderingService {
         'MANAGER_APPROVAL_REQUIRED',
       );
     }
-    return this.identity.verifyApproverPinStandalone(
+    return this.identity.verifyApproverPin(
       ctx.orgId,
       branchId,
       approval.membershipId,
