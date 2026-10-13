@@ -46,6 +46,11 @@ describe('mapOrderEventToTimelineRow', () => {
     expect(mapOrderEventToTimelineRow(baseEvent({ type: 'order.cancelled' })).labelKey).toBe(
       'order.events.cancelled',
     );
+    expect(
+      mapOrderEventToTimelineRow(
+        baseEvent({ type: 'order.cancelled', approverName: 'Manager Mo' }),
+      ).approverName,
+    ).toBe('Manager Mo');
     expect(mapOrderEventToTimelineRow(baseEvent({ type: 'payment.captured' })).labelKey).toBe(
       'order.events.paymentCaptured',
     );

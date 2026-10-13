@@ -100,6 +100,8 @@ export const baseApi = createApi({
     'KitchenBoard',
     'Branch',
     'DailyReport',
+    'OrgSettings',
+    'Staff',
   ],
   endpoints: (builder) => ({
     getHealth: builder.query<{ status: string }, undefined>({

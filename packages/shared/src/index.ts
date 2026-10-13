@@ -69,6 +69,7 @@ export {
 } from './staff/staff.js';
 export type {
   StaffListItem,
+  StaffListResponse,
   CreateStaffInviteBody,
   CreateStaffInviteResponse,
   CreatePinOnlyStaffBody,

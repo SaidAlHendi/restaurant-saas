@@ -64,6 +64,7 @@ export function useDashboardOrderDetailPage() {
         icon: row.icon,
         label: t(row.labelKey, row.labelParams),
         actorName: row.actorName,
+        approverName: row.approverName,
         timeLabel: new Intl.DateTimeFormat(uiLocale, {
           dateStyle: 'medium',
           timeStyle: 'short',
@@ -159,6 +160,7 @@ export function useDashboardOrderDetailPage() {
       voidReason: t('dashboard.orderDetail.voidReason'),
       addition: t('dashboard.orderDetail.addition'),
       actor: t('dashboard.orderDetail.actor'),
+      approvedBy: t('dashboard.orderDetail.approvedBy'),
       subtotal: t('dashboard.orderDetail.subtotal'),
       tax: t('dashboard.orderDetail.tax'),
       total: t('dashboard.orderDetail.total'),

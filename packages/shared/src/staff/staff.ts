@@ -29,6 +29,8 @@ export const staffListResponseSchema = z.object({
   items: z.array(staffListItemSchema),
 });
 
+export type StaffListResponse = z.infer<typeof staffListResponseSchema>;
+
 export const createStaffInviteBodySchema = z.object({
   email: z.email(),
   name: z.string().trim().min(1).max(200).optional(),

@@ -1,6 +1,7 @@
 {
   "common": {
-    "loading": "جاري التحميل"
+    "loading": "جاري التحميل",
+    "cancel": "إلغاء"
   },
   "app": {
     "title": "مطاعم SaaS",
@@ -41,6 +42,15 @@
     },
     "errors": {
       "generic": "حدث خطأ. حاول مرة أخرى."
+    },
+    "invite": {
+      "title": "قبول الدعوة",
+      "description": "انضم إلى فريقك على Restaurant SaaS.",
+      "org": "المطعم",
+      "role": "الدور",
+      "submit": "قبول وتسجيل الدخول",
+      "expired": "هذه الدعوة غير صالحة أو منتهية.",
+      "error": "تعذر قبول الدعوة. تحقق من كلمة المرور وحاول مرة أخرى."
     }
   },
   "dashboard": {
@@ -61,7 +71,8 @@
       "sidebar": "تنقل لوحة التحكم",
       "closeSidebar": "إغلاق القائمة",
       "kitchen": "المطبخ",
-      "branchSettings": "إعدادات الفرع"
+      "branchSettings": "إعدادات الفرع",
+      "settings": "الإعدادات"
     },
     "today": {
       "title": "اليوم",
@@ -160,6 +171,7 @@
       "voidReason": "سبب الإلغاء",
       "addition": "إضافة",
       "actor": "بواسطة",
+      "approvedBy": "وافق عليه",
       "subtotal": "المجموع الفرعي",
       "tax": "الضريبة",
       "total": "الإجمالي",
@@ -181,16 +193,107 @@
     }
   },
   "settings": {
+    "title": "الإعدادات",
+    "description": "إعدادات المطعم والفرع والفريق.",
+    "tabs": {
+      "restaurant": "المطعم",
+      "branch": "الفرع",
+      "staff": "الفريق والأدوار"
+    },
+    "restaurant": {
+      "title": "المطعم",
+      "description": "الاسم والشعار واللغات في القائمة والإيصالات.",
+      "name": "اسم المطعم",
+      "slug": "الرابط العام",
+      "currency": "العملة الافتراضية",
+      "locales": "لغات القائمة",
+      "localeEn": "English",
+      "localeAr": "العربية",
+      "defaultLocale": "اللغة الافتراضية",
+      "logo": "الشعار",
+      "logoChoose": "رفع الشعار",
+      "logoUploading": "جاري الرفع…",
+      "logoRemove": "إزالة الشعار",
+      "logoPreviewAlt": "معاينة شعار المطعم",
+      "logoTypeError": "استخدم JPEG أو PNG أو WebP.",
+      "localesInvalid": "اختر لغة واحدة على الأقل بدون تكرار.",
+      "defaultLocaleInvalid": "يجب أن تكون اللغة الافتراضية ضمن اللغات المفعّلة.",
+      "save": "حفظ التغييرات",
+      "saved": "تم حفظ إعدادات المطعم.",
+      "loadError": "تعذر تحميل إعدادات المطعم."
+    },
     "branch": {
       "title": "إعدادات الفرع",
-      "description": "خيارات الدفع للكاشير في هذا الفرع.",
+      "description": "الضريبة والإيصالات ويوم العمل وخيارات الدفع للفرع الحالي.",
       "payBeforeSend": "الدفع قبل الإرسال",
       "payBeforeSendHint": "تبقى الطلبات مسودة حتى اكتمال الدفع، ثم تُرسل للمطبخ.",
       "acceptsCard": "قبول الدفع بالبطاقة",
       "acceptsCardHint": "عند الإيقاف، يسجّل الكاشير النقد فقط.",
+      "taxPercent": "نسبة الضريبة (%)",
+      "taxPercentHint": "من 0 إلى 100، بحد أقصى منزلتين عشريتين.",
+      "taxInvalid": "أدخل نسبة ضريبة صالحة بين 0 و 100.",
+      "taxInclusive": "الأسعار شاملة الضريبة",
+      "taxInclusiveHint": "أسعار القائمة تشمل الضريبة.",
+      "dayStartHour": "بداية يوم العمل (الساعة)",
+      "dayStartHourHint": "0–23 بتوقيت الفرع؛ التقارير تستخدم هذا الوقت.",
+      "dayStartInvalid": "أدخل ساعة بين 0 و 23.",
+      "timezone": "المنطقة الزمنية",
+      "address": "العنوان على الإيصال",
+      "receiptHeader": "ترويسة الإيصال",
+      "receiptFooter": "تذييل الإيصال",
+      "receiptPreview": "معاينة الإيصال",
+      "receiptTaxInclusive": "ش.ض",
+      "receiptOrderNumber": "طلب",
+      "receiptCash": "نقداً",
+      "receiptCard": "بطاقة",
+      "receiptOther": "أخرى",
+      "receiptTendered": "المُسلّم",
+      "receiptChange": "الباقي",
+      "taxDayNote": "الضريبة وبداية يوم العمل تُطبّق على الطلبات الجديدة؛ شاشات الكاشier تتحدّث عند تغيير الإعدادات.",
       "save": "حفظ التغييرات",
       "saved": "تم حفظ الإعدادات.",
       "loadError": "تعذر تحميل إعدادات الفرع."
+    },
+    "staff": {
+      "title": "الفريق والأدوار",
+      "description": "ادعُ الزملاء، عيّن الأدوار وأدر دخول PIN.",
+      "addStaff": "إضافة موظف",
+      "loadError": "تعذر تحميل الفريق.",
+      "empty": "لا يوجد موظفون بعد.",
+      "columnName": "الاسم",
+      "columnEmail": "البريد / الدخول",
+      "columnRole": "الدور",
+      "columnStatus": "الحالة",
+      "columnPin": "PIN",
+      "actions": "إجراءات",
+      "disable": "تعطيل",
+      "enable": "تفعيل",
+      "regenerateInvite": "نسخ رابط دعوة جديد",
+      "revokeInvite": "إلغاء الدعوة",
+      "inviteDialogTitle": "دعوة بالبريد",
+      "inviteEmail": "البريد الإلكتروني",
+      "inviteRole": "الدور",
+      "inviteSubmit": "إرسال الدعوة",
+      "inviteCopied": "تم نسخ رابط الدعوة.",
+      "inviteCreated": "تم إنشاء الدعوة.",
+      "inviteRegenerated": "رابط دعوة جديد جاهز.",
+      "inviteRevoked": "تم إلغاء الدعوة.",
+      "saved": "تم تحديث الموظف.",
+      "pendingEmail": "دعوة معلّقة",
+      "pinOnly": "PIN فقط",
+      "pinSet": "PIN مفعّل",
+      "pinNone": "بدون PIN",
+      "status": {
+        "active": "نشط",
+        "invited": "مدعو",
+        "disabled": "معطّل"
+      },
+      "roles": {
+        "owner": "مالك",
+        "manager": "مدير",
+        "cashier": "كاشير",
+        "kitchen": "مطبخ"
+      }
     }
   },
   "pos": {

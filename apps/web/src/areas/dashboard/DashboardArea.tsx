@@ -5,6 +5,10 @@ import { useAppSelector } from '../../app/hooks.js';
 import { MenuRoutes } from '../../features/menu/MenuRoutes.js';
 import { selectCan } from '../../features/session/session.selectors.js';
 import { BranchSettingsPage } from '../../features/settings/pages/BranchSettingsPage.js';
+import { RestaurantSettingsPage } from '../../features/settings/pages/RestaurantSettingsPage.js';
+import { SettingsIndexRedirect } from '../../features/settings/pages/SettingsIndexRedirect.js';
+import { SettingsLayoutPage } from '../../features/settings/pages/SettingsLayoutPage.js';
+import { StaffSettingsPage } from '../../features/settings/pages/StaffSettingsPage.js';
 import { DashboardHome } from './DashboardHome.js';
 import { DashboardShell } from './DashboardShell.js';
 import { useDashboardShell } from './use-dashboard-shell.js';
@@ -43,7 +47,12 @@ export default function DashboardArea() {
           </>
         ) : null}
         <Route path="menu/*" element={<MenuRoutes />} />
-        <Route path="settings/branch" element={<BranchSettingsPage />} />
+        <Route path="settings" element={<SettingsLayoutPage />}>
+          <Route index element={<SettingsIndexRedirect />} />
+          <Route path="restaurant" element={<RestaurantSettingsPage />} />
+          <Route path="branch" element={<BranchSettingsPage />} />
+          <Route path="staff" element={<StaffSettingsPage />} />
+        </Route>
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Route>
     </Routes>

@@ -6,6 +6,7 @@ export type OrderTimelineRow = {
   labelKey: string;
   labelParams: Record<string, string | number>;
   actorName: string | null;
+  approverName: string | null;
   timeIso: string;
 };
 
@@ -38,6 +39,7 @@ export function mapOrderEventToTimelineRow(event: OrderEvent): OrderTimelineRow 
         labelKey: 'order.events.drafted',
         labelParams: {},
         actorName: event.actorName,
+        approverName: event.approverName,
         timeIso: event.createdAt,
       };
     case 'order.placed':
@@ -47,6 +49,7 @@ export function mapOrderEventToTimelineRow(event: OrderEvent): OrderTimelineRow 
         labelKey: 'order.events.placed',
         labelParams: {},
         actorName: event.actorName,
+        approverName: event.approverName,
         timeIso: event.createdAt,
       };
     case 'order.status_changed': {
@@ -58,6 +61,7 @@ export function mapOrderEventToTimelineRow(event: OrderEvent): OrderTimelineRow 
         labelKey: 'order.events.statusChanged',
         labelParams: { from, to },
         actorName: event.actorName,
+        approverName: event.approverName,
         timeIso: event.createdAt,
       };
     }
@@ -68,6 +72,7 @@ export function mapOrderEventToTimelineRow(event: OrderEvent): OrderTimelineRow 
         labelKey: 'order.events.itemsAdded',
         labelParams: { count: readItemCount(payload) },
         actorName: event.actorName,
+        approverName: event.approverName,
         timeIso: event.createdAt,
       };
     case 'order.item_voided':
@@ -80,6 +85,7 @@ export function mapOrderEventToTimelineRow(event: OrderEvent): OrderTimelineRow 
           reason: readString(payload, 'reason') ?? '',
         },
         actorName: event.actorName,
+        approverName: event.approverName,
         timeIso: event.createdAt,
       };
     case 'order.item_status_changed':
@@ -92,6 +98,7 @@ export function mapOrderEventToTimelineRow(event: OrderEvent): OrderTimelineRow 
           status: readString(payload, 'status') ?? '',
         },
         actorName: event.actorName,
+        approverName: event.approverName,
         timeIso: event.createdAt,
       };
     case 'order.cancelled':
@@ -101,6 +108,7 @@ export function mapOrderEventToTimelineRow(event: OrderEvent): OrderTimelineRow 
         labelKey: 'order.events.cancelled',
         labelParams: { reason: readString(payload, 'reason') ?? '' },
         actorName: event.actorName,
+        approverName: event.approverName,
         timeIso: event.createdAt,
       };
     case 'payment.captured':
@@ -113,6 +121,7 @@ export function mapOrderEventToTimelineRow(event: OrderEvent): OrderTimelineRow 
           amountMinor: readNumber(payload, 'amountMinor') ?? 0,
         },
         actorName: event.actorName,
+        approverName: event.approverName,
         timeIso: event.createdAt,
       };
     default:
@@ -122,6 +131,7 @@ export function mapOrderEventToTimelineRow(event: OrderEvent): OrderTimelineRow 
         labelKey: 'order.events.unknown',
         labelParams: { type: event.type },
         actorName: event.actorName,
+        approverName: event.approverName,
         timeIso: event.createdAt,
       };
   }

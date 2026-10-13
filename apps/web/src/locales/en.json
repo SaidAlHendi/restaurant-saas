@@ -1,6 +1,7 @@
 {
   "common": {
-    "loading": "Loading"
+    "loading": "Loading",
+    "cancel": "Cancel"
   },
   "app": {
     "title": "Restaurant SaaS",
@@ -41,6 +42,15 @@
     },
     "errors": {
       "generic": "Something went wrong. Please try again."
+    },
+    "invite": {
+      "title": "Accept invitation",
+      "description": "Join your team on Restaurant SaaS.",
+      "org": "Restaurant",
+      "role": "Role",
+      "submit": "Accept and sign in",
+      "expired": "This invitation is invalid or has expired.",
+      "error": "Could not accept the invitation. Check your password and try again."
     }
   },
   "dashboard": {
@@ -61,7 +71,8 @@
       "sidebar": "Dashboard navigation",
       "closeSidebar": "Close menu",
       "kitchen": "Kitchen",
-      "branchSettings": "Branch settings"
+      "branchSettings": "Branch settings",
+      "settings": "Settings"
     },
     "today": {
       "title": "Today",
@@ -160,6 +171,7 @@
       "voidReason": "Void reason",
       "addition": "Addition",
       "actor": "By",
+      "approvedBy": "Approved by",
       "subtotal": "Subtotal",
       "tax": "Tax",
       "total": "Total",
@@ -181,16 +193,107 @@
     }
   },
   "settings": {
+    "title": "Settings",
+    "description": "Restaurant, branch and team configuration.",
+    "tabs": {
+      "restaurant": "Restaurant",
+      "branch": "Branch",
+      "staff": "Staff & roles"
+    },
+    "restaurant": {
+      "title": "Restaurant",
+      "description": "Name, logo and languages shown on menus and receipts.",
+      "name": "Restaurant name",
+      "slug": "Public slug",
+      "currency": "Default currency",
+      "locales": "Menu languages",
+      "localeEn": "English",
+      "localeAr": "Arabic",
+      "defaultLocale": "Default language",
+      "logo": "Logo",
+      "logoChoose": "Upload logo",
+      "logoUploading": "Uploading…",
+      "logoRemove": "Remove logo",
+      "logoPreviewAlt": "Restaurant logo preview",
+      "logoTypeError": "Use JPEG, PNG or WebP.",
+      "localesInvalid": "Choose at least one language with no duplicates.",
+      "defaultLocaleInvalid": "Default language must be one of the enabled languages.",
+      "save": "Save changes",
+      "saved": "Restaurant settings saved.",
+      "loadError": "Could not load restaurant settings."
+    },
     "branch": {
       "title": "Branch settings",
-      "description": "Payment options for the cashier at this branch.",
+      "description": "Tax, receipts, business day and cashier payment options for the current branch.",
       "payBeforeSend": "Pay before send",
       "payBeforeSendHint": "Orders stay as drafts until fully paid, then go to the kitchen.",
       "acceptsCard": "Accept card payments",
       "acceptsCardHint": "When off, the cashier can only record cash payments.",
+      "taxPercent": "Tax rate (%)",
+      "taxPercentHint": "Enter 0–100, up to two decimal places.",
+      "taxInvalid": "Enter a valid tax rate between 0 and 100.",
+      "taxInclusive": "Tax inclusive prices",
+      "taxInclusiveHint": "Menu prices already include tax.",
+      "dayStartHour": "Business day starts at (hour)",
+      "dayStartHourHint": "0–23 in the branch timezone; reports use this cutoff.",
+      "dayStartInvalid": "Enter an hour between 0 and 23.",
+      "timezone": "Timezone",
+      "address": "Address on receipt",
+      "receiptHeader": "Receipt header",
+      "receiptFooter": "Receipt footer",
+      "receiptPreview": "Receipt preview",
+      "receiptTaxInclusive": "incl.",
+      "receiptOrderNumber": "Order",
+      "receiptCash": "Cash",
+      "receiptCard": "Card",
+      "receiptOther": "Other",
+      "receiptTendered": "Tendered",
+      "receiptChange": "Change",
+      "taxDayNote": "Tax rate and business day start apply to new orders; open cashier screens refresh when settings change.",
       "save": "Save changes",
       "saved": "Settings saved.",
       "loadError": "Could not load branch settings."
+    },
+    "staff": {
+      "title": "Staff & roles",
+      "description": "Invite teammates, assign roles and manage PIN login.",
+      "addStaff": "Add staff",
+      "loadError": "Could not load staff.",
+      "empty": "No staff members yet.",
+      "columnName": "Name",
+      "columnEmail": "Email / login",
+      "columnRole": "Role",
+      "columnStatus": "Status",
+      "columnPin": "PIN",
+      "actions": "Actions",
+      "disable": "Disable",
+      "enable": "Enable",
+      "regenerateInvite": "Copy new invite link",
+      "revokeInvite": "Revoke invite",
+      "inviteDialogTitle": "Invite by email",
+      "inviteEmail": "Email",
+      "inviteRole": "Role",
+      "inviteSubmit": "Send invite",
+      "inviteCopied": "Invite link copied.",
+      "inviteCreated": "Invite created.",
+      "inviteRegenerated": "New invite link ready.",
+      "inviteRevoked": "Invite revoked.",
+      "saved": "Staff updated.",
+      "pendingEmail": "Pending invite",
+      "pinOnly": "PIN only",
+      "pinSet": "PIN set",
+      "pinNone": "No PIN",
+      "status": {
+        "active": "Active",
+        "invited": "Invited",
+        "disabled": "Disabled"
+      },
+      "roles": {
+        "owner": "Owner",
+        "manager": "Manager",
+        "cashier": "Cashier",
+        "kitchen": "Kitchen"
+      }
     }
   },
   "pos": {
