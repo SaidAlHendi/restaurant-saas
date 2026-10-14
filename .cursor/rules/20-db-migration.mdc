@@ -1,21 +1,23 @@
 ---
-description: Use when starting any new feature or roadmap item, from plan to PR.
+description: Use whenever changing the database schema, Drizzle schema files or migrations.
+globs: apps/api/src/core/db/**,apps/api/drizzle/**
 alwaysApply: false
 ---
-# Building a feature
+# Schema changes
 
-1. Read the core rules, `docs/product.md`, `docs/architecture.md`, `docs/data-model.md`, and the roadmap item. Identify the owning module. Schema changes must also follow `.cursor/rules/21-seed-data.mdc`.
-2. Write a plan and show it before coding:
-   - user-visible behavior (who does what, on which screen)
-   - schema changes (tables, columns, indexes, RLS policy) and migration name
-   - API endpoints with Zod request/response schemas in `packages/shared`
-   - permissions and plan entitlement keys involved
-   - tests you will write
-   Wait for approval if the plan touches schema, API contracts, or the core rules.
-3. Create a branch `feat/<short-name>`.
-4. Implement in this order: shared schemas -> migration -> repository -> service -> route -> UI.
-5. Tests: service tests against real Postgres, one tenant-isolation test for every new
-   endpoint (org B cannot read or change org A data), e2e test for the main happy path when UI changes.
-6. Run `pnpm lint && pnpm typecheck && pnpm test`. Fix everything; do not skip tests.
-7. Add ar and en strings for all new UI text and check the screen in RTL.
-8. Tick the roadmap item, commit, open a PR with: what changed, screenshots for UI, how to test.
+- Edit the Drizzle schema, then run `pnpm db:generate`; do not hand-write SQL that Drizzle can generate.
+  Hand-written SQL in the same migration is fine for what drizzle-kit cannot express: RLS policies,
+  grants/revokes, triggers, seed rows, `SECURITY DEFINER` functions, partitions.
+- New tenant table checklist: `id uuid` (UUIDv7), `org_id uuid not null` (+ `branch_id` if operational),
+  `created_at/updated_at timestamptz`, index starting with `org_id`, RLS enabled and forced with policy
+  `org_id = nullif(current_setting('app.org_id', true), '')::uuid`, foreign keys with explicit `on delete`.
+- `app_user` gets default privileges on new tables (0002). Revoke what the app must not do
+  (e.g. `DELETE` on append-only or audit tables, writes on global reference tables).
+- Money columns: `bigint` named `*_minor`. Translations: `jsonb` like `{"ar": "", "en": ""}`.
+- Expand/contract only: add nullable column -> deploy code -> backfill -> make not null later.
+  Never drop/rename a column used by the currently deployed code.
+- Never edit a migration already merged to main; create a new one.
+- Large tables (orders, order_items, order_events): create indexes `CONCURRENTLY` in their own migration.
+- Every schema change also updates the demo seed in the same PR (`21-seed-data.mdc`).
+- After generating, read the SQL, apply with `pnpm db:migrate` locally, run the full test suite.
+- In the PR description, list the migration and whether it is safe to run while the old version is live.

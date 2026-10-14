@@ -86,6 +86,30 @@ function parseDate(value: unknown): Date | null {
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
+/**
+ * Minimal envelope of a Paddle notification, for storing payloads the full mapper rejects.
+ * Returns null when there is no usable event_id.
+ */
+export function readPaddleEventEnvelope(payload: unknown): {
+  eventId: string;
+  eventType: string | null;
+  occurredAt: Date | null;
+} | null {
+  const root = asRecord(payload);
+  if (root === null) {
+    return null;
+  }
+  const eventId = readString(root, 'event_id');
+  if (eventId === null) {
+    return null;
+  }
+  return {
+    eventId,
+    eventType: readString(root, 'event_type'),
+    occurredAt: parseDate(root['occurred_at']),
+  };
+}
+
 export function mapPaddleWebhookPayload(
   payload: unknown,
   priceMap: PaddlePriceMap,

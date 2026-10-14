@@ -1,62 +1,21 @@
 ---
-description: Core project rules for the restaurant SaaS. Always applied.
-alwaysApply: true
+description: Use when starting any new feature or roadmap item, from plan to PR.
+alwaysApply: false
 ---
-# Restaurant SaaS — core rules
+# Building a feature
 
-Multi-tenant SaaS for restaurants: public digital menu, cashier (POS), kitchen display (KDS),
-owner dashboard, reports, subscriptions. Read `docs/product.md`, `docs/architecture.md`, `docs/backend-architecture.md`, `docs/frontend-architecture.md`, `docs/ui-kit.md`, `docs/data-model.md`, `docs/api-conventions.md` and `docs/roadmap.md`
-before any non-trivial task. The current milestone is the first unchecked item in the roadmap.
-
-## Stack (do not change without asking)
-- pnpm + Turborepo monorepo, TypeScript strict everywhere
-- `apps/web`: React + Vite SPA — owner dashboard, cashier PWA, kitchen PWA, platform admin.
-  Redux Toolkit + RTK Query, React Router, Zod + react-hook-form, react-i18next, Tailwind, vite-plugin-pwa
-- `apps/site`: public pages that need SEO — restaurant menu pages and marketing site. React + Vite with
-  server-side rendering via React Router framework mode (SSR + prerender), served behind the CDN
-- `apps/api`: NestJS + Drizzle ORM + PostgreSQL + Redis + Socket.io gateway (long-running server, not serverless)
-- `packages/shared`: Zod schemas and types shared by web, site and api (single source for validation)
-- `packages/ui`: shadcn/ui components on Tailwind v4, themes cupcake (light) and forest (dark) from daisyUI palettes
-- Tests: Jest + Supertest for api (against a real Postgres), Vitest + Testing Library for web/site, Playwright (e2e)
-
-## Commands
-- `pnpm dev` — run everything locally (needs `docker compose up -d` for Postgres/Redis)
-- `pnpm lint && pnpm typecheck && pnpm test` — must pass before you say a task is done
-- `pnpm db:generate` — create a migration from schema changes; `pnpm db:migrate` — apply locally; update demo seed per `21-seed-data.mdc` when schema changes
-
-## Non-negotiable rules
-1. **Tenant isolation.** Every tenant table has `org_id` (operational tables also `branch_id`).
-   Never read `org_id` from the request body or URL; take it from the authenticated context.
-   All queries go through the repository helpers that scope by org. RLS policies exist on every
-   tenant table; a new tenant table needs a policy in the same migration.
-2. **Money** is integer minor units (`bigint`) plus a currency code. Never use floats.
-3. **Orders are never deleted.** Cancel/void are states. Order items snapshot product name and
-   price at order time. Catalog rows use soft delete (`deleted_at`).
-4. **Order state changes** only through `apps/api/src/modules/ordering/state-machine.ts`.
-   Every change writes an `order_events` row and an `outbox_events` row in the same transaction.
-5. **Idempotency.** Order creation requires `client_order_id` (UUIDv7 from the device), unique
-   on `(branch_id, client_order_id)`; a repeat returns the existing order.
-6. **Time.** Store `timestamptz` in UTC. Reports group by `business_date`, computed per branch
-   timezone and `day_start_hour`.
-7. **Permissions** are checked on the server for every endpoint (`@RequirePermission('orders.cancel')` guard)
-   plus branch scope plus plan entitlement (`can(org, 'feature.key')`). Never check plan names in code.
-8. **Migrations** are additive (expand/contract). Never drop or rename a column in the same
-   release that stops using it. Never edit a migration that has been merged.
-9. **i18n/RTL.** No hard-coded user-facing strings; use the translation files (ar, en). Layouts
-   use logical CSS properties so RTL works.
-10. **Secrets** never go in code, logs or commits. Do not read `.env*` files.
-11. **Frontend `.tsx` files are UI only.** Logic (state, effects, RTK Query, dispatch, calculations,
-    formatting, validation) lives in `.ts` view-model hooks, selectors and utils. UI comes from `@app/ui`
-    (shadcn/ui + Tailwind) with theme tokens only. See `45-components-ui-only.mdc` and `docs/ui-kit.md`.
-
-## Module boundaries (modular monolith)
-`apps/api/src/modules/{identity,tenancy,catalog,ordering,kitchen,reporting,billing,notifications,admin}`.
-A module only touches its own tables. Other modules call its exported service or react to its
-outbox events. Do not import another module's repository directly.
-
-## How to work
-- Start non-trivial tasks with a short plan (files to touch, schema changes, tests) and wait for
-  approval when the plan changes the schema, the API contract, or a rule above.
-- One feature per branch and PR. Keep PRs small. Write tests with the feature, not after.
-- When you are unsure what a restaurant needs, ask; do not invent product behavior.
-- If you notice a rule here is wrong or missing, propose the edit to `.cursor/rules/00-core.mdc`.
+1. Read the core rules, `docs/product.md`, `docs/architecture.md`, `docs/data-model.md`, and the roadmap item. Identify the owning module. Schema changes must also follow `.cursor/rules/21-seed-data.mdc`.
+2. Write a plan and show it before coding:
+   - user-visible behavior (who does what, on which screen)
+   - schema changes (tables, columns, indexes, RLS policy) and migration name
+   - API endpoints with Zod request/response schemas in `packages/shared`
+   - permissions and plan entitlement keys involved
+   - tests you will write
+   Wait for approval if the plan touches schema, API contracts, or the core rules.
+3. Create a branch `feat/<short-name>`.
+4. Implement in this order: shared schemas -> migration -> repository -> service -> route -> UI.
+5. Tests: service tests against real Postgres, one tenant-isolation test for every new
+   endpoint (org B cannot read or change org A data), e2e test for the main happy path when UI changes.
+6. Run `pnpm lint && pnpm typecheck && pnpm test`. Fix everything; do not skip tests.
+7. Add ar and en strings for all new UI text and check the screen in RTL.
+8. Tick the roadmap item, commit, open a PR with: what changed, screenshots for UI, how to test.

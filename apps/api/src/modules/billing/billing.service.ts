@@ -1,5 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
 
 import type {
   BillingChangePlanBody,
@@ -12,14 +11,14 @@ import { ENV, type Env } from '../../config/config.module';
 import { CLOCK, type Clock } from '../../core/clock/clock.tokens';
 import type { RequestContext } from '../../core/context/request-context';
 import { DRIZZLE, type DrizzleDb } from '../../core/db/db.module';
-import { users } from '../../core/db/schema/identity';
-import { withOrg } from '../../core/db/with-org';
+import { withOrg, type DrizzleTx } from '../../core/db/with-org';
 import {
   BadGatewayError,
   ConflictError,
   ValidationError,
 } from '../../core/errors/app-errors';
-import { TenancyRepository } from '../tenancy/tenancy.repository';
+import { IdentityService } from '../identity/identity.service';
+import { OrgSettingsService } from '../tenancy/org-settings.service';
 
 import { BillingRepository } from './billing.repository';
 import { EntitlementsService } from './entitlements.service';
@@ -27,6 +26,7 @@ import { isLivePaddleSubscription } from './is-live-paddle-subscription';
 import {
   PaddleProviderError,
   type PaddleClient,
+  type PaddleUpdateSubscriptionBody,
 } from './paddle-client';
 import {
   isCheckoutEnabled,
@@ -35,6 +35,10 @@ import {
 } from './paddle-price-map';
 import { PADDLE_CLIENT } from './paddle.tokens';
 import { featuresAndLimitsFromRows } from './plan-features.util';
+
+type ChangePlanAction =
+  | { kind: 'cancel'; subscriptionId: string }
+  | { kind: 'update'; subscriptionId: string; body: PaddleUpdateSubscriptionBody };
 
 @Injectable()
 export class BillingService {
@@ -45,7 +49,8 @@ export class BillingService {
     @Inject(PADDLE_CLIENT) private readonly paddle: PaddleClient,
     private readonly billingRepo: BillingRepository,
     private readonly entitlements: EntitlementsService,
-    private readonly tenancyRepo: TenancyRepository,
+    private readonly orgSettings: OrgSettingsService,
+    private readonly identity: IdentityService,
   ) {}
 
   async getOverview(ctx: RequestContext): Promise<BillingOverviewResponse> {
@@ -131,18 +136,10 @@ export class BillingService {
         throw new ConflictError('Already on this plan');
       }
 
-      const activeBranchIds = await this.tenancyRepo.listActiveBranchIds(tx, ctx.orgId);
-      const planRows = await this.billingRepo.listPublicPlans(tx);
-      const target = planRows.find((p) => p.key === body.planKey);
-      const quantity = target?.perBranch === true ? Math.max(1, activeBranchIds.length) : 1;
+      const quantity = await this.quantityForPlan(tx, ctx.orgId, body.planKey);
 
-      const emailRows = await tx
-        .select({ email: users.email })
-        .from(users)
-        .where(eq(users.id, ctx.userId))
-        .limit(1);
-      const email = emailRows[0]?.email;
-      if (email === null || email === undefined) {
+      const email = await this.identity.getUserEmail(tx, ctx.userId);
+      if (email === null) {
         throw new ValidationError('Owner email is required for checkout');
       }
 
@@ -166,60 +163,52 @@ export class BillingService {
 
     const priceMap = paddlePriceMapFromEnv(this.env);
 
-    try {
-      await withOrg(this.db, ctx.orgId, async (tx) => {
-        const sub = await this.billingRepo.findSubscriptionWithPlan(tx, ctx.orgId);
-        const now = this.clock.now();
-        if (sub === null || !isLivePaddleSubscription(sub, now)) {
-          throw new ConflictError(
-            'No live Paddle subscription',
-            {},
-            'BILLING_NO_SUBSCRIPTION',
-          );
-        }
-        if (sub.providerSubscriptionId === null) {
-          throw new ConflictError(
-            'No live Paddle subscription',
-            {},
-            'BILLING_NO_SUBSCRIPTION',
-          );
-        }
+    // Read and validate inside the transaction; call Paddle only after it has finished.
+    const action = await withOrg(this.db, ctx.orgId, async (tx): Promise<ChangePlanAction> => {
+      const sub = await this.billingRepo.findSubscriptionWithPlan(tx, ctx.orgId);
+      const now = this.clock.now();
+      if (
+        sub === null ||
+        sub.providerSubscriptionId === null ||
+        !isLivePaddleSubscription(sub, now)
+      ) {
+        throw new ConflictError('No live Paddle subscription', {}, 'BILLING_NO_SUBSCRIPTION');
+      }
+      const subscriptionId = sub.providerSubscriptionId;
 
-        if (body.planKey === sub.planKey) {
+      if (body.planKey === sub.planKey) {
+        if (sub.scheduledChange === null) {
           throw new ConflictError('Already on this plan');
         }
+        // Same plan with a pending change (e.g. scheduled cancel): only remove that change.
+        return { kind: 'update', subscriptionId, body: { scheduled_change: null } };
+      }
 
-        if (body.planKey === 'free') {
-          await this.paddle.cancelSubscriptionAtPeriodEnd(sub.providerSubscriptionId, {
-            effective_from: 'next_billing_period',
-          });
-          return;
-        }
+      if (body.planKey === 'free') {
+        return { kind: 'cancel', subscriptionId };
+      }
 
-        const priceId = priceIdForPlanKey(priceMap, body.planKey);
-        if (priceId === null) {
-          throw new ValidationError('Plan price is not configured');
-        }
+      const priceId = priceIdForPlanKey(priceMap, body.planKey);
+      if (priceId === null) {
+        throw new ValidationError('Plan price is not configured');
+      }
+      const quantity = await this.quantityForPlan(tx, ctx.orgId, body.planKey);
+      const patchBody: PaddleUpdateSubscriptionBody = {
+        items: [{ price_id: priceId, quantity }],
+        proration_billing_mode: 'prorated_immediately',
+        ...(sub.scheduledChange !== null ? { scheduled_change: null } : {}),
+      };
+      return { kind: 'update', subscriptionId, body: patchBody };
+    });
 
-        const activeBranchIds = await this.tenancyRepo.listActiveBranchIds(tx, ctx.orgId);
-        const planRows = await this.billingRepo.listPublicPlans(tx);
-        const target = planRows.find((p) => p.key === body.planKey);
-        const quantity = target?.perBranch === true ? Math.max(1, activeBranchIds.length) : 1;
-
-        const patchBody: {
-          items: Array<{ price_id: string; quantity: number }>;
-          proration_billing_mode: 'prorated_immediately';
-          scheduled_change?: null;
-        } = {
-          items: [{ price_id: priceId, quantity }],
-          proration_billing_mode: 'prorated_immediately',
-        };
-        if (sub.scheduledChange !== null) {
-          patchBody.scheduled_change = null;
-        }
-
-        await this.paddle.updateSubscription(sub.providerSubscriptionId, patchBody);
-      });
+    try {
+      if (action.kind === 'cancel') {
+        await this.paddle.cancelSubscriptionAtPeriodEnd(action.subscriptionId, {
+          effective_from: 'next_billing_period',
+        });
+      } else {
+        await this.paddle.updateSubscription(action.subscriptionId, action.body);
+      }
     } catch (err: unknown) {
       this.rethrowProvider(err);
     }
@@ -232,21 +221,34 @@ export class BillingService {
       throw new ValidationError('Billing provider is not configured');
     }
 
+    const customerId = await withOrg(this.db, ctx.orgId, async (tx) => {
+      const sub = await this.billingRepo.findSubscriptionWithPlan(tx, ctx.orgId);
+      if (sub === null || sub.providerCustomerId === null) {
+        throw new ConflictError('No Paddle customer for portal', {}, 'BILLING_NO_SUBSCRIPTION');
+      }
+      return sub.providerCustomerId;
+    });
+
     try {
-      return await withOrg(this.db, ctx.orgId, async (tx) => {
-        const sub = await this.billingRepo.findSubscriptionWithPlan(tx, ctx.orgId);
-        if (sub === null || sub.providerCustomerId === null) {
-          throw new ConflictError(
-            'No Paddle customer for portal',
-            {},
-            'BILLING_NO_SUBSCRIPTION',
-          );
-        }
-        return this.paddle.createCustomerPortalSession(sub.providerCustomerId);
-      });
+      return await this.paddle.createCustomerPortalSession(customerId);
     } catch (err: unknown) {
       this.rethrowProvider(err);
     }
+  }
+
+  /** Per-branch plans bill one seat per active branch; others bill one. */
+  private async quantityForPlan(
+    tx: DrizzleTx,
+    orgId: string,
+    planKey: BillingCheckoutBody['planKey'],
+  ): Promise<number> {
+    const planRows = await this.billingRepo.listPublicPlans(tx);
+    const target = planRows.find((p) => p.key === planKey);
+    if (target?.perBranch !== true) {
+      return 1;
+    }
+    const activeBranchIds = await this.orgSettings.listActiveBranchIds(tx, orgId);
+    return Math.max(1, activeBranchIds.length);
   }
 
   private rethrowProvider(err: unknown): never {
