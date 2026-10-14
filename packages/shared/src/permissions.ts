@@ -11,6 +11,7 @@ export const PERMISSION_KEYS = [
   'menu.read',
   'menu.manage',
   'reports.read',
+  'billing.manage',
 ] as const;
 
 export type PermissionKey = (typeof PERMISSION_KEYS)[number];

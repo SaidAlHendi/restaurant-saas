@@ -12,6 +12,7 @@ import { baseApi } from '../../app/api/base-api.js';
 import '../../features/tables/tables.api.js';
 import { branchPreferenceStorageKey } from '../../features/session/session-branch-preference.js';
 import { hydrateFromMe, sessionReducer } from '../../features/session/session.slice.js';
+import { testMeEntitlements } from '../../features/session/test-me-entitlements.js';
 import { i18n, initI18n } from '../../lib/i18n.js';
 
 import { useDashboardShell } from './use-dashboard-shell.js';
@@ -44,6 +45,7 @@ const sampleMe: MeResponse = {
   ],
   orgs: [{ id: orgId, name: 'Demo', slug: 'demo' }],
   currentBranchId: branchA,
+  entitlements: testMeEntitlements,
 };
 
 function createTestContext() {

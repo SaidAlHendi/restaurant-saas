@@ -9,6 +9,7 @@ import '../../features/tables/tables.api.js';
 import { applyDashboardBranchChange } from './apply-dashboard-branch-change.js';
 import { branchPreferenceStorageKey } from './session-branch-preference.js';
 import { hydrateFromMe, sessionReducer } from './session.slice.js';
+import { testMeEntitlements } from './test-me-entitlements.js';
 
 const orgId = '01932a1a-7b3e-7000-8000-000000000010';
 const branchA = '01932a1a-7b3e-7000-8000-000000000030';
@@ -38,6 +39,7 @@ const sampleMe: MeResponse = {
   ],
   orgs: [{ id: orgId, name: 'Demo', slug: 'demo' }],
   currentBranchId: branchA,
+  entitlements: testMeEntitlements,
 };
 
 describe('applyDashboardBranchChange', () => {

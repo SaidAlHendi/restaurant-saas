@@ -6,6 +6,7 @@ import { DRIZZLE, type DrizzleDb } from '../../core/db/db.module';
 import { withOrg } from '../../core/db/with-org';
 import { withUser } from '../../core/db/with-user';
 import type { RequestContext } from '../../core/context/request-context';
+import { EntitlementsService } from '../billing/entitlements.service';
 import { IdentityRepository } from './identity.repository';
 import { OrgSettingsService } from '../tenancy/org-settings.service';
 import { TenancyRepository } from '../tenancy/tenancy.repository';
@@ -17,6 +18,7 @@ export class MeService {
     private readonly identityRepo: IdentityRepository,
     private readonly tenancyRepo: TenancyRepository,
     private readonly orgSettings: OrgSettingsService,
+    private readonly entitlements: EntitlementsService,
   ) {}
 
   async getMe(ctx: RequestContext) {
@@ -51,6 +53,8 @@ export class MeService {
       throw new NotFoundError('Authenticated user context is incomplete');
     }
 
+    const entitlements = await this.entitlements.getEntitlements(ctx.orgId);
+
     return {
       user: {
         id: user.id,
@@ -81,6 +85,7 @@ export class MeService {
       })),
       orgs,
       currentBranchId: ctx.currentBranchId ?? null,
+      entitlements,
     };
   }
 }

@@ -11,6 +11,7 @@ import {
   SYSTEM_MANAGER_ROLE_ID,
   SYSTEM_OWNER_ROLE_ID,
 } from '../../modules/identity/constants';
+import { BillingRepository } from '../../modules/billing/billing.repository';
 import { TenancyRepository } from '../../modules/tenancy/tenancy.repository';
 import { OrderingRepository } from '../../modules/ordering/ordering.repository';
 
@@ -130,7 +131,7 @@ export async function seedOrganizationTree(
         defaultCurrency: 'SAR',
         defaultLocale: definition.defaultLocale,
         locales: ['ar', 'en'],
-        status: 'trial',
+        status: 'active',
       });
     }
 
@@ -312,6 +313,13 @@ export async function seedOrganizationTree(
       status: 'active',
       pinHash: pinOnlyPinHash,
     });
+
+    const billingRepo = new BillingRepository();
+    await billingRepo.upsertCompBusinessSubscription(
+      tx,
+      orgId,
+      deterministicUuid('subscription', definition.slug),
+    );
   });
 
   return { definition, id: orgId, branches };

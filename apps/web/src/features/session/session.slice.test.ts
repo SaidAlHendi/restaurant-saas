@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import type { MeResponse } from '@app/shared';
 
 import { branchPreferenceStorageKey, writeStoredBranchId } from './session-branch-preference.js';
+import { testMeEntitlements } from './test-me-entitlements.js';
 import {
   clearSession,
   hydrateFromMe,
@@ -44,6 +45,7 @@ const sampleMe: MeResponse = {
   ],
   orgs: [{ id: '01932a1a-7b3e-7000-8000-000000000010', name: 'Demo', slug: 'demo' }],
   currentBranchId: '01932a1a-7b3e-7000-8000-000000000030',
+  entitlements: testMeEntitlements,
 };
 
 describe('sessionReducer', () => {

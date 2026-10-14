@@ -18,6 +18,7 @@
   other tenants' resources), 409 conflict (version/state), 410 gone (e.g. `INVITE_EXPIRED`), 422 business rule (e.g. `ORDER_INVALID_TRANSITION`,
   `PAYMENT_METHOD_NOT_ACCEPTED` when card is disabled on the branch), 423 locked (e.g. `PIN_LOCKED`), 429 rate limit.
   Staff/settings codes include `STAFF_ALREADY_MEMBER`, `LAST_OWNER`, `INVITE_EXPIRED`, `MANAGER_APPROVAL_REQUIRED` (ordering, step 9b), `PIN_INVALID`, `PIN_LOCKED`.
+  Billing entitlements: `PLAN_FEATURE_REQUIRED` and `PLAN_LIMIT_REACHED` (403, `details` include `feature` or `limit`, `max`, `planKey`). `GET /v1/me` includes an `entitlements` snapshot for nav gating.
 - Idempotent creates: header `Idempotency-Key`; for orders it equals `client_order_id`.
 - Pagination: cursor-based `?cursor=&limit=` (max 100), response `{ items, nextCursor }`.
 - Money in API = integer minor units + `currency`. Dates ISO 8601 UTC; `businessDate` as `YYYY-MM-DD`.

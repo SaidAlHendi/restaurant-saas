@@ -28,9 +28,15 @@ import {
 import { generateInviteToken, inviteExpiresAt } from '../../lib/invite-token';
 import { isPgUniqueViolation } from '../../lib/pg-errors';
 import { newUuidV7 } from '../../lib/uuid';
+import { EntitlementsService } from '../billing/entitlements.service';
 import { IdentityService } from '../identity/identity.service';
 import { MailService } from '../notifications/mail.service';
 
+import {
+  assertUsersPerBranchSeats,
+  branchesAddedByMembershipChange,
+  branchesForNewMember,
+} from './staff-seat-enforcement';
 import { TenancyRepository } from './tenancy.repository';
 
 @Injectable()
@@ -42,6 +48,7 @@ export class StaffService {
     private readonly mail: MailService,
     @Inject(ENV) private readonly env: Env,
     @Inject(CLOCK) private readonly clock: Clock,
+    private readonly entitlements: EntitlementsService,
   ) {}
 
   list(ctx: RequestContext) {
@@ -104,6 +111,21 @@ export class StaffService {
           locale: 'en',
         });
       }
+
+      const activeBranchIds = await this.tenancyRepo.listActiveBranchIds(tx, ctx.orgId);
+      const targetBranches = branchesForNewMember(
+        body.allBranches,
+        body.branchIds,
+        activeBranchIds,
+      );
+      await assertUsersPerBranchSeats(
+        this.entitlements,
+        this.tenancyRepo,
+        tx,
+        ctx.orgId,
+        targetBranches,
+        'add_one',
+      );
 
       const membershipId = newUuidV7();
       try {
@@ -243,6 +265,21 @@ export class StaffService {
         throw new ValidationError('Invalid role');
       }
 
+      const activeBranchIds = await this.tenancyRepo.listActiveBranchIds(tx, ctx.orgId);
+      const targetBranches = branchesForNewMember(
+        body.allBranches,
+        body.branchIds,
+        activeBranchIds,
+      );
+      await assertUsersPerBranchSeats(
+        this.entitlements,
+        this.tenancyRepo,
+        tx,
+        ctx.orgId,
+        targetBranches,
+        'add_one',
+      );
+
       await this.identity.createStaffUser(tx, {
         id: userId,
         email: null,
@@ -335,6 +372,49 @@ export class StaffService {
           throw new ValidationError('Invalid role');
         }
         await this.tenancyRepo.updateMembership(tx, membershipId, { roleId: role.id });
+      }
+
+      const activeBranchIds = await this.tenancyRepo.listActiveBranchIds(tx, ctx.orgId);
+      const currentBranchIds = await this.tenancyRepo.listMembershipBranchIds(tx, membershipId);
+
+      if (body.status === 'active' && row.membership.status === 'disabled') {
+        const accessBranches = branchesForNewMember(
+          row.membership.allBranches,
+          currentBranchIds,
+          activeBranchIds,
+        );
+        await assertUsersPerBranchSeats(
+          this.entitlements,
+          this.tenancyRepo,
+          tx,
+          ctx.orgId,
+          accessBranches,
+          'add_one',
+        );
+      }
+
+      const nextAllBranches = body.allBranches ?? row.membership.allBranches;
+      const nextBranchIds =
+        body.branchIds ??
+        (nextAllBranches ? activeBranchIds : currentBranchIds);
+      if (body.allBranches !== undefined || body.branchIds !== undefined) {
+        const added = branchesAddedByMembershipChange(
+          row.membership.allBranches,
+          currentBranchIds,
+          nextAllBranches,
+          nextBranchIds,
+          activeBranchIds,
+        );
+        if (added.length > 0) {
+          await assertUsersPerBranchSeats(
+            this.entitlements,
+            this.tenancyRepo,
+            tx,
+            ctx.orgId,
+            added,
+            'add_one',
+          );
+        }
       }
 
       if (body.status !== undefined) {

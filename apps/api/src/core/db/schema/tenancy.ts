@@ -29,7 +29,7 @@ export const organizations = pgTable('organizations', {
   defaultLocale: text('default_locale').notNull(),
   locales: text('locales').array().notNull(),
   logoKey: text('logo_key'),
-  status: orgStatusEnum('status').notNull().default('trial'),
+  status: orgStatusEnum('status').notNull().default('active'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 

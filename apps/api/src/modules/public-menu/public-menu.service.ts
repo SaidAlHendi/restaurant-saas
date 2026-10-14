@@ -14,8 +14,6 @@ import { assemblePublicMenuCategories } from './public-menu.assemble';
 import { logoUrlFromKey } from './public-menu.mapper';
 import { PublicMenuRepository } from './public-menu.repository';
 
-const MENU_VISIBLE_STATUSES = new Set(['trial', 'active', 'past_due']);
-
 @Injectable()
 export class PublicMenuService {
   constructor(
@@ -76,11 +74,8 @@ export class PublicMenuService {
     if (!resolved) {
       throw new NotFoundError();
     }
-    if (resolved.status === 'cancelled') {
+    if (resolved.status === 'cancelled' || resolved.status === 'suspended') {
       throw new GoneError();
-    }
-    if (!MENU_VISIBLE_STATUSES.has(resolved.status)) {
-      throw new NotFoundError();
     }
 
     const orgId = resolved.org_id;

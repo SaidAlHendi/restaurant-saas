@@ -25,4 +25,8 @@ export const SEED_COVERAGE: Record<string, SeedCoverageEntry> = {
   outbox_events: {
     skipped: 'written by order commands; KDS loads active orders over HTTP',
   },
+  plans: { skipped: 'seeded in migration 0012' },
+  plan_features: { skipped: 'seeded in migration 0012' },
+  subscriptions: 'seeded',
+  billing_events: { skipped: 'runtime webhook idempotency log' },
 };

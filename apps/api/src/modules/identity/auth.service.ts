@@ -35,6 +35,9 @@ import {
 } from './constants';
 import { IdentityRepository } from './identity.repository';
 import { IdentityService } from './identity.service';
+import { EntitlementsService } from '../billing/entitlements.service';
+import { SubscriptionService } from '../billing/subscription.service';
+import { assertUsersPerBranchSeats, branchesForNewMember } from '../tenancy/staff-seat-enforcement';
 import { TenancyRepository } from '../tenancy/tenancy.repository';
 
 type Tx = Parameters<Parameters<DrizzleDb['transaction']>[0]>[0];
@@ -49,6 +52,8 @@ export class AuthService implements OnModuleInit {
     @Inject(forwardRef(() => IdentityService))
     private readonly identity: IdentityService,
     private readonly tenancyRepo: TenancyRepository,
+    private readonly subscriptions: SubscriptionService,
+    private readonly entitlements: EntitlementsService,
     private readonly jwt: JwtAccessService,
     private readonly refreshTokens: RefreshTokenService,
     @Inject(CLOCK) private readonly clock: Clock,
@@ -101,7 +106,7 @@ export class AuthService implements OnModuleInit {
         defaultCurrency: body.currency,
         defaultLocale: body.defaultLocale,
         locales: [body.defaultLocale],
-        status: 'trial',
+        status: 'active',
       });
 
       const branch = await this.insertBranchUniqueSlug(tx, newOrgId, branchId, branchBaseSlug, {
@@ -111,6 +116,7 @@ export class AuthService implements OnModuleInit {
       });
 
       await tx.execute(setOrgLocal(newOrgId));
+      await this.subscriptions.createTrialSubscription(tx, newOrgId);
       await this.tenancyRepo.insertMembership(tx, {
         id: membershipId,
         orgId: newOrgId,
@@ -499,6 +505,24 @@ export class AuthService implements OnModuleInit {
           throw new UnauthorizedError('INVALID_CREDENTIALS', LOGIN_INVALID_MESSAGE);
         }
       }
+
+      const activeBranchIds = await this.tenancyRepo.listActiveBranchIds(tx, resolved.orgId);
+      const branchIdsForInvite = membership.allBranches
+        ? activeBranchIds
+        : await this.tenancyRepo.listMembershipBranchIds(tx, membership.id);
+      const seatBranches = branchesForNewMember(
+        membership.allBranches,
+        branchIdsForInvite,
+        activeBranchIds,
+      );
+      await assertUsersPerBranchSeats(
+        this.entitlements,
+        this.tenancyRepo,
+        tx,
+        resolved.orgId,
+        seatBranches,
+        'already_reserved',
+      );
 
       const activated = await this.tenancyRepo.activateInvitedMembership(
         tx,

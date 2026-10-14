@@ -49,7 +49,11 @@ Feature keys: `menu.multilang`, `menu.branding`, `menu.table_qr`, `pos.access`, 
 - Staff: invite by email or create PIN-only staff, assign role and branches.
 - Devices: pair a cashier or kitchen device with a 6-digit code; see last seen.
 - Settings: restaurant, branch, tax, receipt header/footer, business day start hour.
-- Billing: current plan, trial days left, upgrade, invoices (provider portal).
+- Billing: current plan, trial days left, upgrade, invoices (provider portal). **Live today (10a):** plans and
+  limits in Postgres; signup starts a 14-day **restaurant** trial (`subscriptions`, org stays `active`);
+  `@RequireFeature` / limits enforce POS, KDS, reports, catalog size, and staff seats. Over-limit existing
+  data is never hidden—only new creates are blocked. Public menu hides **suspended** orgs (410 Gone); trial
+  expiry without a webhook relies on CDN TTL for menu cache (no purge).
 ### Cashier (PWA, touch-first)
 - PIN login on a paired device. Category grid → product tiles → modifier sheet → cart.
 - Order type: dine-in (table) / takeaway (customer name). Notes per item and per order.

@@ -1,6 +1,7 @@
 import { Module, forwardRef } from '@nestjs/common';
 
 import { CoreModule } from '../../core/core.module';
+import { BillingModule } from '../billing/billing.module';
 import { IdentityModule } from '../identity/identity.module';
 import { PublicMenuModule } from '../public-menu/public-menu.module';
 import { NotificationsModule } from '../notifications/notifications.module';
@@ -19,6 +20,7 @@ import { TenancyRepository } from './tenancy.repository';
 @Module({
   imports: [
     forwardRef(() => CoreModule),
+    BillingModule,
     forwardRef(() => IdentityModule),
     PublicMenuModule,
     NotificationsModule,

@@ -1,6 +1,7 @@
 import { Module, forwardRef } from '@nestjs/common';
 
 import { AuthModule } from '../../core/auth/auth.module';
+import { BillingModule } from '../billing/billing.module';
 import { TenancyModule } from '../tenancy/tenancy.module';
 
 import { AuthContextService } from './auth-context.service';
@@ -13,7 +14,7 @@ import { MeService } from './me.service';
 import { PinVerificationService } from './pin-verification.service';
 
 @Module({
-  imports: [forwardRef(() => TenancyModule), AuthModule],
+  imports: [forwardRef(() => TenancyModule), AuthModule, BillingModule],
   controllers: [AuthController, MeController],
   providers: [
     IdentityRepository,
