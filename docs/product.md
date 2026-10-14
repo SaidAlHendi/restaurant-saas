@@ -53,7 +53,8 @@ Feature keys: `menu.multilang`, `menu.branding`, `menu.table_qr`, `pos.access`, 
   limits in Postgres; signup starts a 14-day **restaurant** trial (`subscriptions`, org stays `active`);
   `@RequireFeature` / limits enforce POS, KDS, reports, catalog size, and staff seats. Over-limit existing
   data is never hidden—only new creates are blocked. Public menu hides **suspended** orgs (410 Gone); trial
-  expiry without a webhook relies on CDN TTL for menu cache (no purge).
+  expiry without a webhook relies on CDN TTL for menu cache (no purge). **2b:** `GET/POST /v1/billing/*`
+  and signed Paddle webhooks (`POST /v1/billing/webhooks/paddle`); see `docs/env-explained.md`.
 ### Cashier (PWA, touch-first)
 - PIN login on a paired device. Category grid → product tiles → modifier sheet → cart.
 - Order type: dine-in (table) / takeaway (customer name). Notes per item and per order.

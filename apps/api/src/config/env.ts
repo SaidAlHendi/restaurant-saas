@@ -41,6 +41,12 @@ const envSchema = z.object({
   S3_PUBLIC_BASE_URL: optionalUrl,
   UNSPLASH_ACCESS_KEY: z.preprocess(emptyStringToUndefined, z.string().optional()),
   WEB_APP_URL: z.preprocess(emptyStringToUndefined, z.url().default('http://localhost:5173')),
+  PADDLE_ENV: z.enum(['sandbox', 'production']).default('sandbox'),
+  PADDLE_API_KEY: z.preprocess(emptyStringToUndefined, z.string().min(1).optional()),
+  PADDLE_WEBHOOK_SECRET: z.preprocess(emptyStringToUndefined, z.string().min(1).optional()),
+  PADDLE_PRICE_MENU: z.preprocess(emptyStringToUndefined, z.string().min(1).optional()),
+  PADDLE_PRICE_RESTAURANT: z.preprocess(emptyStringToUndefined, z.string().min(1).optional()),
+  PADDLE_PRICE_BUSINESS: z.preprocess(emptyStringToUndefined, z.string().min(1).optional()),
 }).superRefine((data, ctx) => {
   if (
     (data.APP_ROLE === 'worker' || data.APP_ROLE === 'all') &&

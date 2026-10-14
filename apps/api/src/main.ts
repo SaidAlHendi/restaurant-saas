@@ -11,7 +11,7 @@ import { startWorkerContext } from './worker.bootstrap';
 
 async function bootstrap(): Promise<void> {
   const env = loadEnv();
-  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const app = await NestFactory.create(AppModule, { rawBody: true, bufferLogs: true });
   app.useLogger(app.get(Logger));
   app.use(cookieParser());
   app.enableCors({

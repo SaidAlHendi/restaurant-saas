@@ -20,7 +20,7 @@ import { TenancyRepository } from './tenancy.repository';
 @Module({
   imports: [
     forwardRef(() => CoreModule),
-    BillingModule,
+    forwardRef(() => BillingModule),
     forwardRef(() => IdentityModule),
     PublicMenuModule,
     NotificationsModule,

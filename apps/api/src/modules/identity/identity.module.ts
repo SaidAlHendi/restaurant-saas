@@ -14,7 +14,7 @@ import { MeService } from './me.service';
 import { PinVerificationService } from './pin-verification.service';
 
 @Module({
-  imports: [forwardRef(() => TenancyModule), AuthModule, BillingModule],
+  imports: [forwardRef(() => TenancyModule), AuthModule, forwardRef(() => BillingModule)],
   controllers: [AuthController, MeController],
   providers: [
     IdentityRepository,

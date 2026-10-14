@@ -83,3 +83,13 @@ export class LockedError extends AppError {
     super(code, message, 423, details);
   }
 }
+
+export class BadGatewayError extends AppError {
+  constructor(
+    code: string,
+    message: string,
+    details: Record<string, unknown> = {},
+  ) {
+    super(code, message, 502, details);
+  }
+}

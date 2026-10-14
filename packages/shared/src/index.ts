@@ -17,6 +17,24 @@ export {
 export type { FeatureKey, LimitKey } from './billing/feature-keys.js';
 export { entitlementsSnapshotSchema, entitlementReasonSchema } from './billing/entitlements.js';
 export type { EntitlementsSnapshot, EntitlementReason } from './billing/entitlements.js';
+export {
+  billingCheckoutBodySchema,
+  billingCheckoutResponseSchema,
+  billingChangePlanBodySchema,
+  billingChangePlanResponseSchema,
+  billingPortalResponseSchema,
+  billingOverviewResponseSchema,
+  billingPlanListItemSchema,
+  billingSubscriptionSnapshotSchema,
+} from './billing/billing-api.js';
+export type {
+  BillingCheckoutBody,
+  BillingCheckoutResponse,
+  BillingChangePlanBody,
+  BillingChangePlanResponse,
+  BillingPortalResponse,
+  BillingOverviewResponse,
+} from './billing/billing-api.js';
 
 export { signupBodySchema, signupResponseSchema } from './auth/signup.js';
 export type { SignupBody, SignupResponse } from './auth/signup.js';

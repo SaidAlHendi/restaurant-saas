@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD, APP_PIPE } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
@@ -34,8 +34,8 @@ import { OutboxService } from './outbox/outbox.service';
     RedisModule,
     RealtimeModule,
     AuthModule,
-    IdentityModule,
-    BillingModule,
+    forwardRef(() => IdentityModule),
+    forwardRef(() => BillingModule),
     ThrottlerModule.forRootAsync({
       inject: [ENV, REDIS],
       useFactory: (env: Env, redis: Redis) => ({

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 
 import { MENU_CACHE_PURGER } from '../../core/cache/menu-cache-purger';
 import { NoopMenuCachePurger } from '../../core/cache/noop-menu-cache-purger';
@@ -9,7 +9,7 @@ import { PublicMenuRepository } from './public-menu.repository';
 import { PublicMenuService } from './public-menu.service';
 
 @Module({
-  imports: [BillingModule],
+  imports: [forwardRef(() => BillingModule)],
   controllers: [PublicMenuController],
   providers: [
     PublicMenuRepository,

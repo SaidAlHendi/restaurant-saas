@@ -20,7 +20,7 @@ export async function createTestApp(
     loadEnv(envOverrides);
   }
   const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
-  const app = moduleRef.createNestApplication();
+  const app = moduleRef.createNestApplication({ rawBody: true });
   const env = loadEnv(envOverrides);
   app.use(cookieParser());
   app.enableCors({
