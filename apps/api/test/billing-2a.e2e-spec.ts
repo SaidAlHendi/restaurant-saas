@@ -16,11 +16,10 @@ import { newUuidV7 } from '../src/lib/uuid';
 import { EntitlementsService } from '../src/modules/billing/entitlements.service';
 import { SubscriptionService } from '../src/modules/billing/subscription.service';
 
-import { categoryBody, productBody } from './catalog-helpers';
 import { createTestApp } from './create-test-app';
 import { apiAgent } from './http';
-import { postOrder } from './ordering-helpers';
-import { signupFreshOrg } from './staff-settings-helpers';
+import { createIsolatedBranch, postOrder } from './ordering-helpers';
+import { extractInviteToken, signupFreshOrg } from './staff-settings-helpers';
 
 type ApiErrorBody = {
   error: { code: string; message: string; details: Record<string, unknown> };
@@ -31,6 +30,24 @@ function expectApiError(res: { status: number; body: unknown }, code: string): A
   const body = res.body as ApiErrorBody;
   expect(body.error.code).toBe(code);
   return body;
+}
+
+/** signupFreshOrg sets org.locales to [defaultLocale] only — omit ar to avoid 400. */
+function categoryBodyEn(nameEn = 'Mains') {
+  return {
+    name: { en: nameEn },
+    isActive: true,
+  };
+}
+
+function productBodyEn(categoryId: string, priceMinor: number, nameEn: string) {
+  return {
+    categoryId,
+    name: { en: nameEn },
+    description: { en: 'Test item' },
+    priceMinor,
+    isActive: true,
+  };
 }
 
 describe('Billing 2a (e2e)', () => {
@@ -71,7 +88,6 @@ describe('Billing 2a (e2e)', () => {
     const app = moduleRef.createNestApplication();
     app.use(cookieParser());
     await app.init();
-    const agent = apiAgent(app);
     const jwt = app.get(JwtAccessService);
 
     try {
@@ -83,17 +99,27 @@ describe('Billing 2a (e2e)', () => {
       expect(posErr.error.details['feature']).toBe('pos.access');
 
       const { productId } = await (async () => {
-        const cat = await fresh.ownerAgent.post('/v1/categories').send(categoryBody());
+        const cat = await fresh.ownerAgent.post('/v1/categories').send(categoryBodyEn());
+        expect(cat.status).toBe(201);
         const categoryId = (cat.body as { id: string }).id;
-        const prod = await fresh.ownerAgent.post('/v1/products').send(productBody(categoryId, 1000));
+        const prod = await fresh.ownerAgent
+          .post('/v1/products')
+          .send(productBodyEn(categoryId, 1000, 'Trial item'));
+        expect(prod.status).toBe(201);
         return { productId: (prod.body as { id: string }).id };
       })();
 
-      const order = await postOrder(fresh.ownerAgent, fresh.branchId, {
-        clientOrderId: newUuidV7(),
-        type: 'takeaway',
-        items: [{ productId, quantity: 1, modifierIds: [] }],
-      });
+      const clientOrderId = newUuidV7();
+      const order = await postOrder(
+        fresh.ownerAgent,
+        fresh.branchId,
+        {
+          clientOrderId,
+          type: 'takeaway',
+          items: [{ productId, quantity: 1, modifierIds: [] }],
+        },
+        clientOrderId,
+      );
       expectApiError(order, 'PLAN_FEATURE_REQUIRED');
 
       const kitchen = await fresh.ownerAgent.get(
@@ -131,35 +157,32 @@ describe('Billing 2a (e2e)', () => {
       trialEndsAt: null,
     });
 
-    const cat = await freshLimit.ownerAgent.post('/v1/categories').send(categoryBody());
+    const cat = await freshLimit.ownerAgent.post('/v1/categories').send(categoryBodyEn());
     const categoryId = (cat.body as { id: string }).id;
 
     for (let i = 0; i < 40; i += 1) {
       const suffix = `${String(i)}-${newUuidV7().slice(-6)}`;
-      const res = await freshLimit.ownerAgent.post('/v1/products').send({
-        ...productBody(categoryId, 1000 + i),
-        name: { en: `Item ${suffix}`, ar: `صنف ${suffix}` },
-      });
+      const res = await freshLimit.ownerAgent
+        .post('/v1/products')
+        .send(productBodyEn(categoryId, 1000 + i, `Item ${suffix}`));
       expect(res.status).toBe(201);
     }
 
-    const blocked = await freshLimit.ownerAgent.post('/v1/products').send({
-      ...productBody(categoryId, 5000),
-      name: { en: 'Forty-first', ar: 'حادي وأربعون' },
-    });
+    const blocked = await freshLimit.ownerAgent
+      .post('/v1/products')
+      .send(productBodyEn(categoryId, 5000, 'Forty-first'));
     const limitErr = expectApiError(blocked, 'PLAN_LIMIT_REACHED');
     expect(limitErr.error.details['limit']).toBe('limit.products');
     expect(limitErr.error.details['max']).toBe(40);
 
     const freshOver = await signupFreshOrg(defaultApp, defaultApp.get(JwtAccessService));
-    const cat2 = await freshOver.ownerAgent.post('/v1/categories').send(categoryBody());
+    const cat2 = await freshOver.ownerAgent.post('/v1/categories').send(categoryBodyEn());
     const categoryId2 = (cat2.body as { id: string }).id;
     for (let i = 0; i < 45; i += 1) {
       const suffix = `${String(i)}-${newUuidV7().slice(-6)}`;
-      const res = await freshOver.ownerAgent.post('/v1/products').send({
-        ...productBody(categoryId2, 1000),
-        name: { en: `Over ${suffix}`, ar: `ز ${suffix}` },
-      });
+      const res = await freshOver.ownerAgent
+        .post('/v1/products')
+        .send(productBodyEn(categoryId2, 1000, `Over ${suffix}`));
       expect(res.status).toBe(201);
     }
     await subs.applySubscriptionPatch(freshOver.orgId, {
@@ -218,7 +241,7 @@ describe('Billing 2a (e2e)', () => {
     for (let i = 0; i < 9; i += 1) {
       const pin = await freshTrial.ownerAgent.post('/v1/staff/pin-only').send({
         name: `Staff ${String(i)}`,
-        pin: `${String(1000 + i).padStart(4, '0')}`,
+        pin: String(1000 + i).padStart(4, '0'),
         roleKey: 'cashier',
         allBranches: true,
         branchIds: [],
@@ -235,9 +258,148 @@ describe('Billing 2a (e2e)', () => {
     expectApiError(eleventh, 'PLAN_LIMIT_REACHED');
   });
 
+  it('restaurant trial: accept invite at seat limit (already_reserved)', async () => {
+    const fresh = await signupFreshOrg(defaultApp, defaultApp.get(JwtAccessService));
+    for (let i = 0; i < 8; i += 1) {
+      const pin = await fresh.ownerAgent.post('/v1/staff/pin-only').send({
+        name: `Seat ${String(i)}`,
+        pin: String(2000 + i).padStart(4, '0'),
+        roleKey: 'cashier',
+        allBranches: true,
+        branchIds: [],
+      });
+      expect(pin.status).toBe(201);
+    }
+    const inviteEmail = `inv-${newUuidV7().slice(-8)}@example.com`;
+    const invite = await fresh.ownerAgent.post('/v1/staff/invites').send({
+      email: inviteEmail,
+      name: 'Tenth seat',
+      roleKey: 'cashier',
+      allBranches: true,
+      branchIds: [],
+    });
+    expect(invite.status).toBe(201);
+    const token = extractInviteToken((invite.body as { inviteUrl: string }).inviteUrl);
+    const accept = await apiAgent(defaultApp).post('/v1/auth/accept-invite').send({
+      token,
+      password: fresh.password,
+      name: 'Tenth seat',
+    });
+    expect(accept.status).toBe(201);
+  });
+
+  it('restaurant trial: re-enabling disabled member at seat limit returns 403', async () => {
+    const fresh = await signupFreshOrg(defaultApp, defaultApp.get(JwtAccessService));
+    for (let i = 0; i < 8; i += 1) {
+      const pin = await fresh.ownerAgent.post('/v1/staff/pin-only').send({
+        name: `Active ${String(i)}`,
+        pin: String(3000 + i).padStart(4, '0'),
+        roleKey: 'cashier',
+        allBranches: true,
+        branchIds: [],
+      });
+      expect(pin.status).toBe(201);
+    }
+    const disabledPin = await fresh.ownerAgent.post('/v1/staff/pin-only').send({
+      name: 'To disable',
+      pin: '3999',
+      roleKey: 'cashier',
+      allBranches: true,
+      branchIds: [],
+    });
+    expect(disabledPin.status).toBe(201);
+    const disabledId = (disabledPin.body as { membershipId: string }).membershipId;
+    expect(
+      (await fresh.ownerAgent.patch(`/v1/staff/${disabledId}`).send({ status: 'disabled' })).status,
+    ).toBe(200);
+
+    const tenthPin = await fresh.ownerAgent.post('/v1/staff/pin-only').send({
+      name: 'Tenth active',
+      pin: '3888',
+      roleKey: 'cashier',
+      allBranches: true,
+      branchIds: [],
+    });
+    expect(tenthPin.status).toBe(201);
+
+    const reenable = await fresh.ownerAgent.patch(`/v1/staff/${disabledId}`).send({ status: 'active' });
+    expectApiError(reenable, 'PLAN_LIMIT_REACHED');
+  });
+
+  it('restaurant trial: adding branch scope at seat limit returns 403', async () => {
+    const fresh = await signupFreshOrg(defaultApp, defaultApp.get(JwtAccessService));
+    const branchA = fresh.branchId;
+    const { branchId: branchB } = await createIsolatedBranch(fresh.ownerAgent);
+    for (let i = 0; i < 9; i += 1) {
+      const pin = await fresh.ownerAgent.post('/v1/staff/pin-only').send({
+        name: `BranchA ${String(i)}`,
+        pin: String(4000 + i).padStart(4, '0'),
+        roleKey: 'cashier',
+        allBranches: false,
+        branchIds: [branchA],
+      });
+      expect(pin.status).toBe(201);
+    }
+    const branchBOnly = await fresh.ownerAgent.post('/v1/staff/pin-only').send({
+      name: 'Branch B only',
+      pin: '4999',
+      roleKey: 'cashier',
+      allBranches: false,
+      branchIds: [branchB],
+    });
+    expect(branchBOnly.status).toBe(201);
+    const branchBMemberId = (branchBOnly.body as { membershipId: string }).membershipId;
+    const addBranchA = await fresh.ownerAgent.patch(`/v1/staff/${branchBMemberId}`).send({
+      branchIds: [branchB, branchA],
+    });
+    expectApiError(addBranchA, 'PLAN_LIMIT_REACHED');
+  });
+
+  it('disabled member staying disabled can add branches without seat check', async () => {
+    const fresh = await signupFreshOrg(defaultApp, defaultApp.get(JwtAccessService));
+    const branchA = fresh.branchId;
+    const { branchId: branchB } = await createIsolatedBranch(fresh.ownerAgent);
+    for (let i = 0; i < 8; i += 1) {
+      const pin = await fresh.ownerAgent.post('/v1/staff/pin-only').send({
+        name: `Fill ${String(i)}`,
+        pin: String(5000 + i).padStart(4, '0'),
+        roleKey: 'cashier',
+        allBranches: true,
+        branchIds: [],
+      });
+      expect(pin.status).toBe(201);
+    }
+    const disabledPin = await fresh.ownerAgent.post('/v1/staff/pin-only').send({
+      name: 'Disabled scoped',
+      pin: '5999',
+      roleKey: 'cashier',
+      allBranches: false,
+      branchIds: [branchA],
+    });
+    expect(disabledPin.status).toBe(201);
+    const disabledId = (disabledPin.body as { membershipId: string }).membershipId;
+    expect(
+      (await fresh.ownerAgent.patch(`/v1/staff/${disabledId}`).send({ status: 'disabled' })).status,
+    ).toBe(200);
+
+    const tenth = await fresh.ownerAgent.post('/v1/staff/pin-only').send({
+      name: 'Tenth active',
+      pin: '5888',
+      roleKey: 'cashier',
+      allBranches: true,
+      branchIds: [],
+    });
+    expect(tenth.status).toBe(201);
+
+    const patchBranches = await fresh.ownerAgent.patch(`/v1/staff/${disabledId}`).send({
+      branchIds: [branchA, branchB],
+    });
+    expect(patchBranches.status).toBe(200);
+  });
+
   it('suspended org: public menu 410 and excluded from sitemap', async () => {
     const fresh = await signupFreshOrg(defaultApp, defaultApp.get(JwtAccessService));
-    const db = defaultApp.get(DRIZZLE);
+    const db: DrizzleDb = defaultApp.get(DRIZZLE);
     await withOrg(db, fresh.orgId, async (tx) => {
       await tx
         .update(organizations)
@@ -248,7 +410,8 @@ describe('Billing 2a (e2e)', () => {
     const slug = (me.body as MeResponse).org.slug;
     const menu = await defaultAgent.get(`/v1/public/menus/${slug}`);
     expect(menu.status).toBe(410);
-    const sitemap = await defaultAgent.get('/v1/public/menus/sitemap');
+    const sitemap = await defaultAgent.get('/v1/public/sitemap');
+    expect(sitemap.status).toBe(200);
     const slugs = (sitemap.body as { items: Array<{ slug: string }> }).items.map((i) => i.slug);
     expect(slugs).not.toContain(slug);
   });
@@ -276,7 +439,7 @@ describe('Billing 2a (e2e)', () => {
   it('RLS: cannot read other org subscription; app_user cannot write plans', async () => {
     const a = await signupFreshOrg(defaultApp, defaultApp.get(JwtAccessService));
     const b = await signupFreshOrg(defaultApp, defaultApp.get(JwtAccessService));
-    const db = defaultApp.get(DRIZZLE);
+    const db: DrizzleDb = defaultApp.get(DRIZZLE);
     let aPlanKey = '';
     await withOrg(db, a.orgId, async (tx) => {
       const row = await tx.execute(
@@ -294,8 +457,21 @@ describe('Billing 2a (e2e)', () => {
     });
 
     await expect(
-      db.execute(sql`INSERT INTO plans (id, key, name, price_minor, sort_order) VALUES (gen_random_uuid(), 'hack', 'Hack', 0, 99)`),
+      db.execute(
+        sql.raw(
+          "INSERT INTO plans (id, key, name, price_minor, sort_order) VALUES (gen_random_uuid(), 'hack', 'Hack', 0, 99)",
+        ),
+      ),
     ).rejects.toThrow();
+
+    const eventId = `evt-${newUuidV7()}`;
+    await withOrg(db, a.orgId, async (tx) => {
+      await tx.execute(
+        sql`INSERT INTO billing_events (id, provider_event_id, type, occurred_at, payload)
+            VALUES (${newUuidV7()}, ${eventId}, 'test.event', now(), '{}'::jsonb)`,
+      );
+      await expect(tx.execute(sql`DELETE FROM billing_events WHERE provider_event_id = ${eventId}`)).rejects.toThrow();
+    });
   });
 
   it('cache invalidates after subscription patch via SubscriptionService', async () => {

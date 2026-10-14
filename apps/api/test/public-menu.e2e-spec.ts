@@ -134,7 +134,7 @@ describe('Public menu API (e2e)', () => {
     expect(ids).not.toContain(productId);
   });
 
-  it('404 unknown slug and suspended; 410 cancelled', async () => {
+  it('404 unknown slug; 410 suspended and cancelled', async () => {
     const previousStatus = await getOrgStatus(SEED_ORG.demo.id);
     try {
       const suffix = newUuidV7().slice(-8);
@@ -144,7 +144,8 @@ describe('Public menu API (e2e)', () => {
 
       await setOrgStatus(SEED_ORG.demo.id, 'suspended');
       const suspended = await agent.get('/v1/public/menus/demo');
-      expect(suspended.status).toBe(404);
+      expect(suspended.status).toBe(410);
+      expect(suspended.headers['cache-control']).toBe('public, s-maxage=30');
 
       await setOrgStatus(SEED_ORG.demo.id, 'cancelled');
       const cancelled = await agent.get('/v1/public/menus/demo');

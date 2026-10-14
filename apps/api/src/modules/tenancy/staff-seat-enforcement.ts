@@ -20,7 +20,7 @@ export async function assertUsersPerBranchSeats(
   for (const branchId of uniqueBranches) {
     const count = countBranchSeats(memberships, branchId);
     const nextValue = mode === 'add_one' ? count + 1 : count;
-    await entitlements.assertWithinLimit(orgId, 'limit.users_per_branch', nextValue);
+    await entitlements.assertWithinLimit(orgId, 'limit.users_per_branch', nextValue, tx);
   }
 }
 

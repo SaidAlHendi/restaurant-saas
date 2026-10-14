@@ -393,11 +393,17 @@ export class StaffService {
         );
       }
 
+      const nextStatus = body.status ?? row.membership.status;
+      const countsForSeats = nextStatus === 'active' || nextStatus === 'invited';
+
       const nextAllBranches = body.allBranches ?? row.membership.allBranches;
       const nextBranchIds =
         body.branchIds ??
         (nextAllBranches ? activeBranchIds : currentBranchIds);
-      if (body.allBranches !== undefined || body.branchIds !== undefined) {
+      if (
+        countsForSeats &&
+        (body.allBranches !== undefined || body.branchIds !== undefined)
+      ) {
         const added = branchesAddedByMembershipChange(
           row.membership.allBranches,
           currentBranchIds,

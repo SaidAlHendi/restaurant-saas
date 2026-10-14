@@ -5,6 +5,7 @@ export { PERMISSION_KEYS, SYSTEM_ROLE_KEYS } from './permissions.js';
 export type { PermissionKey, SystemRoleKey } from './permissions.js';
 
 export { PLAN_KEYS, PLAN_IDS } from './billing/plan-keys.js';
+export { planKeySchema } from './billing/plan-key-schema.js';
 export type { PlanKey } from './billing/plan-keys.js';
 export {
   FEATURE_KEYS,

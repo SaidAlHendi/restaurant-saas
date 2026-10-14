@@ -41,15 +41,11 @@ export function resolveEffectivePlan(
     return { planKey: subscription.planKey, reason: 'past_due' };
   }
 
-  if (subscription.status === 'canceled') {
-    if (
-      subscription.currentPeriodEnd !== null &&
-      subscription.currentPeriodEnd.getTime() > nowMs
-    ) {
-      return { planKey: subscription.planKey, reason: 'canceled' };
-    }
-    return { planKey: 'free', reason: 'none' };
+  if (
+    subscription.currentPeriodEnd !== null &&
+    subscription.currentPeriodEnd.getTime() > nowMs
+  ) {
+    return { planKey: subscription.planKey, reason: 'canceled' };
   }
-
-  return { planKey: 'free', reason: 'none' };
+  return { planKey: 'free', reason: 'canceled' };
 }

@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm';
 import { Injectable } from '@nestjs/common';
 
-import { PLAN_IDS, type PlanKey } from '@app/shared';
+import { PLAN_IDS, planKeySchema, type PlanKey } from '@app/shared';
 
 import type { DrizzleTx } from '../../core/db/with-org';
 import { planFeatures, plans, subscriptions } from '../../core/db/schema/billing';
@@ -33,7 +33,7 @@ export type SubscriptionUpdatePatch = {
   providerSubscriptionId?: string | null;
   branchQuantity?: number;
   canceledAt?: Date | null;
-  scheduledChange?: unknown | null;
+  scheduledChange?: Record<string, unknown> | null;
   providerEventAt?: Date | null;
 };
 
@@ -42,7 +42,7 @@ export class BillingRepository {
   async findSubscriptionWithPlan(
     tx: DrizzleTx,
     orgId: string,
-  ): Promise<SubscriptionWithPlanRow | undefined> {
+  ): Promise<SubscriptionWithPlanRow | null> {
     const rows = await tx
       .select({
         id: subscriptions.id,
@@ -60,14 +60,15 @@ export class BillingRepository {
       .where(eq(subscriptions.orgId, orgId))
       .limit(1);
     const row = rows[0];
-    if (!row) {
-      return undefined;
+    if (row === undefined) {
+      return null;
     }
+    const planKey = planKeySchema.parse(row.planKey);
     return {
       id: row.id,
       orgId: row.orgId,
       planId: row.planId,
-      planKey: row.planKey as PlanKey,
+      planKey,
       status: row.status,
       provider: row.provider,
       trialEndsAt: row.trialEndsAt,
@@ -117,7 +118,7 @@ export class BillingRepository {
     tx: DrizzleTx,
     orgId: string,
     patch: SubscriptionUpdatePatch,
-  ): Promise<SubscriptionWithPlanRow | undefined> {
+  ): Promise<SubscriptionWithPlanRow | null> {
     await tx
       .update(subscriptions)
       .set({
@@ -146,7 +147,7 @@ export class BillingRepository {
 
   async upsertCompBusinessSubscription(tx: DrizzleTx, orgId: string, id: string): Promise<void> {
     const existing = await this.findSubscriptionWithPlan(tx, orgId);
-    if (existing) {
+    if (existing !== null) {
       await tx
         .update(subscriptions)
         .set({
@@ -168,7 +169,4 @@ export class BillingRepository {
     });
   }
 
-  static freePlanId(): string {
-    return PLAN_IDS.free;
-  }
 }

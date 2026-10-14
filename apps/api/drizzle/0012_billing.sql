@@ -106,6 +106,7 @@ GRANT SELECT ON public.plans, public.plan_features TO app_user;--> statement-bre
 GRANT SELECT, INSERT, UPDATE ON public.billing_events TO app_user;--> statement-breakpoint
 REVOKE INSERT, UPDATE, DELETE ON public.plans FROM app_user;--> statement-breakpoint
 REVOKE INSERT, UPDATE, DELETE ON public.plan_features FROM app_user;--> statement-breakpoint
+REVOKE DELETE ON public.subscriptions, public.billing_events FROM app_user;--> statement-breakpoint
 ALTER TABLE public.role_permissions DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
 INSERT INTO public.role_permissions (role_id, permission_key, org_id) VALUES
   ('00000000-0000-4000-8000-000000000101', 'billing.manage', NULL)

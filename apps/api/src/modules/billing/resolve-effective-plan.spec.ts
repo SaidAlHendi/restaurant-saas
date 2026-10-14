@@ -78,19 +78,19 @@ describe('resolveEffectivePlan', () => {
       ).toEqual({ planKey: 'restaurant', reason: 'canceled' });
     });
 
-    it('free when period ended', () => {
+    it('free canceled when period ended', () => {
       expect(
         resolveEffectivePlan(
           sub({ status: 'canceled', provider: 'paddle', currentPeriodEnd: PAST }),
           NOW,
         ),
-      ).toEqual({ planKey: 'free', reason: 'none' });
+      ).toEqual({ planKey: 'free', reason: 'canceled' });
     });
 
-    it('free when currentPeriodEnd null', () => {
+    it('free canceled when currentPeriodEnd null', () => {
       expect(
         resolveEffectivePlan(sub({ status: 'canceled', provider: 'paddle' }), NOW),
-      ).toEqual({ planKey: 'free', reason: 'none' });
+      ).toEqual({ planKey: 'free', reason: 'canceled' });
     });
   });
 

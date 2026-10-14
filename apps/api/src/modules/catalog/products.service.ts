@@ -112,7 +112,7 @@ export class ProductsService {
 
       await this.assertCategoryAvailable(tx, body.categoryId);
       const count = await this.repo.countNonDeletedProducts(tx, ctx.orgId);
-      await this.entitlements.assertWithinLimit(ctx.orgId, 'limit.products', count + 1);
+      await this.entitlements.assertWithinLimit(ctx.orgId, 'limit.products', count + 1, tx);
 
       const sortOrder = await this.repo.nextProductSortOrderInCategory(
         tx,
