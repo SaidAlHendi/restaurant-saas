@@ -1,4 +1,8 @@
-import { mapPaddleStatusToOurs, mapPaddleWebhookPayload } from './paddle-webhook.mapper';
+import {
+  mapPaddleStatusToOurs,
+  mapPaddleWebhookPayload,
+  readPaddleEventEnvelope,
+} from './paddle-webhook.mapper';
 import type { PaddlePriceMap } from './paddle-price-map';
 
 const prices: PaddlePriceMap = {
@@ -67,5 +71,45 @@ describe('mapPaddleWebhookPayload', () => {
       expect(mapped.planKey).toBeNull();
       expect(mapped.planId).toBeNull();
     }
+  });
+});
+
+describe('unmappable payloads', () => {
+  it('returns null for non-objects, missing envelope fields, or missing data', () => {
+    expect(mapPaddleWebhookPayload('nope', prices)).toBeNull();
+    expect(
+      mapPaddleWebhookPayload({ event_type: 'subscription.created', data: {} }, prices),
+    ).toBeNull();
+    expect(
+      mapPaddleWebhookPayload(
+        {
+          event_id: 'evt_2',
+          event_type: 'subscription.created',
+          occurred_at: 'not-a-date',
+          data: {},
+        },
+        prices,
+      ),
+    ).toBeNull();
+    expect(
+      mapPaddleWebhookPayload(
+        {
+          event_id: 'evt_3',
+          event_type: 'subscription.created',
+          occurred_at: '2026-06-01T12:00:00.000Z',
+        },
+        prices,
+      ),
+    ).toBeNull();
+  });
+
+  it('readPaddleEventEnvelope keeps the event id even when the rest is unusable', () => {
+    expect(readPaddleEventEnvelope({ event_id: 'evt_4', occurred_at: 'bad' })).toEqual({
+      eventId: 'evt_4',
+      eventType: null,
+      occurredAt: null,
+    });
+    expect(readPaddleEventEnvelope({ event_type: 'subscription.created' })).toBeNull();
+    expect(readPaddleEventEnvelope(null)).toBeNull();
   });
 });

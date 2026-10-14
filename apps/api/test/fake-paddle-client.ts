@@ -2,7 +2,7 @@ import type {
   PaddleCancelSubscriptionBody,
   PaddleClient,
   PaddleUpdateSubscriptionBody,
-} from './paddle-client';
+} from '../src/modules/billing/paddle-client';
 
 export type FakePaddleUpdateCall = {
   subscriptionId: string;

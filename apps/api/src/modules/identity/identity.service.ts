@@ -31,6 +31,11 @@ export class IdentityService {
     return this.repo.findDisplayNamesByMembershipIds(tx, unique);
   }
 
+  async getUserEmail(tx: DrizzleTx, userId: string): Promise<string | null> {
+    const user = await this.repo.findUserById(tx, userId);
+    return user?.email ?? null;
+  }
+
   findUserByEmail(tx: DrizzleTx, email: string): Promise<typeof users.$inferSelect | undefined> {
     return this.repo.findUserByEmail(tx, email);
   }

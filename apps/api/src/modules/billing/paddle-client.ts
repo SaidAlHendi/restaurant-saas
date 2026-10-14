@@ -1,8 +1,11 @@
-export type PaddleUpdateSubscriptionBody = {
-  items: Array<{ price_id: string; quantity: number }>;
-  proration_billing_mode: 'prorated_immediately';
-  scheduled_change?: null;
-};
+export type PaddleUpdateSubscriptionBody =
+  | {
+      items: Array<{ price_id: string; quantity: number }>;
+      proration_billing_mode: 'prorated_immediately';
+      scheduled_change?: null;
+    }
+  /** Removes a scheduled change (e.g. a pending cancel) without touching items. */
+  | { scheduled_change: null };
 
 export type PaddleCancelSubscriptionBody = {
   effective_from: 'next_billing_period';

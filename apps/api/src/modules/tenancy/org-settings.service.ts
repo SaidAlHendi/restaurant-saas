@@ -174,7 +174,13 @@ export class OrgSettingsService {
     };
   }
 
-  private purgeMenuCache(orgId: string): void {
+  /** Active branch ids of the org, for callers outside tenancy (billing quantity). */
+  listActiveBranchIds(tx: DrizzleTx, orgId: string): Promise<string[]> {
+    return this.tenancyRepo.listActiveBranchIds(tx, orgId);
+  }
+
+  /** Fire-and-forget public menu CDN purge for the org (logs on failure). */
+  purgeMenuCache(orgId: string): void {
     scheduleMenuCachePurge(this.db, this.tenancyRepo, this.menuCachePurger, orgId, this.logger);
   }
 }

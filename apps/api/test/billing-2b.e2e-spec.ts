@@ -9,7 +9,7 @@ import { DRIZZLE, type DrizzleDb } from '../src/core/db/db.module';
 import { withOrg } from '../src/core/db/with-org';
 import { newUuidV7 } from '../src/lib/uuid';
 import { BillingRepository } from '../src/modules/billing/billing.repository';
-import { FakePaddleClient } from '../src/modules/billing/fake-paddle-client';
+import { FakePaddleClient } from './fake-paddle-client';
 import { PADDLE_CLIENT } from '../src/modules/billing/paddle.tokens';
 import { SubscriptionService } from '../src/modules/billing/subscription.service';
 
@@ -357,6 +357,15 @@ describe('Billing 2b Paddle (e2e)', () => {
       );
       expect(missingOrg.status).toBeLessThan(300);
 
+      // Signed but unmappable (no data object): stored with an error, not dropped.
+      const unmappableId = `evt-${newUuidV7()}`;
+      const unmappable = await postWebhook(apiAgent(nestApp), {
+        event_id: unmappableId,
+        event_type: 'subscription.created',
+        occurred_at: '2026-06-15T12:00:00.000Z',
+      });
+      expect(unmappable.status).toBeLessThan(300);
+
       const me = await fresh.ownerAgent.get('/v1/me');
       expect((me.body as MeResponse).entitlements.planKey).toBe(beforePlan);
 
@@ -365,6 +374,11 @@ describe('Billing 2b Paddle (e2e)', () => {
         sql`SELECT error FROM billing_events WHERE provider_event_id = ${unknownPriceId}`,
       );
       expect((row.rows[0] as { error: string }).error).toBe('unknown_price_id');
+      const unmappableRow = await db.execute(
+        sql`SELECT error, processed_at FROM billing_events WHERE provider_event_id = ${unmappableId}`,
+      );
+      expect(unmappableRow.rows[0]).toMatchObject({ error: 'unmappable_payload' });
+      expect((unmappableRow.rows[0] as { processed_at: unknown }).processed_at).not.toBeNull();
     } finally {
       await nestApp.close();
     }
@@ -605,17 +619,26 @@ describe('Billing 2b Paddle (e2e)', () => {
 
       await createIsolatedBranch(fresh.ownerAgent);
 
-      const samePlan = await fresh.ownerAgent.post('/v1/billing/change-plan').send({
+      const unknownPlan = await fresh.ownerAgent.post('/v1/billing/change-plan').send({
+        planKey: 'gold',
+      });
+      expect(unknownPlan.status).toBe(400);
+
+      // Same plan with a scheduled cancel: only the scheduled change is removed.
+      const undoCancel = await fresh.ownerAgent.post('/v1/billing/change-plan').send({
         planKey: 'menu',
       });
-      expect(samePlan.status).toBe(409);
+      expect([200, 201]).toContain(undoCancel.status);
+      expect(fake.updateCalls).toEqual([
+        { subscriptionId: subId, body: { scheduled_change: null } },
+      ]);
 
       const change = await fresh.ownerAgent.post('/v1/billing/change-plan').send({
         planKey: 'restaurant',
       });
       expect([200, 201]).toContain(change.status);
-      expect(fake.updateCalls).toHaveLength(1);
-      expect(fake.updateCalls[0]).toEqual({
+      expect(fake.updateCalls).toHaveLength(2);
+      expect(fake.updateCalls[1]).toEqual({
         subscriptionId: subId,
         body: {
           items: [{ price_id: TEST_PRICE_RESTAURANT, quantity: 2 }],
@@ -629,6 +652,16 @@ describe('Billing 2b Paddle (e2e)', () => {
         const row = await nestApp.get(BillingRepository).findSubscriptionWithPlan(tx, fresh.orgId);
         expect(row?.planKey).toBe('menu');
       });
+
+      // Same plan with no pending change is still a conflict, and Paddle is not called.
+      await nestApp.get(SubscriptionService).applySubscriptionPatch(fresh.orgId, {
+        scheduledChange: null,
+      });
+      const samePlan = await fresh.ownerAgent.post('/v1/billing/change-plan').send({
+        planKey: 'menu',
+      });
+      expect(samePlan.status).toBe(409);
+      expect(fake.updateCalls).toHaveLength(2);
 
       const portal = await fresh.ownerAgent.post('/v1/billing/portal').send({});
       expect([200, 201]).toContain(portal.status);

@@ -1,19 +1,18 @@
 import { Inject, Injectable, Logger, type OnModuleInit } from '@nestjs/common';
 
 import { ENV, type Env } from '../../config/config.module';
-import { MENU_CACHE_PURGER, type MenuCachePurger } from '../../core/cache/menu-cache-purger';
 import { CLOCK, type Clock } from '../../core/clock/clock.tokens';
 import { DRIZZLE, type DrizzleDb } from '../../core/db/db.module';
 import { withOrg } from '../../core/db/with-org';
 import { UnauthorizedError } from '../../core/errors/app-errors';
-import { scheduleMenuCachePurge } from '../public-menu/public-menu-cache.util';
-import { TenancyRepository } from '../tenancy/tenancy.repository';
+import { OrgSettingsService } from '../tenancy/org-settings.service';
 
 import { BillingRepository } from './billing.repository';
 import { EntitlementsService } from './entitlements.service';
 import { isLivePaddleSubscription } from './is-live-paddle-subscription';
 import {
   mapPaddleWebhookPayload,
+  readPaddleEventEnvelope,
   type MappedSubscriptionEvent,
   type MappedTransactionEvent,
 } from './paddle-webhook.mapper';
@@ -33,8 +32,7 @@ export class PaddleWebhookService implements OnModuleInit {
     @Inject(CLOCK) private readonly clock: Clock,
     private readonly billingRepo: BillingRepository,
     private readonly entitlements: EntitlementsService,
-    private readonly tenancyRepo: TenancyRepository,
-    @Inject(MENU_CACHE_PURGER) private readonly menuCachePurger: MenuCachePurger,
+    private readonly orgSettings: OrgSettingsService,
   ) {}
 
   onModuleInit(): void {
@@ -66,19 +64,31 @@ export class PaddleWebhookService implements OnModuleInit {
     const priceMap = paddlePriceMapFromEnv(this.env);
     const mapped = mapPaddleWebhookPayload(payload, priceMap);
     if (mapped === null) {
-      this.logger.warn('Paddle webhook payload could not be mapped');
+      // Signed but unreadable: keep a record when Paddle gave us an event id, so it is visible.
+      const envelope = readPaddleEventEnvelope(payload);
+      if (envelope === null) {
+        this.logger.warn('Paddle webhook payload without event_id could not be mapped');
+        return;
+      }
+      await this.storeErroredEvent(
+        envelope.eventId,
+        envelope.eventType ?? 'unknown',
+        envelope.occurredAt ?? this.clock.now(),
+        payload,
+        'unmappable_payload',
+      );
       return;
     }
 
     const orgId = this.parseOrgId(mapped.orgIdRaw);
     if (orgId === null) {
-      await this.storeUnknownOrgEvent(mapped.eventId, mapped.eventType, mapped.occurredAt, payload);
+      await this.storeErroredEvent(mapped.eventId, mapped.eventType, mapped.occurredAt, payload);
       return;
     }
 
     const orgKnown = await withOrg(this.db, orgId, (tx) => this.billingRepo.orgExists(tx, orgId));
     if (!orgKnown) {
-      await this.storeUnknownOrgEvent(mapped.eventId, mapped.eventType, mapped.occurredAt, payload);
+      await this.storeErroredEvent(mapped.eventId, mapped.eventType, mapped.occurredAt, payload);
       return;
     }
 
@@ -109,7 +119,7 @@ export class PaddleWebhookService implements OnModuleInit {
     }
 
     if (mapped.priceId !== null && mapped.planId === null) {
-      await this.storeUnknownOrgEvent(
+      await this.storeErroredEvent(
         mapped.eventId,
         mapped.eventType,
         mapped.occurredAt,
@@ -129,7 +139,7 @@ export class PaddleWebhookService implements OnModuleInit {
     return raw;
   }
 
-  private async storeUnknownOrgEvent(
+  private async storeErroredEvent(
     eventId: string,
     type: string,
     occurredAt: Date,
@@ -278,13 +288,7 @@ export class PaddleWebhookService implements OnModuleInit {
 
     if (entitlementsChanged) {
       this.entitlements.invalidate(orgId);
-      scheduleMenuCachePurge(
-        this.db,
-        this.tenancyRepo,
-        this.menuCachePurger,
-        orgId,
-        this.logger,
-      );
+      this.orgSettings.purgeMenuCache(orgId);
     }
   }
 }
