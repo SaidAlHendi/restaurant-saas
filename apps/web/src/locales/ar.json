@@ -88,7 +88,8 @@
       "closeSidebar": "إغلاق القائمة",
       "kitchen": "المطبخ",
       "branchSettings": "إعدادات الفرع",
-      "settings": "الإعدادات"
+      "settings": "الإعدادات",
+      "billing": "الفوترة"
     },
     "today": {
       "title": "اليوم",
@@ -723,5 +724,137 @@
     "toggleSidebar": "طيّ القائمة أو توسيعها",
     "darkMode": "الوضع الداكن",
     "lightMode": "الوضع الفاتح"
+  },
+  "billing": {
+    "title": "الفوترة",
+    "description": "خطتك والدفع والفواتير.",
+    "loadError": "تعذّر تحميل الفوترة. حاول مرة أخرى.",
+    "plansTitle": "الخطط",
+    "checkoutDisabled": "الدفع الإلكتروني غير مفعّل بعد. تواصل مع الدعم لتغيير خطتك.",
+    "plans": {
+      "free": "المجانية",
+      "menu": "المنيو",
+      "restaurant": "المطعم",
+      "business": "الأعمال"
+    },
+    "status": {
+      "trial": "تجربة",
+      "paid": "نشط",
+      "past_due": "فشل الدفع",
+      "trial_expired": "انتهت التجربة",
+      "canceled": "ملغى",
+      "comp": "نشط",
+      "none": "مجاني"
+    },
+    "current": {
+      "title": "الخطة الحالية",
+      "trialDaysLeft_zero": "انتهت التجربة اليوم",
+      "trialDaysLeft_one": "بقي يوم واحد في التجربة",
+      "trialDaysLeft_two": "بقي يومان في التجربة",
+      "trialDaysLeft_few": "بقي {{count}} أيام في التجربة",
+      "trialDaysLeft_many": "بقي {{count}} يومًا في التجربة",
+      "trialDaysLeft_other": "بقي {{count}} يوم في التجربة",
+      "trialEnded": "انتهت تجربتك. أنت الآن على الخطة المجانية.",
+      "endsOn": "تنتهي في {{date}}",
+      "renewsOn": "تتجدد في {{date}}",
+      "branches_zero": "لا فروع",
+      "branches_one": "فرع واحد",
+      "branches_two": "فرعان",
+      "branches_few": "{{count}} فروع",
+      "branches_many": "{{count}} فرعًا",
+      "branches_other": "{{count}} فرع"
+    },
+    "pastDue": {
+      "title": "فشلت آخر عملية دفع",
+      "description": "حدّث بطاقتك من «إدارة الاشتراك». تبقى خطتك فعّالة بينما تعيد Paddle المحاولة."
+    },
+    "actions": {
+      "subscribe": "اشترك",
+      "change": "انتقل إلى هذه الخطة",
+      "downgradeFree": "ألغِ وانتقل إلى المجانية",
+      "keep": "أبقِ خطتي",
+      "current": "الخطة الحالية",
+      "manage": "إدارة الاشتراك"
+    },
+    "price": {
+      "free": "مجانًا",
+      "perMonth": "/ شهريًا",
+      "perBranchMonth": "/ للفرع شهريًا"
+    },
+    "features": {
+      "menu.multilang": "منيو بالعربية والإنجليزية",
+      "menu.branding": "شعارك بدون «Powered by»",
+      "menu.table_qr": "رمز QR لكل طاولة",
+      "pos.access": "الكاشير",
+      "kds.access": "شاشة المطبخ",
+      "reports.basic": "التقارير اليومية",
+      "reports.advanced": "تقارير متقدمة",
+      "reports.export": "تصدير التقارير",
+      "branches.multi": "عدة فروع",
+      "roles.custom": "أدوار مخصّصة",
+      "ordering.table_qr": "الطلب من الطاولة",
+      "api.access": "الوصول عبر API"
+    },
+    "limits": {
+      "products_zero": "بدون منتجات",
+      "products_one": "حتى منتج واحد",
+      "products_two": "حتى منتجين",
+      "products_few": "حتى {{count}} منتجات",
+      "products_many": "حتى {{count}} منتجًا",
+      "products_other": "حتى {{count}} منتج",
+      "productsUnlimited": "منتجات بلا حدود",
+      "usersPerBranch_zero": "بدون موظفين",
+      "usersPerBranch_one": "موظف واحد لكل فرع",
+      "usersPerBranch_two": "موظفان لكل فرع",
+      "usersPerBranch_few": "{{count}} موظفين لكل فرع",
+      "usersPerBranch_many": "{{count}} موظفًا لكل فرع",
+      "usersPerBranch_other": "{{count}} موظف لكل فرع",
+      "productsReached": "خطتك تسمح بحد أقصى {{max}} منتج. قم بالترقية لإضافة المزيد.",
+      "usersReached": "خطتك تسمح بحد أقصى {{max}} موظف لكل فرع. قم بالترقية لإضافة المزيد.",
+      "devicesReached": "خطتك تسمح بحد أقصى {{max}} أجهزة لكل فرع. قم بالترقية لإضافة المزيد.",
+      "generic": "وصلت إلى حد خطتك. قم بالترقية لإضافة المزيد."
+    },
+    "errors": {
+      "useChangePlan": "لديك اشتراك بالفعل. استخدم «انتقل إلى هذه الخطة» بدلًا من ذلك.",
+      "noSubscription": "لا يوجد اشتراك مدفوع بعد. اشترك في خطة أولًا.",
+      "provider": "خدمة الدفع غير متاحة الآن. حاول لاحقًا.",
+      "alreadyOnPlan": "أنت بالفعل على هذه الخطة.",
+      "checkoutUnavailable": "تعذّر فتح صفحة الدفع. حاول لاحقًا."
+    },
+    "activation": {
+      "polling": "جارٍ تحديث خطتك. يستغرق ذلك بضع ثوانٍ…",
+      "timeout": "ما زالت عملية الدفع قيد المعالجة. حدّث الصفحة بعد دقيقة."
+    },
+    "change": {
+      "title": "الانتقال إلى خطة {{plan}}؟",
+      "description": "يُحسب فرق السعر الآن بالتناسب مع تاريخ الفوترة.",
+      "confirm": "غيّر الخطة",
+      "cancelTitle": "إلغاء اشتراكك؟",
+      "cancelDescription": "تبقى خطتك فعّالة حتى نهاية فترة الفوترة، ثم تنتقل إلى المجانية.",
+      "cancelConfirm": "ألغِ الاشتراك"
+    },
+    "banner": {
+      "trialEnding_zero": "تنتهي تجربتك اليوم.",
+      "trialEnding_one": "تنتهي تجربتك بعد يوم واحد.",
+      "trialEnding_two": "تنتهي تجربتك بعد يومين.",
+      "trialEnding_few": "تنتهي تجربتك بعد {{count}} أيام.",
+      "trialEnding_many": "تنتهي تجربتك بعد {{count}} يومًا.",
+      "trialEnding_other": "تنتهي تجربتك بعد {{count}} يوم.",
+      "trialLastDay": "تنتهي تجربتك اليوم.",
+      "trialExpired": "انتهت تجربتك. الكاشير والمطبخ والتقارير متوقفة حتى تختار خطة.",
+      "pastDue": "فشلت آخر عملية دفع. حدّث بطاقتك للحفاظ على خطتك.",
+      "choosePlan": "اختر خطة",
+      "fixPayment": "حدّث الدفع"
+    },
+    "upgrade": {
+      "title": "{{feature}} غير متاح في خطتك",
+      "description": "قم بالترقية إلى خطة {{plan}} أو أعلى لاستخدامه.",
+      "descriptionGeneric": "قم بترقية خطتك لاستخدامه.",
+      "askOwner": "اطلب من مالك المطعم ترقية الخطة.",
+      "seePlans": "عرض الخطط",
+      "back": "العودة إلى لوحة التحكم",
+      "lockedNav": "يحتاج خطة أعلى",
+      "featureToast": "هذا يحتاج خطة أعلى."
+    }
   }
 }

@@ -12,6 +12,7 @@ export type SessionOrg = MeResponse['org'];
 export type SessionRole = MeResponse['role'];
 export type SessionBranch = MeResponse['branches'][number];
 export type SessionOrgOption = MeResponse['orgs'][number];
+export type SessionEntitlements = MeResponse['entitlements'];
 
 export type SessionState = {
   accessToken: string | null;
@@ -22,6 +23,7 @@ export type SessionState = {
   permissions: string[];
   branches: SessionBranch[];
   orgs: SessionOrgOption[];
+  entitlements: SessionEntitlements | null;
   currentBranchId: string | null;
 };
 
@@ -38,6 +40,7 @@ const initialState: SessionState = {
   permissions: [],
   branches: [],
   orgs: [],
+  entitlements: null,
   currentBranchId: null,
 };
 
@@ -71,6 +74,7 @@ const sessionSlice = createSlice({
         state.permissions = me.permissions;
         state.branches = me.branches;
         state.orgs = me.orgs;
+        state.entitlements = me.entitlements;
         state.currentBranchId = pickCurrentBranchId({
           meCurrentBranchId: me.currentBranchId,
           branches: me.branches,
@@ -78,6 +82,10 @@ const sessionSlice = createSlice({
           storedBranchId: action.meta.storedBranchId,
         });
       },
+    },
+    /** Fresher entitlements (e.g. from GET /v1/billing after a plan change). */
+    setEntitlements(state, action: PayloadAction<SessionEntitlements>) {
+      state.entitlements = action.payload;
     },
     setCurrentBranchId(state, action: PayloadAction<string | null>) {
       state.currentBranchId = action.payload;
@@ -92,6 +100,7 @@ export const {
   setAccessToken,
   setBootstrapDone,
   hydrateFromMe,
+  setEntitlements,
   setCurrentBranchId,
   clearSession,
 } = sessionSlice.actions;

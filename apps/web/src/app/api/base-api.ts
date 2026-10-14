@@ -107,6 +107,7 @@ export const baseApi = createApi({
     'DailyReport',
     'OrgSettings',
     'Staff',
+    'Billing',
   ],
   endpoints: (builder) => ({
     getHealth: builder.query<{ status: string }, undefined>({

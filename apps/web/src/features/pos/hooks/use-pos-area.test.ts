@@ -16,6 +16,7 @@ vi.mock('./use-pos-lock-screen.js', () => ({
 }));
 
 const permissions = ['orders.create'];
+const features = ['pos.access'];
 
 vi.mock('../../../app/hooks.js', () => ({
   useAppSelector: (selector: (state: unknown) => unknown) =>
@@ -37,12 +38,14 @@ vi.mock('../../session/session.selectors.js', () => ({
       state.session.permissions.includes('orders.create'),
   selectCurrentBranchId: (state: { session: { currentBranchId: string } }) =>
     state.session.currentBranchId,
+  selectHasFeature: (feature: string) => () => features.includes(feature),
 }));
 
 describe('usePosArea device lock', () => {
   afterEach(() => {
     window.localStorage.removeItem(POS_DEVICE_LOCKED_STORAGE_KEY);
     permissions.splice(0, permissions.length, 'orders.create');
+    features.splice(0, features.length, 'pos.access');
   });
 
   it('starts with lock screen when the device flag is set', () => {
@@ -59,5 +62,14 @@ describe('usePosArea device lock', () => {
     const { result } = renderHook(() => usePosArea());
     expect(result.current.showLockScreen).toBe(false);
     expect(result.current.showNoAccess).toBe(true);
+  });
+
+  it('shows the upgrade screen when the plan has no cashier, even on a locked device', () => {
+    features.splice(0, features.length);
+    writePosDeviceLocked(true);
+    const { result } = renderHook(() => usePosArea());
+    expect(result.current.showUpgrade).toBe(true);
+    expect(result.current.showLockScreen).toBe(false);
+    expect(result.current.showNoAccess).toBe(false);
   });
 });

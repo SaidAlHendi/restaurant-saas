@@ -10,6 +10,7 @@ import {
   selectBootstrapDone,
   selectCan,
   selectCurrentBranchId,
+  selectHasFeature,
 } from '../../session/session.selectors.js';
 import { usePosLockScreen } from './use-pos-lock-screen.js';
 
@@ -17,12 +18,15 @@ export function usePosArea() {
   const { t } = useTranslation();
   const bootstrapDone = useAppSelector(selectBootstrapDone);
   const canUsePos = useAppSelector(selectCan('orders.create'));
+  const hasPosFeature = useAppSelector(selectHasFeature('pos.access'));
   const branchId = useAppSelector(selectCurrentBranchId);
   const [deviceLocked, setDeviceLocked] = useState(() => readPosDeviceLocked());
   const [pinSwitchOpen, setPinSwitchOpen] = useState(false);
 
-  const showLockScreen = deviceLocked || pinSwitchOpen;
-  const showNoAccess = !canUsePos && !showLockScreen;
+  // The plan comes first: a locked device on an expired trial still shows the upgrade screen.
+  const showUpgrade = !hasPosFeature;
+  const showLockScreen = !showUpgrade && (deviceLocked || pinSwitchOpen);
+  const showNoAccess = !showUpgrade && !canUsePos && !showLockScreen;
 
   const onUnlocked = useCallback(() => {
     writePosDeviceLocked(false);
@@ -49,6 +53,7 @@ export function usePosArea() {
     t,
     bootstrapDone,
     canUsePos,
+    showUpgrade,
     showLockScreen,
     showNoAccess,
     lockScreen,

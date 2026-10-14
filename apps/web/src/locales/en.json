@@ -88,7 +88,8 @@
       "closeSidebar": "Close menu",
       "kitchen": "Kitchen",
       "branchSettings": "Branch settings",
-      "settings": "Settings"
+      "settings": "Settings",
+      "billing": "Billing"
     },
     "today": {
       "title": "Today",
@@ -719,5 +720,117 @@
     "toggleSidebar": "Collapse or expand the menu",
     "darkMode": "Dark mode",
     "lightMode": "Light mode"
+  },
+  "billing": {
+    "title": "Billing",
+    "description": "Your plan, payment and invoices.",
+    "loadError": "Could not load billing. Try again.",
+    "plansTitle": "Plans",
+    "checkoutDisabled": "Online payment is not set up yet. Contact support to change your plan.",
+    "plans": {
+      "free": "Free",
+      "menu": "Menu",
+      "restaurant": "Restaurant",
+      "business": "Business"
+    },
+    "status": {
+      "trial": "Trial",
+      "paid": "Active",
+      "past_due": "Payment failed",
+      "trial_expired": "Trial ended",
+      "canceled": "Canceled",
+      "comp": "Active",
+      "none": "Free"
+    },
+    "current": {
+      "title": "Current plan",
+      "trialDaysLeft_one": "{{count}} day left in your trial",
+      "trialDaysLeft_other": "{{count}} days left in your trial",
+      "trialEnded": "Your trial has ended. You are on the Free plan.",
+      "endsOn": "Ends on {{date}}",
+      "renewsOn": "Renews on {{date}}",
+      "branches_one": "{{count}} branch",
+      "branches_other": "{{count}} branches"
+    },
+    "pastDue": {
+      "title": "Your last payment failed",
+      "description": "Update your card in Manage subscription. Your plan stays active while Paddle retries."
+    },
+    "actions": {
+      "subscribe": "Subscribe",
+      "change": "Switch to this plan",
+      "downgradeFree": "Cancel and move to Free",
+      "keep": "Keep my plan",
+      "current": "Current plan",
+      "manage": "Manage subscription"
+    },
+    "price": {
+      "free": "Free",
+      "perMonth": "/ month",
+      "perBranchMonth": "/ branch / month"
+    },
+    "features": {
+      "menu.multilang": "Menu in Arabic and English",
+      "menu.branding": "Your logo, no \"Powered by\"",
+      "menu.table_qr": "QR code per table",
+      "pos.access": "Cashier (POS)",
+      "kds.access": "Kitchen display",
+      "reports.basic": "Daily reports",
+      "reports.advanced": "Advanced reports",
+      "reports.export": "Report export",
+      "branches.multi": "Multiple branches",
+      "roles.custom": "Custom roles",
+      "ordering.table_qr": "Order from the table",
+      "api.access": "API access"
+    },
+    "limits": {
+      "products_one": "Up to {{count}} product",
+      "products_other": "Up to {{count}} products",
+      "productsUnlimited": "Unlimited products",
+      "usersPerBranch_one": "{{count}} staff member per branch",
+      "usersPerBranch_other": "{{count}} staff per branch",
+      "productsReached": "Your plan allows up to {{max}} products. Upgrade to add more.",
+      "usersReached": "Your plan allows up to {{max}} staff per branch. Upgrade to add more.",
+      "devicesReached": "Your plan allows up to {{max}} devices per branch. Upgrade to add more.",
+      "generic": "You have reached your plan's limit. Upgrade to add more."
+    },
+    "errors": {
+      "useChangePlan": "You already have a subscription. Use \"Switch to this plan\" instead.",
+      "noSubscription": "There is no paid subscription yet. Subscribe to a plan first.",
+      "provider": "The payment service is not available right now. Try again later.",
+      "alreadyOnPlan": "You are already on this plan.",
+      "checkoutUnavailable": "Payment could not be opened. Try again later."
+    },
+    "activation": {
+      "polling": "Updating your plan. This takes a few seconds…",
+      "timeout": "Your payment is still being processed. Refresh this page in a minute."
+    },
+    "change": {
+      "title": "Switch to {{plan}}?",
+      "description": "The price difference is charged or credited now, prorated to your billing date.",
+      "confirm": "Switch plan",
+      "cancelTitle": "Cancel your subscription?",
+      "cancelDescription": "Your plan stays active until the end of the billing period, then you move to Free.",
+      "cancelConfirm": "Cancel subscription"
+    },
+    "banner": {
+      "trialEnding_one": "Your trial ends in {{count}} day.",
+      "trialEnding_other": "Your trial ends in {{count}} days.",
+      "trialLastDay": "Your trial ends today.",
+      "trialExpired": "Your trial has ended. Cashier, kitchen and reports are off until you choose a plan.",
+      "pastDue": "Your last payment failed. Update your card to keep your plan.",
+      "choosePlan": "Choose a plan",
+      "fixPayment": "Update payment"
+    },
+    "upgrade": {
+      "title": "{{feature}} is not in your plan",
+      "description": "Upgrade to the {{plan}} plan or higher to use it.",
+      "descriptionGeneric": "Upgrade your plan to use it.",
+      "askOwner": "Ask the restaurant owner to upgrade the plan.",
+      "seePlans": "See plans",
+      "back": "Back to dashboard",
+      "lockedNav": "Needs a higher plan",
+      "featureToast": "This needs a higher plan."
+    }
   }
 }

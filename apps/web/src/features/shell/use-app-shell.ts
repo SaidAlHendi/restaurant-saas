@@ -1,6 +1,7 @@
 import {
   ChefHatIcon,
   ClipboardListIcon,
+  CreditCardIcon,
   LayoutDashboardIcon,
   SettingsIcon,
   ShoppingBagIcon,
@@ -16,8 +17,15 @@ import { useDisclosure, useTheme } from '@app/ui';
 import { useAppDispatch, useAppSelector } from '../../app/hooks.js';
 import { setAppLanguage } from '../../lib/i18n.js';
 import { useLogoutMutation } from '../auth/auth.api.js';
+import { isNavItemLocked } from '../billing/billing.utils.js';
+import { useBillingBanner } from '../billing/hooks/use-billing-banner.js';
 import { clearSession } from '../session/session.slice.js';
-import { selectCan, selectSessionOrg, selectSessionUser } from '../session/session.selectors.js';
+import {
+  selectCan,
+  selectEntitlements,
+  selectSessionOrg,
+  selectSessionUser,
+} from '../session/session.selectors.js';
 import { activeNavItemId, readSidebarCollapsed, writeSidebarCollapsed } from './app-shell.utils.js';
 
 type NavItem = { id: string; to: string; end: boolean; icon: LucideIcon; label: string };
@@ -37,6 +45,9 @@ export function useAppShell() {
   const canUsePos = useAppSelector(selectCan('orders.create'));
   const canUseKds = useAppSelector(selectCan('orders.update_status'));
   const canReports = useAppSelector(selectCan('reports.read'));
+  const canManageBilling = useAppSelector(selectCan('billing.manage'));
+  const entitlements = useAppSelector(selectEntitlements);
+  const banner = useBillingBanner();
   const { theme, toggleTheme } = useTheme();
   const [logout, { isLoading: loggingOut }] = useLogoutMutation();
 
@@ -100,6 +111,15 @@ export function useAppShell() {
         end: false,
       });
     }
+    if (canManageBilling) {
+      items.push({
+        id: 'billing',
+        to: '/dashboard/billing',
+        icon: CreditCardIcon,
+        label: t('dashboard.nav.billing'),
+        end: false,
+      });
+    }
     if (canOpenSettings) {
       items.push({
         id: 'settings',
@@ -110,7 +130,7 @@ export function useAppShell() {
       });
     }
     return items;
-  }, [canOpenSettings, canReadMenu, canReports, canUsePos, canUseKds, t]);
+  }, [canManageBilling, canOpenSettings, canReadMenu, canReports, canUsePos, canUseKds, t]);
 
   const activeId = activeNavItemId(navItems, location.pathname);
 
@@ -166,6 +186,7 @@ export function useAppShell() {
   const isDark = theme === 'forest';
 
   return {
+    banner,
     brand: org?.name ?? t('app.title'),
     brandInitial: (org?.name ?? t('app.title')).trim().charAt(0).toUpperCase(),
     collapsed,
@@ -178,6 +199,8 @@ export function useAppShell() {
       icon: item.icon,
       label: item.label,
       active: item.id === activeId,
+      // Still navigable: the screen explains which plan unlocks it.
+      locked: isNavItemLocked(item.id, entitlements),
       onSelect: () => {
         void navigate(item.to);
       },
@@ -215,6 +238,7 @@ export function useAppShell() {
       language: isArabic ? 'English' : 'العربية',
       logout: t('auth.logout'),
       loading: t('common.loading'),
+      locked: t('billing.upgrade.lockedNav'),
     },
   };
 }
