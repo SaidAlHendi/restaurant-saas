@@ -50,10 +50,7 @@ export class PermissionsGuard implements CanActivate {
     }
 
     if (feature) {
-      const allowed = await this.entitlements.can(ctx.orgId, feature);
-      if (!allowed) {
-        throw new ForbiddenError('Plan feature not available');
-      }
+      await this.entitlements.assertFeature(ctx.orgId, feature);
     }
 
     if (permission && !ctx.permissions.includes(permission)) {

@@ -13,18 +13,16 @@ import { ProductsService } from './products.service';
 describe('ProductsService', () => {
   it('calls entitlements.assertWithinLimit on create', async () => {
     const assertWithinLimit = jest.fn().mockResolvedValue(undefined);
+    const mockTx = {
+      execute: jest.fn().mockResolvedValue(undefined),
+    };
     const moduleRef = await Test.createTestingModule({
       providers: [
         ProductsService,
         {
           provide: DRIZZLE,
           useValue: {
-            transaction: jest.fn(async (fn: (tx: unknown) => Promise<unknown>) => {
-              const tx = {
-                execute: jest.fn().mockResolvedValue(undefined),
-              };
-              return fn(tx);
-            }),
+            transaction: jest.fn(async (fn: (tx: unknown) => Promise<unknown>) => fn(mockTx)),
           },
         },
         {
@@ -93,6 +91,6 @@ describe('ProductsService', () => {
       },
     );
 
-    expect(assertWithinLimit).toHaveBeenCalledWith('org', 'limit.products', 4);
+    expect(assertWithinLimit).toHaveBeenCalledWith('org', 'limit.products', 4, mockTx);
   });
 });

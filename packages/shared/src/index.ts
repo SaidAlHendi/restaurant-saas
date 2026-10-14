@@ -4,6 +4,38 @@ export type { HealthResponse, ReadyResponse } from './health.js';
 export { PERMISSION_KEYS, SYSTEM_ROLE_KEYS } from './permissions.js';
 export type { PermissionKey, SystemRoleKey } from './permissions.js';
 
+export { PLAN_KEYS, PLAN_IDS } from './billing/plan-keys.js';
+export { planKeySchema } from './billing/plan-key-schema.js';
+export type { PlanKey } from './billing/plan-keys.js';
+export {
+  FEATURE_KEYS,
+  LIMIT_KEYS,
+  PLAN_FEATURE_SEED,
+  isFeatureKey,
+  isLimitKey,
+} from './billing/feature-keys.js';
+export type { FeatureKey, LimitKey } from './billing/feature-keys.js';
+export { entitlementsSnapshotSchema, entitlementReasonSchema } from './billing/entitlements.js';
+export type { EntitlementsSnapshot, EntitlementReason } from './billing/entitlements.js';
+export {
+  billingCheckoutBodySchema,
+  billingCheckoutResponseSchema,
+  billingChangePlanBodySchema,
+  billingChangePlanResponseSchema,
+  billingPortalResponseSchema,
+  billingOverviewResponseSchema,
+  billingPlanListItemSchema,
+  billingSubscriptionSnapshotSchema,
+} from './billing/billing-api.js';
+export type {
+  BillingCheckoutBody,
+  BillingCheckoutResponse,
+  BillingChangePlanBody,
+  BillingChangePlanResponse,
+  BillingPortalResponse,
+  BillingOverviewResponse,
+} from './billing/billing-api.js';
+
 export { signupBodySchema, signupResponseSchema } from './auth/signup.js';
 export type { SignupBody, SignupResponse } from './auth/signup.js';
 

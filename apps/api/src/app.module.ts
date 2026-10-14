@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 
 import { CoreModule } from './core/core.module';
 import { WorkerContextShutdownService } from './worker-context-shutdown.service';
@@ -12,6 +12,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { OrderingModule } from './modules/ordering/ordering.module';
 import { PublicMenuModule } from './modules/public-menu/public-menu.module';
 import { ReportingModule } from './modules/reporting/reporting.module';
+
 @Module({
   imports: [
     CoreModule,
@@ -21,7 +22,7 @@ import { ReportingModule } from './modules/reporting/reporting.module';
     OrderingModule,
     KitchenModule,
     ReportingModule,
-    BillingModule,
+    forwardRef(() => BillingModule),
     NotificationsModule,
     AdminModule,
     PublicMenuModule,

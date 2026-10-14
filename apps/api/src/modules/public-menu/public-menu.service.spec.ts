@@ -4,6 +4,8 @@ import { DRIZZLE } from '../../core/db/db.module';
 import { OBJECT_STORAGE } from '../../core/storage/storage.tokens';
 import { EntitlementsService } from '../billing/entitlements.service';
 
+import { GoneError } from '../../core/errors/app-errors';
+
 import { PublicMenuRepository } from './public-menu.repository';
 import { PublicMenuService } from './public-menu.service';
 
@@ -113,5 +115,29 @@ describe('PublicMenuService', () => {
 
     expect(can).toHaveBeenCalledWith(resolvedOrg.org_id, 'menu.branding');
     expect(payload.poweredBy).toBe(true);
+  });
+
+  it('returns 410 Gone for suspended org', async () => {
+    const can = jest.fn(() => Promise.resolve(true));
+    const moduleRef = await Test.createTestingModule({
+      providers: [
+        PublicMenuService,
+        { provide: DRIZZLE, useValue: { transaction: mockDbTransaction() } },
+        {
+          provide: PublicMenuRepository,
+          useValue: {
+            ...createPublicMenuRepoMock(),
+            resolveOrg: jest.fn().mockResolvedValue({ ...resolvedOrg, status: 'suspended' }),
+          },
+        },
+        {
+          provide: OBJECT_STORAGE,
+          useValue: { publicUrl: () => 'http://example.com/logo.webp' },
+        },
+        { provide: EntitlementsService, useValue: { can } },
+      ],
+    }).compile();
+    const service = moduleRef.get(PublicMenuService);
+    await expect(service.getMenu('demo', {})).rejects.toBeInstanceOf(GoneError);
   });
 });

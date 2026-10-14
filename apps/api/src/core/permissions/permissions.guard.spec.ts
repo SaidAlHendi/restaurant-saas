@@ -31,9 +31,9 @@ describe('PermissionsGuard', () => {
     permissions: ['orders.create'],
   };
 
-  it('calls entitlements.can when @RequireFeature is set', async () => {
-    const can = jest.fn((_orgId: string, _key: string) => Promise.resolve(true));
-    const entitlements = { can } as unknown as EntitlementsService;
+  it('calls entitlements.assertFeature when @RequireFeature is set', async () => {
+    const assertFeature = jest.fn((_orgId: string, _key: string) => Promise.resolve(undefined));
+    const entitlements = { assertFeature } as unknown as EntitlementsService;
     const reflector = {
       getAllAndOverride: jest.fn((key: string) => {
         if (key === IS_PUBLIC_KEY) {
@@ -53,12 +53,14 @@ describe('PermissionsGuard', () => {
     } as unknown as Reflector;
     const guard = new PermissionsGuard(reflector, entitlements);
     await expect(guard.canActivate(mockContext(requestCtx))).resolves.toBe(true);
-    expect(can).toHaveBeenCalledWith(requestCtx.orgId, 'pos.access');
+    expect(assertFeature).toHaveBeenCalledWith(requestCtx.orgId, 'pos.access');
   });
 
-  it('denies when entitlements.can returns false', async () => {
-    const can = jest.fn((_orgId: string, _key: string) => Promise.resolve(false));
-    const entitlements = { can } as unknown as EntitlementsService;
+  it('denies when assertFeature throws', async () => {
+    const assertFeature = jest.fn((_orgId: string, _key: string) =>
+      Promise.reject(new ForbiddenError('Plan feature not available', {}, 'PLAN_FEATURE_REQUIRED')),
+    );
+    const entitlements = { assertFeature } as unknown as EntitlementsService;
     const reflector = {
       getAllAndOverride: jest.fn((key: string) => {
         if (key === IS_PUBLIC_KEY) {

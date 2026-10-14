@@ -1,21 +1,24 @@
 ---
-description: Use when touching order creation, edits, status, payments, kitchen tickets or realtime order events.
-globs: apps/api/src/modules/ordering/**,apps/api/src/modules/kitchen/**,apps/web/src/features/pos/**,apps/web/src/features/kds/**,apps/web/src/features/orders/**
+description: Frontend rules for apps/web (React + Vite SPA with Redux Toolkit and RTK Query) and apps/site (SSR public pages with SEO).
+globs: apps/web/**,apps/site/**,packages/ui/**
 alwaysApply: false
 ---
-# Order flow rules
+# Frontend rules
 
-- All status changes go through `modules/ordering/state-machine.ts`. Add a transition there
-  (with the permission it needs) before using it anywhere.
-- One transaction per command: update order (with `WHERE status = $expected AND version = $v`),
-  insert `order_events`, insert `outbox_events`. If 0 rows updated, return 409 with current state.
-- Order creation: require `client_order_id`; on unique conflict return the existing order (200), not an error.
-- Order number: `UPDATE branch_counters SET last_order_number = last_order_number + 1
-  WHERE branch_id = $1 AND business_date = $2 RETURNING last_order_number` (upsert the row if missing).
-- Items snapshot `product_name_snapshot` and `unit_price_minor`; modifiers snapshot name and price.
-- After an order is `placed`, never update existing items: add new items (flagged as additions)
-  or void items with a reason. Voiding after `preparing` requires manager approval.
-- Totals are computed on the server from items; ignore totals sent by the client.
-- Realtime payloads include `orderId`, `status`, `version`. Clients drop events older than what they have.
-- Tests for any change here: duplicate submit, concurrent status change (two requests), invalid
-  transition, cross-tenant access, edit after send.
+Full structure and patterns: `docs/frontend-architecture.md`. UI kit and themes: `docs/ui-kit.md`. `.tsx` files are UI only (see `45-components-ui-only.mdc`).
+
+- `apps/web` is a Vite SPA. `apps/site` is server-rendered (React Router framework mode) for SEO. Never put
+  public, indexable pages in `apps/web`, and never add Redux to `apps/site`.
+- Server data in `apps/web` goes through RTK Query endpoints (`injectEndpoints` in `features/*/*.api.ts`)
+  with tags. No `fetch`/axios in components. No server data copied into slices.
+- Redux slices only for client state: session, cart, POS device/staff session, UI prefs. Use typed hooks.
+- Types come from Zod schemas in `@app/shared` (`z.infer`). Forms: react-hook-form + zodResolver with the shared schema.
+- All user-facing text via react-i18next (`locales/ar.json`, `en.json`). Set `dir`/`lang` on `<html>`.
+- Tailwind logical utilities only (`ms-*`, `me-*`, `ps-*`, `pe-*`, `start-*`, `end-*`, `text-start`).
+- Money via `formatMoney(minor, currency, locale)` (KWD/BHD/JOD/OMR have 3 decimals). Dates with the branch timezone.
+- Build screens from `@app/ui` (shadcn/ui + Tailwind) components only; no one-off styled elements, no raw colors — theme tokens only (cupcake light, forest dark).
+- POS/KDS: touch targets ≥ 48px, works at 768px landscape, confirm button disabled while sending,
+  kitchen refetches active orders on reconnect and ignores events with an older `version`.
+- Every `apps/site` page: SSR/prerender HTML, `meta()` with title, description, canonical, OG, hreflang;
+  JSON-LD (`Restaurant`, `Menu`) on menu pages; responsive images with width/height; minimal client JS.
+- Keyboard reachable, visible focus, labels on inputs.

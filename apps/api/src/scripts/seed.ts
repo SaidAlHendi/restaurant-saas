@@ -15,6 +15,7 @@ import {
   SYSTEM_MANAGER_ROLE_ID,
   SYSTEM_OWNER_ROLE_ID,
 } from '../modules/identity/constants';
+import { BillingRepository } from '../modules/billing/billing.repository';
 import { IdentityRepository } from '../modules/identity/identity.repository';
 import { TenancyRepository } from '../modules/tenancy/tenancy.repository';
 
@@ -57,9 +58,11 @@ async function main(): Promise<void> {
           defaultCurrency: 'SAR',
           defaultLocale: 'en',
           locales: ['en', 'ar'],
-          status: 'trial',
+          status: 'active',
         });
       }
+
+      await new BillingRepository().upsertCompBusinessSubscription(tx, orgDef.id, newUuidV7());
 
       for (let i = 1; i <= 2; i += 1) {
         const slug = i === 1 ? 'main' : `branch-${String(i)}`;

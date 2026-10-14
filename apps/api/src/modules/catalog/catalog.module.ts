@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 
 import { BillingModule } from '../billing/billing.module';
 import { PublicMenuModule } from '../public-menu/public-menu.module';
@@ -18,7 +18,7 @@ import { PosMenuController } from './pos-menu.controller';
 import { PosMenuService } from './pos-menu.service';
 
 @Module({
-  imports: [TenancyModule, BillingModule, PublicMenuModule],
+  imports: [TenancyModule, forwardRef(() => BillingModule), PublicMenuModule],
   controllers: [CategoriesController, ProductsController, ModifierGroupsController, PosMenuController],
   providers: [
     CatalogRepository,

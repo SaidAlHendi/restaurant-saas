@@ -36,6 +36,7 @@ export class OrdersController {
   constructor(private readonly ordering: OrderingService) {}
 
   @RequirePermission('orders.create')
+  @RequireFeature('pos.access')
   @Post()
   async create(
     @Ctx() ctx: RequestContext,
@@ -94,6 +95,7 @@ export class OrdersController {
   }
 
   @RequirePermission('orders.create')
+  @RequireFeature('pos.access')
   @Post(':orderId/items')
   addItems(
     @Ctx() ctx: RequestContext,

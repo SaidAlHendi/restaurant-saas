@@ -18,6 +18,11 @@
   other tenants' resources), 409 conflict (version/state), 410 gone (e.g. `INVITE_EXPIRED`), 422 business rule (e.g. `ORDER_INVALID_TRANSITION`,
   `PAYMENT_METHOD_NOT_ACCEPTED` when card is disabled on the branch), 423 locked (e.g. `PIN_LOCKED`), 429 rate limit.
   Staff/settings codes include `STAFF_ALREADY_MEMBER`, `LAST_OWNER`, `INVITE_EXPIRED`, `MANAGER_APPROVAL_REQUIRED` (ordering, step 9b), `PIN_INVALID`, `PIN_LOCKED`.
+  Billing entitlements: `PLAN_FEATURE_REQUIRED` and `PLAN_LIMIT_REACHED` (403, `details` include `feature` or `limit`, `max`, `planKey`). `GET /v1/me` includes an `entitlements` snapshot for nav gating.
+  Billing API (`billing.manage`): `GET /v1/billing`, `POST /v1/billing/checkout`, `/change-plan`, `/portal`.
+  Checkout/change conflicts: `BILLING_USE_CHANGE_PLAN` (live Paddle sub — use change-plan), `BILLING_NO_SUBSCRIPTION` (no live sub / no customer id for portal), same-plan `CONFLICT` (409), except change-plan to the current plan while a change is scheduled (e.g. a pending cancel) removes that scheduled change. Free plan checkout → 400. Paddle is called only after the DB transaction has finished.
+  Paddle provider failures → 502 `BILLING_PROVIDER_ERROR` with `details.paddleErrorCode` (never log Authorization or full request bodies).
+  Public webhook: `POST /v1/billing/webhooks/paddle` (raw body + `Paddle-Signature`; missing/invalid secret or signature → 401; no `billing_events` row). A signed payload that cannot be mapped is stored with `error = 'unmappable_payload'` when it has an `event_id`.
 - Idempotent creates: header `Idempotency-Key`; for orders it equals `client_order_id`.
 - Pagination: cursor-based `?cursor=&limit=` (max 100), response `{ items, nextCursor }`.
 - Money in API = integer minor units + `currency`. Dates ISO 8601 UTC; `businessDate` as `YYYY-MM-DD`.

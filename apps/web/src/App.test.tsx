@@ -4,7 +4,7 @@ import type { MeResponse } from '@app/shared';
 import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 import { RouterProvider, createMemoryRouter } from 'react-router-dom';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   POS_DEVICE_LOCKED_STORAGE_KEY,
@@ -19,8 +19,23 @@ import {
   setAccessToken,
   setBootstrapDone,
 } from './features/session/session.slice.js';
+import { testMeEntitlements } from './features/session/test-me-entitlements.js';
 import { initI18n, i18n } from './lib/i18n.js';
 import { TooltipProvider } from '@app/ui';
+
+vi.mock('./features/pos/pos.api.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('./features/pos/pos.api.js')>();
+  return {
+    ...actual,
+    useListPinUsersQuery: () => ({
+      data: { items: [] },
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+      error: undefined,
+    }),
+  };
+});
 
 const branchId = '01932a1a-7b3e-7000-8000-000000000030';
 const orgId = '01932a1a-7b3e-7000-8000-000000000010';
@@ -46,10 +61,11 @@ const bootstrappedMe: MeResponse = {
     key: 'owner',
     name: 'Owner',
   },
-  permissions: ['branches.read'],
+  permissions: ['branches.read', 'orders.create'],
   branches: [{ id: branchId, name: 'Main', slug: 'main', isActive: true }],
   orgs: [{ id: orgId, name: 'Demo', slug: 'demo' }],
   currentBranchId: branchId,
+  entitlements: testMeEntitlements,
 };
 
 function createTestStore() {

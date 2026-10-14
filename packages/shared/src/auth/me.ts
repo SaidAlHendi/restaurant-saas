@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { entitlementsSnapshotSchema } from '../billing/entitlements.js';
 import { orgLocaleCodeSchema } from '../i18n/org-locales.js';
 
 export const meResponseSchema = z.object({
@@ -40,6 +41,7 @@ export const meResponseSchema = z.object({
     }),
   ),
   currentBranchId: z.uuid().nullable(),
+  entitlements: entitlementsSnapshotSchema,
 });
 
 export type MeResponse = z.infer<typeof meResponseSchema>;

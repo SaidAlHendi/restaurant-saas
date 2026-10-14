@@ -8,7 +8,7 @@ Translatable text = `jsonb` like `{"ar":"…","en":"…"}`. Tax in basis points 
 ## Platform & identity
 - **users**: id, email (unique, nullable for PIN-only staff), password_hash, name, locale, is_platform_admin, platform_role (`super`|`support`|`billing`|null), last_login_at, **last_org_id** (nullable FK → organizations — login/switch-org preference)
 - **auth_sessions**: id, user_id, **org_id** (FK → organizations — active org for this refresh session), token_hash (SHA-256 of refresh cookie), family_id, expires_at, revoked_at, replaced_by, user_agent, ip, created_at — refresh rotation + reuse detection; login/signup/switch-org set org_id; refresh inherits org_id on rotate
-- **organizations**: id, name, slug (unique), country, default_currency, default_locale, locales text[], logo_key, status (`trial`|`active`|`past_due`|`suspended`|`cancelled`), created_at
+- **organizations**: id, name, slug (unique), country, default_currency, default_locale, locales text[], logo_key, status (`trial`|`active`|`past_due`|`suspended`|`cancelled` — **app writes only** `active`|`suspended`; billing/trial state lives on `subscriptions`), created_at
 - **branches**: id, org_id, name, slug, timezone, currency, tax_rate_bp int, tax_inclusive bool, day_start_hour smallint default 4, pay_before_send bool default false, accepts_card bool default true, address jsonb, receipt_header, receipt_footer, is_active
 - **roles**: id, org_id (null = system role), key (`owner`|`manager`|`cashier`|`kitchen`|custom), name, is_system
 - **role_permissions**: role_id, permission_key, **org_id** (nullable; mirrors `roles.org_id`, set by `BEFORE INSERT/UPDATE` trigger `sync_role_permissions_org_id`) — PK(role_id, permission_key)
@@ -38,11 +38,11 @@ Translatable text = `jsonb` like `{"ar":"…","en":"…"}`. Tax in basis points 
 - **payments**: id, org_id, order_id, method (`cash`|`card`|`other`), amount_minor, tendered_minor, change_minor, status (`captured`|`refunded`), created_by, created_at
 - **order_events** (append-only): id, org_id, order_id, type, from_status, to_status, payload jsonb, actor_membership_id, approved_by_membership_id (nullable FK → memberships — set when cancel/void used manager PIN approval), created_at — `device_id` deferred; `app_user` has INSERT+SELECT only (no UPDATE/DELETE); INDEX(order_id, created_at)
 
-## Billing
-- **plans**: id, key (`free`|`menu`|`restaurant`|`business`), name, price_minor, currency, interval, is_public
-- **plan_features**: plan_id, feature_key, limit_value int null — PK(plan_id, feature_key)
-- **subscriptions**: id, org_id (unique), plan_id, status (`trialing`|`active`|`past_due`|`cancelled`), branch_quantity int, provider (`paddle`), provider_customer_id, provider_subscription_id, trial_ends_at, current_period_end, updated_at
-- **billing_events**: id, provider_event_id (unique), type, payload jsonb, processed_at — webhook idempotency
+## Billing (migration 0012)
+- **plans**: id, key (`free`|`menu`|`restaurant`|`business`), name, price_minor, currency, interval (`month`), per_branch, is_public, sort_order — global, no RLS, `app_user` SELECT only
+- **plan_features**: plan_id, feature_key, limit_value int null — PK(plan_id, feature_key); missing limit row = unlimited
+- **subscriptions**: id, org_id (unique, RLS), plan_id, status (`trialing`|`active`|`past_due`|`canceled`), branch_quantity, provider (`paddle`|null), provider_customer_id, provider_subscription_id, trial_ends_at, current_period_end, canceled_at, scheduled_change jsonb, provider_event_at, updated_at
+- **billing_events**: id, provider, provider_event_id (unique), type, occurred_at, payload jsonb, processed_at, error — webhook idempotency (global, no RLS)
 
 ## Reporting
 - **MVP dashboards (roadmap 8):** computed live from `orders`, `payments`, and `order_items` per branch and

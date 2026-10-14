@@ -355,4 +355,40 @@ export class TenancyRepository {
       inviteExpiresAt,
     };
   }
+
+  async listBranchSeatMemberships(tx: DrizzleTx) {
+    const memRows = await tx
+      .select({
+        id: memberships.id,
+        status: memberships.status,
+        allBranches: memberships.allBranches,
+      })
+      .from(memberships);
+    const linkRows = await tx
+      .select({
+        membershipId: membershipBranches.membershipId,
+        branchId: membershipBranches.branchId,
+      })
+      .from(membershipBranches);
+    const byMembership = new Map<string, string[]>();
+    for (const link of linkRows) {
+      const list = byMembership.get(link.membershipId) ?? [];
+      list.push(link.branchId);
+      byMembership.set(link.membershipId, list);
+    }
+    return memRows.map((m) => ({
+      id: m.id,
+      status: m.status,
+      allBranches: m.allBranches,
+      branchIds: byMembership.get(m.id) ?? [],
+    }));
+  }
+
+  async listActiveBranchIds(tx: DrizzleTx, orgId: string): Promise<string[]> {
+    const rows = await tx
+      .select({ id: branches.id })
+      .from(branches)
+      .where(and(eq(branches.orgId, orgId), eq(branches.isActive, true)));
+    return rows.map((r) => r.id);
+  }
 }

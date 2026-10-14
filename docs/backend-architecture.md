@@ -9,7 +9,7 @@ Early production can run both in one process with `APP_ROLE=all`.
 ```
 apps/api/
   src/
-    main.ts                   # NestFactory.create(AppModule) — HTTP + gateway
+    main.ts                   # NestFactory.create(AppModule, { rawBody: true }) — HTTP + gateway (Paddle webhooks)
     worker.ts                 # NestFactory.createApplicationContext(WorkerModule)
     app.module.ts             # imports CoreModule + feature modules
     worker.module.ts
