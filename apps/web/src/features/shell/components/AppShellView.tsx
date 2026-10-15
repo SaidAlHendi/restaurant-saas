@@ -1,4 +1,4 @@
-import { LanguagesIcon, LogOutIcon, MoonIcon, SunIcon } from 'lucide-react';
+import { LanguagesIcon, LockIcon, LogOutIcon, MoonIcon, SunIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import {
@@ -12,6 +12,7 @@ import {
   SidebarUser,
 } from '@app/ui';
 
+import { BillingBannerView } from '../../billing/components/BillingBannerView.js';
 import type { AppShellViewModel } from '../use-app-shell.js';
 
 export interface AppShellViewProps extends AppShellViewModel {
@@ -21,6 +22,7 @@ export interface AppShellViewProps extends AppShellViewModel {
 /** Full-height app frame: sidebar (nav, theme, language, sign out) and the page next to it. */
 export function AppShellView({
   children,
+  banner,
   brand,
   brandInitial,
   collapsed,
@@ -67,6 +69,11 @@ export function AppShellView({
                   icon={<Icon aria-hidden />}
                   label={item.label}
                   active={item.active}
+                  badge={
+                    item.locked ? (
+                      <LockIcon aria-label={labels.locked} className="my-0.5 size-3.5" />
+                    ) : undefined
+                  }
                   onClick={item.onSelect}
                 />
               );
@@ -136,6 +143,7 @@ export function AppShellView({
           <SidebarTrigger label={labels.sidebar} onClick={onOpenMobile} />
           <span className="truncate font-semibold">{brand}</span>
         </div>
+        {banner !== null ? <BillingBannerView banner={banner} /> : null}
         <div className="flex min-h-0 flex-1 flex-col">{children}</div>
       </div>
     </div>

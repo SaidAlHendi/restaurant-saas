@@ -3,7 +3,8 @@ import { describe, expect, it } from 'vitest';
 import type { RootState } from '../../app/store.js';
 import { cartSlice } from '../cart/cart.slice.js';
 
-import { selectCan, selectIsAuthenticated } from './session.selectors.js';
+import { selectCan, selectHasFeature, selectIsAuthenticated } from './session.selectors.js';
+import { testMeEntitlements } from './test-me-entitlements.js';
 
 function stateWith(permissions: string[], accessToken: string | null, hasUser: boolean): RootState {
   return {
@@ -24,6 +25,7 @@ function stateWith(permissions: string[], accessToken: string | null, hasUser: b
       permissions,
       branches: [],
       orgs: [],
+      entitlements: null,
       currentBranchId: null,
     },
     api: {} as RootState['api'],
@@ -41,5 +43,17 @@ describe('session selectors', () => {
     const state = stateWith(['branches.read'], 'tok', true);
     expect(selectCan('branches.read')(state)).toBe(true);
     expect(selectCan('branches.manage')(state)).toBe(false);
+  });
+
+  it('selectHasFeature locks nothing before entitlements load, then follows the plan', () => {
+    const state = stateWith([], 'tok', true);
+    expect(selectHasFeature('kds.access')(state)).toBe(true);
+
+    const withPlan: RootState = {
+      ...state,
+      session: { ...state.session, entitlements: testMeEntitlements },
+    };
+    expect(selectHasFeature('pos.access')(withPlan)).toBe(true);
+    expect(selectHasFeature('kds.access')(withPlan)).toBe(false);
   });
 });

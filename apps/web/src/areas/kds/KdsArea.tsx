@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { Spinner } from '@app/ui';
 
+import { UpgradeRequiredPage } from '../../features/billing/pages/UpgradeRequiredPage.js';
 import { useKdsArea } from '../../features/kds/hooks/use-kds-area.js';
 import { PosNoAccessView } from '../../features/pos/components/PosNoAccessView.js';
 
@@ -17,6 +18,10 @@ export default function KdsArea() {
         <Spinner label={vm.t('common.loading')} />
       </div>
     );
+  }
+
+  if (vm.showUpgrade) {
+    return <UpgradeRequiredPage feature="kds.access" />;
   }
 
   if (!vm.canUseKds) {

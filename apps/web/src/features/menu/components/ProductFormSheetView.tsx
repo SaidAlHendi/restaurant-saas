@@ -1,4 +1,6 @@
 import {
+  Alert,
+  AlertDescription,
   Button,
   Checkbox,
   Form,
@@ -67,6 +69,8 @@ export interface ProductFormSheetViewProps {
     onRemove: () => void;
     show: boolean;
   };
+  /** Plan limit reached on create (e.g. 40 products on Free). */
+  planLimit?: { message: string; upgradeLabel: string | null; onUpgrade: () => void } | null;
 }
 
 export function ProductFormSheetView({
@@ -94,6 +98,7 @@ export function ProductFormSheetView({
   modifierGroupsLabel,
   modifierGroupLabel,
   imageUpload,
+  planLimit = null,
 }: ProductFormSheetViewProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -110,6 +115,18 @@ export function ProductFormSheetView({
             className="contents"
           >
             <SheetBody>
+              {planLimit ? (
+                <Alert variant="warning">
+                  <AlertDescription>
+                    <p>{planLimit.message}</p>
+                    {planLimit.upgradeLabel ? (
+                      <Button type="button" variant="link" className="h-auto p-0" onClick={planLimit.onUpgrade}>
+                        {planLimit.upgradeLabel}
+                      </Button>
+                    ) : null}
+                  </AlertDescription>
+                </Alert>
+              ) : null}
               <FormField
                 control={form.control}
                 name="categoryId"

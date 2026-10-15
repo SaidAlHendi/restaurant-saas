@@ -2,8 +2,10 @@ import { lazy } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { useAppSelector } from '../../app/hooks.js';
+import { BillingPage } from '../../features/billing/pages/BillingPage.js';
+import { UpgradeRequiredPage } from '../../features/billing/pages/UpgradeRequiredPage.js';
 import { MenuRoutes } from '../../features/menu/MenuRoutes.js';
-import { selectCan } from '../../features/session/session.selectors.js';
+import { selectCan, selectHasFeature } from '../../features/session/session.selectors.js';
 import { BranchSettingsPage } from '../../features/settings/pages/BranchSettingsPage.js';
 import { RestaurantSettingsPage } from '../../features/settings/pages/RestaurantSettingsPage.js';
 import { SettingsIndexRedirect } from '../../features/settings/pages/SettingsIndexRedirect.js';
@@ -30,6 +32,8 @@ function DashboardLayout() {
 
 export default function DashboardArea() {
   const canReports = useAppSelector(selectCan('reports.read'));
+  const hasReportsFeature = useAppSelector(selectHasFeature('reports.basic'));
+  const showReports = canReports && hasReportsFeature;
 
   return (
     <Routes>
@@ -37,16 +41,20 @@ export default function DashboardArea() {
         <Route
           index
           element={
-            canReports ? <DashboardTodayPage /> : <DashboardHome />
+            showReports ? <DashboardTodayPage /> : <DashboardHome />
           }
         />
-        {canReports ? (
+        {showReports ? (
           <>
             <Route path="orders" element={<DashboardOrdersPage />} />
             <Route path="orders/:orderId" element={<DashboardOrderDetailPage />} />
           </>
         ) : null}
+        {canReports && !hasReportsFeature ? (
+          <Route path="orders/*" element={<UpgradeRequiredPage feature="reports.basic" />} />
+        ) : null}
         <Route path="menu/*" element={<MenuRoutes />} />
+        <Route path="billing" element={<BillingPage />} />
         <Route path="settings" element={<SettingsLayoutPage />}>
           <Route index element={<SettingsIndexRedirect />} />
           <Route path="restaurant" element={<RestaurantSettingsPage />} />

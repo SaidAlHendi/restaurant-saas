@@ -1,4 +1,4 @@
-import type { PermissionKey } from '@app/shared';
+import type { FeatureKey, PermissionKey } from '@app/shared';
 
 import type { RootState } from '../../app/store.js';
 
@@ -19,3 +19,14 @@ export const selectCan =
   (permission: PermissionKey) =>
   (state: RootState): boolean =>
     state.session.permissions.includes(permission);
+
+export const selectEntitlements = (state: RootState) => state.session.entitlements;
+
+/**
+ * Plan feature check for the UI. Before /me has loaded there are no entitlements yet, so nothing is
+ * locked; the API still enforces the plan.
+ */
+export const selectHasFeature =
+  (feature: FeatureKey) =>
+  (state: RootState): boolean =>
+    state.session.entitlements === null || state.session.entitlements.features.includes(feature);

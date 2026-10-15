@@ -1,6 +1,7 @@
 import type { TFunction } from 'i18next';
 
 import { parseApiError } from '../../lib/api-error-message.js';
+import { planGateFromError, planLimitMessageKey } from '../billing/plan-gate.utils.js';
 
 const KNOWN_CODES = [
   'CATEGORY_HAS_ACTIVE_PRODUCTS',
@@ -44,5 +45,12 @@ export function menuApiErrorMessage(t: MenuErrorTranslator, code: MenuApiErrorCo
 }
 
 export function messageFromMutationError(error: unknown, t: TFunction): string {
+  const gate = planGateFromError(error);
+  if (gate?.kind === 'limit') {
+    return t(planLimitMessageKey(gate.limit), { max: gate.max ?? '' });
+  }
+  if (gate?.kind === 'feature') {
+    return t('billing.upgrade.featureToast');
+  }
   return menuApiErrorMessage((key) => t(key), parseMenuApiErrorCode(error));
 }

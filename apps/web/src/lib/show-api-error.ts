@@ -1,9 +1,17 @@
 import { toast } from '@app/ui';
 import type { TFunction } from 'i18next';
 
+import { planGateFromError, planLimitMessageKey } from '../features/billing/plan-gate.utils.js';
 import { parseApiError } from './api-error-message.js';
 
 export function messageFromApiError(error: unknown, t: TFunction): string {
+  const gate = planGateFromError(error);
+  if (gate?.kind === 'limit') {
+    return t(planLimitMessageKey(gate.limit), { max: gate.max ?? '' });
+  }
+  if (gate?.kind === 'feature') {
+    return t('billing.upgrade.featureToast');
+  }
   const parsed = parseApiError(error);
   switch (parsed.code) {
     case 'VALIDATION_ERROR':

@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { Spinner } from '@app/ui';
 
+import { UpgradeRequiredPage } from '../../features/billing/pages/UpgradeRequiredPage.js';
 import { PosLockScreenView } from '../../features/pos/components/PosLockScreenView.js';
 import { PosNoAccessView } from '../../features/pos/components/PosNoAccessView.js';
 import { PosLockContext } from '../../features/pos/pos-lock-context.js';
@@ -20,6 +21,10 @@ export default function PosArea() {
         <Spinner label={vm.t('common.loading')} />
       </div>
     );
+  }
+
+  if (vm.showUpgrade) {
+    return <UpgradeRequiredPage feature="pos.access" />;
   }
 
   if (vm.showLockScreen) {

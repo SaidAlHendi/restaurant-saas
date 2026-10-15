@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 import type { Product, ProductListQuery } from '@app/shared';
 
 import { useAppSelector } from '../../../app/hooks.js';
 import { formatMoney, intlLocaleForUi, productDisplayCurrency } from '../../../lib/money.js';
+import { planGateFromError, planLimitMessageKey } from '../../billing/plan-gate.utils.js';
 import { selectCan } from '../../session/session.selectors.js';
 import type { ProductsPageViewProps } from '../components/ProductsPageView.js';
 import {
@@ -140,6 +142,11 @@ export function useProductsScreen(): ProductsPageViewProps {
     },
   });
 
+  const navigate = useNavigate();
+  const canManageBilling = useAppSelector(selectCan('billing.manage'));
+  // Plan limit on create is shown inside the sheet, not as a toast.
+  const [planLimitMessage, setPlanLimitMessage] = useState<string | null>(null);
+
   const [createProduct, createState] = useCreateProductMutation();
   const [patchProduct, patchState] = usePatchProductMutation();
   const [setModifierGroups] = useSetProductModifierGroupsMutation();
@@ -186,8 +193,14 @@ export function useProductsScreen(): ProductsPageViewProps {
         resetList();
         setSheetOpen(false);
       } else {
+        setPlanLimitMessage(null);
         const createResult = await createProduct(productForm.toCreateBody(values));
         if (isMutationError(createResult)) {
+          const gate = planGateFromError(createResult.error);
+          if (gate?.kind === 'limit') {
+            setPlanLimitMessage(t(planLimitMessageKey(gate.limit), { max: gate.max ?? '' }));
+            return;
+          }
           showMenuApiError(createResult.error, t);
           return;
         }
@@ -276,6 +289,7 @@ export function useProductsScreen(): ProductsPageViewProps {
     },
     isLoadingMore: isFetching && Boolean(cursor),
     onAdd: () => {
+      setPlanLimitMessage(null);
       setEditingId(undefined);
       setSheetOpen(true);
     },
@@ -295,6 +309,7 @@ export function useProductsScreen(): ProductsPageViewProps {
         setSheetOpen(open);
         if (!open) {
           setEditingId(undefined);
+          setPlanLimitMessage(null);
         }
       },
       title: editingId ? t('menu.products.editTitle') : t('menu.products.createTitle'),
@@ -332,6 +347,16 @@ export function useProductsScreen(): ProductsPageViewProps {
         onRemove: imageUpload.onRemove,
         show: Boolean(editingId && productDetail),
       },
+      planLimit:
+        planLimitMessage === null
+          ? null
+          : {
+              message: planLimitMessage,
+              upgradeLabel: canManageBilling ? t('billing.upgrade.seePlans') : null,
+              onUpgrade: () => {
+                void navigate('/dashboard/billing');
+              },
+            },
     },
     confirmDeleteOpen,
     onConfirmDeleteOpenChange: setConfirmDeleteOpen,
