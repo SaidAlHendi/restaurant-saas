@@ -346,6 +346,7 @@
       "saveEdit": "حفظ",
       "confirm": "تأكيد",
       "pinOnlyCreated": "تم إنشاء موظف PIN فقط.",
+      "inviteEmailed": "تم إرسال الدعوة بالبريد الإلكتروني. هذا الشخص لديه حساب بالفعل، لذلك لا يظهر الرابط هنا.",
       "pinSaved": "تم تحديث PIN.",
       "pinRemoved": "تمت إزالة PIN.",
       "pinError": {

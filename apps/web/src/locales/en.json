@@ -346,6 +346,7 @@
       "saveEdit": "Save",
       "confirm": "Confirm",
       "pinOnlyCreated": "PIN-only staff member created.",
+      "inviteEmailed": "Invite sent by email. This person already has an account, so the link is not shown here.",
       "pinSaved": "PIN updated.",
       "pinRemoved": "PIN removed.",
       "pinError": {

@@ -250,6 +250,13 @@ describe('Auth (e2e)', () => {
       .post('/v1/auth/refresh')
       .set('Cookie', `${REFRESH_COOKIE_NAME}=${oldCookie ?? ''}`);
     expect(reuse.status).toBe(401);
+    expect((reuse.body as ApiErrorResponse).error.code).toBe('REFRESH_REUSE');
+
+    // Reuse revokes the whole family, including the token issued by the first refresh.
+    const afterReuse = await request(server)
+      .post('/v1/auth/refresh')
+      .set('Cookie', `${REFRESH_COOKIE_NAME}=${newCookie ?? ''}`);
+    expect(afterReuse.status).toBe(401);
   });
 
   it('logout works without access token and clears refresh cookie', async () => {

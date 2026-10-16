@@ -2,12 +2,10 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Emitter } from '@socket.io/redis-emitter';
 import type Redis from 'ioredis';
 
+import { REALTIME_NAMESPACE, branchRoom } from '../realtime/realtime-rooms';
 import { REDIS } from '../redis/redis.module';
 
 import type { EventPublisher, OutboxEventRow } from './event-publisher';
-
-/** Realtime namespace — must match {@link RealtimeGateway} when wired. */
-const REALTIME_NAMESPACE = '/rt';
 
 /**
  * Publishes via Socket.io Redis emitter. Uses the default Redis key prefix `socket.io`
@@ -25,7 +23,7 @@ export class SocketIoRedisEventPublisher implements EventPublisher {
     if (!event.branchId) {
       return Promise.reject(new Error('Outbox event is missing branchId'));
     }
-    const room = `branch:${event.branchId}`;
+    const room = branchRoom(event.branchId);
     const ns = this.emitter.of(REALTIME_NAMESPACE);
     ns.to(room).emit(event.type, event.payload);
     return Promise.resolve();

@@ -17,6 +17,7 @@ import { LoggingModule } from './logging/logging.module';
 import { BranchScopeGuard } from './permissions/branch-scope.guard';
 import { PermissionsGuard } from './permissions/permissions.guard';
 import { RedisModule, REDIS } from './redis/redis.module';
+import { RealtimeKickService } from './realtime/realtime-kick.service';
 import { RealtimeModule } from './realtime/realtime.module';
 import { StorageModule } from './storage/storage.module';
 import { TestThrottlerGuard } from './throttling/test-throttler.guard';
@@ -46,6 +47,7 @@ import { OutboxService } from './outbox/outbox.service';
   ],
   providers: [
     OutboxService,
+    RealtimeKickService,
     DatabaseRoleValidator,
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
     { provide: APP_PIPE, useClass: ZodValidationPipe },
@@ -54,6 +56,6 @@ import { OutboxService } from './outbox/outbox.service';
     { provide: APP_GUARD, useClass: PermissionsGuard },
     { provide: APP_GUARD, useClass: BranchScopeGuard },
   ],
-  exports: [OutboxService],
+  exports: [OutboxService, RealtimeKickService],
 })
 export class CoreModule {}

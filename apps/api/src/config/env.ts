@@ -48,6 +48,19 @@ const envSchema = z.object({
   PADDLE_PRICE_RESTAURANT: z.preprocess(emptyStringToUndefined, z.string().min(1).optional()),
   PADDLE_PRICE_BUSINESS: z.preprocess(emptyStringToUndefined, z.string().min(1).optional()),
 }).superRefine((data, ctx) => {
+  // Without an allow-list the API reflects any origin with credentials, which would let any
+  // site read a refreshed access token. Only acceptable for local development and tests.
+  if (
+    data.NODE_ENV === 'production' &&
+    data.APP_ROLE !== 'worker' &&
+    (data.CORS_ORIGINS ?? '').trim().length === 0
+  ) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'CORS_ORIGINS is required when NODE_ENV=production',
+      path: ['CORS_ORIGINS'],
+    });
+  }
   if (
     (data.APP_ROLE === 'worker' || data.APP_ROLE === 'all') &&
     !data.DATABASE_WORKER_URL

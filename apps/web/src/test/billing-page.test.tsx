@@ -12,7 +12,7 @@ import { baseApi } from '../app/api/base-api.js';
 import { i18n, initI18n } from '../lib/i18n.js';
 import { hydrateFromMe, sessionReducer, setAccessToken } from '../features/session/session.slice.js';
 import { testMeEntitlements } from '../features/session/test-me-entitlements.js';
-import { isoInDays, overview, paidOverview } from '../features/billing/billing.test-fixtures.js';
+import { NOW, isoInDays, overview, paidOverview } from '../features/billing/billing.test-fixtures.js';
 import { BillingPage } from '../features/billing/pages/BillingPage.js';
 
 let overviewData: BillingOverviewResponse | undefined;
@@ -86,7 +86,11 @@ describe('BillingPage', () => {
   });
 
   it('trial: shows days left and Subscribe buttons', () => {
+    // The page counts days from the real clock; pin it to the fixtures' NOW.
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(NOW);
     renderPage(overview({ entitlements: { trialEndsAt: isoInDays(10) } }));
+    vi.useRealTimers();
     expect(screen.getByText('10 days left in your trial')).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: 'Subscribe' })).toHaveLength(3);
     expect(screen.queryByRole('button', { name: 'Manage subscription' })).not.toBeInTheDocument();

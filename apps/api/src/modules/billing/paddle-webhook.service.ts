@@ -8,6 +8,7 @@ import { UnauthorizedError } from '../../core/errors/app-errors';
 import { OrgSettingsService } from '../tenancy/org-settings.service';
 
 import { BillingRepository } from './billing.repository';
+import { verifyCheckoutOrgId } from './checkout-org-signature';
 import { EntitlementsService } from './entitlements.service';
 import { isLivePaddleSubscription } from './is-live-paddle-subscription';
 import {
@@ -83,6 +84,18 @@ export class PaddleWebhookService implements OnModuleInit {
     const orgId = this.parseOrgId(mapped.orgIdRaw);
     if (orgId === null) {
       await this.storeErroredEvent(mapped.eventId, mapped.eventType, mapped.occurredAt, payload);
+      return;
+    }
+    // The org id comes from checkout custom_data, which the browser controls; only trust it
+    // when it carries the signature our checkout endpoint issued for that org.
+    if (!verifyCheckoutOrgId(this.env.JWT_ACCESS_SECRET, orgId, mapped.orgSigRaw)) {
+      await this.storeErroredEvent(
+        mapped.eventId,
+        mapped.eventType,
+        mapped.occurredAt,
+        payload,
+        'invalid_org_signature',
+      );
       return;
     }
 

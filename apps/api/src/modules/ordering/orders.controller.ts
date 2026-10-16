@@ -83,6 +83,9 @@ export class OrdersController {
     return this.ordering.getOrder(ctx, branchId, orderId);
   }
 
+  // Not plan-gated on purpose: after a downgrade, orders already taken can still be finished or
+  // cancelled ("only new creates are blocked", docs/product.md). Permissions are checked per
+  // transition in the service.
   @Authenticated()
   @Post(':orderId/status')
   changeStatus(

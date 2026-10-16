@@ -16,6 +16,7 @@ import {
 import { ENV, type Env } from '../../config/config.module';
 import { CLOCK, type Clock } from '../../core/clock/clock.tokens';
 import type { RequestContext } from '../../core/context/request-context';
+import { RealtimeKickService } from '../../core/realtime/realtime-kick.service';
 import { DRIZZLE, type DrizzleDb } from '../../core/db/db.module';
 import type { DrizzleTx } from '../../core/db/with-org';
 import { withOrg } from '../../core/db/with-org';
@@ -39,6 +40,19 @@ import {
 } from './staff-seat-enforcement';
 import { TenancyRepository } from './tenancy.repository';
 
+/**
+ * The invite link lets its holder set the password of a password-less account. That is only
+ * safe to hand to the inviter when this invite created the account (same transaction, so the
+ * same `now()`); an account created earlier by another organization's invite gets the link by
+ * email only.
+ */
+function canShareInviteLink(
+  user: { passwordHash: string | null; createdAt: Date },
+  membership: { createdAt: Date },
+): boolean {
+  return user.passwordHash !== null || user.createdAt.getTime() >= membership.createdAt.getTime();
+}
+
 @Injectable()
 export class StaffService {
   constructor(
@@ -49,6 +63,7 @@ export class StaffService {
     @Inject(ENV) private readonly env: Env,
     @Inject(CLOCK) private readonly clock: Clock,
     private readonly entitlements: EntitlementsService,
+    private readonly realtimeKick: RealtimeKickService,
   ) {}
 
   list(ctx: RequestContext) {
@@ -157,10 +172,12 @@ export class StaffService {
 
       const orgName = (await this.tenancyRepo.findOrganizationById(tx, ctx.orgId))?.name ?? '';
       const inviteUrl = `${this.env.WEB_APP_URL}/invite/${raw}`;
+      const created = await this.tenancyRepo.findMembershipWithUserRole(tx, membershipId);
+      const shareLink = created !== undefined && canShareInviteLink(created.user, created.membership);
 
       return {
         membershipId,
-        inviteUrl,
+        inviteUrl: shareLink ? inviteUrl : null,
         inviteExpiresAt: expiresAt.toISOString(),
         mail: { to: email, inviteUrl, orgName },
       };
@@ -210,7 +227,7 @@ export class StaffService {
 
       return {
         membershipId,
-        inviteUrl,
+        inviteUrl: canShareInviteLink(row.user, row.membership) ? inviteUrl : null,
         inviteExpiresAt: expiresAt.toISOString(),
         mail,
       };
@@ -307,7 +324,7 @@ export class StaffService {
   }
 
   async patchMembership(ctx: RequestContext, membershipId: string, body: PatchStaffMembershipBody) {
-    return withOrg(this.db, ctx.orgId, async (tx) => {
+    const result = await withOrg(this.db, ctx.orgId, async (tx) => {
       const row = await this.tenancyRepo.findMembershipWithUserRole(tx, membershipId);
       if (!row || row.membership.orgId !== ctx.orgId) {
         throw new NotFoundError();
@@ -453,8 +470,19 @@ export class StaffService {
       if (!updated) {
         throw new NotFoundError();
       }
-      return { id: updated.membership.id };
+      return { id: updated.membership.id, userId: row.user.id };
     });
+
+    // Open realtime sockets were authorized with the old access; make them re-handshake.
+    if (
+      body.status !== undefined ||
+      body.roleKey !== undefined ||
+      body.allBranches !== undefined ||
+      body.branchIds !== undefined
+    ) {
+      this.realtimeKick.disconnectUser(result.userId);
+    }
+    return { id: result.id };
   }
 
   async putPin(ctx: RequestContext, membershipId: string, body: PutStaffPinBody) {

@@ -510,18 +510,32 @@ export class OrderingRepository {
       .orderBy(orderEvents.createdAt, orderEvents.id);
   }
 
+  /**
+   * Open kitchen tickets, oldest first. Orders still to cook (placed/preparing) always come first;
+   * `ready` orders only fill the remaining slots, newest first, because unpaid ready orders can
+   * pile up and must never push new tickets off the board.
+   */
   async listKitchenBoardOrders(tx: DrizzleTx, branchId: string, limit: number) {
-    return tx
+    const toCook = await tx
       .select()
       .from(orders)
-      .where(
-        and(
-          eq(orders.branchId, branchId),
-          inArray(orders.status, ['placed', 'preparing', 'ready']),
-        ),
-      )
+      .where(and(eq(orders.branchId, branchId), inArray(orders.status, ['placed', 'preparing'])))
       .orderBy(asc(orders.placedAt), asc(orders.id))
       .limit(limit);
+    const readyLimit = limit - toCook.length;
+    if (readyLimit <= 0) {
+      return toCook;
+    }
+    const ready = await tx
+      .select()
+      .from(orders)
+      .where(and(eq(orders.branchId, branchId), eq(orders.status, 'ready')))
+      .orderBy(desc(orders.placedAt), desc(orders.id))
+      .limit(readyLimit);
+    return [...toCook, ...ready].sort(
+      (a, b) =>
+        (a.placedAt?.getTime() ?? 0) - (b.placedAt?.getTime() ?? 0) || a.id.localeCompare(b.id),
+    );
   }
 
   async listOrderItemsForOrderIds(tx: DrizzleTx, orderIds: string[]) {

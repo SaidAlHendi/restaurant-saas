@@ -43,7 +43,12 @@ export type CreateStaffInviteBody = z.infer<typeof createStaffInviteBodySchema>;
 
 export const createStaffInviteResponseSchema = z.object({
   membershipId: z.uuid(),
-  inviteUrl: z.url(),
+  /**
+   * Null when the invitee already has an account without a password (created by another
+   * organization's invite): whoever opens the link could set that account's password, so the
+   * link only goes to the invitee by email.
+   */
+  inviteUrl: z.url().nullable(),
   inviteExpiresAt: z.iso.datetime(),
 });
 

@@ -50,7 +50,13 @@ export class TablesService {
     });
   }
 
-  create(ctx: RequestContext, branchId: string, body: CreateDiningTableBody) {
+  /** Tables are free to manage (dine-in); only their QR token is a paid feature. */
+  private canSeeQrToken(ctx: RequestContext): Promise<boolean> {
+    return this.entitlements.can(ctx.orgId, 'menu.table_qr');
+  }
+
+  async create(ctx: RequestContext, branchId: string, body: CreateDiningTableBody) {
+    const includeQrToken = await this.canSeeQrToken(ctx);
     return withOrg(this.db, ctx.orgId, async (tx) => {
       try {
         const row = await this.repo.insertTable(tx, {
@@ -61,7 +67,7 @@ export class TablesService {
           qrToken: generateQrToken(),
           isActive: true,
         });
-        return mapDiningTable(row, true);
+        return mapDiningTable(row, includeQrToken);
       } catch (err: unknown) {
         if (isPgUniqueViolation(err, 'tables_branch_label_unique')) {
           throw new ConflictError(
@@ -75,7 +81,8 @@ export class TablesService {
     });
   }
 
-  patch(ctx: RequestContext, branchId: string, tableId: string, body: PatchDiningTableBody) {
+  async patch(ctx: RequestContext, branchId: string, tableId: string, body: PatchDiningTableBody) {
+    const includeQrToken = await this.canSeeQrToken(ctx);
     return withOrg(this.db, ctx.orgId, async (tx) => {
       const existing = await this.repo.findTableById(tx, branchId, tableId);
       if (!existing) {
@@ -93,7 +100,7 @@ export class TablesService {
         if (!row) {
           throw new NotFoundError();
         }
-        return mapDiningTable(row, true);
+        return mapDiningTable(row, includeQrToken);
       } catch (err: unknown) {
         if (isPgUniqueViolation(err, 'tables_branch_label_unique')) {
           throw new ConflictError(

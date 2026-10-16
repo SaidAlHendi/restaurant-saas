@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 
 import type {
   BillingChangePlanBody,
@@ -15,12 +15,14 @@ import { withOrg, type DrizzleTx } from '../../core/db/with-org';
 import {
   BadGatewayError,
   ConflictError,
+  ForbiddenError,
   ValidationError,
 } from '../../core/errors/app-errors';
 import { IdentityService } from '../identity/identity.service';
 import { OrgSettingsService } from '../tenancy/org-settings.service';
 
 import { BillingRepository } from './billing.repository';
+import { signCheckoutOrgId } from './checkout-org-signature';
 import { EntitlementsService } from './entitlements.service';
 import { isLivePaddleSubscription } from './is-live-paddle-subscription';
 import {
@@ -42,6 +44,8 @@ type ChangePlanAction =
 
 @Injectable()
 export class BillingService {
+  private readonly logger = new Logger(BillingService.name);
+
   constructor(
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
     @Inject(ENV) private readonly env: Env,
@@ -146,7 +150,10 @@ export class BillingService {
       const response: BillingCheckoutResponse = {
         priceId,
         quantity,
-        customData: { orgId: ctx.orgId },
+        customData: {
+          orgId: ctx.orgId,
+          orgSig: signCheckoutOrgId(this.env.JWT_ACCESS_SECRET, ctx.orgId),
+        },
         customerEmail: email,
       };
       if (sub?.providerCustomerId) {
@@ -233,6 +240,73 @@ export class BillingService {
       return await this.paddle.createCustomerPortalSession(customerId);
     } catch (err: unknown) {
       this.rethrowProvider(err);
+    }
+  }
+
+  /**
+   * Single-price plans (free, menu) cover one active branch; per-branch plans pay for each
+   * active branch, so they may add more. Call before creating or reactivating a branch.
+   */
+  async assertCanActivateBranch(tx: DrizzleTx, orgId: string): Promise<void> {
+    const entitlements = await this.entitlements.getEntitlements(orgId, tx);
+    const planRows = await this.billingRepo.listPublicPlans(tx);
+    const plan = planRows.find((p) => p.key === entitlements.planKey);
+    if (plan?.perBranch === true) {
+      return;
+    }
+    const activeBranchIds = await this.orgSettings.listActiveBranchIds(tx, orgId);
+    if (activeBranchIds.length >= 1) {
+      throw new ForbiddenError(
+        'Plan limit reached',
+        { limit: 'branches', max: 1, planKey: entitlements.planKey },
+        'PLAN_LIMIT_REACHED',
+      );
+    }
+  }
+
+  /**
+   * Keep the Paddle seat count equal to the active branch count on per-branch plans.
+   * Call after a branch is created, deactivated or reactivated. Best effort: a provider error
+   * is logged, never thrown, because the branch change is already committed.
+   */
+  async syncBranchQuantity(orgId: string): Promise<void> {
+    if (!isCheckoutEnabled(this.env)) {
+      return;
+    }
+    const priceMap = paddlePriceMapFromEnv(this.env);
+    const action = await withOrg(this.db, orgId, async (tx) => {
+      const sub = await this.billingRepo.findSubscriptionWithPlan(tx, orgId);
+      if (
+        sub === null ||
+        sub.providerSubscriptionId === null ||
+        !sub.perBranch ||
+        !isLivePaddleSubscription(sub, this.clock.now())
+      ) {
+        return null;
+      }
+      const priceId = priceIdForPlanKey(priceMap, sub.planKey);
+      if (priceId === null) {
+        return null;
+      }
+      // Always send: the stored quantity only updates when Paddle's webhook arrives, so it can
+      // be stale right after an earlier sync.
+      const quantity = await this.quantityForPlan(tx, orgId, sub.planKey);
+      const body: PaddleUpdateSubscriptionBody = {
+        items: [{ price_id: priceId, quantity }],
+        proration_billing_mode: 'prorated_immediately',
+      };
+      return { subscriptionId: sub.providerSubscriptionId, body };
+    });
+    if (action === null) {
+      return;
+    }
+    try {
+      await this.paddle.updateSubscription(action.subscriptionId, action.body);
+    } catch (err: unknown) {
+      this.logger.error(
+        { err: err instanceof Error ? err.message : String(err), orgId },
+        'Paddle branch quantity sync failed',
+      );
     }
   }
 
