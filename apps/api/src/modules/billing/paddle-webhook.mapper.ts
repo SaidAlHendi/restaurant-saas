@@ -28,6 +28,7 @@ export type MappedSubscriptionEvent = {
   eventType: string;
   occurredAt: Date;
   orgIdRaw: unknown;
+  orgSigRaw: unknown;
   providerSubscriptionId: string;
   providerCustomerId: string | null;
   status: MappedSubscriptionStatus | null;
@@ -47,6 +48,7 @@ export type MappedTransactionEvent = {
   eventType: string;
   occurredAt: Date;
   orgIdRaw: unknown;
+  orgSigRaw: unknown;
   providerCustomerId: string | null;
 };
 
@@ -56,6 +58,7 @@ export type MappedWebhookEvent = MappedSubscriptionEvent | MappedTransactionEven
   eventType: string;
   occurredAt: Date;
   orgIdRaw: unknown;
+  orgSigRaw: unknown;
 };
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -70,12 +73,12 @@ function readString(obj: Record<string, unknown>, key: string): string | null {
   return typeof v === 'string' && v.length > 0 ? v : null;
 }
 
-function readCustomDataOrgId(data: Record<string, unknown>): unknown {
+function readCustomData(data: Record<string, unknown>): { orgIdRaw: unknown; orgSigRaw: unknown } {
   const custom = asRecord(data['custom_data']);
   if (custom === null) {
-    return undefined;
+    return { orgIdRaw: undefined, orgSigRaw: undefined };
   }
-  return custom['orgId'];
+  return { orgIdRaw: custom['orgId'], orgSigRaw: custom['orgSig'] };
 }
 
 function parseDate(value: unknown): Date | null {
@@ -128,7 +131,7 @@ export function mapPaddleWebhookPayload(
   if (data === null) {
     return null;
   }
-  const orgIdRaw = readCustomDataOrgId(data);
+  const { orgIdRaw, orgSigRaw } = readCustomData(data);
 
   if (eventType === 'transaction.completed') {
     return {
@@ -137,6 +140,7 @@ export function mapPaddleWebhookPayload(
       eventType,
       occurredAt,
       orgIdRaw,
+      orgSigRaw,
       providerCustomerId: readString(data, 'customer_id'),
     };
   }
@@ -148,6 +152,7 @@ export function mapPaddleWebhookPayload(
       eventType,
       occurredAt,
       orgIdRaw,
+      orgSigRaw,
     };
   }
 
@@ -194,6 +199,7 @@ export function mapPaddleWebhookPayload(
     eventType,
     occurredAt,
     orgIdRaw,
+    orgSigRaw,
     providerSubscriptionId,
     providerCustomerId: readString(data, 'customer_id'),
     status: mapPaddleStatusToOurs(paddleStatus),

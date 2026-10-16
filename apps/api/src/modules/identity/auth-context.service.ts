@@ -47,12 +47,13 @@ export class AuthContextService {
         throw new UnauthorizedError('MEMBERSHIP_DISABLED', 'Membership is not active');
       }
       const permissions = await this.tenancyRepo.loadRolePermissions(tx, membership.roleId);
-      let branchIds: string[] = [];
-      if (membership.allBranches) {
-        const branchRows = await this.tenancyRepo.listBranches(tx, payload.org);
-        branchIds = branchRows.filter((b) => b.isActive).map((b) => b.id);
-      } else {
-        branchIds = await this.tenancyRepo.listMembershipBranchIds(tx, membership.id);
+      const branchRows = await this.tenancyRepo.listBranches(tx, payload.org);
+      const activeBranchIds = branchRows.filter((b) => b.isActive).map((b) => b.id);
+      let branchIds: string[] = activeBranchIds;
+      if (!membership.allBranches) {
+        // Scoped staff lose access to a branch when it is deactivated, like all-branch staff.
+        const assigned = new Set(await this.tenancyRepo.listMembershipBranchIds(tx, membership.id));
+        branchIds = activeBranchIds.filter((id) => assigned.has(id));
       }
 
       let currentBranchId: string | undefined;

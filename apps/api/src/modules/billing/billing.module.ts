@@ -38,6 +38,6 @@ import { SubscriptionService } from './subscription.service';
         env.PADDLE_API_KEY !== undefined ? new HttpPaddleClient(env) : new DisabledPaddleClient(),
     },
   ],
-  exports: [EntitlementsService, SubscriptionService],
+  exports: [BillingService, EntitlementsService, SubscriptionService],
 })
 export class BillingModule {}

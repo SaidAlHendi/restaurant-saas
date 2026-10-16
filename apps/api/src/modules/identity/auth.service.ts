@@ -213,16 +213,18 @@ export class AuthService implements OnModuleInit {
     const session = await this.db.transaction(async (tx) =>
       this.identityRepo.findSessionByHash(tx, hash),
     );
-    if (!session || session.revokedAt || session.expiresAt < new Date()) {
-      this.refreshTokens.clearCookie(res);
-      throw new UnauthorizedError('REFRESH_INVALID', 'Session expired');
-    }
-    if (session.replacedBy) {
+    // Check rotation before revocation: a rotated token also has revokedAt set,
+    // so checking revokedAt first would hide reuse of a stolen token.
+    if (session?.replacedBy) {
       await this.db.transaction(async (tx) =>
         this.identityRepo.revokeSessionFamily(tx, session.familyId),
       );
       this.refreshTokens.clearCookie(res);
       throw new UnauthorizedError('REFRESH_REUSE', 'Refresh token reuse detected');
+    }
+    if (!session || session.revokedAt || session.expiresAt < new Date()) {
+      this.refreshTokens.clearCookie(res);
+      throw new UnauthorizedError('REFRESH_INVALID', 'Session expired');
     }
 
     const user = await this.db.transaction(async (tx) =>

@@ -206,11 +206,16 @@ export function useStaffSettingsPage() {
     [t],
   );
 
-  const openInviteLinkDialog = useCallback((url: string) => {
+  const openInviteLinkDialog = useCallback((url: string | null) => {
+    if (url === null) {
+      // Existing account: the link was emailed to the invitee and is not shown here.
+      toast.success(t('settings.staff.inviteEmailed'));
+      return;
+    }
     setInviteLinkUrl(url);
     setInviteLinkCopyLabel(null);
     setInviteLinkOpen(true);
-  }, []);
+  }, [t]);
 
   const patchStatus = useCallback(
     async (membershipId: string, status: 'active' | 'disabled') => {

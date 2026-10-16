@@ -7,6 +7,8 @@ import { JwtAccessService } from '../auth/jwt.service';
 import { ForbiddenError, UnauthorizedError, ValidationError } from '../errors/app-errors';
 import { AuthContextService } from '../../modules/identity/auth-context.service';
 
+import { branchRoom, userRoom } from './realtime-rooms';
+
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -62,7 +64,27 @@ export class RealtimeGateway implements OnGatewayInit {
       throw new ForbiddenError('Branch is not in scope', {}, 'FORBIDDEN');
     }
 
-    await socket.join(`branch:${branchIdRaw}`);
+    await socket.join([branchRoom(branchIdRaw), userRoom(ctx.userId)]);
+    this.disconnectAtTokenExpiry(socket, payload);
+  }
+
+  /**
+   * Access is only checked at handshake, so drop the socket when its access token expires.
+   * The client reconnects with a refreshed token, which fails once the session is revoked.
+   */
+  private disconnectAtTokenExpiry(socket: Socket, payload: unknown): void {
+    const exp = authField(payload, 'exp');
+    if (typeof exp !== 'number') {
+      return;
+    }
+    const ms = Math.max(0, exp * 1000 - Date.now());
+    const timer = setTimeout(() => {
+      socket.disconnect(true);
+    }, ms);
+    timer.unref();
+    socket.once('disconnect', () => {
+      clearTimeout(timer);
+    });
   }
 
   private assertOriginAllowed(socket: Socket): void {

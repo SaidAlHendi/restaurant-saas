@@ -2,6 +2,8 @@ import { createHmac } from 'node:crypto';
 
 import type { PlanKey } from '@app/shared';
 
+import { signCheckoutOrgId } from '../src/modules/billing/checkout-org-signature';
+
 export const TEST_PADDLE_SECRET = 'test-paddle-webhook-secret-e2e';
 export const TEST_PRICE_MENU = 'pri_test_menu';
 export const TEST_PRICE_RESTAURANT = 'pri_test_restaurant';
@@ -50,9 +52,18 @@ export function subscriptionEventPayload(opts: {
   quantity?: number;
   currentPeriodEnd?: string;
   canceledAt?: string | null;
+  /** Override the checkout org signature (defaults to a valid one for orgId). */
+  orgSig?: string;
 }): Record<string, unknown> {
   const customData =
-    opts.orgId === null ? {} : { custom_data: { orgId: opts.orgId } };
+    opts.orgId === null
+      ? {}
+      : {
+          custom_data: {
+            orgId: opts.orgId,
+            orgSig: opts.orgSig ?? signCheckoutOrgId(testJwtSecret(), opts.orgId),
+          },
+        };
   return {
     event_id: opts.eventId,
     event_type: opts.eventType,
@@ -69,4 +80,12 @@ export function subscriptionEventPayload(opts: {
       items: [{ price: { id: opts.priceId }, quantity: opts.quantity ?? 1 }],
     },
   };
+}
+
+function testJwtSecret(): string {
+  const secret = process.env['JWT_ACCESS_SECRET'];
+  if (secret === undefined) {
+    throw new Error('JWT_ACCESS_SECRET must be set for billing e2e tests');
+  }
+  return secret;
 }

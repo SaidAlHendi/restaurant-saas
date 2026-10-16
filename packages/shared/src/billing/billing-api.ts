@@ -11,7 +11,7 @@ export type BillingCheckoutBody = z.infer<typeof billingCheckoutBodySchema>;
 export const billingCheckoutResponseSchema = z.object({
   priceId: z.string().min(1),
   quantity: z.number().int().positive(),
-  customData: z.object({ orgId: z.uuid() }),
+  customData: z.object({ orgId: z.uuid(), orgSig: z.string().min(1) }),
   customerEmail: z.email(),
   customerId: z.string().min(1).optional(),
 });

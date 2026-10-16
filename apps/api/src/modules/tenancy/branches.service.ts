@@ -1,11 +1,13 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 
 import { BusinessRuleError, NotFoundError } from '../../core/errors/app-errors';
 import { DRIZZLE, type DrizzleDb } from '../../core/db/db.module';
 import { OutboxService } from '../../core/outbox/outbox.service';
+import { RealtimeKickService } from '../../core/realtime/realtime-kick.service';
 import { withOrg, type DrizzleTx } from '../../core/db/with-org';
 import type { RequestContext } from '../../core/context/request-context';
 import { newUuidV7 } from '../../lib/uuid';
+import { BillingService } from '../billing/billing.service';
 import { slugifyBase, slugWithSuffix } from '../../lib/slug';
 import type { Branch, CreateBranchBody, PatchBranchBody, SystemRoleKey } from '@app/shared';
 
@@ -56,6 +58,8 @@ export class BranchesService {
     private readonly repo: TenancyRepository,
     private readonly orgSettings: OrgSettingsService,
     private readonly outbox: OutboxService,
+    private readonly realtimeKick: RealtimeKickService,
+    @Inject(forwardRef(() => BillingService)) private readonly billing: BillingService,
   ) {}
 
   list(ctx: RequestContext) {
@@ -85,8 +89,9 @@ export class BranchesService {
   }
 
   async create(ctx: RequestContext, body: CreateBranchBody) {
-    return withOrg(this.db, ctx.orgId, async (tx) => {
+    const branch = await withOrg(this.db, ctx.orgId, async (tx) => {
       await this.assertBranchCurrencyMatchesOrg(tx, ctx.orgId, body.currency);
+      await this.billing.assertCanActivateBranch(tx, ctx.orgId);
       const base = body.slug ?? (slugifyBase(body.name) || 'branch');
       let slug = base;
       let suffix = 0;
@@ -94,7 +99,7 @@ export class BranchesService {
         suffix += 1;
         slug = slugWithSuffix(base, suffix);
       }
-      const branch = await this.repo.insertBranch(tx, {
+      const inserted = await this.repo.insertBranch(tx, {
         id: newUuidV7(),
         orgId: ctx.orgId,
         name: body.name,
@@ -105,18 +110,23 @@ export class BranchesService {
         taxInclusive: body.taxInclusive,
         dayStartHour: body.dayStartHour,
       });
-      return mapBranchRow(branch);
+      return mapBranchRow(inserted);
     });
+    await this.billing.syncBranchQuantity(ctx.orgId);
+    return branch;
   }
 
   async patch(ctx: RequestContext, branchId: string, body: PatchBranchBody) {
-    return withOrg(this.db, ctx.orgId, async (tx) => {
+    const branch = await withOrg(this.db, ctx.orgId, async (tx) => {
       const existing = await this.repo.findBranchById(tx, branchId);
       if (!existing || existing.orgId !== ctx.orgId) {
         throw new NotFoundError();
       }
       if (body.currency !== undefined) {
         await this.assertBranchCurrencyMatchesOrg(tx, ctx.orgId, body.currency);
+      }
+      if (body.isActive === true && !existing.isActive) {
+        await this.billing.assertCanActivateBranch(tx, ctx.orgId);
       }
       const updated = await this.repo.updateBranch(tx, branchId, {
         name: body.name,
@@ -146,6 +156,15 @@ export class BranchesService {
 
       return mapBranchRow(updated);
     });
+
+    if (body.isActive === false) {
+      // Sockets on a deactivated branch must re-handshake, which now fails.
+      this.realtimeKick.disconnectBranch(branchId);
+    }
+    if (body.isActive !== undefined) {
+      await this.billing.syncBranchQuantity(ctx.orgId);
+    }
+    return branch;
   }
 
   private async assertBranchCurrencyMatchesOrg(

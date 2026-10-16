@@ -9,6 +9,10 @@ import { DRIZZLE, type DrizzleDb } from '../src/core/db/db.module';
 import { withOrg } from '../src/core/db/with-org';
 import { newUuidV7 } from '../src/lib/uuid';
 import { BillingRepository } from '../src/modules/billing/billing.repository';
+import {
+  signCheckoutOrgId,
+  verifyCheckoutOrgId,
+} from '../src/modules/billing/checkout-org-signature';
 import { FakePaddleClient } from './fake-paddle-client';
 import { PADDLE_CLIENT } from '../src/modules/billing/paddle.tokens';
 import { SubscriptionService } from '../src/modules/billing/subscription.service';
@@ -357,6 +361,23 @@ describe('Billing 2b Paddle (e2e)', () => {
       );
       expect(missingOrg.status).toBeLessThan(300);
 
+      // Real org id but a checkout signature made for another org (forged custom_data).
+      const forgedOrgId = `evt-${newUuidV7()}`;
+      const forgedOrg = await postWebhook(
+        apiAgent(nestApp),
+        subscriptionEventPayload({
+          eventId: forgedOrgId,
+          eventType: 'subscription.created',
+          occurredAt: '2026-06-15T12:00:00.000Z',
+          orgId: fresh.orgId,
+          orgSig: signCheckoutOrgId(process.env['JWT_ACCESS_SECRET'] ?? '', newUuidV7()),
+          subscriptionId: `sub_${newUuidV7().slice(-12)}`,
+          status: 'active',
+          priceId: TEST_PRICE_RESTAURANT,
+        }),
+      );
+      expect(forgedOrg.status).toBeLessThan(300);
+
       // Signed but unmappable (no data object): stored with an error, not dropped.
       const unmappableId = `evt-${newUuidV7()}`;
       const unmappable = await postWebhook(apiAgent(nestApp), {
@@ -378,6 +399,10 @@ describe('Billing 2b Paddle (e2e)', () => {
         sql`SELECT error, processed_at FROM billing_events WHERE provider_event_id = ${unmappableId}`,
       );
       expect(unmappableRow.rows[0]).toMatchObject({ error: 'unmappable_payload' });
+      const forgedRow = await db.execute(
+        sql`SELECT error FROM billing_events WHERE provider_event_id = ${forgedOrgId}`,
+      );
+      expect((forgedRow.rows[0] as { error: string }).error).toBe('invalid_org_signature');
       expect((unmappableRow.rows[0] as { processed_at: unknown }).processed_at).not.toBeNull();
     } finally {
       await nestApp.close();
@@ -566,6 +591,12 @@ describe('Billing 2b Paddle (e2e)', () => {
       expect([200, 201]).toContain(checkout.status);
       expect((checkout.body as { quantity: number; priceId: string }).quantity).toBe(2);
       expect((checkout.body as { priceId: string }).priceId).toBe(priceIdForTestPlan('restaurant'));
+      const customData = (checkout.body as { customData: { orgId: string; orgSig: string } })
+        .customData;
+      expect(customData.orgId).toBe(fresh.orgId);
+      expect(
+        verifyCheckoutOrgId(process.env['JWT_ACCESS_SECRET'] ?? '', fresh.orgId, customData.orgSig),
+      ).toBe(true);
 
       const free = await fresh.ownerAgent.post('/v1/billing/checkout').send({ planKey: 'free' });
       expect(free.status).toBe(400);
@@ -605,6 +636,8 @@ describe('Billing 2b Paddle (e2e)', () => {
     const { nestApp, jwt, fake } = await createAppWithFakePaddle();
     try {
       const fresh = await signupFreshOrg(nestApp, jwt);
+      // Second branch added during the trial; the menu plan itself only allows one.
+      await createIsolatedBranch(fresh.ownerAgent);
       const subId = `sub_${newUuidV7().slice(-8)}`;
       await nestApp.get(SubscriptionService).applySubscriptionPatch(fresh.orgId, {
         planId: PLAN_IDS.menu,
@@ -616,8 +649,6 @@ describe('Billing 2b Paddle (e2e)', () => {
         currentPeriodEnd: new Date('2026-07-15T12:00:00.000Z'),
         scheduledChange: { action: 'cancel' },
       });
-
-      await createIsolatedBranch(fresh.ownerAgent);
 
       const unknownPlan = await fresh.ownerAgent.post('/v1/billing/change-plan').send({
         planKey: 'gold',
@@ -674,6 +705,49 @@ describe('Billing 2b Paddle (e2e)', () => {
       const noCustomer = await fresh.ownerAgent.post('/v1/billing/portal').send({});
       expect(noCustomer.status).toBe(409);
       expect((noCustomer.body as ApiErrorBody).error.code).toBe('BILLING_NO_SUBSCRIPTION');
+    } finally {
+      await nestApp.close();
+    }
+  });
+
+  it('adding or deactivating a branch syncs the Paddle quantity on a per-branch plan', async () => {
+    const { nestApp, jwt, fake } = await createAppWithFakePaddle();
+    try {
+      const fresh = await signupFreshOrg(nestApp, jwt);
+      const subId = `sub_${newUuidV7().slice(-8)}`;
+      await nestApp.get(SubscriptionService).applySubscriptionPatch(fresh.orgId, {
+        planId: PLAN_IDS.restaurant,
+        status: 'active',
+        provider: 'paddle',
+        providerSubscriptionId: subId,
+        providerCustomerId: 'ctm_sync',
+        branchQuantity: 1,
+        trialEndsAt: null,
+        currentPeriodEnd: new Date('2026-07-15T12:00:00.000Z'),
+      });
+
+      const { branchId } = await createIsolatedBranch(fresh.ownerAgent);
+      expect(fake.updateCalls).toEqual([
+        {
+          subscriptionId: subId,
+          body: {
+            items: [{ price_id: TEST_PRICE_RESTAURANT, quantity: 2 }],
+            proration_billing_mode: 'prorated_immediately',
+          },
+        },
+      ]);
+
+      const off = await fresh.ownerAgent.patch(`/v1/branches/${branchId}`).send({ isActive: false });
+      expect(off.status).toBe(200);
+      expect(fake.updateCalls).toHaveLength(2);
+      expect(fake.updateCalls[1]?.body).toEqual({
+        items: [{ price_id: TEST_PRICE_RESTAURANT, quantity: 1 }],
+        proration_billing_mode: 'prorated_immediately',
+      });
+
+      // Changing other branch settings does not touch Paddle.
+      await fresh.ownerAgent.patch(`/v1/branches/${fresh.branchId}`).send({ name: 'Renamed' });
+      expect(fake.updateCalls).toHaveLength(2);
     } finally {
       await nestApp.close();
     }

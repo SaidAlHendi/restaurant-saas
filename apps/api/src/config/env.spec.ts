@@ -35,4 +35,19 @@ describe('loadEnv', () => {
       }),
     ).toThrow(/DATABASE_WORKER_URL/);
   });
+
+  it('requires CORS_ORIGINS for the API in production', () => {
+    resetEnvCacheForTests();
+    expect(() =>
+      loadEnv({ ...base, NODE_ENV: 'production', APP_ROLE: 'api', CORS_ORIGINS: undefined }),
+    ).toThrow(/CORS_ORIGINS/);
+    resetEnvCacheForTests();
+    const env = loadEnv({
+      ...base,
+      NODE_ENV: 'production',
+      APP_ROLE: 'api',
+      CORS_ORIGINS: 'https://app.example.com',
+    });
+    expect(env.CORS_ORIGINS).toBe('https://app.example.com');
+  });
 });
