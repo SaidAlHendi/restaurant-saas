@@ -15,7 +15,7 @@
     }
   },
   "app": {
-    "title": "Restaurant SaaS",
+    "title": "Sahtain",
     "placeholder": "Placeholder area"
   },
   "areas": {
@@ -59,7 +59,7 @@
     },
     "invite": {
       "title": "Accept invitation",
-      "description": "Join your team on Restaurant SaaS.",
+      "description": "Join your team on Sahtain.",
       "org": "Restaurant",
       "role": "Role",
       "submit": "Accept and sign in",

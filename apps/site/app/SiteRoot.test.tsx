@@ -6,6 +6,6 @@ import Home from './routes/home.js';
 describe('Site root', () => {
   it('renders home page heading', () => {
     render(<Home />);
-    expect(screen.getByRole('heading', { name: /restaurant saas/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /sahtain/i })).toBeInTheDocument();
   });
 });

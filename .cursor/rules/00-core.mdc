@@ -1,8 +1,8 @@
 ---
-description: Core project rules for the restaurant SaaS. Always applied.
+description: Core project rules for Sahtain. Always applied.
 alwaysApply: true
 ---
-# Restaurant SaaS — core rules
+# Sahtain — core rules
 
 Multi-tenant SaaS for restaurants: public digital menu, cashier (POS), kitchen display (KDS),
 owner dashboard, reports, subscriptions. Read `docs/product.md`, `docs/architecture.md`, `docs/backend-architecture.md`, `docs/frontend-architecture.md`, `docs/ui-kit.md`, `docs/data-model.md`, `docs/api-conventions.md` and `docs/roadmap.md`

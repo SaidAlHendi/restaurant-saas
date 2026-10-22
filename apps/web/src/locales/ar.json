@@ -15,7 +15,7 @@
     }
   },
   "app": {
-    "title": "مطاعم SaaS",
+    "title": "صحتين",
     "placeholder": "منطقة مؤقتة"
   },
   "areas": {
@@ -59,7 +59,7 @@
     },
     "invite": {
       "title": "قبول الدعوة",
-      "description": "انضم إلى فريقك على Restaurant SaaS.",
+      "description": "انضم إلى فريقك على صحتين.",
       "org": "المطعم",
       "role": "الدور",
       "submit": "قبول وتسجيل الدخول",

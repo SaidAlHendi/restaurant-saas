@@ -1,4 +1,4 @@
-# Restaurant SaaS
+# Sahtain
 
 Multi-tenant SaaS for restaurants: public digital menu, cashier (POS), kitchen display (KDS), owner dashboard, reports, and subscriptions.
 

@@ -28,8 +28,8 @@ export default defineConfig({
         'kds.webmanifest',
       ],
       manifest: {
-        name: 'Restaurant SaaS',
-        short_name: 'Restaurant',
+        name: 'Sahtain',
+        short_name: 'Sahtain',
         start_url: '/',
         scope: '/',
         display: 'standalone',

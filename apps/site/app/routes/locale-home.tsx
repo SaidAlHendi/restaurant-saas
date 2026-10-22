@@ -1,3 +1,4 @@
+import { SITE_APP_TITLE } from '../lib/brand.js';
 import { buildPageMeta } from '../lib/seo.js';
 
 export function loader({ params }: { params: { locale?: string } }) {
@@ -12,7 +13,7 @@ export function meta({ data: loaderData }: { data?: { locale: string } }) {
   const locale = loaderData?.locale ?? 'en';
   const isAr = locale === 'ar';
   return buildPageMeta({
-    title: isAr ? 'مطاعم SaaS' : 'Restaurant SaaS',
+    title: isAr ? SITE_APP_TITLE.ar : SITE_APP_TITLE.en,
     description: isAr
       ? 'قوائم رقمية وعمليات للمطاعم الحديثة.'
       : 'Digital menus and operations for modern restaurants.',
@@ -25,7 +26,7 @@ export default function LocaleHome({ loaderData }: { loaderData: { locale: strin
   const isAr = loaderData.locale === 'ar';
   return (
     <main className="mx-auto max-w-3xl p-6">
-      <h1 className="text-3xl font-semibold">{isAr ? 'مطاعم SaaS' : 'Restaurant SaaS'}</h1>
+      <h1 className="text-3xl font-semibold">{isAr ? SITE_APP_TITLE.ar : SITE_APP_TITLE.en}</h1>
       <p className="mt-2 text-muted-foreground">
         {isAr ? 'صفحة تسويقية (معروضة مسبقاً).' : 'Marketing page (prerendered).'}
       </p>
