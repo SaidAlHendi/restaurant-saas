@@ -12,6 +12,15 @@ Work done while Said was away (2026-10-24). One section per branch/PR, newest fi
 - No component changes were needed for this: everything already uses the tokens.
 - Before/after screenshots (desktop, mobile, English, Arabic, dark): `/mnt/project-files/reviews/restyle-2026-10-24/`.
 
+### Sidebar, kitchen display and dashboard restyle (second pass)
+- **Sidebar:** header and footer separated by rules, tighter nav items with the active item tinted and its icon in the brand color, sub-menus (Menu, Cashier) indented under a rule instead of loose dots, and the footer is now a user card plus a compact icon row (theme, language, sign out, collapse) instead of three full-width rows.
+- **Kitchen display:** columns sit on a soft tinted panel so white order cards stand out; cards get a colored edge bar by age (red/amber) instead of a thick border on every card; round check circles, pill timers, order notes on the highlight color.
+- **Dashboard:** sales is the headline card in the brand color, every KPI has an icon, bars share one `BreakdownCard`, the double padding gap in cards is gone, table headers are aligned with their columns, and the date controls are one compact row.
+- Screenshots: `after2-*.png` in the same folder.
+
+### CI fix
+- The first push failed the site build: prerendering `/`, `/ar` and `/en` now reads `PUBLIC_SITE_URL`, which is not set at build time. Those pages are server-rendered per request now (`prerender` removed in `react-router.config.ts`), so builds need no runtime env.
+
 ### Polish issues
 You did not list the four issues in writing, so these are my best reading of them from running the app:
 1. **Mobile branch chooser**: on POS, KDS and dashboard the branch select is now full width on phones (it was a cramped 50% or fixed-width box that wrapped next to Lock).

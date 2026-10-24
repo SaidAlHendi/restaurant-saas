@@ -2,6 +2,8 @@ import { LanguagesIcon, LockIcon, LogOutIcon, MoonIcon, SunIcon } from 'lucide-r
 import type { ReactNode } from 'react';
 
 import {
+  cn,
+  IconButton,
   Sidebar,
   SidebarContent,
   SidebarFooter,
@@ -84,7 +86,7 @@ export function AppShellView({
             })}
           </SidebarGroup>
           {menuSubNav.length > 0 ? (
-            <SidebarGroup label={labels.menuSection}>
+            <SidebarGroup label={labels.menuSection} className="[&_ul]:ms-5 [&_ul]:border-s [&_ul]:ps-2">
               {menuSubNav.map((item) => (
                 <SidebarItem
                   key={item.to}
@@ -97,7 +99,7 @@ export function AppShellView({
             </SidebarGroup>
           ) : null}
           {posSubNav.length > 0 ? (
-            <SidebarGroup label={labels.posSection}>
+            <SidebarGroup label={labels.posSection} className="[&_ul]:ms-5 [&_ul]:border-s [&_ul]:ps-2">
               {posSubNav.map((item) => (
                 <SidebarItem
                   key={item.to}
@@ -111,34 +113,38 @@ export function AppShellView({
           ) : null}
         </SidebarContent>
         <SidebarFooter>
-          <SidebarGroup>
-            <SidebarItem
-              icon={isDark ? <SunIcon aria-hidden /> : <MoonIcon aria-hidden />}
-              label={labels.theme}
-              onClick={onToggleTheme}
-            />
-            <SidebarItem
-              icon={<LanguagesIcon aria-hidden />}
-              label={labels.language}
-              onClick={onToggleLanguage}
-            />
-            <SidebarItem
-              icon={<LogOutIcon aria-hidden className="rtl:-scale-x-100" />}
-              label={labels.logout}
-              disabled={loggingOut}
-              onClick={onLogout}
-            />
-          </SidebarGroup>
-          {user ? (
-            <SidebarUser name={user.name} detail={user.detail ?? undefined} className="mt-1" />
-          ) : null}
-          <div className="hidden md:block">
-            <SidebarTrigger
-              label={labels.toggleSidebar}
-              variant="ghost"
-              className={collapsed ? 'mx-auto' : undefined}
-              onClick={onToggleCollapsed}
-            />
+          {user ? <SidebarUser name={user.name} detail={user.detail ?? undefined} /> : null}
+          <div
+            className={cn(
+              'flex gap-1',
+              collapsed ? 'flex-col items-center' : 'items-center justify-between',
+            )}
+          >
+            <div className={cn('flex gap-1', collapsed && 'flex-col')}>
+              <IconButton
+                label={labels.theme}
+                icon={isDark ? <SunIcon aria-hidden /> : <MoonIcon aria-hidden />}
+                onClick={onToggleTheme}
+              />
+              <IconButton
+                label={labels.language}
+                icon={<LanguagesIcon aria-hidden />}
+                onClick={onToggleLanguage}
+              />
+              <IconButton
+                label={labels.logout}
+                icon={<LogOutIcon aria-hidden className="rtl:-scale-x-100" />}
+                disabled={loggingOut}
+                onClick={onLogout}
+              />
+            </div>
+            <div className="hidden md:block">
+              <SidebarTrigger
+                label={labels.toggleSidebar}
+                variant="ghost"
+                onClick={onToggleCollapsed}
+              />
+            </div>
           </div>
         </SidebarFooter>
       </Sidebar>
