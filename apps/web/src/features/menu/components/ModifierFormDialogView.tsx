@@ -60,7 +60,7 @@ export function ModifierFormDialogView({
 }: ModifierFormDialogViewProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent closeLabel={cancelLabel}>
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>

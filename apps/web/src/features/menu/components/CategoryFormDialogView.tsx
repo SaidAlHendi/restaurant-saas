@@ -57,7 +57,7 @@ export function CategoryFormDialogView({
 }: CategoryFormDialogViewProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent closeLabel={cancelLabel}>
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>{mode === 'create' ? titleCreate : titleEdit}</DialogTitle>
         </DialogHeader>

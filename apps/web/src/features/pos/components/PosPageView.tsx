@@ -82,7 +82,7 @@ export function PosPageView(props: PosPageViewModel) {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <ConnectionBanner {...realtimeBanner} />
-      <header className="flex min-h-16 shrink-0 flex-wrap items-center gap-3 border-b bg-background px-4 py-2">
+      <header className="flex min-h-16 shrink-0 flex-wrap items-center gap-3 border-b bg-background px-4 py-2 md:px-6">
         <SearchInput
           className="min-w-48 max-w-xl flex-1"
           defaultValue={search.value}
@@ -92,11 +92,11 @@ export function PosPageView(props: PosPageViewModel) {
           aria-label={search.placeholder}
           clearLabel={search.clearLabel}
         />
-        <div className="ms-auto flex min-w-0 items-center gap-3">
+        <div className="flex w-full min-w-0 items-center gap-3 sm:ms-auto sm:w-auto">
           <Button type="button" size="sm" variant="outline" onClick={lock.onPress}>
             {lock.label}
           </Button>
-          <BranchSwitcher {...branchSwitcher} className="w-56 max-w-full" />
+          <BranchSwitcher {...branchSwitcher} className="min-w-0 flex-1 sm:w-56 sm:flex-none" />
         </div>
       </header>
 

@@ -31,6 +31,7 @@ import {
   type KdsSettings,
 } from '../kds-settings.utils.js';
 import { createChimePlayer } from '../kds-sound.js';
+import { localizedName } from '../../../lib/localized-name.js';
 import { buildKdsCard, type KdsCardLabels, type KdsCardModel } from '../kds-view.utils.js';
 import {
   useChangeKitchenItemStatusMutation,
@@ -277,7 +278,10 @@ export function useKdsPage() {
     },
   });
 
-  const branchName = branches.find((b) => b.id === branchId)?.name ?? t('pos.branchUnknown');
+  const branchName = localizedName(
+    branches.find((b) => b.id === branchId)?.name ?? t('pos.branchUnknown'),
+    i18n.language,
+  );
 
   return {
     branchName,
@@ -325,7 +329,7 @@ export function useKdsPage() {
       updateSettings({ ...settings, soundEnabled: false });
     },
     branchSwitcher: {
-      branches: branches.map((b) => ({ id: b.id, name: b.name })),
+      branches: branches.map((b) => ({ id: b.id, name: localizedName(b.name, i18n.language) })),
       value: branchId,
       onValueChange: (next: string) => {
         if (org && next !== branchId) {

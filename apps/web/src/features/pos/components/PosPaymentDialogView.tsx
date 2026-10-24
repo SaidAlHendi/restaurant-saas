@@ -45,7 +45,7 @@ export function PosPaymentDialogView(props: PosPaymentDialogViewProps) {
         }
       }}
     >
-      <DialogContent size="sm" closeLabel={labels.cancel}>
+      <DialogContent size="sm">
         <DialogHeader>
           <DialogTitle>{labels.title}</DialogTitle>
         </DialogHeader>

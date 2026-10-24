@@ -57,7 +57,11 @@ export function AppShellView({
           >
             {brandInitial}
           </span>
-          {collapsed ? null : <span className="truncate text-base font-bold">{brand}</span>}
+          {collapsed ? null : (
+            <span dir="auto" className="truncate text-base font-bold">
+              {brand}
+            </span>
+          )}
         </SidebarHeader>
         <SidebarContent>
           <SidebarGroup>
@@ -141,7 +145,9 @@ export function AppShellView({
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex h-14 shrink-0 items-center gap-2 border-b bg-background px-3 md:hidden">
           <SidebarTrigger label={labels.sidebar} onClick={onOpenMobile} />
-          <span className="truncate font-semibold">{brand}</span>
+          <span dir="auto" className="min-w-0 flex-1 truncate font-semibold">
+            {brand}
+          </span>
         </div>
         {banner !== null ? <BillingBannerView banner={banner} /> : null}
         <div className="flex min-h-0 flex-1 flex-col">{children}</div>
