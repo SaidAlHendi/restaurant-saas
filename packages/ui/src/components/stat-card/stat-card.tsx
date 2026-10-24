@@ -40,7 +40,7 @@ export function StatCard({
     <div
       data-slot="stat-card"
       className={cn(
-        'flex flex-col gap-3 rounded-2xl border p-5 shadow-sm',
+        'relative isolate flex flex-col gap-3 overflow-hidden rounded-2xl border p-5 shadow-sm',
         emphasis
           ? 'border-transparent bg-primary text-primary-foreground'
           : 'bg-card text-card-foreground',
@@ -48,6 +48,12 @@ export function StatCard({
       )}
       {...props}
     >
+      {emphasis ? (
+        <span
+          aria-hidden
+          className="lattice pointer-events-none absolute -end-6 -top-6 -z-10 size-40 bg-primary-foreground opacity-[0.12]"
+        />
+      ) : null}
       <div className="flex items-center gap-3">
         {icon ? (
           <span
@@ -69,7 +75,7 @@ export function StatCard({
           {label}
         </span>
       </div>
-      <div className="text-2xl font-bold tracking-tight whitespace-nowrap tabular-nums">{value}</div>
+      <div className="font-display text-2xl font-semibold tracking-tight whitespace-nowrap tabular-nums">{value}</div>
       {delta ? (
         <div className="flex flex-wrap items-center gap-1.5 text-xs">
           <span

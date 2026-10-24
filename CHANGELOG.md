@@ -12,6 +12,14 @@ Work done while Said was away (2026-10-24). One section per branch/PR, newest fi
 - No component changes were needed for this: everything already uses the tokens.
 - Before/after screenshots (desktop, mobile, English, Arabic, dark): `/mnt/project-files/reviews/restyle-2026-10-24/`.
 
+### Own identity (third pass, replaces the cream/paprika palette above)
+Said found the warm palette too basic, so the look now has its own character, rooted in Gulf/Najdi design instead of a generic SaaS theme:
+- **Color:** deep indigo ink as the brand, saffron as the mark color, limestone canvas, sumac red for errors. Dark theme flips to ink-blue surfaces where saffron becomes the primary action color. The sidebar is dark indigo in both themes.
+- **Motif:** an eight-point star lattice (`.lattice` in `globals.css`) fades in at the top of the sidebar and on the headline Sales card. The organization mark in the sidebar is now a saffron star with the initial.
+- **Type:** Readex Pro for headings and numbers, IBM Plex Sans Arabic for text. Both cover Arabic and Latin and are bundled with `@fontsource` (no Google Fonts request at runtime).
+- Sidebar items, user card, icon buttons and active marker now use dedicated sidebar tokens (`--brand-sidebar*` in `themes.css`).
+- Screenshots: `after3-*.png` in the same folder. To go back, revert the commit "feat(ui): Sahtain identity".
+
 ### Sidebar, kitchen display and dashboard restyle (second pass)
 - **Sidebar:** header and footer separated by rules, tighter nav items with the active item tinted and its icon in the brand color, sub-menus (Menu, Cashier) indented under a rule instead of loose dots, and the footer is now a user card plus a compact icon row (theme, language, sign out, collapse) instead of three full-width rows.
 - **Kitchen display:** columns sit on a soft tinted panel so white order cards stand out; cards get a colored edge bar by age (red/amber) instead of a thick border on every card; round check circles, pill timers, order notes on the highlight color.

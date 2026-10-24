@@ -5,65 +5,73 @@
  * never raw colors.
  */
 
-/* Warm kitchen palette. Light: cream canvas, ivory cards, paprika brand, saffron highlight, tinted
-   secondary. Dark: espresso surfaces with the same hues lifted for contrast. The brand is no longer
-   green, so success/ready states (green) stay distinct from primary actions. */
+/* Sahtain identity: Najdi indigo ink, saffron, sumac and limestone.
+   Light: limestone canvas, ivory cards, indigo primary, a deep indigo sidebar with saffron marks.
+   Dark: ink-blue surfaces where saffron becomes the primary action color. */
 :root,
 [data-theme='cupcake'] {
   color-scheme: light;
   /* Light theme (name kept for saved preferences). */
-  --base-100: oklch(99.2% 0.004 85);
-  --base-200: oklch(95.4% 0.011 85);
-  --base-300: oklch(91% 0.016 80);
-  --base-content: oklch(26% 0.014 60);
-  --brand-primary: oklch(55% 0.15 38);
-  --brand-primary-content: oklch(99% 0.005 85);
-  --brand-secondary: oklch(94.5% 0.03 50);
-  --brand-secondary-content: oklch(42% 0.12 38);
-  --brand-accent: oklch(95.5% 0.05 85);
-  --brand-accent-content: oklch(44% 0.1 65);
+  --base-100: oklch(99% 0.004 95);
+  --base-200: oklch(95.8% 0.008 95);
+  --base-300: oklch(91% 0.012 95);
+  --base-content: oklch(24% 0.04 275);
+  --brand-primary: oklch(36% 0.13 275);
+  --brand-primary-content: oklch(98% 0.01 95);
+  --brand-secondary: oklch(93.5% 0.025 275);
+  --brand-secondary-content: oklch(32% 0.12 275);
+  --brand-accent: oklch(92% 0.09 88);
+  --brand-accent-content: oklch(38% 0.09 70);
   --brand-highlight: var(--brand-accent);
   --brand-highlight-content: var(--brand-accent-content);
-  --brand-neutral: oklch(27% 0.012 60);
-  --brand-neutral-content: oklch(94% 0.008 85);
-  --state-info: oklch(62% 0.13 240);
-  --state-info-content: oklch(98% 0.01 240);
-  --state-success: oklch(60% 0.14 155);
-  --state-success-content: oklch(98% 0.01 155);
-  --state-warning: oklch(80% 0.16 85);
+  --brand-neutral: oklch(22% 0.05 275);
+  --brand-neutral-content: oklch(94% 0.01 95);
+  --brand-sidebar: oklch(25% 0.095 275);
+  --brand-sidebar-content: oklch(93% 0.015 95);
+  --brand-sidebar-accent: oklch(32% 0.105 275);
+  --brand-sidebar-mark: oklch(82% 0.16 82);
+  --state-info: oklch(60% 0.12 245);
+  --state-info-content: oklch(98% 0.01 245);
+  --state-success: oklch(58% 0.13 160);
+  --state-success-content: oklch(98% 0.01 160);
+  --state-warning: oklch(82% 0.16 85);
   --state-warning-content: oklch(28% 0.07 65);
-  --state-error: oklch(56% 0.21 25);
-  --state-error-content: oklch(99% 0.005 25);
+  --state-error: oklch(52% 0.19 15);
+  --state-error-content: oklch(98% 0.008 15);
   --radius: 0.75rem;
   --border-width: 1px;
 }
 
 [data-theme='forest'] {
   color-scheme: dark;
-  /* Dark theme (name kept for saved preferences): warm espresso. */
-  --base-100: oklch(23% 0.012 55);
-  --base-200: oklch(19.5% 0.011 55);
-  --base-300: oklch(16.5% 0.01 55);
-  --base-content: oklch(90% 0.014 80);
-  --brand-primary: oklch(70% 0.14 45);
-  --brand-primary-content: oklch(20% 0.02 45);
-  --brand-secondary: oklch(33% 0.05 45);
-  --brand-secondary-content: oklch(88% 0.07 55);
-  --brand-accent: oklch(78% 0.13 85);
+  /* Dark theme (name kept for saved preferences). */
+  --base-100: oklch(24% 0.035 275);
+  --base-200: oklch(20% 0.035 275);
+  --base-300: oklch(16.5% 0.03 275);
+  --base-content: oklch(93% 0.012 90);
+  --brand-primary: oklch(82% 0.16 82);
+  --brand-primary-content: oklch(22% 0.05 275);
+  --brand-secondary: oklch(33% 0.075 275);
+  --brand-secondary-content: oklch(90% 0.04 275);
+  --brand-accent: oklch(78% 0.14 85);
   --brand-accent-content: oklch(22% 0.04 85);
   /* Warm surface for highlighted cards (open orders). */
-  --brand-highlight: oklch(32% 0.05 70);
-  --brand-highlight-content: oklch(85% 0.12 80);
-  --brand-neutral: oklch(32% 0.015 55);
-  --brand-neutral-content: oklch(88% 0.012 80);
-  --state-info: oklch(72% 0.12 240);
-  --state-info-content: oklch(18% 0.03 240);
-  --state-success: oklch(70% 0.14 155);
-  --state-success-content: oklch(18% 0.03 155);
+  --brand-highlight: oklch(34% 0.06 80);
+  --brand-highlight-content: oklch(88% 0.11 85);
+  --brand-neutral: oklch(14% 0.03 275);
+  --brand-neutral-content: oklch(90% 0.012 90);
+  --brand-sidebar: oklch(15.5% 0.035 275);
+  --brand-sidebar-content: oklch(92% 0.012 90);
+  --brand-sidebar-accent: oklch(24% 0.06 275);
+  --brand-sidebar-mark: oklch(82% 0.16 82);
+  --state-info: oklch(72% 0.12 245);
+  --state-info-content: oklch(18% 0.03 245);
+  --state-success: oklch(70% 0.14 160);
+  --state-success-content: oklch(18% 0.03 160);
   --state-warning: oklch(82% 0.15 85);
   --state-warning-content: oklch(22% 0.05 65);
-  --state-error: oklch(70% 0.17 25);
-  --state-error-content: oklch(18% 0.04 25);
+  --state-error: oklch(68% 0.17 15);
+  --state-error-content: oklch(18% 0.04 15);
   --radius: 0.75rem;
   --border-width: 1px;
 }
@@ -103,13 +111,13 @@
   --chart-3: var(--brand-accent);
   --chart-4: var(--state-info);
   --chart-5: var(--state-warning);
-  --sidebar: var(--base-100);
-  --sidebar-foreground: var(--base-content);
-  --sidebar-primary: var(--brand-primary);
-  --sidebar-primary-foreground: var(--brand-primary-content);
-  --sidebar-accent: var(--base-200);
-  --sidebar-accent-foreground: var(--base-content);
-  --sidebar-border: var(--border);
+  --sidebar: var(--brand-sidebar);
+  --sidebar-foreground: var(--brand-sidebar-content);
+  --sidebar-primary: var(--brand-sidebar-mark);
+  --sidebar-primary-foreground: var(--brand-sidebar);
+  --sidebar-accent: var(--brand-sidebar-accent);
+  --sidebar-accent-foreground: var(--brand-sidebar-content);
+  --sidebar-border: color-mix(in oklch, var(--brand-sidebar-content) 14%, var(--brand-sidebar));
   --sidebar-ring: var(--ring);
 }
 

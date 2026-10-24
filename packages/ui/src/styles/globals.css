@@ -10,6 +10,19 @@
   --color-overlay: var(--brand-neutral);
 }
 
+/* Type: Readex Pro for headings and numbers, IBM Plex Sans Arabic for text (both cover Arabic and Latin). */
+@theme inline {
+  --font-sans: 'IBM Plex Sans Arabic', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Readex Pro Variable', 'IBM Plex Sans Arabic', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Najdi-style eight-point star lattice. Draw it with `bg-current` on a decorative element and
+   set its color and opacity; it takes the shape from this mask. */
+.lattice {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36'%3E%3Cg fill='none' stroke='%23000' stroke-width='1'%3E%3Crect x='7' y='7' width='22' height='22'/%3E%3Cpath d='M18 1 35 18 18 35 1 18Z'/%3E%3C/g%3E%3C/svg%3E");
+  mask-size: 36px 36px;
+}
+
 /* `dark:` follows the forest theme, not the OS setting. */
 @custom-variant dark (&:where([data-theme='forest'], [data-theme='forest'] *));
 
@@ -18,6 +31,11 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
   }
 }
