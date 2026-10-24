@@ -30,7 +30,7 @@ export default function LocaleHome({ loaderData }: { loaderData: { locale: strin
     <main className="mx-auto max-w-3xl p-6">
       <h1 className="text-3xl font-semibold">{isAr ? SITE_APP_TITLE.ar : SITE_APP_TITLE.en}</h1>
       <p className="mt-2 text-muted-foreground">
-        {isAr ? 'صفحة تسويقية (معروضة مسبقاً).' : 'Marketing page (prerendered).'}
+        {isAr ? 'صفحة تسويقية.' : 'Marketing page.'}
       </p>
     </main>
   );

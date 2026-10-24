@@ -21,7 +21,7 @@ export default function Home() {
     <main className="mx-auto max-w-3xl p-6">
       <h1 className="text-3xl font-semibold">{SITE_APP_TITLE.en}</h1>
       <p className="mt-2 text-muted-foreground">
-        Public marketing home (prerendered). Browse sample menu at{' '}
+        Public marketing home. Browse sample menu at{' '}
         <a className="text-primary underline" href="/en/m/demo">
           /en/m/demo
         </a>
