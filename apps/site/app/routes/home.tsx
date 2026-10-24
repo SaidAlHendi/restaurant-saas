@@ -1,11 +1,17 @@
 import { SITE_APP_TITLE } from '../lib/brand.js';
+import { getSiteEnv } from '../lib/env.server.js';
+import { homeCanonicalUrl } from '../lib/menu-path.js';
 import { buildPageMeta } from '../lib/seo.js';
 
-export function meta() {
+export function loader() {
+  return { siteBaseUrl: getSiteEnv().PUBLIC_SITE_URL };
+}
+
+export function meta({ data: loaderData }: { data?: { siteBaseUrl: string } }) {
   return buildPageMeta({
     title: SITE_APP_TITLE.en,
     description: 'Digital menus and operations for modern restaurants.',
-    canonical: 'https://example.com/',
+    canonical: loaderData && homeCanonicalUrl(loaderData.siteBaseUrl),
     locale: 'en',
   });
 }

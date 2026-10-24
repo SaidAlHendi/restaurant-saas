@@ -24,3 +24,7 @@ export function parseMenuLocale(value: string | undefined): 'ar' | 'en' | null {
   }
   return null;
 }
+
+export function homeCanonicalUrl(siteBaseUrl: string, locale?: string): string {
+  return new URL(locale === undefined ? '/' : `/${locale}`, siteBaseUrl).toString();
+}
