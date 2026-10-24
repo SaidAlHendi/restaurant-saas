@@ -12,6 +12,9 @@ Work done while Said was away (2026-10-24). One section per branch/PR, newest fi
 - No component changes were needed for this: everything already uses the tokens.
 - Before/after screenshots (desktop, mobile, English, Arabic, dark): `/mnt/project-files/reviews/restyle-2026-10-24/`.
 
+### Reverted: indigo/saffron identity
+A third pass (indigo and saffron palette, star lattice, new fonts) was tried and reverted at Said's request (commits d5c545d and 8d43961). Said also clarified that "restyle" meant layout and structure of the sidebar, kitchen display and dashboard, not colors. The cream/paprika palette stays for now.
+
 ### Sidebar, kitchen display and dashboard restyle (second pass)
 - **Sidebar:** header and footer separated by rules, tighter nav items with the active item tinted and its icon in the brand color, sub-menus (Menu, Cashier) indented under a rule instead of loose dots, and the footer is now a user card plus a compact icon row (theme, language, sign out, collapse) instead of three full-width rows.
 - **Kitchen display:** columns sit on a soft tinted panel so white order cards stand out; cards get a colored edge bar by age (red/amber) instead of a thick border on every card; round check circles, pill timers, order notes on the highlight color.
