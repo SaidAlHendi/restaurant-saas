@@ -18,7 +18,8 @@ Said named the kitchen display as the one page still needing a layout refactor.
 - Phones: the three columns are now tabs (New, Preparing, Ready) with counts instead of one long stack; tablets and desktops still show all three side by side.
 - Columns: empty columns show an icon and message in a dashed box instead of bare text.
 - Fix: order cards were being squashed by their column so the Start/Ready button was cut off; cards no longer shrink.
-- Screenshots: `kds-*.png` in the same folder (the demo orders look old because the seed data is a day old, so every timer is red).
+- Rounded pass: cards use large radii, columns are more rounded, and the age marker is a rounded bar inside the card header instead of a hard edge.
+- Screenshots: `kds-*.png` and `kds-round-*.png` in the same folder (the demo orders look old because the seed data is a day old, so every timer is red).
 
 ### Reverted: indigo/saffron identity
 A third pass (indigo and saffron palette, star lattice, new fonts) was tried and reverted at Said's request (commits d5c545d and 8d43961). Said also clarified that "restyle" meant layout and structure of the sidebar, kitchen display and dashboard, not colors. The cream/paprika palette stays for now.

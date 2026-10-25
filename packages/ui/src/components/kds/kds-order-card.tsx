@@ -64,21 +64,21 @@ export function KdsOrderCard({
     <article
       aria-busy={pending || undefined}
       className={cn(
-        'bg-card text-card-foreground relative flex shrink-0 flex-col overflow-hidden rounded-xl border shadow-sm transition-opacity',
+        'bg-card text-card-foreground relative flex shrink-0 flex-col overflow-hidden rounded-3xl border shadow-sm transition-opacity',
         pending && 'opacity-60',
         className,
       )}
     >
-      <span
-        aria-hidden
-        className={cn(
-          'absolute inset-y-0 start-0 w-1.5',
-          ageLevel === 'red' && 'bg-destructive',
-          ageLevel === 'amber' && 'bg-warning',
-          ageLevel === 'normal' && 'bg-border',
-        )}
-      />
-      <header className="flex items-start justify-between gap-2 border-b py-3 ps-5 pe-3">
+      <header className="relative flex items-start justify-between gap-2 border-b py-3 ps-7 pe-4">
+        <span
+          aria-hidden
+          className={cn(
+            'absolute inset-y-3 start-3 w-1.5 rounded-full',
+            ageLevel === 'red' && 'bg-destructive',
+            ageLevel === 'amber' && 'bg-warning',
+            ageLevel === 'normal' && 'bg-border',
+          )}
+        />
         <div className="min-w-0">
           <p className="text-2xl font-bold leading-tight tabular-nums">{orderNumberLabel}</p>
           <p className="text-muted-foreground truncate text-sm">
@@ -134,21 +134,25 @@ export function KdsOrderCard({
                   type="button"
                   aria-pressed={item.isReady}
                   onClick={item.onToggle}
-                  className="hover:bg-accent/40 focus-visible:ring-ring flex min-h-12 w-full items-start gap-3 py-2.5 ps-5 pe-3 text-start focus-visible:outline-none focus-visible:ring-2"
+                  className="hover:bg-accent/40 focus-visible:ring-ring flex min-h-12 w-full items-start gap-3 py-2.5 ps-7 pe-4 text-start focus-visible:outline-none focus-visible:ring-2"
                 >
                   {body}
                 </button>
               ) : (
-                <div className="flex min-h-12 items-start gap-3 py-2.5 ps-5 pe-3">{body}</div>
+                <div className="flex min-h-12 items-start gap-3 py-2.5 ps-7 pe-4">{body}</div>
               )}
             </li>
           );
         })}
       </ul>
 
-      {note ? <p className="bg-highlight text-highlight-foreground border-t py-2 ps-5 pe-3 text-sm font-medium">{note}</p> : null}
+      {note ? (
+        <p className="bg-highlight text-highlight-foreground border-t py-2 ps-7 pe-4 text-sm font-medium">
+          {note}
+        </p>
+      ) : null}
 
-      <footer className="mt-auto border-t py-2 ps-4 pe-2">
+      <footer className="mt-auto border-t p-3">
         {actionLabel && onAction ? (
           <Button
             type="button"
