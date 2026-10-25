@@ -64,7 +64,7 @@ export function KdsOrderCard({
     <article
       aria-busy={pending || undefined}
       className={cn(
-        'bg-card text-card-foreground relative flex flex-col overflow-hidden rounded-xl border shadow-sm transition-opacity',
+        'bg-card text-card-foreground relative flex shrink-0 flex-col overflow-hidden rounded-xl border shadow-sm transition-opacity',
         pending && 'opacity-60',
         className,
       )}

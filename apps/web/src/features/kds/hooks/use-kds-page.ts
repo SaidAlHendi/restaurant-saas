@@ -58,6 +58,7 @@ export function useKdsPage() {
 
   const [settings, setSettings] = useState<KdsSettings>(DEFAULT_KDS_SETTINGS);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [activeKey, setActiveKey] = useState<string>('placed');
   const [soundUnlocked, setSoundUnlocked] = useState(false);
   const [pendingOrderIds, setPendingOrderIds] = useState<ReadonlySet<string>>(new Set());
   const chimeRef = useRef(createChimePlayer());
@@ -320,6 +321,8 @@ export function useKdsPage() {
         cards: columns.ready.map(toCardProps),
       },
     ] as const,
+    activeKey,
+    onSelectColumn: setActiveKey,
     showDisconnected: !realtime.isOnline && realtime.state !== 'connecting',
     soundEnabled: settings.soundEnabled,
     onToggleMute,

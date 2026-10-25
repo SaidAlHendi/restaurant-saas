@@ -2,6 +2,8 @@ import { BellIcon, BellOffIcon, SettingsIcon } from 'lucide-react';
 
 import {
   BranchSwitcher,
+  Badge,
+  cn,
   ConnectionBanner,
   IconButton,
   KdsColumn,
@@ -28,6 +30,8 @@ export function KdsPageView({
   onSkipSound,
   branchSwitcher,
   settingsSheet,
+  activeKey,
+  onSelectColumn,
 }: KdsPageViewModel) {
   if (isLoading) {
     return (
@@ -44,12 +48,19 @@ export function KdsPageView({
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <ConnectionBanner visible={showDisconnected} message={labels.disconnected} />
-      <header className="flex min-h-16 shrink-0 flex-wrap items-center justify-between gap-3 border-b bg-background px-4 py-2 md:px-6">
-        <h1 dir="auto" className="min-w-0 truncate text-lg font-semibold">
-          {labels.title} · {branchName}
-        </h1>
-        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-          <BranchSwitcher {...branchSwitcher} className="min-w-0 flex-1 sm:w-48 sm:flex-none" />
+      <header className="flex min-h-16 shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b bg-background px-4 py-2 md:px-6">
+        <div className="flex min-w-0 flex-1 flex-col">
+          <h1 dir="auto" className="truncate text-lg leading-tight font-semibold">
+            {labels.title}
+          </h1>
+          <p dir="auto" className="text-muted-foreground truncate text-sm">
+            {branchName}
+          </p>
+        </div>
+        <div className="order-last w-full empty:hidden md:order-none md:w-44">
+          <BranchSwitcher {...branchSwitcher} className="w-full" />
+        </div>
+        <div className="flex items-center gap-2">
           <IconButton
             type="button"
             size="touch"
@@ -73,7 +84,37 @@ export function KdsPageView({
         </div>
       </header>
 
-      <div className="grid min-h-0 flex-1 gap-4 p-4 md:grid-cols-3 md:p-6">
+      <div
+        role="tablist"
+        aria-label={labels.title}
+        className="bg-background flex shrink-0 gap-1 border-b px-4 py-2 md:hidden"
+      >
+        {columns.map((column) => {
+          const selected = column.key === activeKey;
+          return (
+            <button
+              key={column.key}
+              type="button"
+              role="tab"
+              aria-selected={selected}
+              onClick={() => {
+                onSelectColumn(column.key);
+              }}
+              className={cn(
+                'flex h-11 flex-1 items-center justify-center gap-2 rounded-lg text-sm font-semibold transition-colors',
+                selected ? 'bg-secondary text-secondary-foreground' : 'text-muted-foreground',
+              )}
+            >
+              {column.title}
+              <Badge variant={column.status} className="tabular-nums">
+                {column.cards.length}
+              </Badge>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="grid min-h-0 flex-1 gap-4 p-3 md:grid-cols-3 md:p-6">
         {columns.map((column) => (
           <KdsColumn
             key={column.key}
@@ -81,6 +122,7 @@ export function KdsPageView({
             status={column.status}
             count={column.cards.length}
             emptyLabel={labels.emptyColumn}
+            className={cn(column.key !== activeKey && 'max-md:hidden')}
           >
             {column.cards.map((c) => (
               <KdsOrderCard key={c.id} {...c.card} />
