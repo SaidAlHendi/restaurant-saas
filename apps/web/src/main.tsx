@@ -1,3 +1,4 @@
+import '@fontsource-variable/cairo';
 import '@app/ui/globals.css';
 
 import { StrictMode } from 'react';

@@ -27,6 +27,9 @@ Said liked the rounder kitchen display and asked for the header and sidebar to m
 - The cashier cart panel is rounded to match.
 - Screenshots: `rounded-*.png` in the same folder.
 
+### Arabic font (sixth pass)
+Said asked for a different Arabic font. The Arabic UI used the device's default font, which varies by phone and computer. It now uses Cairo (bundled with `@fontsource-variable/cairo`, no request to Google Fonts), set on `html[dir='rtl']` in `globals.css`. English keeps the system font. Screenshots: `font-before-ar-*.png` and `font-after-ar-*.png`. To try another font, change the one `font-family` rule and the import in `main.tsx`.
+
 ### Reverted: indigo/saffron identity
 A third pass (indigo and saffron palette, star lattice, new fonts) was tried and reverted at Said's request (commits d5c545d and 8d43961). Said also clarified that "restyle" meant layout and structure of the sidebar, kitchen display and dashboard, not colors. The cream/paprika palette stays for now.
 
