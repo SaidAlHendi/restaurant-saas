@@ -21,6 +21,12 @@ Said named the kitchen display as the one page still needing a layout refactor.
 - Rounded pass: cards use large radii, columns are more rounded, and the age marker is a rounded bar inside the card header instead of a hard edge.
 - Screenshots: `kds-*.png` and `kds-round-*.png` in the same folder (the demo orders look old because the seed data is a day old, so every timer is red).
 
+### Rounded sidebar and headers (fifth pass)
+Said liked the rounder kitchen display and asked for the header and sidebar to match.
+- The desktop sidebar and the page headers (dashboard, kitchen, cashier, phone top bar) are now floating rounded panels with a border and soft shadow, set in from the screen edge instead of full-bleed bars.
+- The cashier cart panel is rounded to match.
+- Screenshots: `rounded-*.png` in the same folder.
+
 ### Reverted: indigo/saffron identity
 A third pass (indigo and saffron palette, star lattice, new fonts) was tried and reverted at Said's request (commits d5c545d and 8d43961). Said also clarified that "restyle" meant layout and structure of the sidebar, kitchen display and dashboard, not colors. The cream/paprika palette stays for now.
 

@@ -48,7 +48,7 @@ export function KdsPageView({
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <ConnectionBanner visible={showDisconnected} message={labels.disconnected} />
-      <header className="flex min-h-16 shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b bg-background px-4 py-2 md:px-6">
+      <header className="flex min-h-16 shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-2 mx-3 mt-3 rounded-2xl border bg-background shadow-sm md:mx-0 md:mt-0 px-4 py-2 md:px-6">
         <div className="flex min-w-0 flex-1 flex-col">
           <h1 dir="auto" className="truncate text-lg leading-tight font-semibold">
             {labels.title}
@@ -87,7 +87,7 @@ export function KdsPageView({
       <div
         role="tablist"
         aria-label={labels.title}
-        className="bg-background flex shrink-0 gap-1 border-b px-4 py-2 md:hidden"
+        className="bg-background mx-3 mt-3 flex shrink-0 gap-1 rounded-2xl border p-1.5 shadow-sm md:hidden"
       >
         {columns.map((column) => {
           const selected = column.key === activeKey;
@@ -114,7 +114,7 @@ export function KdsPageView({
         })}
       </div>
 
-      <div className="grid min-h-0 flex-1 gap-4 p-3 md:grid-cols-3 md:p-6">
+      <div className="grid min-h-0 flex-1 gap-4 p-3 md:grid-cols-3 md:px-0 md:pt-4 md:pb-0">
         {columns.map((column) => (
           <KdsColumn
             key={column.key}

@@ -44,8 +44,9 @@ export function AppShellView({
   labels,
 }: AppShellViewProps) {
   return (
-    <div className="flex h-dvh overflow-hidden bg-muted">
+    <div className="flex h-dvh overflow-hidden bg-muted md:gap-3 md:p-3">
       <Sidebar
+        className="md:rounded-3xl md:border md:shadow-sm"
         label={labels.sidebar}
         closeLabel={labels.closeSidebar}
         collapsed={collapsed}
@@ -149,7 +150,7 @@ export function AppShellView({
         </SidebarFooter>
       </Sidebar>
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex h-14 shrink-0 items-center gap-2 border-b bg-background px-3 md:hidden">
+        <div className="mx-3 mt-3 flex h-14 shrink-0 items-center gap-2 rounded-2xl border bg-background px-3 shadow-sm md:hidden">
           <SidebarTrigger label={labels.sidebar} onClick={onOpenMobile} />
           <span dir="auto" className="min-w-0 flex-1 truncate font-semibold">
             {brand}
