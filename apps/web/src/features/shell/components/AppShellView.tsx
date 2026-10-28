@@ -2,6 +2,8 @@ import { LanguagesIcon, LockIcon, LogOutIcon, MoonIcon, SunIcon } from 'lucide-r
 import type { ReactNode } from 'react';
 
 import {
+  cn,
+  IconButton,
   Sidebar,
   SidebarContent,
   SidebarFooter,
@@ -42,8 +44,9 @@ export function AppShellView({
   labels,
 }: AppShellViewProps) {
   return (
-    <div className="flex h-dvh overflow-hidden bg-muted">
+    <div className="flex h-dvh overflow-hidden bg-muted md:gap-3 md:p-3">
       <Sidebar
+        className="md:rounded-3xl md:border md:shadow-sm"
         label={labels.sidebar}
         closeLabel={labels.closeSidebar}
         collapsed={collapsed}
@@ -57,7 +60,11 @@ export function AppShellView({
           >
             {brandInitial}
           </span>
-          {collapsed ? null : <span className="truncate text-base font-bold">{brand}</span>}
+          {collapsed ? null : (
+            <span dir="auto" className="truncate text-base font-bold">
+              {brand}
+            </span>
+          )}
         </SidebarHeader>
         <SidebarContent>
           <SidebarGroup>
@@ -80,7 +87,7 @@ export function AppShellView({
             })}
           </SidebarGroup>
           {menuSubNav.length > 0 ? (
-            <SidebarGroup label={labels.menuSection}>
+            <SidebarGroup label={labels.menuSection} className="[&_ul]:ms-5 [&_ul]:border-s [&_ul]:ps-2">
               {menuSubNav.map((item) => (
                 <SidebarItem
                   key={item.to}
@@ -93,7 +100,7 @@ export function AppShellView({
             </SidebarGroup>
           ) : null}
           {posSubNav.length > 0 ? (
-            <SidebarGroup label={labels.posSection}>
+            <SidebarGroup label={labels.posSection} className="[&_ul]:ms-5 [&_ul]:border-s [&_ul]:ps-2">
               {posSubNav.map((item) => (
                 <SidebarItem
                   key={item.to}
@@ -107,41 +114,47 @@ export function AppShellView({
           ) : null}
         </SidebarContent>
         <SidebarFooter>
-          <SidebarGroup>
-            <SidebarItem
-              icon={isDark ? <SunIcon aria-hidden /> : <MoonIcon aria-hidden />}
-              label={labels.theme}
-              onClick={onToggleTheme}
-            />
-            <SidebarItem
-              icon={<LanguagesIcon aria-hidden />}
-              label={labels.language}
-              onClick={onToggleLanguage}
-            />
-            <SidebarItem
-              icon={<LogOutIcon aria-hidden className="rtl:-scale-x-100" />}
-              label={labels.logout}
-              disabled={loggingOut}
-              onClick={onLogout}
-            />
-          </SidebarGroup>
-          {user ? (
-            <SidebarUser name={user.name} detail={user.detail ?? undefined} className="mt-1" />
-          ) : null}
-          <div className="hidden md:block">
-            <SidebarTrigger
-              label={labels.toggleSidebar}
-              variant="ghost"
-              className={collapsed ? 'mx-auto' : undefined}
-              onClick={onToggleCollapsed}
-            />
+          {user ? <SidebarUser name={user.name} detail={user.detail ?? undefined} /> : null}
+          <div
+            className={cn(
+              'flex gap-1',
+              collapsed ? 'flex-col items-center' : 'items-center justify-between',
+            )}
+          >
+            <div className={cn('flex gap-1', collapsed && 'flex-col')}>
+              <IconButton
+                label={labels.theme}
+                icon={isDark ? <SunIcon aria-hidden /> : <MoonIcon aria-hidden />}
+                onClick={onToggleTheme}
+              />
+              <IconButton
+                label={labels.language}
+                icon={<LanguagesIcon aria-hidden />}
+                onClick={onToggleLanguage}
+              />
+              <IconButton
+                label={labels.logout}
+                icon={<LogOutIcon aria-hidden className="rtl:-scale-x-100" />}
+                disabled={loggingOut}
+                onClick={onLogout}
+              />
+            </div>
+            <div className="hidden md:block">
+              <SidebarTrigger
+                label={labels.toggleSidebar}
+                variant="ghost"
+                onClick={onToggleCollapsed}
+              />
+            </div>
           </div>
         </SidebarFooter>
       </Sidebar>
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex h-14 shrink-0 items-center gap-2 border-b bg-background px-3 md:hidden">
+        <div className="mx-3 mt-3 flex h-14 shrink-0 items-center gap-2 rounded-2xl border bg-background px-3 shadow-sm md:hidden">
           <SidebarTrigger label={labels.sidebar} onClick={onOpenMobile} />
-          <span className="truncate font-semibold">{brand}</span>
+          <span dir="auto" className="min-w-0 flex-1 truncate font-semibold">
+            {brand}
+          </span>
         </div>
         {banner !== null ? <BillingBannerView banner={banner} /> : null}
         <div className="flex min-h-0 flex-1 flex-col">{children}</div>

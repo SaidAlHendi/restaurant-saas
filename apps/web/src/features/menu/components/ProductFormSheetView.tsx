@@ -102,7 +102,7 @@ export function ProductFormSheetView({
 }: ProductFormSheetViewProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent size="lg" closeLabel={cancelLabel}>
+      <SheetContent size="lg">
         <SheetHeader>
           <SheetTitle>{title}</SheetTitle>
         </SheetHeader>

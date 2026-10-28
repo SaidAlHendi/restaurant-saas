@@ -11,7 +11,7 @@ export type AgeTimerProps = {
 };
 
 const levelClass: Record<AgeLevel, string> = {
-  normal: 'bg-muted text-foreground',
+  normal: 'bg-muted text-muted-foreground',
   amber: 'bg-warning text-warning-foreground',
   red: 'bg-destructive text-destructive-foreground',
 };
@@ -23,7 +23,7 @@ export function AgeTimer({ label, level, ariaLabel, className }: AgeTimerProps) 
       aria-label={ariaLabel}
       data-level={level}
       className={cn(
-        'inline-flex min-w-16 items-center justify-center rounded-md px-2 py-1 text-base font-semibold tabular-nums',
+        'inline-flex min-w-16 items-center justify-center rounded-full px-3 py-1 text-sm font-semibold tabular-nums',
         levelClass[level],
         className,
       )}

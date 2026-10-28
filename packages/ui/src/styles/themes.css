@@ -1,67 +1,73 @@
 /*
- * Themes: "cupcake" (light, default; own palette) and "forest" (dark, daisyUI v5),
+ * Themes: "cupcake" (light, default) and "forest" (dark), both custom warm palettes,
  * mapped onto shadcn/ui tokens. Apply with <html data-theme="cupcake|forest">.
  * Components must use these tokens through Tailwind classes (bg-background, text-primary, ...),
  * never raw colors.
  */
 
+/* Warm kitchen palette. Light: cream canvas, ivory cards, paprika brand, saffron highlight, tinted
+   secondary. Dark: espresso surfaces with the same hues lifted for contrast. The brand is no longer
+   green, so success/ready states (green) stay distinct from primary actions. */
 :root,
 [data-theme='cupcake'] {
   color-scheme: light;
-  /* Light theme (name kept for saved preferences): white surfaces on a cool gray canvas,
-     green brand, warm orange accent. Tuned to the POS design reference. */
-  --base-100: oklch(100% 0 0);
-  --base-200: oklch(97.2% 0.003 247.858);
-  --base-300: oklch(93% 0.006 247.896);
-  --base-content: oklch(27.8% 0.02 256.848);
-  --brand-primary: oklch(60.5% 0.165 149.6);
-  --brand-primary-content: oklch(100% 0 0);
-  --brand-secondary: oklch(95.5% 0.045 152.5);
-  --brand-secondary-content: oklch(42% 0.11 151);
-  --brand-accent: oklch(95.5% 0.035 70);
-  --brand-accent-content: oklch(55% 0.17 45);
+  /* Light theme (name kept for saved preferences). */
+  --base-100: oklch(99.2% 0.004 85);
+  --base-200: oklch(95.4% 0.011 85);
+  --base-300: oklch(91% 0.016 80);
+  --base-content: oklch(26% 0.014 60);
+  --brand-primary: oklch(55% 0.15 38);
+  --brand-primary-content: oklch(99% 0.005 85);
+  --brand-secondary: oklch(94.5% 0.03 50);
+  --brand-secondary-content: oklch(42% 0.12 38);
+  --brand-accent: oklch(95.5% 0.05 85);
+  --brand-accent-content: oklch(44% 0.1 65);
+  --brand-accent-2: oklch(50% 0.09 120);
+  --brand-accent-2-content: oklch(98% 0.01 120);
   --brand-highlight: var(--brand-accent);
   --brand-highlight-content: var(--brand-accent-content);
-  --brand-neutral: oklch(27% 0.006 286.033);
-  --brand-neutral-content: oklch(92% 0.004 286.32);
-  --state-info: oklch(68% 0.169 237.323);
-  --state-info-content: oklch(29% 0.066 243.157);
-  --state-success: oklch(69% 0.17 162.48);
-  --state-success-content: oklch(26% 0.051 172.552);
-  --state-warning: oklch(79% 0.184 86.047);
-  --state-warning-content: oklch(28% 0.066 53.813);
-  --state-error: oklch(60% 0.22 25);
-  --state-error-content: oklch(100% 0 0);
+  --brand-neutral: oklch(27% 0.012 60);
+  --brand-neutral-content: oklch(94% 0.008 85);
+  --state-info: oklch(62% 0.13 240);
+  --state-info-content: oklch(98% 0.01 240);
+  --state-success: oklch(60% 0.14 155);
+  --state-success-content: oklch(98% 0.01 155);
+  --state-warning: oklch(80% 0.16 85);
+  --state-warning-content: oklch(28% 0.07 65);
+  --state-error: oklch(56% 0.21 25);
+  --state-error-content: oklch(99% 0.005 25);
   --radius: 0.75rem;
   --border-width: 1px;
 }
 
 [data-theme='forest'] {
   color-scheme: dark;
-  /* daisyUI forest palette */
-  --base-100: oklch(20.84% 0.008 17.911);
-  --base-200: oklch(18.522% 0.007 17.911);
-  --base-300: oklch(16.203% 0.007 17.911);
-  --base-content: oklch(83.768% 0.001 17.911);
-  --brand-primary: oklch(68.628% 0.185 148.958);
-  --brand-primary-content: oklch(0% 0 0);
-  --brand-secondary: oklch(69.776% 0.135 168.327);
-  --brand-secondary-content: oklch(13.955% 0.027 168.327);
-  --brand-accent: oklch(70.628% 0.119 185.713);
-  --brand-accent-content: oklch(14.125% 0.023 185.713);
-  /* Warm surface for highlighted cards (open orders); forest's accent is too bright for text. */
-  --brand-highlight: oklch(31% 0.045 55);
-  --brand-highlight-content: oklch(80% 0.14 60);
-  --brand-neutral: oklch(30.698% 0.039 171.364);
-  --brand-neutral-content: oklch(86.139% 0.007 171.364);
-  --state-info: oklch(72.06% 0.191 231.6);
-  --state-info-content: oklch(0% 0 0);
-  --state-success: oklch(64.8% 0.15 160);
-  --state-success-content: oklch(0% 0 0);
-  --state-warning: oklch(84.71% 0.199 83.87);
-  --state-warning-content: oklch(0% 0 0);
-  --state-error: oklch(71.76% 0.221 22.18);
-  --state-error-content: oklch(0% 0 0);
+  /* Dark theme (name kept for saved preferences): warm espresso. */
+  --base-100: oklch(23% 0.012 55);
+  --base-200: oklch(19.5% 0.011 55);
+  --base-300: oklch(16.5% 0.01 55);
+  --base-content: oklch(90% 0.014 80);
+  --brand-primary: oklch(70% 0.14 45);
+  --brand-primary-content: oklch(20% 0.02 45);
+  --brand-secondary: oklch(33% 0.05 45);
+  --brand-secondary-content: oklch(88% 0.07 55);
+  --brand-accent: oklch(78% 0.13 85);
+  --brand-accent-content: oklch(22% 0.04 85);
+  --brand-accent-2: oklch(76% 0.11 120);
+  --brand-accent-2-content: oklch(22% 0.04 120);
+  /* Warm surface for highlighted cards (open orders). */
+  --brand-highlight: oklch(32% 0.05 70);
+  --brand-highlight-content: oklch(85% 0.12 80);
+  --brand-neutral: oklch(32% 0.015 55);
+  --brand-neutral-content: oklch(88% 0.012 80);
+  --state-info: oklch(72% 0.12 240);
+  --state-info-content: oklch(18% 0.03 240);
+  --state-success: oklch(70% 0.14 155);
+  --state-success-content: oklch(18% 0.03 155);
+  --state-warning: oklch(82% 0.15 85);
+  --state-warning-content: oklch(22% 0.05 65);
+  --state-error: oklch(70% 0.17 25);
+  --state-error-content: oklch(18% 0.04 25);
   --radius: 0.75rem;
   --border-width: 1px;
 }
@@ -81,6 +87,8 @@
   --secondary-foreground: var(--brand-secondary-content);
   --accent: var(--base-200);
   --accent-foreground: var(--base-content);
+  --accent-2: var(--brand-accent-2);
+  --accent-2-foreground: var(--brand-accent-2-content);
   --muted: var(--base-200);
   --muted-foreground: color-mix(in oklch, var(--base-content) 65%, var(--base-100));
   --destructive: var(--state-error);
@@ -125,6 +133,8 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-accent-2: var(--accent-2);
+  --color-accent-2-foreground: var(--accent-2-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-destructive: var(--destructive);

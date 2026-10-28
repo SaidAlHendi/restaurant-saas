@@ -31,6 +31,7 @@ import {
   type KdsSettings,
 } from '../kds-settings.utils.js';
 import { createChimePlayer } from '../kds-sound.js';
+import { localizedName } from '../../../lib/localized-name.js';
 import { buildKdsCard, type KdsCardLabels, type KdsCardModel } from '../kds-view.utils.js';
 import {
   useChangeKitchenItemStatusMutation,
@@ -57,6 +58,7 @@ export function useKdsPage() {
 
   const [settings, setSettings] = useState<KdsSettings>(DEFAULT_KDS_SETTINGS);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [activeKey, setActiveKey] = useState<string>('placed');
   const [soundUnlocked, setSoundUnlocked] = useState(false);
   const [pendingOrderIds, setPendingOrderIds] = useState<ReadonlySet<string>>(new Set());
   const chimeRef = useRef(createChimePlayer());
@@ -277,7 +279,10 @@ export function useKdsPage() {
     },
   });
 
-  const branchName = branches.find((b) => b.id === branchId)?.name ?? t('pos.branchUnknown');
+  const branchName = localizedName(
+    branches.find((b) => b.id === branchId)?.name ?? t('pos.branchUnknown'),
+    i18n.language,
+  );
 
   return {
     branchName,
@@ -316,6 +321,8 @@ export function useKdsPage() {
         cards: columns.ready.map(toCardProps),
       },
     ] as const,
+    activeKey,
+    onSelectColumn: setActiveKey,
     showDisconnected: !realtime.isOnline && realtime.state !== 'connecting',
     soundEnabled: settings.soundEnabled,
     onToggleMute,
@@ -325,7 +332,7 @@ export function useKdsPage() {
       updateSettings({ ...settings, soundEnabled: false });
     },
     branchSwitcher: {
-      branches: branches.map((b) => ({ id: b.id, name: b.name })),
+      branches: branches.map((b) => ({ id: b.id, name: localizedName(b.name, i18n.language) })),
       value: branchId,
       onValueChange: (next: string) => {
         if (org && next !== branchId) {

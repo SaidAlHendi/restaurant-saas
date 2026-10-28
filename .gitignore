@@ -27,3 +27,4 @@ apps/site/.react-router/
 .agent-quality-gate-output.txt
 .agent-gate-run.exit
 .agent-gate-run.log
+dump.rdb
