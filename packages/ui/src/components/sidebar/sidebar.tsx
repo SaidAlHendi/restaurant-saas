@@ -162,7 +162,7 @@ export function SidebarItem({
       className={cn(
         'flex h-10 w-full items-center gap-3 rounded-lg px-3 text-sm font-medium text-muted-foreground transition-colors',
         'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-        'data-[active=true]:bg-accent-2 data-[active=true]:font-semibold data-[active=true]:text-accent-2-foreground data-[active=true]:[&_svg]:text-accent-2-foreground',
+        'data-[active=true]:bg-secondary data-[active=true]:font-semibold data-[active=true]:text-secondary-foreground data-[active=true]:[&_svg]:text-primary',
         '[&_svg]:size-5 [&_svg]:shrink-0',
         collapsed && 'justify-center px-0',
         focusRing,
@@ -237,7 +237,7 @@ export function SidebarUser({ name, detail, className, ...props }: SidebarUserPr
     >
       <span
         aria-hidden
-        className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent-2 text-sm font-semibold text-accent-2-foreground"
+        className="flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary text-sm font-semibold text-secondary-foreground"
       >
         {initials || '?'}
       </span>
