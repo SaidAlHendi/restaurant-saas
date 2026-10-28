@@ -117,7 +117,7 @@ export function SidebarGroup({ label, className, children, ...props }: SidebarGr
       {label ? (
         <p
           className={cn(
-            'px-3 pb-1 pt-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80',
+            'px-3 pb-1 pt-1 text-[11px] font-semibold uppercase tracking-wider text-accent-2',
             collapsed && 'sr-only',
           )}
         >

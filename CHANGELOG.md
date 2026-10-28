@@ -54,3 +54,8 @@ You did not list the four issues in writing, so these are my best reading of the
 
 ### Code review of main
 - Spot-checked the order payment path (row lock, idempotency key, overpay and version checks): no bug found. `pnpm lint` and `pnpm typecheck` are clean across the repo, web tests pass (239). This was a targeted pass on top of the 2026-10-16 review, not a full audit.
+
+## Second accent color (experiment)
+- Added an olive `accent-2` token (`--brand-accent-2` in `themes.css`, exposed as `bg-accent-2` / `text-accent-2`).
+- Used on stat-card icon chips, sidebar group labels and KDS column panels.
+- To remove: delete the token lines in `themes.css` and swap those three usages back (`bg-secondary text-secondary-foreground`, `text-muted-foreground/80`, `bg-foreground/5`).

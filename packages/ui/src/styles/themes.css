@@ -22,6 +22,8 @@
   --brand-secondary-content: oklch(42% 0.12 38);
   --brand-accent: oklch(95.5% 0.05 85);
   --brand-accent-content: oklch(44% 0.1 65);
+  --brand-accent-2: oklch(50% 0.09 120);
+  --brand-accent-2-content: oklch(98% 0.01 120);
   --brand-highlight: var(--brand-accent);
   --brand-highlight-content: var(--brand-accent-content);
   --brand-neutral: oklch(27% 0.012 60);
@@ -51,6 +53,8 @@
   --brand-secondary-content: oklch(88% 0.07 55);
   --brand-accent: oklch(78% 0.13 85);
   --brand-accent-content: oklch(22% 0.04 85);
+  --brand-accent-2: oklch(76% 0.11 120);
+  --brand-accent-2-content: oklch(22% 0.04 120);
   /* Warm surface for highlighted cards (open orders). */
   --brand-highlight: oklch(32% 0.05 70);
   --brand-highlight-content: oklch(85% 0.12 80);
@@ -83,6 +87,8 @@
   --secondary-foreground: var(--brand-secondary-content);
   --accent: var(--base-200);
   --accent-foreground: var(--base-content);
+  --accent-2: var(--brand-accent-2);
+  --accent-2-foreground: var(--brand-accent-2-content);
   --muted: var(--base-200);
   --muted-foreground: color-mix(in oklch, var(--base-content) 65%, var(--base-100));
   --destructive: var(--state-error);
@@ -127,6 +133,8 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-accent-2: var(--accent-2);
+  --color-accent-2-foreground: var(--accent-2-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-destructive: var(--destructive);
