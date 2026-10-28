@@ -57,5 +57,5 @@ You did not list the four issues in writing, so these are my best reading of the
 
 ## Second accent color (experiment)
 - Added an olive `accent-2` token (`--brand-accent-2` in `themes.css`, exposed as `bg-accent-2` / `text-accent-2`).
-- Used on stat-card icon chips, sidebar group labels and KDS column panels.
+- Used (strong pass) on the active sidebar item, sidebar user avatar, stat-card icon chips, secondary badges and KDS column panels (25% tint).
 - To remove: delete the token lines in `themes.css` and swap those three usages back (`bg-secondary text-secondary-foreground`, `text-muted-foreground/80`, `bg-foreground/5`).

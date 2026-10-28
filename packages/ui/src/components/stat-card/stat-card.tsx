@@ -53,7 +53,7 @@ export function StatCard({
           <span
             className={cn(
               'flex size-9 shrink-0 items-center justify-center rounded-xl [&_svg]:size-5',
-              emphasis ? 'bg-primary-foreground/15' : 'bg-accent-2/15 text-accent-2',
+              emphasis ? 'bg-primary-foreground/15' : 'bg-accent-2 text-accent-2-foreground',
             )}
             aria-hidden
           >
