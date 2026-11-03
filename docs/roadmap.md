@@ -14,6 +14,15 @@
 - [x] 9. Staff and Settings: one dashboard Settings area with tabs Restaurant (name, logo, languages, tax), Branch (details, receipt header/footer, business day start, payment settings from 7c) and Staff & roles (owner/manager/cashier/kitchen, invite, PIN login, manager approval for cancel)
 - [ ] 10. Billing: plans as data, 14-day trial, Paddle webhooks, entitlements; Sentry, uptime, backup restore test
 - [ ] 11. Pilot in one real restaurant for a full weekend
+- [ ] 12. Platform admin dashboard (internal, for us not tenants):
+  - New `apps/admin` Vite app in the monorepo, same pattern as `apps/web`
+  - New NestJS module `/v1/admin/*` guarded by a `platform_admin` role; uses the `app_owner` DB role to bypass tenant RLS, with every admin action audit-logged
+  - Tenant list: organization, plan, status, branch count
+  - Suspend and reactivate a tenant
+  - Impersonate a tenant for support (time-limited, audit-logged)
+  - Billing overview: MRR and churn
+  - Paddle subscription override
+  - Feature flags per tenant
 
 # Phase 2
 - [ ] Shifts and cash close, discounts, refunds
