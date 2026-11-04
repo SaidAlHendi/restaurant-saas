@@ -16,6 +16,7 @@ import { useDisclosure, useTheme } from '@app/ui';
 
 import { useAppDispatch, useAppSelector } from '../../app/hooks.js';
 import { setAppLanguage } from '../../lib/i18n.js';
+import { localizedName } from '../../lib/localized-name.js';
 import { useLogoutMutation } from '../auth/auth.api.js';
 import { isNavItemLocked } from '../billing/billing.utils.js';
 import { useBillingBanner } from '../billing/hooks/use-billing-banner.js';
@@ -183,12 +184,13 @@ export function useAppShell() {
   }, [dispatch, logout, navigate]);
 
   const isArabic = i18n.language.startsWith('ar');
+  const brandName = org ? localizedName(org.name, i18n.language) : t('app.title');
   const isDark = theme === 'forest';
 
   return {
     banner,
-    brand: org?.name ?? t('app.title'),
-    brandInitial: (org?.name ?? t('app.title')).trim().charAt(0).toUpperCase(),
+    brand: brandName,
+    brandInitial: brandName.trim().charAt(0).toUpperCase(),
     collapsed,
     onToggleCollapsed,
     mobileOpen: mobile.open,

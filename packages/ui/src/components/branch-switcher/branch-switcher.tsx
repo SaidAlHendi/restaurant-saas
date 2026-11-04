@@ -38,7 +38,11 @@ export function BranchSwitcher({
       return null;
     }
     return (
-      <span className="text-muted-foreground truncate text-sm font-medium" title={only.name}>
+      <span
+        dir="auto"
+        className="text-muted-foreground truncate text-sm font-medium"
+        title={only.name}
+      >
         {only.name}
       </span>
     );

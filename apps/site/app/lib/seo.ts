@@ -3,7 +3,7 @@ import { currencyDigits, type PublicMenuPayload } from '@app/shared';
 export type PageMetaInput = {
   title: string;
   description: string;
-  canonical: string;
+  canonical?: string;
   locale: string;
   imageUrl?: string;
   alternateLocales?: Array<{ locale: string; href: string }>;
@@ -19,7 +19,6 @@ export function buildPageMeta(input: PageMetaInput) {
   const tags: Array<Record<string, string>> = [
     { title: input.title },
     { name: 'description', content: input.description },
-    { tagName: 'link', rel: 'canonical', href: input.canonical },
     { property: 'og:title', content: input.title },
     { property: 'og:description', content: input.description },
     { property: 'og:locale', content: input.locale },
@@ -27,6 +26,9 @@ export function buildPageMeta(input: PageMetaInput) {
     { name: 'twitter:title', content: input.title },
     { name: 'twitter:description', content: input.description },
   ];
+  if (input.canonical !== undefined) {
+    tags.push({ tagName: 'link', rel: 'canonical', href: input.canonical });
+  }
   if (input.imageUrl) {
     tags.push({ property: 'og:image', content: input.imageUrl });
   }

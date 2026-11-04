@@ -7,6 +7,7 @@ import type { OrderDetail, OrderStatus } from '@app/shared';
 import { baseApi } from '../../../app/api/base-api.js';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks.js';
 import type { RealtimeEvent } from '../../../lib/realtime.js';
+import { localizedName } from '../../../lib/localized-name.js';
 import { formatMoney, intlLocaleForUi } from '../../../lib/money.js';
 import { randomUuid } from '../../../lib/uuid.js';
 import { cartActions, cartHasUnsavedLines } from '../../cart/cart.slice.js';
@@ -509,7 +510,7 @@ export function usePosPage() {
       message: t('pos.realtimeDisconnected'),
     },
     branchSwitcher: {
-      branches: branches.map((b) => ({ id: b.id, name: b.name })),
+      branches: branches.map((b) => ({ id: b.id, name: localizedName(b.name, i18n.language) })),
       value: branchId,
       onValueChange: onBranchChangeRequest,
       ariaLabel: t('dashboard.branchSwitcherLabel'),

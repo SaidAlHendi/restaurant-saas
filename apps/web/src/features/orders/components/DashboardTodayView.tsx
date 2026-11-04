@@ -1,3 +1,5 @@
+import { BanknoteIcon, ClockIcon, ReceiptTextIcon, TrendingUpIcon, XCircleIcon } from 'lucide-react';
+
 import {
   Button,
   Card,
@@ -16,6 +18,32 @@ export type DashboardTodayViewProps = DashboardTodayPageViewModel;
 
 function OrgActions({ orgSwitcher }: { orgSwitcher: OrgSwitcherViewModel }) {
   return <DashboardOrgSwitcherActions {...orgSwitcher} />;
+}
+
+type BreakdownRow = { id: string; label: string; amountLabel: string; widthPct: string };
+
+function BreakdownCard({ title, rows }: { title: string; rows: BreakdownRow[] }) {
+  return (
+    <Card className="gap-4 p-5">
+      <h3 className="text-base font-semibold">{title}</h3>
+      <div className="flex flex-col gap-4">
+        {rows.map((row) => (
+          <div key={row.id} className="flex flex-col gap-1.5">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">{row.label}</span>
+              <span className="font-semibold tabular-nums">{row.amountLabel}</span>
+            </div>
+            <div className="bg-muted h-2.5 overflow-hidden rounded-full">
+              <div
+                className="bg-primary h-full rounded-full"
+                style={{ width: `${row.widthPct}%` }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
 }
 
 export function DashboardTodayView(props: DashboardTodayViewProps) {
@@ -38,26 +66,26 @@ export function DashboardTodayView(props: DashboardTodayViewProps) {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title={labels.title} actions={<OrgActions orgSwitcher={orgSwitcher} />} />
-      <div className="flex flex-wrap items-end gap-3">
-        <Button type="button" variant="outline" onClick={onSelectToday}>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button type="button" size="sm" variant="outline" onClick={onSelectToday}>
           {labels.pickToday}
         </Button>
-        <Button type="button" variant="outline" onClick={onSelectYesterday}>
+        <Button type="button" size="sm" variant="outline" onClick={onSelectYesterday}>
           {labels.pickYesterday}
         </Button>
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium" htmlFor="today-date">
-            {labels.dateLabel}
-          </label>
-          <Input
-            id="today-date"
-            type="date"
-            value={selectedDate}
-            onChange={(e) => {
-              onDateInputChange(e.target.value);
-            }}
-          />
-        </div>
+        <label className="sr-only" htmlFor="today-date">
+          {labels.dateLabel}
+        </label>
+        <Input
+          id="today-date"
+          type="date"
+          aria-label={labels.dateLabel}
+          className="h-9 w-auto"
+          value={selectedDate}
+          onChange={(e) => {
+            onDateInputChange(e.target.value);
+          }}
+        />
       </div>
       {isLoading ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
@@ -79,71 +107,35 @@ export function DashboardTodayView(props: DashboardTodayViewProps) {
       {!isLoading && !isError && stats ? (
         <>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-            <StatCard label={labels.sales} value={stats.sales} />
-            <StatCard label={labels.orders} value={stats.orders} />
-            <StatCard label={labels.averageTicket} value={stats.averageTicket} />
-            <StatCard label={labels.unpaid} value={stats.unpaid} />
-            <StatCard label={labels.cancelled} value={stats.cancelled} />
+            <StatCard emphasis icon={<BanknoteIcon />} label={labels.sales} value={stats.sales} />
+            <StatCard icon={<ReceiptTextIcon />} label={labels.orders} value={stats.orders} />
+            <StatCard icon={<TrendingUpIcon />} label={labels.averageTicket} value={stats.averageTicket} />
+            <StatCard icon={<ClockIcon />} label={labels.unpaid} value={stats.unpaid} />
+            <StatCard icon={<XCircleIcon />} label={labels.cancelled} value={stats.cancelled} />
           </div>
           <div className="grid gap-6 lg:grid-cols-2">
-            <Card className="p-4">
-              <h3 className="mb-3 text-sm font-semibold">{labels.paymentBreakdown}</h3>
-              <div className="flex flex-col gap-3">
-                {paymentBars.map((row) => (
-                  <div key={row.id} className="flex flex-col gap-1">
-                    <div className="flex justify-between text-sm">
-                      <span>{row.label}</span>
-                      <span className="tabular-nums">{row.amountLabel}</span>
-                    </div>
-                    <div className="bg-muted h-2 overflow-hidden rounded-full">
-                      <div
-                        className="bg-primary h-full rounded-full"
-                        style={{ width: `${row.widthPct}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-            <Card className="p-4">
-              <h3 className="mb-3 text-sm font-semibold">{labels.typeBreakdown}</h3>
-              <div className="flex flex-col gap-3">
-                {typeBars.map((row) => (
-                  <div key={row.id} className="flex flex-col gap-1">
-                    <div className="flex justify-between text-sm">
-                      <span>{row.label}</span>
-                      <span className="tabular-nums">{row.amountLabel}</span>
-                    </div>
-                    <div className="bg-muted h-2 overflow-hidden rounded-full">
-                      <div
-                        className="bg-primary h-full rounded-full"
-                        style={{ width: `${row.widthPct}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
+            <BreakdownCard title={labels.paymentBreakdown} rows={paymentBars} />
+            <BreakdownCard title={labels.typeBreakdown} rows={typeBars} />
           </div>
-          <Card className="overflow-x-auto p-4">
-            <h3 className="mb-3 text-sm font-semibold">{labels.topItems}</h3>
+          <Card className="gap-4 overflow-x-auto p-5">
+            <h3 className="text-base font-semibold">{labels.topItems}</h3>
             {topItems.length === 0 ? (
               <p className="text-muted-foreground text-sm">{labels.empty}</p>
             ) : (
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b text-start">
-                    <th className="p-2">{labels.topItemsName}</th>
-                    <th className="p-2">{labels.topItemsQty}</th>
-                    <th className="p-2">{labels.topItemsRevenue}</th>
+                  <tr className="text-muted-foreground border-b text-xs font-medium">
+                    <th className="p-2 text-start font-medium">{labels.topItemsName}</th>
+                    <th className="p-2 text-end font-medium">{labels.topItemsQty}</th>
+                    <th className="p-2 text-end font-medium">{labels.topItemsRevenue}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {topItems.map((row) => (
                     <tr key={row.id} className="border-b last:border-0">
-                      <td className="p-2">{row.name}</td>
-                      <td className="p-2 tabular-nums">{row.quantity}</td>
-                      <td className="p-2 tabular-nums">{row.revenue}</td>
+                      <td className="p-2 font-medium">{row.name}</td>
+                      <td className="p-2 text-end tabular-nums">{row.quantity}</td>
+                      <td className="p-2 text-end tabular-nums">{row.revenue}</td>
                     </tr>
                   ))}
                 </tbody>

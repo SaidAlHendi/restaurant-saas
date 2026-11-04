@@ -8,10 +8,11 @@ import {
   selectSessionBranches,
   selectSessionOrg,
 } from '../../features/session/session.selectors.js';
+import { localizedName } from '../../lib/localized-name.js';
 
 /** Dashboard top bar: the branch switcher. Navigation lives in the app shell. */
 export function useDashboardShell() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const dispatch = useAppDispatch();
   const org = useAppSelector(selectSessionOrg);
   const branches = useAppSelector(selectSessionBranches);
@@ -19,12 +20,12 @@ export function useDashboardShell() {
 
   const branchSwitcher = useMemo(
     () => ({
-      branches: branches.map((b) => ({ id: b.id, name: b.name })),
+      branches: branches.map((b) => ({ id: b.id, name: localizedName(b.name, i18n.language) })),
       value: currentBranchId,
       ariaLabel: t('dashboard.branchSwitcherLabel'),
       placeholder: t('dashboard.selectBranch'),
     }),
-    [branches, currentBranchId, t],
+    [branches, currentBranchId, i18n.language, t],
   );
 
   const onBranchChange = useCallback(
@@ -38,7 +39,7 @@ export function useDashboardShell() {
   );
 
   return {
-    title: org?.name ?? t('app.title'),
+    title: org ? localizedName(org.name, i18n.language) : t('app.title'),
     branchSwitcher,
     onBranchChange,
   };
