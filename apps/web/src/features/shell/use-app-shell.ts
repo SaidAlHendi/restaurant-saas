@@ -141,9 +141,27 @@ export function useAppShell() {
       ? 'kds'
       : 'dashboard';
   const areas = [
-    { id: 'dashboard', to: '/dashboard', icon: LayoutDashboardIcon, label: t('shell.dashboardArea'), allowed: true },
-    { id: 'pos', to: '/pos', icon: ShoppingBagIcon, label: t('dashboard.nav.cashier'), allowed: canUsePos },
-    { id: 'kds', to: '/kds', icon: ChefHatIcon, label: t('dashboard.nav.kitchen'), allowed: canUseKds },
+    {
+      id: 'dashboard',
+      to: '/dashboard',
+      icon: LayoutDashboardIcon,
+      label: t('shell.dashboardArea'),
+      allowed: true,
+    },
+    {
+      id: 'pos',
+      to: '/pos',
+      icon: ShoppingBagIcon,
+      label: t('dashboard.nav.cashier'),
+      allowed: canUsePos,
+    },
+    {
+      id: 'kds',
+      to: '/kds',
+      icon: ChefHatIcon,
+      label: t('dashboard.nav.kitchen'),
+      allowed: canUseKds,
+    },
   ].filter((area) => area.allowed);
   const currentArea = areas.find((area) => area.id === areaId) ?? areas[0];
   const planCard = entitlements
@@ -211,6 +229,57 @@ export function useAppShell() {
   const brandName = org ? localizedName(org.name, i18n.language) : t('app.title');
   const isDark = theme === 'forest';
 
+  const toSubItems = (items: { to: string; label: string; active: boolean }[]) =>
+    items.map((item) => ({
+      id: item.to,
+      icon: null,
+      label: item.label,
+      active: item.active,
+      locked: false,
+      onSelect: () => {
+        void navigate(item.to);
+      },
+    }));
+
+  const navGroups = [
+    {
+      id: 'main',
+      label: undefined as string | undefined,
+      nested: false,
+      items: navItems.map((item) => ({
+        id: item.id,
+        icon: item.icon as LucideIcon | null,
+        label: item.label,
+        active: item.id === activeId,
+        // Still navigable: the screen explains which plan unlocks it.
+        locked: isNavItemLocked(item.id, entitlements),
+        onSelect: () => {
+          void navigate(item.to);
+        },
+      })),
+    },
+    ...(menuSubNav.length > 0
+      ? [
+          {
+            id: 'menu',
+            label: t('menu.nav.section') as string | undefined,
+            nested: true,
+            items: toSubItems(menuSubNav),
+          },
+        ]
+      : []),
+    ...(posSubNav.length > 0
+      ? [
+          {
+            id: 'pos',
+            label: t('pos.nav.section') as string | undefined,
+            nested: true,
+            items: toSubItems(posSubNav),
+          },
+        ]
+      : []),
+  ];
+
   return {
     banner,
     brand: brandName,
@@ -239,35 +308,15 @@ export function useAppShell() {
           }
         : null,
     planCard,
-    navItems: navItems.map((item) => ({
-      id: item.id,
-      icon: item.icon,
-      label: item.label,
-      active: item.id === activeId,
-      // Still navigable: the screen explains which plan unlocks it.
-      locked: isNavItemLocked(item.id, entitlements),
-      onSelect: () => {
-        void navigate(item.to);
-      },
-    })),
-    menuSubNav: menuSubNav.map((item) => ({
-      ...item,
-      onSelect: () => {
-        void navigate(item.to);
-      },
-    })),
-    posSubNav: posSubNav.map((item) => ({
-      ...item,
-      onSelect: () => {
-        void navigate(item.to);
-      },
-    })),
+    navGroups,
     user: user ? { name: user.name, detail: user.email } : null,
     isDark,
     onToggleTheme: toggleTheme,
     onToggleLanguage: () => {
       void setAppLanguage(isArabic ? 'en' : 'ar');
     },
+    loadingLabel: t('common.loading'),
+    lockedLabel: t('billing.upgrade.lockedNav'),
     loggingOut,
     onLogout: () => {
       void onLogout();
@@ -276,16 +325,10 @@ export function useAppShell() {
       sidebar: t('dashboard.nav.sidebar'),
       closeSidebar: t('dashboard.nav.closeSidebar'),
       toggleSidebar: t('shell.toggleSidebar'),
-      menuSection: t('menu.nav.section'),
-      posSection: t('pos.nav.section'),
       theme: isDark ? t('shell.lightMode') : t('shell.darkMode'),
       // Always shown in the language it switches to, so it can be found in either language.
       language: isArabic ? 'English' : 'العربية',
       logout: t('auth.logout'),
-      loading: t('common.loading'),
-      locked: t('billing.upgrade.lockedNav'),
     },
   };
 }
-
-export type AppShellViewModel = ReturnType<typeof useAppShell>;
