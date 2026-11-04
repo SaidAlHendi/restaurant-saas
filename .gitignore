@@ -28,3 +28,5 @@ apps/site/.react-router/
 .agent-gate-run.exit
 .agent-gate-run.log
 dump.rdb
+apps/admin/.next/
+apps/admin/next-env.d.ts

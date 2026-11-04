@@ -1,0 +1,14 @@
+{
+  "extends": "@app/typescript-config/react.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": { "@/*": ["src/*"] },
+    "jsx": "preserve",
+    "allowJs": true,
+    "incremental": true,
+    "plugins": [{ "name": "next" }],
+    "types": ["node", "vitest/globals"]
+  },
+  "include": ["next-env.d.ts", "src", "next.config.mjs", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}

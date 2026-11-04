@@ -75,6 +75,7 @@ pnpm dev
 | API | http://localhost:3000 |
 | Web | http://localhost:5173 |
 | Site | http://localhost:5174 |
+| Admin | http://localhost:3002 (needs `API_URL` and `JWT_ADMIN_SECRET`, see `apps/admin/.env.example`) |
 
 Health checks: `GET /v1/health`, `GET /v1/ready`.
 

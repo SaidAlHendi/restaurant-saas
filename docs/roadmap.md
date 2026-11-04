@@ -15,7 +15,7 @@
 - [ ] 10. Billing: plans as data, 14-day trial, Paddle webhooks, entitlements; Sentry, uptime, backup restore test
 - [ ] 11. Pilot in one real restaurant for a full weekend
 - [ ] 12. Platform admin dashboard (internal, for us not tenants):
-  - New `apps/admin` Vite app in the monorepo, same pattern as `apps/web`
+  - New `apps/admin` Next.js app in the monorepo (port 3002). Skeleton, login, middleware and the 18-item nav are in (12c); sign-in goes through its own `/api/auth/*` routes, which keep the session in httpOnly cookies
   - New NestJS module `/v1/admin/*` guarded by a `platform_admin` role; uses the `app_owner` DB role to bypass tenant RLS, with every admin action audit-logged
   - Tenant list: organization, plan, status, branch count
   - Suspend and reactivate a tenant

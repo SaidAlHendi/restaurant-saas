@@ -21,7 +21,9 @@
     "JWT_ACCESS_TTL",
     "COOKIE_SECURE",
     "SEED_PASSWORD",
-    "CORS_ORIGINS"
+    "CORS_ORIGINS",
+    "JWT_ADMIN_SECRET",
+    "API_URL"
   ],
   "tasks": {
     "build": {
@@ -30,7 +32,9 @@
       ],
       "outputs": [
         "dist/**",
-        "build/**"
+        "build/**",
+        ".next/**",
+        "!.next/cache/**"
       ]
     },
     "lint": {

@@ -1,0 +1,58 @@
+{
+  "app": { "title": "Sahtain Admin", "name": "Sahtain", "tagline": "Platform admin" },
+  "common": { "loading": "Loading..." },
+  "auth": {
+    "login": {
+      "title": "Admin sign in",
+      "description": "Platform team only.",
+      "submit": "Sign in",
+      "submitting": "Signing in..."
+    },
+    "fields": { "email": "Email", "password": "Password" },
+    "errors": {
+      "invalid": "Invalid email or password.",
+      "throttled": "Too many attempts. Wait a minute and try again.",
+      "unreachable": "Could not reach the server. Try again."
+    },
+    "logout": "Sign out"
+  },
+  "shell": {
+    "sidebar": "Admin navigation",
+    "closeSidebar": "Close menu",
+    "toggleSidebar": "Collapse or expand the menu",
+    "darkMode": "Dark mode",
+    "lightMode": "Light mode",
+    "role": { "super": "Super admin", "support": "Support", "billing": "Billing" }
+  },
+  "nav": {
+    "overview": "Platform Overview",
+    "restaurants": "Restaurants",
+    "users": "Users",
+    "subscriptions": "Subscriptions",
+    "plans": "Plans & Pricing",
+    "payments": "Payments",
+    "invoices": "Invoices",
+    "revenue": "Revenue Analytics",
+    "pos": "POS Activity",
+    "kds": "KDS Activity",
+    "usage": "Usage & Statistics",
+    "integrations": "Integrations",
+    "tickets": "Support Tickets",
+    "feedback": "Customer Feedback",
+    "announcements": "Announcements",
+    "admins": "Admin Users & Roles",
+    "audit": "Audit Logs",
+    "settings": "System Settings"
+  },
+  "overview": {
+    "title": "Platform Overview",
+    "description": "Restaurants, subscriptions and revenue across the platform.",
+    "welcome": "Welcome, {{name}}",
+    "empty": "Platform numbers will appear here once the overview is built."
+  },
+  "comingSoon": {
+    "title": "Coming soon",
+    "description": "{{page}} is not built yet.",
+    "back": "Back to overview"
+  }
+}
