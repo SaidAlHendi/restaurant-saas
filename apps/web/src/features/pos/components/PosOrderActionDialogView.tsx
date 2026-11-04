@@ -41,7 +41,7 @@ export function PosOrderActionDialogView(props: PosOrderActionDialogViewModel & 
         }
       }}
     >
-      <DialogContent size="sm" closeLabel={cancelLabel}>
+      <DialogContent size="sm">
         <DialogHeader>
           <DialogTitle>{step === 'reason' ? title : labels.approvalTitle}</DialogTitle>
         </DialogHeader>

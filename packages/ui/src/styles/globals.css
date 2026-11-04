@@ -10,6 +10,11 @@
   --color-overlay: var(--brand-neutral);
 }
 
+/* Arabic UI uses Cairo (clear at small sizes, covers Latin too); English keeps the system font. */
+html[dir='rtl'] {
+  font-family: 'Cairo Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
 /* `dark:` follows the forest theme, not the OS setting. */
 @custom-variant dark (&:where([data-theme='forest'], [data-theme='forest'] *));
 

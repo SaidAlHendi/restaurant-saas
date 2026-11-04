@@ -15,6 +15,8 @@ export interface StatCardProps extends React.ComponentProps<'div'> {
   /** Text after the delta, e.g. "vs yesterday". */
   deltaHint?: React.ReactNode;
   icon?: React.ReactNode;
+  /** Fills the card with the brand color; use for the one headline number. */
+  emphasis?: boolean;
 }
 
 const trendIcon = { up: TrendingUpIcon, down: TrendingDownIcon, flat: MinusIcon } as const;
@@ -28,6 +30,7 @@ export function StatCard({
   invertTrendColor = false,
   deltaHint,
   icon,
+  emphasis = false,
   className,
   ...props
 }: StatCardProps) {
@@ -37,20 +40,36 @@ export function StatCard({
     <div
       data-slot="stat-card"
       className={cn(
-        'flex flex-col gap-2 rounded-xl border bg-card p-5 text-card-foreground shadow-sm',
+        'flex flex-col gap-3 rounded-2xl border p-5 shadow-sm',
+        emphasis
+          ? 'border-transparent bg-primary text-primary-foreground'
+          : 'bg-card text-card-foreground',
         className,
       )}
       {...props}
     >
-      <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
-        <span>{label}</span>
+      <div className="flex items-center gap-3">
         {icon ? (
-          <span className="[&_svg]:size-4" aria-hidden>
+          <span
+            className={cn(
+              'flex size-9 shrink-0 items-center justify-center rounded-xl [&_svg]:size-5',
+              emphasis ? 'bg-primary-foreground/15' : 'bg-accent-2/15 text-accent-2',
+            )}
+            aria-hidden
+          >
             {icon}
           </span>
         ) : null}
+        <span
+          className={cn(
+            'text-sm font-medium',
+            emphasis ? 'text-primary-foreground/85' : 'text-muted-foreground',
+          )}
+        >
+          {label}
+        </span>
       </div>
-      <div className="text-2xl font-semibold tabular-nums">{value}</div>
+      <div className="text-2xl font-bold tracking-tight whitespace-nowrap tabular-nums">{value}</div>
       {delta ? (
         <div className="flex flex-wrap items-center gap-1.5 text-xs">
           <span

@@ -1,3 +1,4 @@
+import { ChefHatIcon, CircleCheckBigIcon, ClockIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { Badge, type OrderStatus } from '../badge/index.js';
@@ -23,20 +24,24 @@ export function KdsColumn({
   className,
 }: KdsColumnProps) {
   const isEmpty = count === 0;
+  const EmptyIcon = { new: ChefHatIcon, preparing: ClockIcon, ready: CircleCheckBigIcon }[status];
   return (
     <section
       aria-label={title}
-      className={cn('flex min-h-0 flex-col rounded-xl border bg-background shadow-xs', className)}
+      className={cn('flex min-h-0 flex-col rounded-[2rem] bg-accent-2/15', className)}
     >
-      <header className="flex items-center justify-between gap-2 border-b px-4 py-3">
-        <h2 className="text-lg font-semibold">{title}</h2>
+      <header className="flex items-center justify-between gap-2 px-4 pt-4 pb-2 max-md:hidden">
+        <h2 className="text-base font-bold tracking-tight">{title}</h2>
         <Badge variant={status} className="text-sm tabular-nums">
           {count}
         </Badge>
       </header>
-      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-3 pt-1 pb-3">
         {isEmpty ? (
-          <p className="text-muted-foreground py-8 text-center text-sm">{emptyLabel}</p>
+          <div className="text-muted-foreground flex flex-col items-center gap-2 rounded-xl border border-dashed py-10 text-center text-sm">
+            <EmptyIcon className="size-6 opacity-60" aria-hidden />
+            <p>{emptyLabel}</p>
+          </div>
         ) : (
           children
         )}

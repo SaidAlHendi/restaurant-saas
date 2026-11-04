@@ -82,7 +82,7 @@ export function PosPageView(props: PosPageViewModel) {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <ConnectionBanner {...realtimeBanner} />
-      <header className="flex min-h-16 shrink-0 flex-wrap items-center gap-3 border-b bg-background px-4 py-2">
+      <header className="flex min-h-16 shrink-0 flex-wrap items-center gap-3 mx-3 mt-3 rounded-2xl border bg-background shadow-sm md:mx-0 md:mt-0 px-4 py-2 md:px-6">
         <SearchInput
           className="min-w-48 max-w-xl flex-1"
           defaultValue={search.value}
@@ -92,11 +92,11 @@ export function PosPageView(props: PosPageViewModel) {
           aria-label={search.placeholder}
           clearLabel={search.clearLabel}
         />
-        <div className="ms-auto flex min-w-0 items-center gap-3">
+        <div className="flex w-full min-w-0 items-center gap-3 sm:ms-auto sm:w-auto">
           <Button type="button" size="sm" variant="outline" onClick={lock.onPress}>
             {lock.label}
           </Button>
-          <BranchSwitcher {...branchSwitcher} className="w-56 max-w-full" />
+          <BranchSwitcher {...branchSwitcher} className="min-w-0 flex-1 sm:w-56 sm:flex-none" />
         </div>
       </header>
 
@@ -153,7 +153,7 @@ export function PosPageView(props: PosPageViewModel) {
           <PosOpenOrdersStripView {...openOrders} />
         </section>
 
-        <aside className="flex min-h-0 shrink-0 flex-col border-t bg-background lg:w-96 lg:border-s lg:border-t-0">
+        <aside className="mx-3 mb-3 flex min-h-0 shrink-0 flex-col overflow-hidden rounded-3xl border bg-background shadow-sm lg:mt-3 lg:ms-0 lg:mb-0 lg:w-96">
           <div className="flex shrink-0 flex-col gap-4 border-b px-5 py-4">
             <div className="flex items-baseline justify-between gap-2">
               <h2 className="text-lg font-semibold">{labels.cartTitle}</h2>

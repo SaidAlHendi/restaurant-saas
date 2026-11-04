@@ -80,7 +80,7 @@ export function SidebarHeader({ className, ...props }: React.ComponentProps<'div
   return (
     <div
       data-slot="sidebar-header"
-      className={cn('flex h-16 shrink-0 items-center gap-2 px-4', className)}
+      className={cn('flex h-16 shrink-0 items-center gap-3 border-b px-4', className)}
       {...props}
     />
   );
@@ -90,7 +90,7 @@ export function SidebarContent({ className, ...props }: React.ComponentProps<'di
   return (
     <div
       data-slot="sidebar-content"
-      className={cn('flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-3 py-2', className)}
+      className={cn('flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-3 py-4', className)}
       {...props}
     />
   );
@@ -100,7 +100,7 @@ export function SidebarFooter({ className, ...props }: React.ComponentProps<'div
   return (
     <div
       data-slot="sidebar-footer"
-      className={cn('flex shrink-0 flex-col gap-1 border-t px-3 py-3', className)}
+      className={cn('flex shrink-0 flex-col gap-2 border-t px-3 py-3', className)}
       {...props}
     />
   );
@@ -117,7 +117,7 @@ export function SidebarGroup({ label, className, children, ...props }: SidebarGr
       {label ? (
         <p
           className={cn(
-            'px-3 pb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground',
+            'px-3 pb-1 pt-1 text-[11px] font-semibold uppercase tracking-wider text-accent-2',
             collapsed && 'sr-only',
           )}
         >
@@ -160,9 +160,9 @@ export function SidebarItem({
       aria-current={active ? 'page' : undefined}
       aria-label={collapsed ? label : undefined}
       className={cn(
-        'flex h-11 w-full items-center gap-3 rounded-lg px-3 text-sm font-medium text-muted-foreground transition-colors',
+        'flex h-10 w-full items-center gap-3 rounded-lg px-3 text-sm font-medium text-muted-foreground transition-colors',
         'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-        'data-[active=true]:bg-secondary data-[active=true]:font-semibold data-[active=true]:text-secondary-foreground',
+        'data-[active=true]:bg-secondary data-[active=true]:font-semibold data-[active=true]:text-secondary-foreground data-[active=true]:[&_svg]:text-primary',
         '[&_svg]:size-5 [&_svg]:shrink-0',
         collapsed && 'justify-center px-0',
         focusRing,
@@ -228,8 +228,8 @@ export function SidebarUser({ name, detail, className, ...props }: SidebarUserPr
     <div
       data-slot="sidebar-user"
       className={cn(
-        'flex items-center gap-3 px-1.5 py-1',
-        collapsed && 'justify-center px-0',
+        'bg-muted/60 flex items-center gap-3 rounded-xl p-2',
+        collapsed && 'justify-center bg-transparent p-0',
         className,
       )}
       title={collapsed ? name : undefined}
