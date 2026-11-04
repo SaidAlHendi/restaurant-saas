@@ -400,14 +400,17 @@ describe('Billing 2a (e2e)', () => {
   it('suspended org: public menu 410 and excluded from sitemap', async () => {
     const fresh = await signupFreshOrg(defaultApp, defaultApp.get(JwtAccessService));
     const db: DrizzleDb = defaultApp.get(DRIZZLE);
+    // Read the slug first: once suspended, the tenant API itself rejects the owner (ORG_SUSPENDED).
+    const me = await fresh.ownerAgent.get('/v1/me');
+    const slug = (me.body as MeResponse).org.slug;
     await withOrg(db, fresh.orgId, async (tx) => {
       await tx
         .update(organizations)
         .set({ status: 'suspended' })
         .where(eq(organizations.id, fresh.orgId));
     });
-    const me = await fresh.ownerAgent.get('/v1/me');
-    const slug = (me.body as MeResponse).org.slug;
+    const locked = await fresh.ownerAgent.get('/v1/me');
+    expect(locked.status).toBe(403);
     const menu = await defaultAgent.get(`/v1/public/menus/${slug}`);
     expect(menu.status).toBe(410);
     const sitemap = await defaultAgent.get('/v1/public/sitemap');

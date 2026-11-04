@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-11-04 - Step 12a: admin API foundations
+
+### Added
+- `app_admin` Postgres role, `admin_users`, `admin_sessions`, `audit_logs` (migration 0013), `DATABASE_ADMIN_URL`, `JWT_ADMIN_SECRET`.
+- `POST /v1/admin/auth/login|refresh|logout`, `GET /v1/admin/me`, `AdminAuthGuard`, `@RequireAdminRole`, `WithAdminService`.
+- `pnpm --filter @app/api admin:create` to create the first platform admin.
+
+### Changed
+- Tenant auth now rejects suspended or cancelled organizations (`ORG_SUSPENDED`, `ORG_CANCELLED`).
+- Local and CI setups must re-run `infra/postgres/init/01-roles.sql` (adds `app_admin`) before `db:migrate`.
+
 ## 2026-11-04 — Sahtain colors
 
 ### Changed

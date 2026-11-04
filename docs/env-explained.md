@@ -9,8 +9,10 @@ Copy `.env.example` to `.env` at the repo root. Never commit real secrets.
 | `DATABASE_URL` | API runtime (`app_user`) |
 | `DATABASE_MIGRATION_URL` | Migrations (`app_owner`) |
 | `DATABASE_WORKER_URL` | Outbox worker (`app_worker`) when `APP_ROLE` is `worker` or `all` |
+| `DATABASE_ADMIN_URL` | Platform admin API (`app_admin`, BYPASSRLS, narrow grants); required when `APP_ROLE` is `api` or `all` |
 | `REDIS_URL` | Shared Redis |
 | `JWT_ACCESS_SECRET` | Min 32 characters |
+| `JWT_ADMIN_SECRET` | Min 32 characters, must differ from `JWT_ACCESS_SECRET`; signs admin tokens (`JWT_ADMIN_TTL`, default 10m) |
 | `WEB_APP_URL` | Invite links |
 
 ## Paddle Billing (API)

@@ -37,6 +37,7 @@ import { IdentityRepository } from './identity.repository';
 import { IdentityService } from './identity.service';
 import { EntitlementsService } from '../billing/entitlements.service';
 import { SubscriptionService } from '../billing/subscription.service';
+import { assertOrgActive, isOrgBlocked, orgBlockedError } from '../tenancy/org-status';
 import { assertUsersPerBranchSeats, branchesForNewMember } from '../tenancy/staff-seat-enforcement';
 import { TenancyRepository } from '../tenancy/tenancy.repository';
 
@@ -298,6 +299,14 @@ export class AuthService implements OnModuleInit {
     if (!membership || membership.status !== 'active') {
       throw new ForbiddenError('Not a member of this organization');
     }
+    const targetOrg = await this.db.transaction(async (tx) => {
+      await tx.execute(setOrgLocal(body.orgId));
+      return this.tenancyRepo.findOrganizationById(tx, body.orgId);
+    });
+    if (!targetOrg) {
+      throw new NotFoundError('Organization not found');
+    }
+    assertOrgActive(targetOrg.status);
 
     const session = await this.db.transaction(async (tx) =>
       this.identityRepo.findSessionById(tx, currentSessionId),
@@ -435,9 +444,11 @@ export class AuthService implements OnModuleInit {
   ): Promise<string> {
     const activeForSessionOrg = await this.db.transaction(async (tx) => {
       await tx.execute(setOrgLocal(sessionOrgId));
-      return this.identityRepo.findMembershipForUserOrg(tx, userId, sessionOrgId);
+      const membership = await this.identityRepo.findMembershipForUserOrg(tx, userId, sessionOrgId);
+      const org = await this.tenancyRepo.findOrganizationById(tx, sessionOrgId);
+      return membership?.status === 'active' && org && !isOrgBlocked(org.status);
     });
-    if (activeForSessionOrg?.status === 'active') {
+    if (activeForSessionOrg) {
       return sessionOrgId;
     }
     return this.resolveLoginOrgId(userId, lastOrgId);
@@ -488,6 +499,11 @@ export class AuthService implements OnModuleInit {
 
     return this.db.transaction(async (tx) => {
       await tx.execute(setOrgLocal(resolved.orgId));
+      const inviteOrg = await this.tenancyRepo.findOrganizationById(tx, resolved.orgId);
+      if (!inviteOrg) {
+        throw new NotFoundError();
+      }
+      assertOrgActive(inviteOrg.status);
       const membership = await this.tenancyRepo.findMembershipById(tx, resolved.membershipId);
       if (!membership || membership.status !== 'invited') {
         throw new NotFoundError();
@@ -628,13 +644,19 @@ export class AuthService implements OnModuleInit {
       if (memberships.length === 0) {
         throw new ForbiddenError('No active organization membership', {}, 'NO_ACTIVE_MEMBERSHIP');
       }
+      // Prefer orgs that are not suspended/cancelled; if every org is blocked, say so clearly.
+      const usable = memberships.filter((m) => !isOrgBlocked(m.org.status));
+      if (usable.length === 0) {
+        const lastBlocked = memberships.find((m) => m.org.id === lastOrgId) ?? memberships[0];
+        throw orgBlockedError(lastBlocked?.org.status ?? 'suspended');
+      }
       if (lastOrgId) {
-        const still = memberships.find((m) => m.org.id === lastOrgId);
+        const still = usable.find((m) => m.org.id === lastOrgId);
         if (still) {
           return lastOrgId;
         }
       }
-      const first = memberships[0];
+      const first = usable[0];
       if (!first) {
         throw new ForbiddenError('No active organization membership', {}, 'NO_ACTIVE_MEMBERSHIP');
       }
