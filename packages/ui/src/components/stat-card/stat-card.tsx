@@ -37,7 +37,7 @@ export function StatCard({
     <div
       data-slot="stat-card"
       className={cn(
-        'flex flex-col gap-2 rounded-xl border bg-card p-5 text-card-foreground shadow-sm',
+        'flex flex-col gap-2 rounded-lg border bg-card p-5 text-card-foreground',
         className,
       )}
       {...props}
@@ -50,7 +50,7 @@ export function StatCard({
           </span>
         ) : null}
       </div>
-      <div className="text-2xl font-semibold tabular-nums">{value}</div>
+      <div className="text-3xl font-medium tracking-tight tabular-nums">{value}</div>
       {delta ? (
         <div className="flex flex-wrap items-center gap-1.5 text-xs">
           <span

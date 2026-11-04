@@ -64,7 +64,7 @@ export function KdsOrderCard({
     <article
       aria-busy={pending || undefined}
       className={cn(
-        'bg-card text-card-foreground flex flex-col rounded-lg border shadow-sm transition-opacity',
+        'bg-card text-card-foreground flex flex-col rounded-md border transition-opacity',
         ageLevel === 'red' && 'border-destructive border-2',
         ageLevel === 'amber' && 'border-warning border-2',
         pending && 'opacity-60',

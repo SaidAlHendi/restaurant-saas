@@ -117,7 +117,7 @@ export function SidebarGroup({ label, className, children, ...props }: SidebarGr
       {label ? (
         <p
           className={cn(
-            'px-3 pb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground',
+            'px-3 pb-1 text-[10px] font-bold uppercase tracking-[0.17em] text-muted-foreground',
             collapsed && 'sr-only',
           )}
         >
@@ -160,10 +160,10 @@ export function SidebarItem({
       aria-current={active ? 'page' : undefined}
       aria-label={collapsed ? label : undefined}
       className={cn(
-        'flex h-11 w-full items-center gap-3 rounded-lg px-3 text-sm font-medium text-muted-foreground transition-colors',
+        'flex h-10 w-full items-center gap-3 rounded-md px-3 text-[13px] font-medium text-muted-foreground transition-colors',
         'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
         'data-[active=true]:bg-secondary data-[active=true]:font-semibold data-[active=true]:text-secondary-foreground',
-        '[&_svg]:size-5 [&_svg]:shrink-0',
+        '[&_svg]:size-[17px] [&_svg]:shrink-0',
         collapsed && 'justify-center px-0',
         focusRing,
         'focus-visible:ring-offset-sidebar',

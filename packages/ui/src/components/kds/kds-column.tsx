@@ -26,7 +26,7 @@ export function KdsColumn({
   return (
     <section
       aria-label={title}
-      className={cn('flex min-h-0 flex-col rounded-xl border bg-background shadow-xs', className)}
+      className={cn('bg-muted/40 flex min-h-0 flex-col rounded-lg border', className)}
     >
       <header className="flex items-center justify-between gap-2 border-b px-4 py-3">
         <h2 className="text-lg font-semibold">{title}</h2>

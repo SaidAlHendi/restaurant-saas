@@ -12,13 +12,13 @@ export const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-primary text-primary-foreground shadow-xs hover:bg-primary/85',
-        secondary: 'bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80',
+        default: 'bg-primary text-primary-foreground hover:bg-primary/85',
+        secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
         outline:
-          'border border-input bg-background shadow-xs hover:bg-accent hover:text-accent-foreground',
+          'border border-input bg-card hover:bg-accent hover:text-accent-foreground',
         ghost: 'hover:bg-accent hover:text-accent-foreground',
         destructive:
-          'bg-destructive text-destructive-foreground shadow-xs hover:bg-destructive/85 focus-visible:ring-destructive',
+          'bg-destructive text-destructive-foreground hover:bg-destructive/85 focus-visible:ring-destructive',
         // Underline in the brand color; text stays foreground so it is readable in both themes.
         link: 'text-foreground underline decoration-primary decoration-2 underline-offset-4 hover:decoration-foreground',
       },
