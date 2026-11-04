@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-11-04 — Sahtain colors
+
+### Changed
+- Replaced the warm paprika palette with the Sahtain design colors (from the `sahtain-design` repo) in `packages/ui/src/styles/themes.css`.
+  - Light: off-white canvas (`#f8f9f5`), white cards, deep forest-green primary (`#173f32`), pale-green secondary and active states (`#e8efe9`), amber accent and warning, muted text `#737a74`. The olive `accent-2` is now Sahtain green (`#285b46`).
+  - Dark (`forest`): deep green surfaces, pale-green primary actions, amber timers.
+  - New `--canvas` token for the page background, separate from card and sidebar surfaces.
+  - New `data-surface="kds"` scope: the kitchen display renders on the dark green surface in either theme.
+- Layout and shapes from the earlier rounded restyle (floating sidebar and headers, rounded cards, KDS tabs) are unchanged.
+
 Work done while Said was away (2026-10-24). One section per branch/PR, newest first.
 
 ## `claude/project-thread-tx2tyq` — polish, warm restyle, canonical URLs
