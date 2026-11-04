@@ -1,9 +1,9 @@
-import { LanguagesIcon, LockIcon, LogOutIcon, MoonIcon, SunIcon } from 'lucide-react';
+import { LanguagesIcon, LogOutIcon, MoonIcon, SunIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 
+import { cn } from '../../lib/cn.js';
+import { IconButton } from '../icon-button/index.js';
 import {
-  cn,
-  IconButton,
   Sidebar,
   SidebarContent,
   SidebarFooter,
@@ -14,17 +14,66 @@ import {
   SidebarPlanCard,
   SidebarTrigger,
   SidebarUser,
-} from '@app/ui';
+} from '../sidebar/index.js';
 
-import { BillingBannerView } from '../../billing/components/BillingBannerView.js';
-import type { AppShellViewModel } from '../use-app-shell.js';
+export interface AppShellNavItem {
+  id: string;
+  icon: ReactNode;
+  label: string;
+  active?: boolean;
+  /** Small marker shown at the end of the item, e.g. a lock. */
+  badge?: ReactNode;
+  onSelect: () => void;
+}
 
-export interface AppShellViewProps extends AppShellViewModel {
+export interface AppShellNavGroup {
+  id: string;
+  /** Group heading. Leave out for the main list. */
+  label?: string;
+  /** Indented list under the main one (sub-navigation). */
+  nested?: boolean;
+  items: AppShellNavItem[];
+}
+
+export interface AppShellModuleSwitch {
+  label: string;
+  currentLabel: string;
+  currentIcon: ReactNode;
+  options: { id: string; label: string; icon: ReactNode; onSelect: () => void }[];
+}
+
+export interface AppShellProps {
   children: ReactNode;
+  /** Shown above the page, for example a billing alert. */
+  banner?: ReactNode;
+  brand: string;
+  brandInitial: string;
+  collapsed: boolean;
+  onToggleCollapsed: () => void;
+  mobileOpen: boolean;
+  onMobileOpenChange: (open: boolean) => void;
+  onOpenMobile: () => void;
+  navGroups: AppShellNavGroup[];
+  moduleSwitch?: AppShellModuleSwitch | null;
+  planCard?: { eyebrow: string; name: string; detail?: string } | null;
+  user?: { name: string; detail?: string | null } | null;
+  isDark: boolean;
+  onToggleTheme: () => void;
+  onToggleLanguage: () => void;
+  loggingOut: boolean;
+  onLogout: () => void;
+  labels: {
+    sidebar: string;
+    closeSidebar: string;
+    toggleSidebar: string;
+    theme: string;
+    language: string;
+    logout: string;
+  };
 }
 
 /** Full-height app frame: sidebar (nav, theme, language, sign out) and the page next to it. */
-export function AppShellView({
+export function AppShell({
   children,
   banner,
   brand,
@@ -34,11 +83,9 @@ export function AppShellView({
   mobileOpen,
   onMobileOpenChange,
   onOpenMobile,
-  navItems,
+  navGroups,
   moduleSwitch,
   planCard,
-  menuSubNav,
-  posSubNav,
   user,
   isDark,
   onToggleTheme,
@@ -46,11 +93,11 @@ export function AppShellView({
   loggingOut,
   onLogout,
   labels,
-}: AppShellViewProps) {
+}: AppShellProps) {
   return (
     <div className="flex h-dvh overflow-hidden bg-muted">
       <Sidebar
-                label={labels.sidebar}
+        label={labels.sidebar}
         closeLabel={labels.closeSidebar}
         collapsed={collapsed}
         mobileOpen={mobileOpen}
@@ -74,58 +121,28 @@ export function AppShellView({
             <SidebarModuleSwitch
               label={moduleSwitch.label}
               currentLabel={moduleSwitch.currentLabel}
-              currentIcon={<moduleSwitch.currentIcon aria-hidden />}
-              options={moduleSwitch.options.map((option) => ({
-                ...option,
-                icon: <option.icon aria-hidden />,
-              }))}
+              currentIcon={moduleSwitch.currentIcon}
+              options={moduleSwitch.options}
             />
           ) : null}
-          <SidebarGroup>
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              return (
+          {navGroups.map((group) => (
+            <SidebarGroup
+              key={group.id}
+              label={group.label}
+              className={group.nested ? '[&_ul]:ms-5 [&_ul]:border-s [&_ul]:ps-2' : undefined}
+            >
+              {group.items.map((item) => (
                 <SidebarItem
                   key={item.id}
-                  icon={<Icon aria-hidden />}
+                  icon={item.icon}
                   label={item.label}
                   active={item.active}
-                  badge={
-                    item.locked ? (
-                      <LockIcon aria-label={labels.locked} className="my-0.5 size-3.5" />
-                    ) : undefined
-                  }
-                  onClick={item.onSelect}
-                />
-              );
-            })}
-          </SidebarGroup>
-          {menuSubNav.length > 0 ? (
-            <SidebarGroup label={labels.menuSection} className="[&_ul]:ms-5 [&_ul]:border-s [&_ul]:ps-2">
-              {menuSubNav.map((item) => (
-                <SidebarItem
-                  key={item.to}
-                  icon={<span className="size-1.5 rounded-full bg-current" aria-hidden />}
-                  label={item.label}
-                  active={item.active}
+                  badge={item.badge}
                   onClick={item.onSelect}
                 />
               ))}
             </SidebarGroup>
-          ) : null}
-          {posSubNav.length > 0 ? (
-            <SidebarGroup label={labels.posSection} className="[&_ul]:ms-5 [&_ul]:border-s [&_ul]:ps-2">
-              {posSubNav.map((item) => (
-                <SidebarItem
-                  key={item.to}
-                  icon={<span className="size-1.5 rounded-full bg-current" aria-hidden />}
-                  label={item.label}
-                  active={item.active}
-                  onClick={item.onSelect}
-                />
-              ))}
-            </SidebarGroup>
-          ) : null}
+          ))}
         </SidebarContent>
         <SidebarFooter>
           {planCard ? <SidebarPlanCard {...planCard} /> : null}
@@ -171,7 +188,7 @@ export function AppShellView({
             {brand}
           </span>
         </div>
-        {banner !== null ? <BillingBannerView banner={banner} /> : null}
+        {banner}
         <div className="flex min-h-0 flex-1 flex-col">{children}</div>
       </div>
     </div>

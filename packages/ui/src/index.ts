@@ -48,6 +48,9 @@ export * from './components/ranked-row/index.js';
 export * from './components/ops-row/index.js';
 export * from './components/app-topbar/index.js';
 export * from './components/segmented-control/index.js';
+export * from './components/app-shell/index.js';
+export * from './components/auth-layout/index.js';
+export * from './components/banner-alert/index.js';
 
 // Hooks
 export * from './hooks/use-theme.js';
