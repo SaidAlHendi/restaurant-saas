@@ -286,11 +286,17 @@ export function useKdsPage() {
 
   return {
     branchName,
+    clockLabel: new Intl.DateTimeFormat(i18n.language, { hour: '2-digit', minute: '2-digit' }).format(
+      new Date(nowMs + offsetMs),
+    ),
     isLoading: board.isLoading,
     isError: board.isError && !board.data,
     labels: {
       loading: t('common.loading'),
       loadError: t('kds.loadError'),
+      eyebrow: t('kds.eyebrow'),
+      online: t('kds.online'),
+      reconnecting: t('kds.reconnecting'),
       title: t('kds.title'),
       emptyColumn: t('kds.emptyColumn'),
       disconnected: t('kds.disconnected'),

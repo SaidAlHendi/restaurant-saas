@@ -13,6 +13,7 @@ import {
   Label,
   ProductTile,
   SearchInput,
+  SegmentedControl,
   Select,
   SelectContent,
   SelectItem,
@@ -82,7 +83,7 @@ export function PosPageView(props: PosPageViewModel) {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <ConnectionBanner {...realtimeBanner} />
-      <header className="flex min-h-16 shrink-0 flex-wrap items-center gap-3 mx-3 mt-3 rounded-2xl border bg-background shadow-sm md:mx-0 md:mt-0 px-4 py-2 md:px-6">
+      <header className="flex min-h-16 shrink-0 flex-wrap items-center gap-3 border-b bg-background px-4 py-2 md:px-7">
         <SearchInput
           className="min-w-48 max-w-xl flex-1"
           defaultValue={search.value}
@@ -120,7 +121,7 @@ export function PosPageView(props: PosPageViewModel) {
 
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto lg:flex-row lg:overflow-hidden">
         <section className="flex min-h-0 min-w-0 flex-1 flex-col">
-          <div className="flex shrink-0 gap-3 overflow-x-auto px-4 pb-2 pt-4">
+          <div className="flex shrink-0 gap-2 overflow-x-auto px-4 pb-2 pt-4 md:px-7">
             {categoryTabs.map((tab) => (
               <CategoryTile
                 key={tab.id}
@@ -131,11 +132,11 @@ export function PosPageView(props: PosPageViewModel) {
               />
             ))}
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-2">
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-2 md:px-7">
             {productTiles.length === 0 ? (
               <EmptyState title={search.noResults} className="py-16" />
             ) : (
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 2xl:grid-cols-4">
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
                 {productTiles.map((tile) => (
                   <ProductTile
                     key={tile.id}
@@ -153,38 +154,26 @@ export function PosPageView(props: PosPageViewModel) {
           <PosOpenOrdersStripView {...openOrders} />
         </section>
 
-        <aside className="mx-3 mb-3 flex min-h-0 shrink-0 flex-col overflow-hidden rounded-3xl border bg-background shadow-sm lg:mt-3 lg:ms-0 lg:mb-0 lg:w-96">
+        <aside className="flex min-h-0 shrink-0 flex-col overflow-hidden border-t bg-background lg:w-[24.375rem] lg:border-s lg:border-t-0">
           <div className="flex shrink-0 flex-col gap-4 border-b px-5 py-4">
-            <div className="flex items-baseline justify-between gap-2">
-              <h2 className="text-lg font-semibold">{labels.cartTitle}</h2>
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-muted-foreground text-[11px] font-semibold tracking-widest uppercase">
+                  {labels.cartEyebrow}
+                </span>
+                <h2 className="text-lg font-semibold">{labels.cartTitle}</h2>
+              </div>
               <span className="text-muted-foreground text-sm tabular-nums">{labels.cartCount}</span>
             </div>
-            <div className="bg-muted grid grid-cols-2 gap-1 rounded-full p-1">
-              <Button
-                type="button"
-                className="rounded-full"
-                variant={orderType === 'dine_in' ? 'default' : 'ghost'}
-                aria-pressed={orderType === 'dine_in'}
-                onClick={() => {
-                  onOrderTypeChange('dine_in');
-                }}
-              >
-                <UtensilsIcon aria-hidden />
-                {labels.orderTypeDineIn}
-              </Button>
-              <Button
-                type="button"
-                className="rounded-full"
-                variant={orderType === 'takeaway' ? 'default' : 'ghost'}
-                aria-pressed={orderType === 'takeaway'}
-                onClick={() => {
-                  onOrderTypeChange('takeaway');
-                }}
-              >
-                <ShoppingBagIcon aria-hidden />
-                {labels.orderTypeTakeaway}
-              </Button>
-            </div>
+            <SegmentedControl
+              label={labels.orderType}
+              value={orderType}
+              onValueChange={onOrderTypeChange}
+              options={[
+                { value: 'dine_in', label: labels.orderTypeDineIn, icon: <UtensilsIcon aria-hidden /> },
+                { value: 'takeaway', label: labels.orderTypeTakeaway, icon: <ShoppingBagIcon aria-hidden /> },
+              ]}
+            />
             {orderType === 'dine_in' ? (
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="pos-table">{labels.table}</Label>
@@ -260,7 +249,7 @@ export function PosPageView(props: PosPageViewModel) {
             ) : null}
             <Button
               type="button"
-              className="h-14 w-full rounded-xl text-base"
+              className="h-14 w-full text-base"
               size="touch"
               disabled={sendDisabled}
               isLoading={sending}

@@ -194,6 +194,39 @@
       "total": "Total",
       "paid": "Paid",
       "due": "Due"
+    },
+    "overview": {
+      "vsPrevious": "vs previous day",
+      "salesBreakdown": "Sales breakdown",
+      "salesBreakdownHint": "Where today's money came from",
+      "liveOps": "Live operations",
+      "liveOpsHint": "Right now at this branch",
+      "live": "Live",
+      "openOrders": "Open orders",
+      "openOrdersHint": "Placed, preparing or ready",
+      "waiting": "Waiting for the kitchen",
+      "waitingHint": "Not started yet",
+      "readyOrders": "Ready for pickup",
+      "readyHint": "Waiting for the cashier",
+      "oldest": "Oldest open order",
+      "oldestHint": "Time since it was created",
+      "openKitchen": "Open kitchen screen",
+      "recent": "Recent orders",
+      "recentHint": "Latest activity from today",
+      "viewAll": "View all",
+      "colOrder": "Order",
+      "colTime": "Time",
+      "colWhere": "Table or customer",
+      "colItems": "Items",
+      "colAmount": "Amount",
+      "colStatus": "Status",
+      "noRecent": "No orders yet today.",
+      "popular": "Popular products",
+      "popularHint": "Top sellers for this day",
+      "minutes_one": "{{count}} min",
+      "minutes_other": "{{count}} min",
+      "items_one": "{{count}} item",
+      "items_other": "{{count}} items"
     }
   },
   "order": {
@@ -409,7 +442,9 @@
       "empty": "Add products from the menu.",
       "decreaseQty": "Decrease quantity",
       "increaseQty": "Increase quantity",
-      "removeLine": "Remove line"
+      "removeLine": "Remove line",
+      "eyebrow": "CURRENT ORDER",
+      "orderType": "Order type"
     },
     "modifiers": {
       "invalid": "Choose the required options.",
@@ -715,12 +750,19 @@
       "title": "Kitchen screen not available",
       "description": "Your role cannot change order status or your plan does not include the kitchen display.",
       "backToDashboard": "Back to dashboard"
-    }
+    },
+    "eyebrow": "KITCHEN DISPLAY SYSTEM",
+    "online": "Kitchen online",
+    "reconnecting": "Reconnecting"
   },
   "shell": {
     "toggleSidebar": "Collapse or expand the menu",
     "darkMode": "Dark mode",
-    "lightMode": "Light mode"
+    "lightMode": "Light mode",
+    "ownerArea": "Owner",
+    "modules": "Switch area",
+    "dashboardArea": "Owner dashboard",
+    "planEyebrow": "PLAN"
   },
   "billing": {
     "title": "Billing",

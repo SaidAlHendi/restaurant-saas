@@ -8,16 +8,21 @@ import { useAppDispatch, useAppSelector } from '../../../app/hooks.js';
 import { intlLocaleForUi } from '../../../lib/money.js';
 import type { RealtimeEvent } from '../../../lib/realtime.js';
 import { useGetDailyReportQuery } from '../../reports/reports.api.js';
+import { useNavigate } from 'react-router-dom';
 import { useBranchRealtime } from '../../realtime/use-branch-realtime.js';
 import { selectCurrentBranchId, selectSessionOrg } from '../../session/session.selectors.js';
 import { addCalendarDays } from '../dashboard-orders-filters.utils.js';
 import { barWidthPercent } from '../report-bars.utils.js';
-import { formatOrderMoney } from '../orders-display.utils.js';
+import { orderTypeTableLabel } from '../order-type-table-label.utils.js';
+import { liveCounts, oldestOpenMinutes, percentDelta } from '../dashboard-overview.utils.js';
+import { formatOrderMoney, orderStatusBadgeTone } from '../orders-display.utils.js';
+import { useListOrdersQuery } from '../orders.api.js';
 import { useOrgSwitcher } from './use-org-switcher.js';
 import { useBranchBusinessDate } from './use-branch-business-date.js';
 
 export function useDashboardTodayPage() {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const branchId = useAppSelector(selectCurrentBranchId);
   const org = useAppSelector(selectSessionOrg);
@@ -43,8 +48,23 @@ export function useDashboardTodayPage() {
     { skip: !branchId || activeDate === undefined },
   );
 
+  const previousDate = activeDate === undefined ? undefined : addCalendarDays(activeDate, -1);
+  const previous = useGetDailyReportQuery(
+    { branchId: branchId ?? '', businessDate: previousDate },
+    { skip: !branchId || previousDate === undefined },
+  );
+  const activeOrders = useListOrdersQuery(
+    { branchId: branchId ?? '', query: { activeOnly: true, limit: 50 } },
+    { skip: !branchId },
+  );
+  const recentOrders = useListOrdersQuery(
+    { branchId: branchId ?? '', query: { todayOnly: true, limit: 5 } },
+    { skip: !branchId },
+  );
+
   const onRealtimeEvent = useCallback(
     (_event: RealtimeEvent) => {
+      dispatch(baseApi.util.invalidateTags([{ type: 'Order', id: 'LIST' }]));
       if (
         branchContext.businessDate !== null &&
         activeDate === branchContext.businessDate
@@ -153,8 +173,81 @@ export function useDashboardTodayPage() {
       quantity: String(row.quantity),
       revenue: formatMinor(row.revenueMinor),
     })),
+    deltas: data
+      ? {
+          sales: percentDelta(data.salesMinor, previous.data?.salesMinor),
+          orders: percentDelta(data.ordersCount, previous.data?.ordersCount),
+          averageTicket: percentDelta(data.averageTicketMinor, previous.data?.averageTicketMinor),
+        }
+      : null,
+    live: (() => {
+      const items = activeOrders.data?.items ?? [];
+      const counts = liveCounts(items);
+      const oldest = oldestOpenMinutes(items, new Date());
+      return {
+        open: String(counts.open),
+        waiting: String(counts.waiting),
+        ready: String(counts.ready),
+        oldest: oldest === null ? '-' : t('dashboard.overview.minutes', { count: oldest }),
+        onOpenKitchen: () => {
+          void navigate('/kds');
+        },
+      };
+    })(),
+    recentRows: (recentOrders.data?.items ?? []).map((order) => ({
+      id: order.id,
+      number: `#${String(order.orderNumber)}`,
+      time: new Intl.DateTimeFormat(uiLocale, {
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: timezone,
+      }).format(new Date(order.createdAt)),
+      where: orderTypeTableLabel({
+        type: order.type,
+        tableLabel: order.tableLabel,
+        customerName: order.customerName,
+        takeawayLabel: t('dashboard.today.orderType.takeaway'),
+      }),
+      items: t('dashboard.overview.items', { count: order.itemCount }),
+      total: formatMinor(order.totalMinor),
+      status: orderStatusBadgeTone(order.status),
+      statusLabel: t(`dashboard.orders.status.${order.status}`),
+      onOpen: () => {
+        void navigate(`/dashboard/orders/${order.id}`);
+      },
+    })),
+    onViewAllOrders: () => {
+      void navigate('/dashboard/orders');
+    },
     timezone,
     labels: {
+      kpiHint: t('dashboard.overview.vsPrevious'),
+      salesBreakdown: t('dashboard.overview.salesBreakdown'),
+      salesBreakdownHint: t('dashboard.overview.salesBreakdownHint'),
+      liveOps: t('dashboard.overview.liveOps'),
+      liveOpsHint: t('dashboard.overview.liveOpsHint'),
+      livePill: t('dashboard.overview.live'),
+      openOrders: t('dashboard.overview.openOrders'),
+      openOrdersHint: t('dashboard.overview.openOrdersHint'),
+      waiting: t('dashboard.overview.waiting'),
+      waitingHint: t('dashboard.overview.waitingHint'),
+      readyOrders: t('dashboard.overview.readyOrders'),
+      readyHint: t('dashboard.overview.readyHint'),
+      oldest: t('dashboard.overview.oldest'),
+      oldestHint: t('dashboard.overview.oldestHint'),
+      openKitchen: t('dashboard.overview.openKitchen'),
+      recent: t('dashboard.overview.recent'),
+      recentHint: t('dashboard.overview.recentHint'),
+      viewAll: t('dashboard.overview.viewAll'),
+      colOrder: t('dashboard.overview.colOrder'),
+      colTime: t('dashboard.overview.colTime'),
+      colWhere: t('dashboard.overview.colWhere'),
+      colItems: t('dashboard.overview.colItems'),
+      colAmount: t('dashboard.overview.colAmount'),
+      colStatus: t('dashboard.overview.colStatus'),
+      noRecent: t('dashboard.overview.noRecent'),
+      popular: t('dashboard.overview.popular'),
+      popularHint: t('dashboard.overview.popularHint'),
       title: t('dashboard.today.title'),
       pickToday: t('dashboard.today.pickToday'),
       pickYesterday: t('dashboard.today.pickYesterday'),

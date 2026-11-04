@@ -1,5 +1,7 @@
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { cleanup, render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it } from 'vitest';
+
+afterEach(cleanup);
 
 import { DashboardTodayView } from './DashboardTodayView.js';
 import type { DashboardTodayPageViewModel } from '../hooks/use-dashboard-today-page.js';
@@ -38,12 +40,43 @@ function minimalTodayVm(overrides: Partial<DashboardTodayPageViewModel> = {}): D
       unpaid: 'SAR 0.00',
       cancelled: '1',
     },
+    deltas: null,
+    live: { open: '2', waiting: '1', ready: '0', oldest: '5 min', onOpenKitchen: () => {} },
+    recentRows: [],
+    onViewAllOrders: () => {},
     paymentBars: [],
     typeBars: [],
     topItems: [],
     timezone: 'Asia/Riyadh',
     labels: {
       title: 'Today',
+      kpiHint: 'vs prev',
+      salesBreakdown: 'Sales breakdown',
+      salesBreakdownHint: 'hint',
+      liveOps: 'Live operations',
+      liveOpsHint: 'hint',
+      livePill: 'Live',
+      openOrders: 'Open orders',
+      openOrdersHint: 'hint',
+      waiting: 'Waiting',
+      waitingHint: 'hint',
+      readyOrders: 'Ready',
+      readyHint: 'hint',
+      oldest: 'Oldest',
+      oldestHint: 'hint',
+      openKitchen: 'Open kitchen',
+      recent: 'Recent orders',
+      recentHint: 'hint',
+      viewAll: 'View all',
+      colOrder: 'Order',
+      colTime: 'Time',
+      colWhere: 'Where',
+      colItems: 'Items',
+      colAmount: 'Amount',
+      colStatus: 'Status',
+      noRecent: 'No orders',
+      popular: 'Popular',
+      popularHint: 'hint',
       pickToday: 'Today',
       pickYesterday: 'Yesterday',
       dateLabel: 'Date',
@@ -73,5 +106,11 @@ describe('DashboardTodayView', () => {
     expect(screen.getByText('SAR 120.00')).toBeInTheDocument();
     expect(screen.getByText('8')).toBeInTheDocument();
     expect(screen.getByText('SAR 15.00')).toBeInTheDocument();
+  });
+
+  it('shows live operations counts', () => {
+    render(<DashboardTodayView {...minimalTodayVm()} />);
+    expect(screen.getByText('Live operations')).toBeInTheDocument();
+    expect(screen.getByText('5 min')).toBeInTheDocument();
   });
 });

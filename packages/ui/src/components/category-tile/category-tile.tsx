@@ -30,21 +30,21 @@ export function CategoryTile({
       aria-pressed={active}
       onClick={onPress}
       className={cn(
-        'group flex min-h-20 min-w-28 shrink-0 flex-col items-center justify-center gap-1 rounded-xl border bg-card px-4 py-3 text-center shadow-xs transition-colors hover:bg-accent/50',
-        'data-[active=true]:border-primary data-[active=true]:bg-secondary data-[active=true]:text-secondary-foreground',
-        '[&_svg]:size-5 [&_svg]:shrink-0',
+        'group flex h-10 shrink-0 items-center justify-center gap-2 rounded-md border border-transparent px-4 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent/50',
+        'data-[active=true]:bg-primary data-[active=true]:text-primary-foreground',
+        '[&_svg]:size-4 [&_svg]:shrink-0',
         focusRing,
         className,
       )}
     >
       {icon ? (
-        <span className="text-primary group-data-[active=true]:text-current" aria-hidden>
+        <span aria-hidden>
           {icon}
         </span>
       ) : null}
-      <span className="line-clamp-1 text-sm font-semibold">{label}</span>
+      <span className="line-clamp-1">{label}</span>
       {countLabel ? (
-        <span className="text-xs text-muted-foreground tabular-nums group-data-[active=true]:text-current group-data-[active=true]:opacity-80">
+        <span className="text-xs tabular-nums opacity-70">
           {countLabel}
         </span>
       ) : null}

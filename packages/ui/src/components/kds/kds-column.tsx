@@ -24,16 +24,17 @@ export function KdsColumn({
   className,
 }: KdsColumnProps) {
   const isEmpty = count === 0;
+  const tint = { new: 'bg-info/10', preparing: 'bg-warning/10', ready: 'bg-success/10' }[status];
   const EmptyIcon = { new: ChefHatIcon, preparing: ClockIcon, ready: CircleCheckBigIcon }[status];
   return (
     <section
       aria-label={title}
-      className={cn('flex min-h-0 flex-col rounded-[2rem] bg-accent-2/15', className)}
+      className={cn('flex min-h-0 flex-col rounded-lg', tint, className)}
     >
       <header className="flex items-center justify-between gap-2 px-4 pt-4 pb-2 max-md:hidden">
         <h2 className="text-base font-bold tracking-tight">{title}</h2>
         <Badge variant={status} className="text-sm tabular-nums">
-          {count}
+          {String(count).padStart(2, '0')}
         </Badge>
       </header>
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-3 pt-1 pb-3">

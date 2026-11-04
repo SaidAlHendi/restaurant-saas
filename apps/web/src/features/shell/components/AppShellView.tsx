@@ -10,6 +10,8 @@ import {
   SidebarGroup,
   SidebarHeader,
   SidebarItem,
+  SidebarModuleSwitch,
+  SidebarPlanCard,
   SidebarTrigger,
   SidebarUser,
 } from '@app/ui';
@@ -33,6 +35,8 @@ export function AppShellView({
   onMobileOpenChange,
   onOpenMobile,
   navItems,
+  moduleSwitch,
+  planCard,
   menuSubNav,
   posSubNav,
   user,
@@ -44,10 +48,9 @@ export function AppShellView({
   labels,
 }: AppShellViewProps) {
   return (
-    <div className="flex h-dvh overflow-hidden bg-muted md:gap-3 md:p-3">
+    <div className="flex h-dvh overflow-hidden bg-muted">
       <Sidebar
-        className="md:rounded-3xl md:border md:shadow-sm"
-        label={labels.sidebar}
+                label={labels.sidebar}
         closeLabel={labels.closeSidebar}
         collapsed={collapsed}
         mobileOpen={mobileOpen}
@@ -56,7 +59,7 @@ export function AppShellView({
         <SidebarHeader className={collapsed ? 'justify-center px-0' : undefined}>
           <span
             aria-hidden
-            className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary text-base font-bold text-primary-foreground"
+            className="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary text-base font-bold text-primary-foreground"
           >
             {brandInitial}
           </span>
@@ -67,6 +70,17 @@ export function AppShellView({
           )}
         </SidebarHeader>
         <SidebarContent>
+          {moduleSwitch ? (
+            <SidebarModuleSwitch
+              label={moduleSwitch.label}
+              currentLabel={moduleSwitch.currentLabel}
+              currentIcon={<moduleSwitch.currentIcon aria-hidden />}
+              options={moduleSwitch.options.map((option) => ({
+                ...option,
+                icon: <option.icon aria-hidden />,
+              }))}
+            />
+          ) : null}
           <SidebarGroup>
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -114,6 +128,7 @@ export function AppShellView({
           ) : null}
         </SidebarContent>
         <SidebarFooter>
+          {planCard ? <SidebarPlanCard {...planCard} /> : null}
           {user ? <SidebarUser name={user.name} detail={user.detail ?? undefined} /> : null}
           <div
             className={cn(
@@ -150,7 +165,7 @@ export function AppShellView({
         </SidebarFooter>
       </Sidebar>
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="mx-3 mt-3 flex h-14 shrink-0 items-center gap-2 rounded-2xl border bg-background px-3 shadow-sm md:hidden">
+        <div className="mx-3 mt-3 flex h-14 shrink-0 items-center gap-2 rounded-lg border bg-background px-3 md:hidden">
           <SidebarTrigger label={labels.sidebar} onClick={onOpenMobile} />
           <span dir="auto" className="min-w-0 flex-1 truncate font-semibold">
             {brand}

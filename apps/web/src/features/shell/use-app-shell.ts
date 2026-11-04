@@ -18,7 +18,7 @@ import { useAppDispatch, useAppSelector } from '../../app/hooks.js';
 import { setAppLanguage } from '../../lib/i18n.js';
 import { localizedName } from '../../lib/localized-name.js';
 import { useLogoutMutation } from '../auth/auth.api.js';
-import { isNavItemLocked } from '../billing/billing.utils.js';
+import { daysUntil, isNavItemLocked } from '../billing/billing.utils.js';
 import { useBillingBanner } from '../billing/hooks/use-billing-banner.js';
 import { clearSession } from '../session/session.slice.js';
 import {
@@ -135,6 +135,30 @@ export function useAppShell() {
 
   const activeId = activeNavItemId(navItems, location.pathname);
 
+  const areaId = location.pathname.startsWith('/pos')
+    ? 'pos'
+    : location.pathname.startsWith('/kds')
+      ? 'kds'
+      : 'dashboard';
+  const areas = [
+    { id: 'dashboard', to: '/dashboard', icon: LayoutDashboardIcon, label: t('shell.dashboardArea'), allowed: true },
+    { id: 'pos', to: '/pos', icon: ShoppingBagIcon, label: t('dashboard.nav.cashier'), allowed: canUsePos },
+    { id: 'kds', to: '/kds', icon: ChefHatIcon, label: t('dashboard.nav.kitchen'), allowed: canUseKds },
+  ].filter((area) => area.allowed);
+  const currentArea = areas.find((area) => area.id === areaId) ?? areas[0];
+  const planCard = entitlements
+    ? {
+        eyebrow: t('shell.planEyebrow'),
+        name: t(`billing.plans.${entitlements.planKey}`),
+        detail:
+          entitlements.reason === 'trial' && entitlements.trialEndsAt !== null
+            ? t('billing.banner.trialEnding', {
+                count: Math.max(0, daysUntil(entitlements.trialEndsAt, new Date())),
+              })
+            : undefined,
+      }
+    : null;
+
   const menuSubNav = useMemo(
     () =>
       canReadMenu && location.pathname.startsWith('/dashboard/menu')
@@ -196,6 +220,25 @@ export function useAppShell() {
     mobileOpen: mobile.open,
     onMobileOpenChange: mobile.setOpen,
     onOpenMobile: mobile.onOpen,
+    moduleSwitch:
+      areas.length > 1 && currentArea
+        ? {
+            label: t('shell.modules'),
+            currentLabel: currentArea.label,
+            currentIcon: currentArea.icon,
+            options: areas
+              .filter((area) => area.id !== currentArea.id)
+              .map((area) => ({
+                id: area.id,
+                label: area.label,
+                icon: area.icon,
+                onSelect: () => {
+                  void navigate(area.to);
+                },
+              })),
+          }
+        : null,
+    planCard,
     navItems: navItems.map((item) => ({
       id: item.id,
       icon: item.icon,

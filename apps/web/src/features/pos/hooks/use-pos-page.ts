@@ -628,6 +628,8 @@ export function usePosPage() {
       onCancel: cancelBranchSwitch,
     },
     labels: {
+      cartEyebrow: t('pos.cart.eyebrow'),
+      orderType: t('pos.cart.orderType'),
       cartTitle: t('pos.cart.title'),
       cartCount: t('pos.catalog.items', {
         count: cart.lines.reduce((sum: number, row) => sum + row.quantity, 0),
