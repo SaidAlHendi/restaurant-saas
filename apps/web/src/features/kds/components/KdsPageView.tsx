@@ -18,6 +18,7 @@ import { KdsSoundPromptView } from './KdsSoundPromptView.js';
 
 export function KdsPageView({
   branchName,
+  clockLabel,
   isLoading,
   isError,
   labels,
@@ -48,19 +49,33 @@ export function KdsPageView({
   return (
     <div data-surface="kds" className="bg-background text-foreground flex min-h-0 flex-1 flex-col">
       <ConnectionBanner visible={showDisconnected} message={labels.disconnected} />
-      <header className="flex min-h-16 shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-2 mx-3 mt-3 rounded-2xl border bg-background shadow-sm md:mx-0 md:mt-0 px-4 py-2 md:px-6">
+      <header className="flex min-h-16 shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b bg-background px-4 py-2 md:px-7">
         <div className="flex min-w-0 flex-1 flex-col">
+          <p className="text-muted-foreground text-[11px] font-semibold tracking-widest">
+            {labels.eyebrow}
+          </p>
           <h1 dir="auto" className="truncate text-lg leading-tight font-semibold">
             {labels.title}
+            <span className="text-muted-foreground"> · </span>
+            <span dir="auto" className="text-muted-foreground text-base font-normal">
+              {branchName}
+            </span>
           </h1>
-          <p dir="auto" className="text-muted-foreground truncate text-sm">
-            {branchName}
-          </p>
         </div>
         <div className="order-last w-full empty:hidden md:order-none md:w-44">
           <BranchSwitcher {...branchSwitcher} className="w-full" />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <span className="text-lg font-semibold tabular-nums">{clockLabel}</span>
+          <span
+            className={cn(
+              'flex items-center gap-1.5 text-xs font-semibold',
+              showDisconnected ? 'text-destructive' : 'text-success',
+            )}
+          >
+            <span aria-hidden className="size-1.5 rounded-full bg-current" />
+            {showDisconnected ? labels.reconnecting : labels.online}
+          </span>
           <IconButton
             type="button"
             size="touch"
@@ -87,7 +102,7 @@ export function KdsPageView({
       <div
         role="tablist"
         aria-label={labels.title}
-        className="bg-background mx-3 mt-3 flex shrink-0 gap-1 rounded-2xl border p-1.5 shadow-sm md:hidden"
+        className="bg-background mx-3 mt-3 flex shrink-0 gap-1 rounded-lg border p-1.5 md:hidden"
       >
         {columns.map((column) => {
           const selected = column.key === activeKey;
@@ -114,7 +129,7 @@ export function KdsPageView({
         })}
       </div>
 
-      <div className="grid min-h-0 flex-1 gap-4 p-3 md:grid-cols-3 md:px-0 md:pt-4 md:pb-0">
+      <div className="grid min-h-0 flex-1 gap-3 p-3 md:grid-cols-3 md:p-4">
         {columns.map((column) => (
           <KdsColumn
             key={column.key}

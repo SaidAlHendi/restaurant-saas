@@ -194,6 +194,47 @@
       "total": "الإجمالي",
       "paid": "المدفوع",
       "due": "المتبقي"
+    },
+    "overview": {
+      "vsPrevious": "مقارنة باليوم السابق",
+      "salesBreakdown": "تفصيل المبيعات",
+      "salesBreakdownHint": "من أين جاءت مبيعات اليوم",
+      "liveOps": "التشغيل المباشر",
+      "liveOpsHint": "الآن في هذا الفرع",
+      "live": "مباشر",
+      "openOrders": "الطلبات المفتوحة",
+      "openOrdersHint": "مرسلة أو قيد التحضير أو جاهزة",
+      "waiting": "بانتظار المطبخ",
+      "waitingHint": "لم يبدأ تحضيرها بعد",
+      "readyOrders": "جاهزة للاستلام",
+      "readyHint": "بانتظار الكاشير",
+      "oldest": "أقدم طلب مفتوح",
+      "oldestHint": "الوقت منذ إنشائه",
+      "openKitchen": "فتح شاشة المطبخ",
+      "recent": "أحدث الطلبات",
+      "recentHint": "آخر نشاط اليوم",
+      "viewAll": "عرض الكل",
+      "colOrder": "الطلب",
+      "colTime": "الوقت",
+      "colWhere": "الطاولة أو العميل",
+      "colItems": "الأصناف",
+      "colAmount": "المبلغ",
+      "colStatus": "الحالة",
+      "noRecent": "لا توجد طلبات اليوم بعد.",
+      "popular": "الأكثر مبيعًا",
+      "popularHint": "أفضل المنتجات لهذا اليوم",
+      "minutes_zero": "{{count}} دقيقة",
+      "minutes_one": "دقيقة",
+      "minutes_two": "دقيقتان",
+      "minutes_few": "{{count}} دقائق",
+      "minutes_many": "{{count}} دقيقة",
+      "minutes_other": "{{count}} دقيقة",
+      "items_zero": "{{count}} صنف",
+      "items_one": "صنف واحد",
+      "items_two": "صنفان",
+      "items_few": "{{count}} أصناف",
+      "items_many": "{{count}} صنفًا",
+      "items_other": "{{count}} صنف"
     }
   },
   "order": {
@@ -409,7 +450,9 @@
       "empty": "أضف منتجات من القائمة.",
       "decreaseQty": "تقليل الكمية",
       "increaseQty": "زيادة الكمية",
-      "removeLine": "حذف السطر"
+      "removeLine": "حذف السطر",
+      "eyebrow": "الطلب الحالي",
+      "orderType": "نوع الطلب"
     },
     "modifiers": {
       "invalid": "اختر الخيارات المطلوبة.",
@@ -719,12 +762,19 @@
       "title": "شاشة المطبخ غير متاحة",
       "description": "دورك لا يسمح بتغيير حالة الطلب أو خطتك لا تشمل شاشة المطبخ.",
       "backToDashboard": "العودة للوحة التحكم"
-    }
+    },
+    "eyebrow": "شاشة المطبخ",
+    "online": "المطبخ متصل",
+    "reconnecting": "جارٍ إعادة الاتصال"
   },
   "shell": {
     "toggleSidebar": "طيّ القائمة أو توسيعها",
     "darkMode": "الوضع الداكن",
-    "lightMode": "الوضع الفاتح"
+    "lightMode": "الوضع الفاتح",
+    "ownerArea": "المالك",
+    "modules": "تبديل القسم",
+    "dashboardArea": "لوحة المالك",
+    "planEyebrow": "الباقة"
   },
   "billing": {
     "title": "الفوترة",

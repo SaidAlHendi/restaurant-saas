@@ -43,6 +43,11 @@ export * from './components/category-tile/index.js';
 export * from './components/open-order-chip/index.js';
 export * from './components/cart-line/index.js';
 export * from './components/kds/index.js';
+export * from './components/panel/index.js';
+export * from './components/ranked-row/index.js';
+export * from './components/ops-row/index.js';
+export * from './components/app-topbar/index.js';
+export * from './components/segmented-control/index.js';
 
 // Hooks
 export * from './hooks/use-theme.js';

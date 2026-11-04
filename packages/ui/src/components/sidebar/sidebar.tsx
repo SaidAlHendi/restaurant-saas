@@ -1,11 +1,17 @@
 import type * as React from 'react';
 import { Slot } from '@radix-ui/react-slot';
-import { PanelLeftIcon } from 'lucide-react';
+import { ChevronDownIcon, PanelLeftIcon } from 'lucide-react';
 
 import { cn } from '../../lib/cn.js';
 import { useDirection } from '../../lib/direction.js';
 import { SidebarContext, useSidebarContext } from '../../lib/sidebar-context.js';
 import { focusRing } from '../../lib/styles.js';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '../dropdown-menu/dropdown-menu.js';
 import { IconButton, type IconButtonProps } from '../icon-button/icon-button.js';
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '../sheet/sheet.js';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip/tooltip.js';
@@ -160,10 +166,10 @@ export function SidebarItem({
       aria-current={active ? 'page' : undefined}
       aria-label={collapsed ? label : undefined}
       className={cn(
-        'flex h-10 w-full items-center gap-3 rounded-lg px-3 text-sm font-medium text-muted-foreground transition-colors',
+        'flex h-10 w-full items-center gap-3 rounded-md px-3 text-sm font-medium text-muted-foreground transition-colors',
         'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-        'data-[active=true]:bg-secondary data-[active=true]:font-semibold data-[active=true]:text-secondary-foreground data-[active=true]:[&_svg]:text-primary',
-        '[&_svg]:size-5 [&_svg]:shrink-0',
+        'data-[active=true]:bg-accent-2/10 data-[active=true]:font-bold data-[active=true]:text-primary data-[active=true]:[&_svg]:text-primary',
+        '[&_svg]:size-[1.0625rem] [&_svg]:shrink-0',
         collapsed && 'justify-center px-0',
         focusRing,
         'focus-visible:ring-offset-sidebar',
@@ -228,7 +234,7 @@ export function SidebarUser({ name, detail, className, ...props }: SidebarUserPr
     <div
       data-slot="sidebar-user"
       className={cn(
-        'bg-muted/60 flex items-center gap-3 rounded-xl p-2',
+        'bg-muted/60 flex items-center gap-3 rounded-md p-2',
         collapsed && 'justify-center bg-transparent p-0',
         className,
       )}
@@ -250,5 +256,115 @@ export function SidebarUser({ name, detail, className, ...props }: SidebarUserPr
         </span>
       )}
     </div>
+  );
+}
+
+export interface SidebarPlanCardProps extends React.ComponentProps<'div'> {
+  eyebrow: string;
+  name: string;
+  /** Optional detail under the name, e.g. "9 days left". */
+  detail?: string;
+  /** 0 to 100; omit to hide the progress bar. */
+  progress?: number;
+}
+
+/** Small plan summary above the user row (hidden when the sidebar is collapsed). */
+export function SidebarPlanCard({
+  eyebrow,
+  name,
+  detail,
+  progress,
+  className,
+  ...props
+}: SidebarPlanCardProps) {
+  const { collapsed } = useSidebarContext();
+  if (collapsed) {
+    return null;
+  }
+  return (
+    <div
+      data-slot="sidebar-plan-card"
+      className={cn('grid gap-1 rounded-md border p-3', className)}
+      {...props}
+    >
+      <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+        {eyebrow}
+      </span>
+      <span className="text-sm font-bold text-primary">{name}</span>
+      {detail ? <span className="text-xs text-muted-foreground">{detail}</span> : null}
+      {progress === undefined ? null : (
+        <span className="mt-1 block h-1 overflow-hidden rounded-full bg-accent-2/15">
+          <span
+            className="block h-full rounded-full bg-accent-2"
+            style={{ width: `${String(Math.min(100, Math.max(0, progress)))}%` }}
+          />
+        </span>
+      )}
+    </div>
+  );
+}
+
+export interface SidebarModuleOption {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  onSelect: () => void;
+}
+
+export interface SidebarModuleSwitchProps {
+  /** Label of the area you are in. */
+  currentLabel: string;
+  currentIcon: React.ReactNode;
+  /** Other areas the user may open. */
+  options: SidebarModuleOption[];
+  /** Accessible name of the menu (already translated). */
+  label: string;
+}
+
+/** Dark button under the brand that jumps between dashboard, POS and kitchen. */
+export function SidebarModuleSwitch({
+  currentLabel,
+  currentIcon,
+  options,
+  label,
+}: SidebarModuleSwitchProps) {
+  const { collapsed, onNavigate } = useSidebarContext();
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          aria-label={collapsed ? `${label}: ${currentLabel}` : label}
+          data-slot="sidebar-module-switch"
+          className={cn(
+            'flex h-11 w-full items-center gap-3 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground [&_svg]:size-4 [&_svg]:shrink-0',
+            collapsed && 'justify-center px-0',
+            focusRing,
+          )}
+        >
+          {currentIcon}
+          {collapsed ? null : (
+            <>
+              <span className="flex-1 truncate text-start">{currentLabel}</span>
+              <ChevronDownIcon aria-hidden />
+            </>
+          )}
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="min-w-52">
+        {options.map((option) => (
+          <DropdownMenuItem
+            key={option.id}
+            onSelect={() => {
+              option.onSelect();
+              onNavigate?.();
+            }}
+          >
+            {option.icon}
+            {option.label}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

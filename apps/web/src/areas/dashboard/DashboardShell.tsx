@@ -1,19 +1,47 @@
 import { Outlet } from 'react-router-dom';
 
-import { BranchSwitcher } from '@app/ui';
+import { AppTopbar, BranchSwitcher } from '@app/ui';
 
 import type { DashboardShellViewModel } from './use-dashboard-shell.js';
 
-export function DashboardShell({ title, branchSwitcher, onBranchChange }: DashboardShellViewModel) {
+export function DashboardShell({
+  title,
+  pageTitle,
+  breadcrumb,
+  userInitials,
+  branchSwitcher,
+  onBranchChange,
+}: DashboardShellViewModel) {
   return (
     <>
-      <header className="flex min-h-16 shrink-0 items-center gap-3 mx-3 mt-3 rounded-2xl border bg-background shadow-sm md:mx-0 md:mt-0 px-4 py-2 md:px-6">
-        <h1 dir="auto" className="hidden truncate text-lg font-semibold md:block">{title}</h1>
-        <div className="w-full md:ms-auto md:w-56">
-          <BranchSwitcher {...branchSwitcher} className="w-full" onValueChange={onBranchChange} />
-        </div>
+      <AppTopbar
+        breadcrumb={breadcrumb}
+        title={pageTitle}
+        actions={
+          <>
+            <BranchSwitcher
+              {...branchSwitcher}
+              className="w-56"
+              onValueChange={onBranchChange}
+            />
+            {userInitials ? (
+              <span
+                aria-hidden
+                className="flex size-9 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground"
+              >
+                {userInitials}
+              </span>
+            ) : null}
+          </>
+        }
+      />
+      <header className="mx-3 mt-3 flex min-h-14 shrink-0 items-center gap-3 rounded-lg border bg-background px-3 py-2 md:hidden">
+        <h1 dir="auto" className="sr-only">
+          {title}
+        </h1>
+        <BranchSwitcher {...branchSwitcher} className="w-full" onValueChange={onBranchChange} />
       </header>
-      <main className="min-h-0 flex-1 overflow-y-auto p-3 md:px-1 md:pt-4 md:pb-1">
+      <main className="min-h-0 flex-1 overflow-y-auto p-3 md:p-8">
         <Outlet />
       </main>
     </>
