@@ -89,7 +89,23 @@ apps/api/
   read tenant operational tables such as `orders`. API runtime (`app_user`) may `INSERT` outbox rows in the
   same transaction as order writes but cannot read or update them.
 - `public-menu` module resolves `orgId` from the slug, read-only, no auth; responses are cacheable.
-- Platform admin endpoints use `withAdmin(fn)` which writes `audit_logs`.
+- **Platform admin plane (`/v1/admin/*`, `modules/admin`)** is a separate identity plane, not a tenant role:
+  - Own tables `admin_users`, `admin_sessions`, `audit_logs` (no RLS; `app_user` and `app_worker` have no
+    access). Own JWT (`JWT_ADMIN_SECRET`, `aud: "admin"`, 10m), own refresh cookie `admin_rt` scoped to
+    `Path=/v1/admin/auth`. Admin routes are `@Public()` to the tenant `AuthGuard` and use `AdminAuthGuard`
+    plus `@RequireAdminRole('support' | 'billing' | 'super')` (support < billing < super). The guard re-reads
+    the admin and session from the DB on every request, so deactivation is immediate.
+  - **`app_admin`** DB role (`DATABASE_ADMIN_URL`, second pool, `AdminDbModule`): `BYPASSRLS`, SELECT on most
+    tables (no `users.password_hash`), UPDATE only on `organizations.status` and subscription override columns,
+    INSERT-only on `audit_logs`, no DELETE. `AdminDatabaseRoleValidator` refuses to start if the role is wrong.
+    The role is created outside migrations (`01-roles.sql` locally/CI; production deploy notes) and migration
+    0013 grants to it if it exists, so create the role before running `db:migrate`.
+  - Every mutating admin endpoint goes through `WithAdminService.withAdmin(actor, audit, fn)`, which writes the
+    `audit_logs` row in the same transaction as the change.
+  - First admin: `ADMIN_PASSWORD=... pnpm --filter @app/api admin:create --email you@example.com --role super`
+    (runs as `app_owner`, never part of seed data).
+- Tenant auth rejects organizations with status `suspended` or `cancelled` (`ORG_SUSPENDED` / `ORG_CANCELLED`,
+  HTTP 403) on login, refresh, switch-org, accept-invite and every authenticated request.
 
 ## Orders (critical path)
 - `modules/ordering/state-machine.ts` exports `transitions` and `assertTransition(from, to, ctx)`.

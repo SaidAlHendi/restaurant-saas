@@ -354,3 +354,22 @@ export type {
   ModifierGroupIdParam,
   ModifierIdParam,
 } from './catalog/path-params.js';
+
+export { ADMIN_ROLES, adminRoleSchema, adminRoleSatisfies } from './admin/roles.js';
+export type { AdminRole } from './admin/roles.js';
+export {
+  adminLoginBodySchema,
+  adminUserSchema,
+  adminLoginResponseSchema,
+  adminRefreshResponseSchema,
+  adminMeResponseSchema,
+  createAdminUserInputSchema,
+} from './admin/auth.js';
+export type {
+  AdminLoginBody,
+  AdminUser,
+  AdminLoginResponse,
+  AdminRefreshResponse,
+  AdminMeResponse,
+  CreateAdminUserInput,
+} from './admin/auth.js';

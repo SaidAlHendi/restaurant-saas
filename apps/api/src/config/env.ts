@@ -18,12 +18,15 @@ const envSchema = z.object({
   DATABASE_URL: z.url(),
   DATABASE_MIGRATION_URL: z.url(),
   DATABASE_WORKER_URL: optionalUrl,
+  DATABASE_ADMIN_URL: optionalUrl,
   OUTBOX_PUBLISHER_INTERVAL_MS: z.coerce.number().int().positive().default(500),
   OUTBOX_SHUTDOWN_TIMEOUT_MS: z.coerce.number().int().positive().default(10_000),
   REDIS_URL: z.url(),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
   JWT_ACCESS_SECRET: z.string().min(32),
   JWT_ACCESS_TTL: z.string().default('15m'),
+  JWT_ADMIN_SECRET: z.preprocess(emptyStringToUndefined, z.string().min(32).optional()),
+  JWT_ADMIN_TTL: z.string().default('10m'),
   COOKIE_SECURE: z
     .enum(['true', 'false', '1', '0'])
     .default('true')
@@ -69,6 +72,30 @@ const envSchema = z.object({
       code: 'custom',
       message: 'DATABASE_WORKER_URL is required when APP_ROLE is worker or all',
       path: ['DATABASE_WORKER_URL'],
+    });
+  }
+  if (data.APP_ROLE === 'api' || data.APP_ROLE === 'all') {
+    if (!data.DATABASE_ADMIN_URL) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'DATABASE_ADMIN_URL is required when APP_ROLE is api or all',
+        path: ['DATABASE_ADMIN_URL'],
+      });
+    }
+    if (!data.JWT_ADMIN_SECRET) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'JWT_ADMIN_SECRET is required (min 32 chars) when APP_ROLE is api or all',
+        path: ['JWT_ADMIN_SECRET'],
+      });
+    }
+  }
+  // A shared secret would let a tenant access token verify as an admin token (and the reverse).
+  if (data.JWT_ADMIN_SECRET && data.JWT_ADMIN_SECRET === data.JWT_ACCESS_SECRET) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'JWT_ADMIN_SECRET must differ from JWT_ACCESS_SECRET',
+      path: ['JWT_ADMIN_SECRET'],
     });
   }
   if (data.STORAGE_DRIVER === 's3') {
