@@ -1,5 +1,5 @@
 {
-  "common": { "loading": "جارٍ التحميل" },
+  "common": { "retry": "حاول مرة أخرى", "loading": "جارٍ التحميل" },
   "app": { "title": "إدارة صحتين" },
   "roles": { "super": "مشرف عام", "support": "الدعم", "billing": "الفوترة" },
   "auth": {
@@ -48,5 +48,81 @@
     "unknown": "الصفحة غير موجودة",
     "heading": "قريبًا",
     "body": "لم يتم بناء هذه الصفحة بعد."
+  },
+  "restaurants": {
+    "title": "المطاعم",
+    "description_zero": "لا توجد مطاعم على المنصة",
+    "description_one": "مطعم واحد على المنصة",
+    "description_two": "مطعمان على المنصة",
+    "description_few": "{{count}} مطاعم على المنصة",
+    "description_many": "{{count}} مطعمًا على المنصة",
+    "description_other": "{{count}} مطعم على المنصة",
+    "searchPlaceholder": "ابحث بالاسم أو المعرّف",
+    "clearSearch": "مسح البحث",
+    "allStatuses": "كل الحالات",
+    "none": "لا يوجد",
+    "sortBy": "ترتيب حسب",
+    "loadError": "تعذّر تحميل المطاعم.",
+    "loadErrorTitle": "حدث خطأ ما",
+    "emptyTitle": "لا توجد مطاعم بعد",
+    "emptyBody": "تظهر المطاعم هنا بعد تسجيلها.",
+    "emptyFilteredTitle": "لا توجد مطاعم مطابقة",
+    "emptyFilteredBody": "جرّب بحثًا أو حالة مختلفة.",
+    "notFoundTitle": "المطعم غير موجود",
+    "notFoundBody": "قد يكون حُذف أو أن الرابط غير صحيح.",
+    "backToList": "العودة إلى المطاعم",
+    "breadcrumb": "مسار التنقل",
+    "suspend": "تعليق",
+    "reactivate": "إعادة التفعيل",
+    "actionsSoon": "متاح في التحديث القادم",
+    "branchesCount_zero": "لا توجد فروع",
+    "branchesCount_one": "فرع واحد",
+    "branchesCount_two": "فرعان",
+    "branchesCount_few": "{{count}} فروع",
+    "branchesCount_many": "{{count}} فرعًا",
+    "branchesCount_other": "{{count}} فرع",
+    "branchActive": "نشط",
+    "branchInactive": "غير نشط",
+    "status": {
+      "trial": "تجريبي",
+      "active": "نشط",
+      "past_due": "متأخر السداد",
+      "suspended": "معلّق",
+      "cancelled": "ملغى"
+    },
+    "columns": {
+      "name": "المطعم",
+      "owner": "المالك",
+      "plan": "الباقة",
+      "status": "الحالة",
+      "branches": "الفروع",
+      "created": "تاريخ الإنشاء",
+      "actions": "إجراءات"
+    },
+    "sections": {
+      "restaurant": "المطعم",
+      "owner": "المالك",
+      "plan": "الباقة والاشتراك",
+      "branches": "الفروع"
+    },
+    "fields": {
+      "country": "الدولة",
+      "currency": "العملة",
+      "locale": "اللغة الافتراضية",
+      "created": "تاريخ الإنشاء",
+      "members": "أعضاء الفريق",
+      "ownerName": "الاسم",
+      "ownerEmail": "البريد الإلكتروني",
+      "subscription": "الاشتراك",
+      "trialEnds": "انتهاء الفترة التجريبية",
+      "periodEnd": "انتهاء الفترة الحالية"
+    },
+    "pagination": {
+      "navigation": "التنقل بين الصفحات",
+      "previous": "السابق",
+      "next": "التالي",
+      "page": "الصفحة {{page}}",
+      "more": "صفحات أخرى"
+    }
   }
 }
