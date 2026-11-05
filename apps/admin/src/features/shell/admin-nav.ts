@@ -34,6 +34,7 @@ const COMING_SOON = '/coming-soon';
 /** Pages built so far. Add the id here when its page ships. */
 const BUILT_ROUTES: Record<string, string> = {
   overview: '/dashboard',
+  restaurants: '/restaurants',
 };
 
 const NAV: Omit<AdminNavItem, 'to'>[] = [

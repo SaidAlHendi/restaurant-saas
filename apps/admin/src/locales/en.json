@@ -1,5 +1,5 @@
 {
-  "common": { "loading": "Loading" },
+  "common": { "retry": "Try again", "loading": "Loading" },
   "app": { "title": "Sahtain Admin" },
   "roles": { "super": "Super admin", "support": "Support", "billing": "Billing" },
   "auth": {
@@ -48,5 +48,73 @@
     "unknown": "Page not found",
     "heading": "Coming soon",
     "body": "This page has not been built yet."
+  },
+  "restaurants": {
+    "title": "Restaurants",
+    "description_one": "{{count}} restaurant on the platform",
+    "description_other": "{{count}} restaurants on the platform",
+    "searchPlaceholder": "Search by name or slug",
+    "clearSearch": "Clear search",
+    "allStatuses": "All statuses",
+    "none": "None",
+    "sortBy": "Sort by",
+    "loadError": "Could not load restaurants.",
+    "loadErrorTitle": "Something went wrong",
+    "emptyTitle": "No restaurants yet",
+    "emptyBody": "Restaurants appear here after they sign up.",
+    "emptyFilteredTitle": "No matching restaurants",
+    "emptyFilteredBody": "Try a different search or status.",
+    "notFoundTitle": "Restaurant not found",
+    "notFoundBody": "It may have been removed, or the link is wrong.",
+    "backToList": "Back to restaurants",
+    "breadcrumb": "Breadcrumb",
+    "suspend": "Suspend",
+    "reactivate": "Reactivate",
+    "actionsSoon": "Available in the next update",
+    "branchesCount_one": "{{count}} branch",
+    "branchesCount_other": "{{count}} branches",
+    "branchActive": "Active",
+    "branchInactive": "Inactive",
+    "status": {
+      "trial": "Trial",
+      "active": "Active",
+      "past_due": "Past due",
+      "suspended": "Suspended",
+      "cancelled": "Cancelled"
+    },
+    "columns": {
+      "name": "Restaurant",
+      "owner": "Owner",
+      "plan": "Plan",
+      "status": "Status",
+      "branches": "Branches",
+      "created": "Created",
+      "actions": "Actions"
+    },
+    "sections": {
+      "restaurant": "Restaurant",
+      "owner": "Owner",
+      "plan": "Plan and subscription",
+      "branches": "Branches"
+    },
+    "fields": {
+      "country": "Country",
+      "currency": "Currency",
+      "locale": "Default language",
+      "created": "Created",
+      "members": "Team members",
+      "ownerName": "Name",
+      "ownerEmail": "Email",
+      "subscription": "Subscription",
+      "trialEnds": "Trial ends",
+      "periodEnd": "Current period ends"
+    },
+    "pagination": {
+      "navigation": "Pagination",
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page {{page}}",
+      "more": "More pages"
+    }
   }
 }
