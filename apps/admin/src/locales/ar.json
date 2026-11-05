@@ -1,0 +1,52 @@
+{
+  "common": { "loading": "جارٍ التحميل" },
+  "app": { "title": "إدارة صحتين" },
+  "roles": { "super": "مشرف عام", "support": "الدعم", "billing": "الفوترة" },
+  "auth": {
+    "logout": "تسجيل الخروج",
+    "fields": { "email": "البريد الإلكتروني", "password": "كلمة المرور" },
+    "login": {
+      "title": "تسجيل دخول المنصة",
+      "subtitle": "لفريق صحتين فقط.",
+      "submit": "تسجيل الدخول"
+    },
+    "errors": { "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة." }
+  },
+  "shell": {
+    "sidebar": "القائمة الرئيسية",
+    "closeSidebar": "إغلاق القائمة",
+    "toggleSidebar": "طي القائمة أو توسيعها",
+    "darkMode": "الوضع الداكن",
+    "lightMode": "الوضع الفاتح"
+  },
+  "adminNav": {
+    "overview": "نظرة عامة على المنصة",
+    "restaurants": "المطاعم",
+    "users": "المستخدمون",
+    "subscriptions": "الاشتراكات",
+    "plans": "الباقات والأسعار",
+    "payments": "المدفوعات",
+    "invoices": "الفواتير",
+    "revenue": "تحليلات الإيرادات",
+    "posActivity": "نشاط نقاط البيع",
+    "kdsActivity": "نشاط شاشات المطبخ",
+    "usage": "الاستخدام والإحصاءات",
+    "integrations": "التكاملات",
+    "support": "تذاكر الدعم",
+    "feedback": "ملاحظات العملاء",
+    "announcements": "الإعلانات",
+    "adminUsers": "مستخدمو الإدارة والأدوار",
+    "audit": "سجل التدقيق",
+    "settings": "إعدادات النظام"
+  },
+  "overview": {
+    "title": "نظرة عامة على المنصة",
+    "welcome": "مرحبًا، {{name}}.",
+    "emptyHint": "ستظهر أرقام المنصة هنا في خطوة لاحقة."
+  },
+  "comingSoon": {
+    "unknown": "الصفحة غير موجودة",
+    "heading": "قريبًا",
+    "body": "لم يتم بناء هذه الصفحة بعد."
+  }
+}

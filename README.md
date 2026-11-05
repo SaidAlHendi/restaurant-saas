@@ -75,6 +75,7 @@ pnpm dev
 | API | http://localhost:3000 |
 | Web | http://localhost:5173 |
 | Site | http://localhost:5174 |
+| Admin (platform staff) | http://localhost:5175 |
 
 Health checks: `GET /v1/health`, `GET /v1/ready`.
 

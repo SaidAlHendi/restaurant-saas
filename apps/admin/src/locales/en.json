@@ -1,0 +1,52 @@
+{
+  "common": { "loading": "Loading" },
+  "app": { "title": "Sahtain Admin" },
+  "roles": { "super": "Super admin", "support": "Support", "billing": "Billing" },
+  "auth": {
+    "logout": "Sign out",
+    "fields": { "email": "Email", "password": "Password" },
+    "login": {
+      "title": "Platform sign in",
+      "subtitle": "For Sahtain staff only.",
+      "submit": "Sign in"
+    },
+    "errors": { "invalidCredentials": "Invalid email or password." }
+  },
+  "shell": {
+    "sidebar": "Main menu",
+    "closeSidebar": "Close the menu",
+    "toggleSidebar": "Collapse or expand the menu",
+    "darkMode": "Dark mode",
+    "lightMode": "Light mode"
+  },
+  "adminNav": {
+    "overview": "Platform Overview",
+    "restaurants": "Restaurants",
+    "users": "Users",
+    "subscriptions": "Subscriptions",
+    "plans": "Plans & Pricing",
+    "payments": "Payments",
+    "invoices": "Invoices",
+    "revenue": "Revenue Analytics",
+    "posActivity": "POS Activity",
+    "kdsActivity": "KDS Activity",
+    "usage": "Usage & Statistics",
+    "integrations": "Integrations",
+    "support": "Support Tickets",
+    "feedback": "Customer Feedback",
+    "announcements": "Announcements",
+    "adminUsers": "Admin Users & Roles",
+    "audit": "Audit Logs",
+    "settings": "System Settings"
+  },
+  "overview": {
+    "title": "Platform Overview",
+    "welcome": "Welcome, {{name}}.",
+    "emptyHint": "Platform numbers will appear here in a later step."
+  },
+  "comingSoon": {
+    "unknown": "Page not found",
+    "heading": "Coming soon",
+    "body": "This page has not been built yet."
+  }
+}
