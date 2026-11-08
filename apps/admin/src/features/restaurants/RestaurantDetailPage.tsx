@@ -12,6 +12,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  ConfirmDialog,
   EmptyState,
   PageHeader,
   Skeleton,
@@ -90,13 +91,31 @@ export default function RestaurantDetailPage() {
         breadcrumbs={[backLink, restaurant.name]}
         breadcrumbLabel={t('restaurants.breadcrumb')}
         actions={
-          // Step 12e wires suspend / reactivate here (audited, super and support roles).
-          <Button variant="outline" disabled title={t('restaurants.actionsSoon')}>
-            {restaurant.status === 'suspended'
-              ? t('restaurants.reactivate')
-              : t('restaurants.suspend')}
+          <Button
+            variant={vm.isSuspended ? 'default' : 'outline'}
+            disabled={!vm.canManageStatus || !vm.canChangeStatus}
+            title={vm.canManageStatus ? undefined : t('restaurants.superOnly')}
+            onClick={() => {
+              vm.setConfirmOpen(true);
+            }}
+          >
+            {vm.isSuspended ? t('restaurants.reactivate') : t('restaurants.suspend')}
           </Button>
         }
+      />
+
+      <ConfirmDialog
+        open={vm.confirmOpen}
+        onOpenChange={vm.setConfirmOpen}
+        variant={vm.isSuspended ? 'default' : 'destructive'}
+        title={t(vm.isSuspended ? 'restaurants.reactivateTitle' : 'restaurants.suspendTitle', {
+          name: restaurant.name,
+        })}
+        description={t(vm.isSuspended ? 'restaurants.reactivateBody' : 'restaurants.suspendBody')}
+        confirmLabel={vm.isSuspended ? t('restaurants.reactivate') : t('restaurants.suspend')}
+        cancelLabel={t('common.cancel')}
+        onConfirm={vm.confirmStatusChange}
+        isConfirming={vm.isChangingStatus}
       />
 
       <div className="grid gap-4 md:grid-cols-2">

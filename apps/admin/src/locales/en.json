@@ -1,5 +1,5 @@
 {
-  "common": { "retry": "Try again", "loading": "Loading" },
+  "common": { "cancel": "Cancel", "retry": "Try again", "loading": "Loading" },
   "app": { "title": "Sahtain Admin" },
   "roles": { "super": "Super admin", "support": "Support", "billing": "Billing" },
   "auth": {
@@ -70,7 +70,14 @@
     "breadcrumb": "Breadcrumb",
     "suspend": "Suspend",
     "reactivate": "Reactivate",
-    "actionsSoon": "Available in the next update",
+    "superOnly": "Only super admins can change a restaurant's status",
+    "suspendTitle": "Suspend {{name}}?",
+    "suspendBody": "Staff lose access immediately and the public menu stops working until the restaurant is reactivated.",
+    "reactivateTitle": "Reactivate {{name}}?",
+    "reactivateBody": "Staff can sign in again and the public menu is restored.",
+    "suspended": "Restaurant suspended",
+    "reactivated": "Restaurant reactivated",
+    "statusChangeError": "Could not change the status. The restaurant may have changed, so the page was refreshed.",
     "branchesCount_one": "{{count}} branch",
     "branchesCount_other": "{{count}} branches",
     "branchActive": "Active",

@@ -1,8 +1,10 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+
+import type { AdminUser } from '@app/shared';
 
 import { baseApi } from '../app/api/base-api.js';
 import RestaurantDetailPage from '../features/restaurants/RestaurantDetailPage.js';
@@ -11,6 +13,7 @@ import '../features/restaurants/restaurants.api.js';
 import { sessionReducer } from '../features/session/session.slice.js';
 import { initI18n } from '../lib/i18n.js';
 
+const ADMIN_ID = '0198f1a2-0000-7000-8000-0000000000aa';
 const ORG_ID = '0198f1a2-0000-7000-8000-000000000001';
 
 const listItem = {
@@ -45,14 +48,14 @@ const detail = {
   ],
 };
 
-function stubFetch(handler: (url: URL) => { status: number; body: unknown }) {
+function stubFetch(handler: (url: URL, method: string) => { status: number; body: unknown }) {
   const calls: URL[] = [];
   vi.stubGlobal(
     'fetch',
     vi.fn((input: Request) => {
       const url = new URL(input.url);
       calls.push(url);
-      const { status, body } = handler(url);
+      const { status, body } = handler(url, input.method);
       return Promise.resolve(
         new Response(JSON.stringify(body), {
           status,
@@ -64,9 +67,16 @@ function stubFetch(handler: (url: URL) => { status: number; body: unknown }) {
   return calls;
 }
 
-function renderAt(path: string) {
+function renderAt(path: string, role: AdminUser['role'] = 'super') {
   const store = configureStore({
     reducer: { session: sessionReducer, [baseApi.reducerPath]: baseApi.reducer },
+    preloadedState: {
+      session: {
+        accessToken: 'token',
+        bootstrapDone: true,
+        admin: { id: ADMIN_ID, email: 'a@sahtain.test', name: 'Admin', role },
+      },
+    },
     middleware: (gdm) => gdm().concat(baseApi.middleware),
   });
   return render(
@@ -86,6 +96,7 @@ describe('restaurants pages', () => {
     await initI18n();
   });
   afterEach(() => {
+    cleanup();
     vi.unstubAllGlobals();
   });
 
@@ -115,13 +126,66 @@ describe('restaurants pages', () => {
     expect(await screen.findByText('No matching restaurants')).toBeInTheDocument();
   });
 
-  it('shows the detail page with a disabled suspend/reactivate placeholder', async () => {
+  it('shows the detail page with owner and plan', async () => {
     stubFetch(() => ({ status: 200, body: detail }));
     renderAt(`/restaurants/${ORG_ID}`);
     expect(await screen.findByRole('heading', { name: /Olive Cafe/ })).toBeInTheDocument();
     expect(screen.getAllByText('lina@example.com').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Pro').length).toBeGreaterThan(0);
-    expect(screen.getByRole('button', { name: 'Reactivate' })).toBeDisabled();
+  });
+
+  it('confirms, then reactivates a suspended restaurant and shows the new status', async () => {
+    let status = 'suspended';
+    const calls: string[] = [];
+    stubFetch((url, method) => {
+      if (method === 'POST') {
+        calls.push(url.pathname);
+        status = 'active';
+        return { status: 200, body: { id: ORG_ID, status } };
+      }
+      return { status: 200, body: { ...detail, status } };
+    });
+    renderAt(`/restaurants/${ORG_ID}`);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Reactivate' }));
+    expect(calls).toEqual([]);
+    expect(await screen.findByRole('alertdialog')).toHaveTextContent('Reactivate Olive Cafe?');
+    fireEvent.click(
+      within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Reactivate' }),
+    );
+
+    await waitFor(() => {
+      expect(document.querySelector('[data-status="active"]')).toHaveTextContent('Active');
+    });
+    expect(calls).toEqual([`/v1/admin/orgs/${ORG_ID}/reactivate`]);
+    expect(screen.getByRole('button', { name: 'Suspend' })).toBeEnabled();
+  });
+
+  it('does nothing when the confirmation is cancelled', async () => {
+    const calls: string[] = [];
+    stubFetch((url, method) => {
+      if (method === 'POST') calls.push(url.pathname);
+      return { status: 200, body: { ...detail, status: 'active' } };
+    });
+    renderAt(`/restaurants/${ORG_ID}`);
+    fireEvent.click(await screen.findByRole('button', { name: 'Suspend' }));
+    fireEvent.click(
+      within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Cancel' }),
+    );
+    expect(calls).toEqual([]);
+  });
+
+  it('disables the button for non-super admins and for cancelled restaurants', async () => {
+    stubFetch(() => ({ status: 200, body: { ...detail, status: 'active' } }));
+    renderAt(`/restaurants/${ORG_ID}`, 'support');
+    expect(await screen.findByRole('button', { name: 'Suspend' })).toBeDisabled();
+    cleanup();
+
+    stubFetch(() => ({ status: 200, body: { ...detail, status: 'cancelled' } }));
+    renderAt(`/restaurants/${ORG_ID}`, 'super');
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Suspend' })).toBeDisabled();
+    });
   });
 
   it('shows not-found for a 404', async () => {
