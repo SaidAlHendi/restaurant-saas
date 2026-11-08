@@ -373,3 +373,20 @@ export type {
   AdminMeResponse,
   CreateAdminUserInput,
 } from './admin/auth.js';
+
+export {
+  adminOrgStatusSchema,
+  adminOrgListQuerySchema,
+  adminOrgListItemSchema,
+  adminOrgListResponseSchema,
+  adminOrgDetailSchema,
+  adminOrgIdParamSchema,
+  ADMIN_ORG_PAGE_SIZE_MAX,
+} from './admin/orgs.js';
+export type {
+  AdminOrgStatus,
+  AdminOrgListQuery,
+  AdminOrgListItem,
+  AdminOrgListResponse,
+  AdminOrgDetail,
+} from './admin/orgs.js';

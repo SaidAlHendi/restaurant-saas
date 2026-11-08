@@ -8,6 +8,8 @@ import { AdminShellLayout } from '../features/shell/AdminShellLayout.js';
 
 const LoginPage = lazy(() => import('../features/auth/LoginPage.js'));
 const OverviewPage = lazy(() => import('../features/overview/OverviewPage.js'));
+const RestaurantsPage = lazy(() => import('../features/restaurants/RestaurantsPage.js'));
+const RestaurantDetailPage = lazy(() => import('../features/restaurants/RestaurantDetailPage.js'));
 const ComingSoonPage = lazy(() => import('../features/placeholders/ComingSoonPage.js'));
 
 export const appRoutes: RouteObject[] = [
@@ -30,6 +32,8 @@ export const appRoutes: RouteObject[] = [
         ),
         children: [
           { path: 'dashboard', element: <OverviewPage /> },
+          { path: 'restaurants', element: <RestaurantsPage /> },
+          { path: 'restaurants/:id', element: <RestaurantDetailPage /> },
           { path: 'coming-soon/:section', element: <ComingSoonPage /> },
         ],
       },
