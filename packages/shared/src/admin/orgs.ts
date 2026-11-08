@@ -1,13 +1,14 @@
 import { z } from 'zod';
 
 /** Mirrors the `org_status` database enum. */
-export const adminOrgStatusSchema = z.enum([
+export const ADMIN_ORG_STATUSES = [
   'trial',
   'active',
   'past_due',
   'suspended',
   'cancelled',
-]);
+] as const;
+export const adminOrgStatusSchema = z.enum(ADMIN_ORG_STATUSES);
 export type AdminOrgStatus = z.infer<typeof adminOrgStatusSchema>;
 
 export const ADMIN_ORG_PAGE_SIZE_MAX = 100;
