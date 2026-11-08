@@ -63,7 +63,33 @@
   "overview": {
     "title": "نظرة عامة على المنصة",
     "welcome": "مرحبًا، {{name}}.",
-    "emptyHint": "ستظهر أرقام المنصة هنا في خطوة لاحقة."
+    "loadError": "تعذّر تحميل أرقام المنصة.",
+    "kpi": {
+      "mrr": "الإيراد الشهري المتكرر",
+      "restaurants": "المطاعم",
+      "restaurantsActive": "{{formatted}} نشط",
+      "subscriptions": "الاشتراكات النشطة",
+      "trials": "التجارب",
+      "churn": "معدل الإلغاء",
+      "churnCount": "{{formatted}} ملغى",
+      "last30d": "آخر 30 يومًا"
+    },
+    "planMix": {
+      "title": "توزيع الباقات",
+      "description": "الاشتراكات الفعّالة والإيراد الشهري لكل باقة.",
+      "empty": "لا توجد اشتراكات فعّالة بعد.",
+      "subscriptions": "{{formatted}} اشتراك"
+    },
+    "activity": {
+      "title": "آخر 24 ساعة",
+      "description": "نشاط المطاعم على المنصة.",
+      "orders": "الطلبات المسجّلة",
+      "ordersHint": "في جميع المطاعم",
+      "activeOrgs": "المطاعم النشطة",
+      "activeOrgsHint": "سجّلت طلبًا واحدًا على الأقل",
+      "suspended": "المطاعم الموقوفة",
+      "suspendedHint": "ممنوعة حاليًا من تسجيل الدخول"
+    }
   },
   "comingSoon": {
     "unknown": "الصفحة غير موجودة",

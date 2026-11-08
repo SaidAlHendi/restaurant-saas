@@ -63,7 +63,33 @@
   "overview": {
     "title": "Platform Overview",
     "welcome": "Welcome, {{name}}.",
-    "emptyHint": "Platform numbers will appear here in a later step."
+    "loadError": "Could not load platform numbers.",
+    "kpi": {
+      "mrr": "Monthly recurring revenue",
+      "restaurants": "Restaurants",
+      "restaurantsActive": "{{formatted}} active",
+      "subscriptions": "Active subscriptions",
+      "trials": "Trials",
+      "churn": "Churn",
+      "churnCount": "{{formatted}} canceled",
+      "last30d": "last 30 days"
+    },
+    "planMix": {
+      "title": "Plan mix",
+      "description": "Live subscriptions and monthly revenue by plan.",
+      "empty": "No live subscriptions yet.",
+      "subscriptions": "{{formatted}} subscriptions"
+    },
+    "activity": {
+      "title": "Last 24 hours",
+      "description": "What restaurants did on the platform.",
+      "orders": "Orders placed",
+      "ordersHint": "Across all restaurants",
+      "activeOrgs": "Active restaurants",
+      "activeOrgsHint": "Placed at least one order",
+      "suspended": "Suspended restaurants",
+      "suspendedHint": "Currently blocked from signing in"
+    }
   },
   "comingSoon": {
     "unknown": "Page not found",
