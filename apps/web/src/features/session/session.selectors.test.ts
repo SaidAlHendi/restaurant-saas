@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { RootState } from '../../app/store.js';
 import { cartSlice } from '../cart/cart.slice.js';
@@ -45,7 +45,22 @@ describe('session selectors', () => {
     expect(selectCan('branches.manage')(state)).toBe(false);
   });
 
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('selectHasFeature never locks anything outside staging and production', () => {
+    vi.stubEnv('MODE', 'development');
+    const state = stateWith([], 'tok', true);
+    const withPlan: RootState = {
+      ...state,
+      session: { ...state.session, entitlements: testMeEntitlements },
+    };
+    expect(selectHasFeature('kds.access')(withPlan)).toBe(true);
+  });
+
   it('selectHasFeature locks nothing before entitlements load, then follows the plan', () => {
+    vi.stubEnv('MODE', 'production');
     const state = stateWith([], 'tok', true);
     expect(selectHasFeature('kds.access')(state)).toBe(true);
 
