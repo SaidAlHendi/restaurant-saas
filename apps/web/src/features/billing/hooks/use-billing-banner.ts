@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { useAppSelector } from '../../../app/hooks.js';
+import { isPlanGateEnabled } from '../../../lib/plan-gate.js';
 import { selectCan, selectEntitlements } from '../../session/session.selectors.js';
 import { billingBanner } from '../billing.utils.js';
 
@@ -21,6 +22,9 @@ export function useBillingBanner(): BillingBannerViewModel {
   const canManageBilling = useAppSelector(selectCan('billing.manage'));
 
   return useMemo(() => {
+    if (!isPlanGateEnabled()) {
+      return null;
+    }
     const banner = billingBanner(entitlements, canManageBilling, new Date());
     if (banner === null) {
       return null;

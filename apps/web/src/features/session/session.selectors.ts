@@ -1,6 +1,7 @@
 import type { FeatureKey, PermissionKey } from '@app/shared';
 
 import type { RootState } from '../../app/store.js';
+import { isPlanGateEnabled } from '../../lib/plan-gate.js';
 
 export const selectAccessToken = (state: RootState) => state.session.accessToken;
 export const selectBootstrapDone = (state: RootState) => state.session.bootstrapDone;
@@ -29,4 +30,6 @@ export const selectEntitlements = (state: RootState) => state.session.entitlemen
 export const selectHasFeature =
   (feature: FeatureKey) =>
   (state: RootState): boolean =>
-    state.session.entitlements === null || state.session.entitlements.features.includes(feature);
+    !isPlanGateEnabled() ||
+    state.session.entitlements === null ||
+    state.session.entitlements.features.includes(feature);
