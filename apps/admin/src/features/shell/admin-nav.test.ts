@@ -8,15 +8,16 @@ describe('admin nav', () => {
   });
 
   it('sends pages that are not built yet to the coming-soon stub', () => {
-    const users = ADMIN_NAV.find((item) => item.id === 'users');
-    expect(users?.to).toBe('/coming-soon/users');
+    const payments = ADMIN_NAV.find((item) => item.id === 'payments');
+    expect(payments?.to).toBe('/coming-soon/payments');
+    expect(ADMIN_NAV.find((item) => item.id === 'users')?.to).toBe('/users');
     expect(ADMIN_NAV.find((item) => item.id === 'restaurants')?.to).toBe('/restaurants');
     expect(ADMIN_NAV.find((item) => item.id === 'overview')?.to).toBe('/dashboard');
   });
 
   it('finds the active item from the path', () => {
     expect(activeAdminNavId('/dashboard')).toBe('overview');
-    expect(activeAdminNavId('/coming-soon/audit')).toBe('audit');
+    expect(activeAdminNavId('/audit')).toBe('audit');
     expect(activeAdminNavId('/restaurants/abc')).toBe('restaurants');
     expect(activeAdminNavId('/nope')).toBeNull();
   });

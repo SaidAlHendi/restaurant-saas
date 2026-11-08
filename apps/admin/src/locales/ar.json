@@ -1,16 +1,37 @@
 {
-  "common": { "cancel": "إلغاء", "retry": "حاول مرة أخرى", "loading": "جارٍ التحميل" },
-  "app": { "title": "إدارة صحتين" },
-  "roles": { "super": "مشرف عام", "support": "الدعم", "billing": "الفوترة" },
+  "common": {
+    "cancel": "إلغاء",
+    "retry": "حاول مرة أخرى",
+    "loading": "جارٍ التحميل",
+    "clearSearch": "مسح البحث",
+    "actions": "الإجراءات",
+    "sortBy": "ترتيب حسب",
+    "previous": "السابق",
+    "next": "التالي",
+    "page": "الصفحة {{page}}"
+  },
+  "app": {
+    "title": "إدارة صحتين"
+  },
+  "roles": {
+    "super": "مشرف عام",
+    "support": "الدعم",
+    "billing": "الفوترة"
+  },
   "auth": {
     "logout": "تسجيل الخروج",
-    "fields": { "email": "البريد الإلكتروني", "password": "كلمة المرور" },
+    "fields": {
+      "email": "البريد الإلكتروني",
+      "password": "كلمة المرور"
+    },
     "login": {
       "title": "تسجيل دخول المنصة",
       "subtitle": "لفريق صحتين فقط.",
       "submit": "تسجيل الدخول"
     },
-    "errors": { "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة." }
+    "errors": {
+      "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة."
+    }
   },
   "shell": {
     "sidebar": "القائمة الرئيسية",
@@ -130,6 +151,91 @@
       "next": "التالي",
       "page": "الصفحة {{page}}",
       "more": "صفحات أخرى"
+    }
+  },
+  "users": {
+    "title": "المستخدمون",
+    "description": "الأشخاص الذين لديهم وصول إلى أي مطعم على المنصة.",
+    "searchPlaceholder": "ابحث بالاسم أو البريد",
+    "none": "لا يوجد",
+    "never": "أبدًا",
+    "loadError": "تعذّر تحميل المستخدمين.",
+    "emptyTitle": "لا يوجد مستخدمون بعد",
+    "emptyBody": "يظهر المستخدمون هنا بعد تسجيلهم.",
+    "emptyFilteredTitle": "لا يوجد مستخدمون مطابقون",
+    "emptyFilteredBody": "جرّب اسمًا أو بريدًا آخر.",
+    "columns": {
+      "name": "الاسم",
+      "email": "البريد الإلكتروني",
+      "restaurants": "المطعم",
+      "role": "الدور",
+      "lastLogin": "آخر تسجيل دخول"
+    }
+  },
+  "subscriptions": {
+    "title": "الاشتراكات",
+    "description": "حالة الفوترة لكل مطعم.",
+    "allStatuses": "كل الحالات",
+    "allPlans": "كل الباقات",
+    "trialEnding": "تجربة تنتهي قريبًا (٧ أيام)",
+    "loadError": "تعذّر تحميل الاشتراكات.",
+    "emptyTitle": "لا توجد اشتراكات بعد",
+    "emptyBody": "تظهر الاشتراكات هنا بعد تسجيل المطاعم.",
+    "emptyFilteredTitle": "لا توجد اشتراكات مطابقة",
+    "emptyFilteredBody": "جرّب حالة أو باقة أخرى.",
+    "status": {
+      "trialing": "تجريبي",
+      "active": "نشط",
+      "past_due": "متأخر السداد",
+      "canceled": "ملغى"
+    },
+    "columns": {
+      "restaurant": "المطعم",
+      "plan": "الباقة",
+      "status": "الحالة",
+      "trialEnds": "انتهاء التجربة",
+      "periodEnd": "انتهاء الفترة",
+      "providerId": "معرّف المزوّد"
+    }
+  },
+  "plans": {
+    "title": "الباقات والأسعار",
+    "description": "للعرض فقط. تُغيَّر الباقات عبر الترحيلات.",
+    "loadError": "تعذّر تحميل الباقات.",
+    "emptyTitle": "لا توجد باقات",
+    "emptyBody": "لم تُعرَّف أي باقة.",
+    "private": "خاصة",
+    "perMonth": "/ شهر",
+    "perBranchMonth": "/ فرع / شهر",
+    "unlimited": "غير محدود",
+    "columns": {
+      "plan": "الباقة",
+      "price": "السعر"
+    }
+  },
+  "audit": {
+    "title": "سجل التدقيق",
+    "description": "كل تغيير أجراه مشرفو المنصة.",
+    "actorPlaceholder": "تصفية باسم المشرف أو بريده",
+    "actionPlaceholder": "تصفية بالإجراء، مثل org.suspend",
+    "loadError": "تعذّر تحميل سجل التدقيق.",
+    "emptyTitle": "لا توجد سجلات بعد",
+    "emptyBody": "تُسجَّل هنا التغييرات التي يجريها المشرفون.",
+    "emptyFilteredTitle": "لا توجد سجلات مطابقة",
+    "emptyFilteredBody": "جرّب مشرفًا أو إجراءً آخر.",
+    "viewRestaurant": "عرض المطعم",
+    "roles": {
+      "super": "مشرف عام",
+      "support": "الدعم",
+      "billing": "الفوترة"
+    },
+    "columns": {
+      "when": "الوقت",
+      "actor": "المشرف",
+      "role": "الدور",
+      "action": "الإجراء",
+      "target": "الهدف",
+      "ip": "عنوان IP"
     }
   }
 }
