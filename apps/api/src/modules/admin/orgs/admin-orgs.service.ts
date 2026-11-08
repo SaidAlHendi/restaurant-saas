@@ -2,16 +2,20 @@ import { Inject, Injectable } from '@nestjs/common';
 import { and, asc, count, desc, eq, ilike, inArray, or, type SQL } from 'drizzle-orm';
 import type {
   AdminOrgDetail,
+  AdminOrgStatus,
+  AdminOrgStatusChange,
   AdminOrgListItem,
   AdminOrgListQuery,
   AdminOrgListResponse,
 } from '@app/shared';
 
-import { ADMIN_DRIZZLE, type AdminDrizzleDb } from '../../../core/db/admin-db.tokens';
+import { ADMIN_DRIZZLE, type AdminDrizzleDb, type AdminDrizzleTx } from '../../../core/db/admin-db.tokens';
 import { plans, subscriptions } from '../../../core/db/schema/billing';
 import { branches, memberships, organizations, roles } from '../../../core/db/schema/tenancy';
 import { users } from '../../../core/db/schema/identity';
-import { NotFoundError } from '../../../core/errors/app-errors';
+import { ConflictError, NotFoundError } from '../../../core/errors/app-errors';
+import type { AdminContext } from '../admin-context';
+import { WithAdminService } from '../with-admin.service';
 
 /** Escapes LIKE wildcards so a search for "50%" does not match everything. */
 function likePattern(term: string): string {
@@ -20,10 +24,13 @@ function likePattern(term: string): string {
 
 type OrgRow = typeof organizations.$inferSelect;
 
-/** Read-only cross-tenant queries on the admin pool (app_admin, BYPASSRLS). */
+/** Cross-tenant queries and status changes on the admin pool (app_admin, BYPASSRLS). */
 @Injectable()
 export class AdminOrgsService {
-  constructor(@Inject(ADMIN_DRIZZLE) private readonly db: AdminDrizzleDb) {}
+  constructor(
+    @Inject(ADMIN_DRIZZLE) private readonly db: AdminDrizzleDb,
+    private readonly withAdmin: WithAdminService,
+  ) {}
 
   async list(query: AdminOrgListQuery): Promise<AdminOrgListResponse> {
     const conditions: SQL[] = [];
@@ -94,6 +101,70 @@ export class AdminOrgsService {
         : null,
       branches: orgBranches,
     };
+  }
+
+  /** Blocks tenant access. Only trial, active and past_due restaurants can be suspended. */
+  suspend(id: string, actor: AdminContext): Promise<AdminOrgStatusChange> {
+    return this.changeStatus(id, actor, 'org.suspend', ['trial', 'active', 'past_due'], () =>
+      Promise.resolve('suspended'),
+    );
+  }
+
+  /**
+   * Restores access. The status before the suspension is not stored, so it is rebuilt from the
+   * subscription: past_due stays past_due, everything else becomes active.
+   */
+  reactivate(id: string, actor: AdminContext): Promise<AdminOrgStatusChange> {
+    return this.changeStatus(id, actor, 'org.reactivate', ['suspended'], async (tx) => {
+      const [sub] = await tx
+        .select({ status: subscriptions.status })
+        .from(subscriptions)
+        .where(eq(subscriptions.orgId, id))
+        .limit(1);
+      return sub?.status === 'past_due' ? 'past_due' : 'active';
+    });
+  }
+
+  /**
+   * The conditional UPDATE makes the transition atomic: a concurrent change leaves zero rows and the
+   * transaction rolls back, so no audit row is written for a change that did not happen.
+   */
+  private changeStatus(
+    id: string,
+    actor: AdminContext,
+    action: string,
+    allowedFrom: AdminOrgStatus[],
+    nextStatus: (tx: AdminDrizzleTx) => Promise<AdminOrgStatus>,
+  ): Promise<AdminOrgStatusChange> {
+    return this.withAdmin.withAdmin(
+      actor,
+      { action, targetType: 'organization', targetId: id, orgId: id },
+      async (tx) => {
+        const [current] = await tx
+          .select({ status: organizations.status })
+          .from(organizations)
+          .where(eq(organizations.id, id))
+          .limit(1);
+        if (!current) throw new NotFoundError('Restaurant not found');
+        if (!allowedFrom.includes(current.status)) {
+          throw new ConflictError(
+            `Cannot ${action === 'org.suspend' ? 'suspend' : 'reactivate'} a restaurant that is ${current.status}`,
+            { status: current.status },
+            'ORG_STATUS_CONFLICT',
+          );
+        }
+        const status = await nextStatus(tx);
+        const updated = await tx
+          .update(organizations)
+          .set({ status })
+          .where(and(eq(organizations.id, id), eq(organizations.status, current.status)))
+          .returning({ id: organizations.id });
+        if (updated.length === 0) {
+          throw new ConflictError('Restaurant status changed, reload and try again', {}, 'ORG_STATUS_CONFLICT');
+        }
+        return { id, status };
+      },
+    );
   }
 
   /** Adds plan, owner and branch count to a page of organizations with three batched queries. */

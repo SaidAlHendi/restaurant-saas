@@ -2,13 +2,13 @@ import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import * as argon2 from 'argon2';
 import cookieParser from 'cookie-parser';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import pg from 'pg';
 
 import { loadEnv, resetEnvCacheForTests } from '../src/config/env';
 import { ADMIN_DRIZZLE, type AdminDrizzleDb } from '../src/core/db/admin-db.tokens';
-import { adminUsers } from '../src/core/db/schema/admin';
+import { adminUsers, auditLogs } from '../src/core/db/schema/admin';
 import { organizations } from '../src/core/db/schema/tenancy';
 import { newUuidV7 } from '../src/lib/uuid';
 import { AppModule } from '../src/app.module';
@@ -44,6 +44,7 @@ describe('Admin restaurants list and detail (e2e)', () => {
   let adminDb: AdminDrizzleDb;
   let ownerPool: pg.Pool;
   let adminToken: string;
+  let superToken: string;
   const adminId = newUuidV7();
   const adminEmail = `orgs-admin-${runId}@admin.test`;
   let orgA: Org;
@@ -87,6 +88,20 @@ describe('Admin restaurants list and detail (e2e)', () => {
         name: 'Support',
         role: 'support',
       });
+    const superEmail = `orgs-super-${runId}@admin.test`;
+    await drizzle(ownerPool)
+      .insert(adminUsers)
+      .values({
+        id: newUuidV7(),
+        email: superEmail,
+        passwordHash: await argon2.hash(PASSWORD, { type: argon2.argon2id }),
+        name: 'Super',
+        role: 'super',
+      });
+    const superLogin = await apiAgent(app)
+      .post('/v1/admin/auth/login')
+      .send({ email: superEmail, password: PASSWORD });
+    superToken = (superLogin.body as { accessToken: string }).accessToken;
     const login = await apiAgent(app)
       .post('/v1/admin/auth/login')
       .send({ email: adminEmail, password: PASSWORD });
@@ -167,5 +182,60 @@ describe('Admin restaurants list and detail (e2e)', () => {
 
     expect((await admin().get(`/v1/admin/orgs/${newUuidV7()}`)).status).toBe(404);
     expect((await admin().get('/v1/admin/orgs/not-a-uuid')).status).toBe(400);
+  });
+
+  describe('suspend and reactivate', () => {
+    const superAdmin = () => withBearer(apiAgent(app), superToken);
+    const auditCount = async (action: string, orgId: string) =>
+      (
+        await adminDb
+          .select({ id: auditLogs.id })
+          .from(auditLogs)
+          .where(and(eq(auditLogs.action, action), eq(auditLogs.orgId, orgId)))
+      ).length;
+
+    it('requires the super role and a valid id', async () => {
+      expect((await apiAgent(app).post(`/v1/admin/orgs/${orgA.id}/suspend`)).status).toBe(401);
+      const denied = await admin().post(`/v1/admin/orgs/${orgA.id}/suspend`);
+      expect(denied.status).toBe(403);
+      expect((denied.body as { code?: string }).code ?? JSON.stringify(denied.body)).toContain(
+        'ADMIN_FORBIDDEN',
+      );
+      expect((await superAdmin().post('/v1/admin/orgs/not-a-uuid/suspend')).status).toBe(400);
+      expect((await superAdmin().post(`/v1/admin/orgs/${newUuidV7()}/suspend`)).status).toBe(404);
+    });
+
+    it('suspends, blocks tenant login, audits, then reactivates', async () => {
+      const suspended = await superAdmin().post(`/v1/admin/orgs/${orgA.id}/suspend`);
+      expect(suspended.status).toBe(200);
+      expect(suspended.body).toEqual({ id: orgA.id, status: 'suspended' });
+      expect(await auditCount('org.suspend', orgA.id)).toBe(1);
+
+      const login = await apiAgent(app)
+        .post('/v1/auth/login')
+        .send({ email: orgA.email, password: 'password-1234' });
+      expect(login.status).toBe(403);
+
+      const again = await superAdmin().post(`/v1/admin/orgs/${orgA.id}/suspend`);
+      expect(again.status).toBe(409);
+      expect(await auditCount('org.suspend', orgA.id)).toBe(1);
+
+      const reactivated = await superAdmin().post(`/v1/admin/orgs/${orgA.id}/reactivate`);
+      expect(reactivated.status).toBe(200);
+      expect(reactivated.body).toEqual({ id: orgA.id, status: 'active' });
+      expect(await auditCount('org.reactivate', orgA.id)).toBe(1);
+
+      const notSuspended = await superAdmin().post(`/v1/admin/orgs/${orgA.id}/reactivate`);
+      expect(notSuspended.status).toBe(409);
+    });
+
+    it('does not suspend a cancelled restaurant', async () => {
+      await adminDb
+        .update(organizations)
+        .set({ status: 'cancelled' })
+        .where(eq(organizations.id, orgB.id));
+      expect((await superAdmin().post(`/v1/admin/orgs/${orgB.id}/suspend`)).status).toBe(409);
+      expect((await superAdmin().post(`/v1/admin/orgs/${orgB.id}/reactivate`)).status).toBe(409);
+    });
   });
 });

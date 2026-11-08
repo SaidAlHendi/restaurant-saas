@@ -381,6 +381,7 @@ export {
   adminOrgListResponseSchema,
   adminOrgDetailSchema,
   adminOrgIdParamSchema,
+  adminOrgStatusChangeSchema,
   ADMIN_ORG_PAGE_SIZE_MAX,
 } from './admin/orgs.js';
 export type {
@@ -389,4 +390,5 @@ export type {
   AdminOrgListItem,
   AdminOrgListResponse,
   AdminOrgDetail,
+  AdminOrgStatusChange,
 } from './admin/orgs.js';

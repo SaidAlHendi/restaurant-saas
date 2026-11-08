@@ -70,3 +70,10 @@ export const adminOrgDetailSchema = adminOrgListItemSchema.extend({
 export type AdminOrgDetail = z.infer<typeof adminOrgDetailSchema>;
 
 export const adminOrgIdParamSchema = z.object({ id: z.uuid() });
+
+/** Result of suspend / reactivate: the organization's new status. */
+export const adminOrgStatusChangeSchema = z.object({
+  id: z.uuid(),
+  status: adminOrgStatusSchema,
+});
+export type AdminOrgStatusChange = z.infer<typeof adminOrgStatusChangeSchema>;

@@ -1,5 +1,5 @@
 {
-  "common": { "retry": "حاول مرة أخرى", "loading": "جارٍ التحميل" },
+  "common": { "cancel": "إلغاء", "retry": "حاول مرة أخرى", "loading": "جارٍ التحميل" },
   "app": { "title": "إدارة صحتين" },
   "roles": { "super": "مشرف عام", "support": "الدعم", "billing": "الفوترة" },
   "auth": {
@@ -74,7 +74,14 @@
     "breadcrumb": "مسار التنقل",
     "suspend": "تعليق",
     "reactivate": "إعادة التفعيل",
-    "actionsSoon": "متاح في التحديث القادم",
+    "superOnly": "يمكن للمسؤول الأعلى فقط تغيير حالة المطعم",
+    "suspendTitle": "تعليق {{name}}؟",
+    "suspendBody": "سيفقد الموظفون الوصول فورًا وتتوقف القائمة العامة عن العمل إلى أن تتم إعادة تفعيل المطعم.",
+    "reactivateTitle": "إعادة تفعيل {{name}}؟",
+    "reactivateBody": "يستطيع الموظفون تسجيل الدخول مجددًا وتعود القائمة العامة للعمل.",
+    "suspended": "تم تعليق المطعم",
+    "reactivated": "تمت إعادة تفعيل المطعم",
+    "statusChangeError": "تعذّر تغيير الحالة. ربما تغيّر المطعم، لذلك تم تحديث الصفحة.",
     "branchesCount_zero": "لا توجد فروع",
     "branchesCount_one": "فرع واحد",
     "branchesCount_two": "فرعان",
