@@ -10,6 +10,10 @@ const LoginPage = lazy(() => import('../features/auth/LoginPage.js'));
 const OverviewPage = lazy(() => import('../features/overview/OverviewPage.js'));
 const RestaurantsPage = lazy(() => import('../features/restaurants/RestaurantsPage.js'));
 const RestaurantDetailPage = lazy(() => import('../features/restaurants/RestaurantDetailPage.js'));
+const UsersPage = lazy(() => import('../features/users/UsersPage.js'));
+const SubscriptionsPage = lazy(() => import('../features/subscriptions/SubscriptionsPage.js'));
+const PlansPage = lazy(() => import('../features/plans/PlansPage.js'));
+const AuditPage = lazy(() => import('../features/audit/AuditPage.js'));
 const ComingSoonPage = lazy(() => import('../features/placeholders/ComingSoonPage.js'));
 
 export const appRoutes: RouteObject[] = [
@@ -34,6 +38,10 @@ export const appRoutes: RouteObject[] = [
           { path: 'dashboard', element: <OverviewPage /> },
           { path: 'restaurants', element: <RestaurantsPage /> },
           { path: 'restaurants/:id', element: <RestaurantDetailPage /> },
+          { path: 'users', element: <UsersPage /> },
+          { path: 'subscriptions', element: <SubscriptionsPage /> },
+          { path: 'plans', element: <PlansPage /> },
+          { path: 'audit', element: <AuditPage /> },
           { path: 'coming-soon/:section', element: <ComingSoonPage /> },
         ],
       },

@@ -35,6 +35,10 @@ const COMING_SOON = '/coming-soon';
 const BUILT_ROUTES: Record<string, string> = {
   overview: '/dashboard',
   restaurants: '/restaurants',
+  users: '/users',
+  subscriptions: '/subscriptions',
+  plans: '/plans',
+  audit: '/audit',
 };
 
 const NAV: Omit<AdminNavItem, 'to'>[] = [

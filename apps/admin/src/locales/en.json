@@ -1,16 +1,37 @@
 {
-  "common": { "cancel": "Cancel", "retry": "Try again", "loading": "Loading" },
-  "app": { "title": "Sahtain Admin" },
-  "roles": { "super": "Super admin", "support": "Support", "billing": "Billing" },
+  "common": {
+    "cancel": "Cancel",
+    "retry": "Try again",
+    "loading": "Loading",
+    "clearSearch": "Clear search",
+    "actions": "Actions",
+    "sortBy": "Sort by",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {{page}}"
+  },
+  "app": {
+    "title": "Sahtain Admin"
+  },
+  "roles": {
+    "super": "Super admin",
+    "support": "Support",
+    "billing": "Billing"
+  },
   "auth": {
     "logout": "Sign out",
-    "fields": { "email": "Email", "password": "Password" },
+    "fields": {
+      "email": "Email",
+      "password": "Password"
+    },
     "login": {
       "title": "Platform sign in",
       "subtitle": "For Sahtain staff only.",
       "submit": "Sign in"
     },
-    "errors": { "invalidCredentials": "Invalid email or password." }
+    "errors": {
+      "invalidCredentials": "Invalid email or password."
+    }
   },
   "shell": {
     "sidebar": "Main menu",
@@ -148,6 +169,91 @@
       "next": "Next",
       "page": "Page {{page}}",
       "more": "More pages"
+    }
+  },
+  "users": {
+    "title": "Users",
+    "description": "People with access to any restaurant on the platform.",
+    "searchPlaceholder": "Search by name or email",
+    "none": "None",
+    "never": "Never",
+    "loadError": "Could not load users.",
+    "emptyTitle": "No users yet",
+    "emptyBody": "Users appear here after they sign up.",
+    "emptyFilteredTitle": "No matching users",
+    "emptyFilteredBody": "Try a different name or email.",
+    "columns": {
+      "name": "Name",
+      "email": "Email",
+      "restaurants": "Restaurant",
+      "role": "Role",
+      "lastLogin": "Last sign-in"
+    }
+  },
+  "subscriptions": {
+    "title": "Subscriptions",
+    "description": "Billing state of every restaurant.",
+    "allStatuses": "All statuses",
+    "allPlans": "All plans",
+    "trialEnding": "Trial ending (7 days)",
+    "loadError": "Could not load subscriptions.",
+    "emptyTitle": "No subscriptions yet",
+    "emptyBody": "Subscriptions appear here after restaurants sign up.",
+    "emptyFilteredTitle": "No matching subscriptions",
+    "emptyFilteredBody": "Try a different status or plan.",
+    "status": {
+      "trialing": "Trial",
+      "active": "Active",
+      "past_due": "Past due",
+      "canceled": "Canceled"
+    },
+    "columns": {
+      "restaurant": "Restaurant",
+      "plan": "Plan",
+      "status": "Status",
+      "trialEnds": "Trial ends",
+      "periodEnd": "Period ends",
+      "providerId": "Provider ID"
+    }
+  },
+  "plans": {
+    "title": "Plans & Pricing",
+    "description": "Read-only. Plans are changed through migrations.",
+    "loadError": "Could not load plans.",
+    "emptyTitle": "No plans",
+    "emptyBody": "No plans are defined.",
+    "private": "Private",
+    "perMonth": "/ month",
+    "perBranchMonth": "/ branch / month",
+    "unlimited": "Unlimited",
+    "columns": {
+      "plan": "Plan",
+      "price": "Price"
+    }
+  },
+  "audit": {
+    "title": "Audit Logs",
+    "description": "Every change made by platform admins.",
+    "actorPlaceholder": "Filter by admin name or email",
+    "actionPlaceholder": "Filter by action, e.g. org.suspend",
+    "loadError": "Could not load the audit log.",
+    "emptyTitle": "No audit entries yet",
+    "emptyBody": "Changes made by admins are recorded here.",
+    "emptyFilteredTitle": "No matching entries",
+    "emptyFilteredBody": "Try a different admin or action.",
+    "viewRestaurant": "View restaurant",
+    "roles": {
+      "super": "Super admin",
+      "support": "Support",
+      "billing": "Billing"
+    },
+    "columns": {
+      "when": "When",
+      "actor": "Admin",
+      "role": "Role",
+      "action": "Action",
+      "target": "Target",
+      "ip": "IP"
     }
   }
 }

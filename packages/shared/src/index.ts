@@ -395,6 +395,37 @@ export type {
 } from './admin/orgs.js';
 
 export {
+  ADMIN_CURSOR_PAGE_SIZE,
+  ADMIN_TRIAL_ENDING_DAYS,
+  adminUserListQuerySchema,
+  adminTenantUserSchema,
+  adminUserListResponseSchema,
+  adminSubscriptionStatusSchema,
+  adminSubscriptionListQuerySchema,
+  adminSubscriptionItemSchema,
+  adminSubscriptionListResponseSchema,
+  adminPlanSchema,
+  adminPlanListResponseSchema,
+  adminAuditListQuerySchema,
+  adminAuditItemSchema,
+  adminAuditListResponseSchema,
+} from './admin/directory.js';
+export type {
+  AdminUserListQuery,
+  AdminTenantUser,
+  AdminUserListResponse,
+  AdminSubscriptionStatus,
+  AdminSubscriptionListQuery,
+  AdminSubscriptionItem,
+  AdminSubscriptionListResponse,
+  AdminPlan,
+  AdminPlanListResponse,
+  AdminAuditListQuery,
+  AdminAuditItem,
+  AdminAuditListResponse,
+} from './admin/directory.js';
+
+export {
   adminOverviewSchema,
   adminOverviewMrrSchema,
   adminOverviewPlanMixItemSchema,
