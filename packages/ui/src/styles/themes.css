@@ -41,40 +41,51 @@
   --state-error-content: #ffffff;
   --radius: 0.375rem;
   --border-width: 1px;
+  --border-mix: 11%;
+  --input-mix: 20%;
+  --table-head-bg: #f1f4ef;
+  --table-row-alt: #fbfcfa;
+  --table-row-hover: #eef3ee;
 }
 
 [data-theme='forest'],
 [data-surface='kds'] {
   color-scheme: dark;
-  /* Sahtain kitchen display: deep green surfaces, pale-green actions, amber timers. */
-  --canvas: #122d25;
-  --base-100: #1b3f33;
-  --base-200: #16382d;
-  --base-300: #0f261e;
-  --base-content: #e9f0ea;
-  --brand-primary: #dceee0;
-  --brand-primary-content: #173f32;
-  --brand-secondary: #2a5040;
-  --brand-secondary-content: #dceee0;
-  --brand-accent: #2a5040;
-  --brand-accent-content: #dceee0;
+  /* Sahtain dark: near-black green-tinted neutrals (not saturated green), raised surfaces get lighter,
+     mint actions, softened status colors. Also used by the kitchen display surface. */
+  --canvas: #0e1411;
+  --base-100: #161e1a;
+  --base-200: #1d2822;
+  --base-300: #28362f;
+  --base-content: #e7eee9;
+  --brand-primary: #8fd1a9;
+  --brand-primary-content: #0b1a12;
+  --brand-secondary: #24352c;
+  --brand-secondary-content: #cfe6d6;
+  --brand-accent: #24352c;
+  --brand-accent-content: #cfe6d6;
   --brand-accent-2: #6cce92;
-  --brand-accent-2-content: #0f261e;
+  --brand-accent-2-content: #0b1a12;
   /* Warm surface for highlighted cards (open orders). */
-  --brand-highlight: #4a3a1c;
+  --brand-highlight: #3a2f17;
   --brand-highlight-content: #f2ca79;
-  --brand-neutral: #244d3e;
+  --brand-neutral: #28362f;
   --brand-neutral-content: #dceee0;
   --state-info: #7ca8c4;
-  --state-info-content: #0f261e;
+  --state-info-content: #0b1a12;
   --state-success: #6cce92;
-  --state-success-content: #0f261e;
+  --state-success-content: #0b1a12;
   --state-warning: #e0b868;
   --state-warning-content: #2b1d03;
   --state-error: #e57a6a;
   --state-error-content: #2b0a05;
   --radius: 0.375rem;
   --border-width: 1px;
+  --border-mix: 15%;
+  --input-mix: 26%;
+  --table-head-bg: #1a2420;
+  --table-row-alt: #131a16;
+  --table-row-hover: #212d27;
 }
 
 /* shadcn/ui tokens derived from the palette above (same for both themes) */
@@ -107,8 +118,8 @@
   --highlight-foreground: var(--brand-highlight-content);
   --info: var(--state-info);
   --info-foreground: var(--state-info-content);
-  --border: color-mix(in oklch, var(--base-content) 11%, var(--base-100));
-  --input: color-mix(in oklch, var(--base-content) 20%, var(--base-100));
+  --border: color-mix(in oklch, var(--base-content) var(--border-mix, 11%), var(--base-100));
+  --input: color-mix(in oklch, var(--base-content) var(--input-mix, 20%), var(--base-100));
   --ring: var(--brand-primary);
   --chart-1: var(--brand-primary);
   --chart-2: var(--brand-secondary);
@@ -153,6 +164,9 @@
   --color-highlight-foreground: var(--highlight-foreground);
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
+  --color-table-head: var(--table-head-bg);
+  --color-table-alt: var(--table-row-alt);
+  --color-table-hover: var(--table-row-hover);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);

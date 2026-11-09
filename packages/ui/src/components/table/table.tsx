@@ -11,11 +11,11 @@ export function Table({ className, containerClassName, ...props }: TableProps) {
   return (
     <div
       data-slot="table-container"
-      className={cn('relative w-full overflow-auto', containerClassName)}
+      className={cn('relative w-full overflow-auto rounded-lg border bg-card', containerClassName)}
     >
       <table
         data-slot="table"
-        className={cn('w-full caption-bottom text-sm', className)}
+        className={cn('w-full caption-bottom border-separate border-spacing-0 text-sm', className)}
         {...props}
       />
     </div>
@@ -23,14 +23,17 @@ export function Table({ className, containerClassName, ...props }: TableProps) {
 }
 
 export function TableHeader({ className, ...props }: React.ComponentProps<'thead'>) {
-  return <thead data-slot="table-header" className={cn('[&_tr]:border-b', className)} {...props} />;
+  return <thead data-slot="table-header" className={cn('bg-table-head', className)} {...props} />;
 }
 
 export function TableBody({ className, ...props }: React.ComponentProps<'tbody'>) {
   return (
     <tbody
       data-slot="table-body"
-      className={cn('[&_tr:last-child]:border-0', className)}
+      className={cn(
+        '[&_tr:last-child>td]:border-b-0 [&_tr:nth-child(even)]:bg-table-alt',
+        className,
+      )}
       {...props}
     />
   );
@@ -51,7 +54,7 @@ export function TableRow({ className, ...props }: React.ComponentProps<'tr'>) {
     <tr
       data-slot="table-row"
       className={cn(
-        'border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted',
+        'transition-colors hover:bg-table-hover data-[state=selected]:bg-table-hover',
         className,
       )}
       {...props}
@@ -64,7 +67,7 @@ export function TableHead({ className, ...props }: React.ComponentProps<'th'>) {
     <th
       data-slot="table-head"
       className={cn(
-        'h-10 whitespace-nowrap px-2 text-start align-middle font-medium text-foreground [&:has([role=checkbox])]:pe-0',
+        'h-11 whitespace-nowrap border-b px-4 text-start align-middle text-xs font-semibold uppercase tracking-wide text-muted-foreground [&:has([role=checkbox])]:pe-0',
         className,
       )}
       {...props}
@@ -76,7 +79,10 @@ export function TableCell({ className, ...props }: React.ComponentProps<'td'>) {
   return (
     <td
       data-slot="table-cell"
-      className={cn('whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pe-0', className)}
+      className={cn(
+        'whitespace-nowrap border-b px-4 py-3 align-middle [&:has([role=checkbox])]:pe-0',
+        className,
+      )}
       {...props}
     />
   );

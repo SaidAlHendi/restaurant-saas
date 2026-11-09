@@ -199,7 +199,13 @@ export function DashboardTodayView(props: DashboardTodayViewProps) {
                   value={live.oldest}
                 />
               </div>
-              <Button type="button" variant="ghost" size="sm" className="self-start" onClick={live.onOpenKitchen}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="self-start"
+                onClick={live.onOpenKitchen}
+              >
                 {labels.openKitchen}
               </Button>
             </Panel>
@@ -219,32 +225,53 @@ export function DashboardTodayView(props: DashboardTodayViewProps) {
               {recentRows.length === 0 ? (
                 <p className="text-muted-foreground text-sm">{labels.noRecent}</p>
               ) : (
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="text-muted-foreground border-b text-xs">
-                      <th className="p-2 text-start font-medium">{labels.colOrder}</th>
-                      <th className="p-2 text-start font-medium">{labels.colTime}</th>
-                      <th className="p-2 text-start font-medium">{labels.colWhere}</th>
-                      <th className="p-2 text-start font-medium">{labels.colItems}</th>
-                      <th className="p-2 text-end font-medium">{labels.colAmount}</th>
-                      <th className="p-2 text-start font-medium">{labels.colStatus}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {recentRows.map((row) => (
-                      <tr key={row.id} className="border-b last:border-0">
-                        <td className="p-2 font-semibold tabular-nums">{row.number}</td>
-                        <td className="p-2 tabular-nums">{row.time}</td>
-                        <td className="p-2">{row.where}</td>
-                        <td className="p-2">{row.items}</td>
-                        <td className="p-2 text-end font-semibold tabular-nums">{row.total}</td>
-                        <td className="p-2">
-                          <Badge variant={row.status}>{row.statusLabel}</Badge>
-                        </td>
+                <div className="overflow-x-auto rounded-lg border">
+                  <table className="w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                      <tr className="text-muted-foreground bg-table-head text-xs uppercase tracking-wide">
+                        <th className="border-b px-3 py-2.5 text-start font-semibold">
+                          {labels.colOrder}
+                        </th>
+                        <th className="border-b px-3 py-2.5 text-start font-semibold">
+                          {labels.colTime}
+                        </th>
+                        <th className="border-b px-3 py-2.5 text-start font-semibold">
+                          {labels.colWhere}
+                        </th>
+                        <th className="border-b px-3 py-2.5 text-start font-semibold">
+                          {labels.colItems}
+                        </th>
+                        <th className="border-b px-3 py-2.5 text-end font-semibold">
+                          {labels.colAmount}
+                        </th>
+                        <th className="border-b px-3 py-2.5 text-start font-semibold">
+                          {labels.colStatus}
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {recentRows.map((row) => (
+                        <tr
+                          key={row.id}
+                          className="even:bg-table-alt hover:bg-table-hover [&:last-child>td]:border-b-0"
+                        >
+                          <td className="border-b px-3 py-2.5 font-semibold tabular-nums">
+                            {row.number}
+                          </td>
+                          <td className="border-b px-3 py-2.5 tabular-nums">{row.time}</td>
+                          <td className="border-b px-3 py-2.5">{row.where}</td>
+                          <td className="border-b px-3 py-2.5">{row.items}</td>
+                          <td className="border-b px-3 py-2.5 text-end font-semibold tabular-nums">
+                            {row.total}
+                          </td>
+                          <td className="border-b px-3 py-2.5">
+                            <Badge variant={row.status}>{row.statusLabel}</Badge>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </Panel>
             <Panel>

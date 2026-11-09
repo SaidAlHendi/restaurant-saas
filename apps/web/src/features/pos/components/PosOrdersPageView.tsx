@@ -84,24 +84,26 @@ export function PosOrdersPageView(props: PosOrdersPageViewModel) {
           {!isLoading && !isError && rows.length === 0 ? <EmptyState title={emptyLabel} /> : null}
           {!isLoading && !isError && rows.length > 0 ? (
             <>
-              <div className="hidden overflow-x-auto rounded-lg border md:block">
-                <table className="w-full text-sm">
+              <div className="hidden overflow-x-auto rounded-lg border bg-card md:block">
+                <table className="w-full border-separate border-spacing-0 text-sm">
                   <tbody>
                     {rows.map((row) => (
                       <tr
                         key={row.id}
-                        className="hover:bg-muted/50 cursor-pointer border-b last:border-0"
+                        className="even:bg-table-alt hover:bg-table-hover cursor-pointer [&:last-child>td]:border-b-0"
                         onClick={row.onSelect}
                       >
-                        <td className="p-3 font-semibold tabular-nums">#{String(row.orderNumber)}</td>
-                        <td className="p-3 tabular-nums">{row.timeLabel}</td>
-                        <td className="p-3">{row.typeTable}</td>
-                        <td className="p-3 tabular-nums">{String(row.itemCount)}</td>
-                        <td className="p-3 tabular-nums">{row.totalLabel}</td>
-                        <td className="p-3">
+                        <td className="border-b px-4 py-3 font-semibold tabular-nums">
+                          #{String(row.orderNumber)}
+                        </td>
+                        <td className="border-b px-4 py-3 tabular-nums">{row.timeLabel}</td>
+                        <td className="border-b px-4 py-3">{row.typeTable}</td>
+                        <td className="border-b px-4 py-3 tabular-nums">{String(row.itemCount)}</td>
+                        <td className="border-b px-4 py-3 tabular-nums">{row.totalLabel}</td>
+                        <td className="border-b px-4 py-3">
                           <Badge variant={row.statusTone}>{row.statusLabel}</Badge>
                         </td>
-                        <td className="p-3">
+                        <td className="border-b px-4 py-3">
                           <Badge variant="outline">{row.paymentLabel}</Badge>
                         </td>
                       </tr>
@@ -118,8 +120,12 @@ export function PosOrdersPageView(props: PosOrdersPageViewModel) {
                       onClick={row.onSelect}
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-semibold tabular-nums">#{String(row.orderNumber)}</span>
-                        <span className="text-muted-foreground text-sm tabular-nums">{row.timeLabel}</span>
+                        <span className="font-semibold tabular-nums">
+                          #{String(row.orderNumber)}
+                        </span>
+                        <span className="text-muted-foreground text-sm tabular-nums">
+                          {row.timeLabel}
+                        </span>
                       </div>
                       <p className="mt-1 text-sm">{row.typeTable}</p>
                       <div className="mt-2 flex flex-wrap items-center gap-2">

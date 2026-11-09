@@ -94,14 +94,10 @@ export function DataTable<TRow>({
       data-slot="data-table"
       aria-busy={isLoading || undefined}
       className={className}
-      containerClassName={cn('rounded-md border', containerClassName)}
+      containerClassName={cn('rounded-lg border bg-card', containerClassName)}
     >
       {caption ? <TableCaption>{caption}</TableCaption> : null}
-      <TableHeader
-        className={cn(
-          stickyHeader && 'sticky top-0 z-10 bg-background shadow-[0_1px_0_var(--color-border)]',
-        )}
-      >
+      <TableHeader className={cn(stickyHeader && 'sticky top-0 z-10')}>
         <TableRow className="hover:bg-transparent">
           {visibleColumns.map((column) => (
             <TableHead
@@ -113,7 +109,7 @@ export function DataTable<TRow>({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="-mx-2 gap-1.5 px-2"
+                  className="-mx-2 gap-1.5 px-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground"
                   aria-label={`${labels.sortBy} ${typeof column.header === 'string' ? column.header : column.id}`}
                   onClick={() => {
                     toggleSort(column.id);
