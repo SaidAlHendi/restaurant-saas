@@ -24,6 +24,7 @@ export const SEED_COVERAGE: Record<string, SeedCoverageEntry> = {
   order_items: 'seeded',
   order_item_modifiers: 'seeded',
   payments: 'seeded',
+  pos_devices: { skipped: 'runtime only (an owner links a device with a pairing code)' },
   order_events: 'seeded',
   outbox_events: {
     skipped: 'written by order commands; KDS loads active orders over HTTP',

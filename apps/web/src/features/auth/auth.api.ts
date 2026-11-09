@@ -11,6 +11,13 @@ import {
   switchOrgBodySchema,
   switchOrgResponseSchema,
   pinLoginBodySchema,
+  devicePinLoginBodySchema,
+  devicePinUsersResponseSchema,
+  pairPosDeviceBodySchema,
+  pairPosDeviceResponseSchema,
+  type DevicePinLoginBody,
+  type DevicePinUsersResponse,
+  type PairPosDeviceBody,
   type PinLoginBody,
   type AcceptInviteBody,
   type InvitePreviewResponse,
@@ -88,6 +95,30 @@ export const authApi = baseApi.injectEndpoints({
       }),
       transformResponse: (response: unknown) => loginResponseSchema.parse(response),
     }),
+    pairDevice: builder.mutation({
+      query: (body: PairPosDeviceBody) => ({
+        url: '/v1/auth/device/pair',
+        method: 'POST',
+        body: pairPosDeviceBodySchema.parse(body),
+      }),
+      transformResponse: (response: unknown) => pairPosDeviceResponseSchema.parse(response),
+    }),
+    devicePinUsers: builder.query<DevicePinUsersResponse, string>({
+      query: (deviceKey) => ({
+        url: '/v1/auth/device/pin-users',
+        method: 'POST',
+        body: { deviceKey },
+      }),
+      transformResponse: (response: unknown) => devicePinUsersResponseSchema.parse(response),
+    }),
+    devicePinLogin: builder.mutation({
+      query: (body: DevicePinLoginBody) => ({
+        url: '/v1/auth/device/pin-login',
+        method: 'POST',
+        body: devicePinLoginBodySchema.parse(body),
+      }),
+      transformResponse: (response: unknown) => loginResponseSchema.parse(response),
+    }),
   }),
 });
 
@@ -101,4 +132,7 @@ export const {
   usePreviewInviteQuery,
   useAcceptInviteMutation,
   usePinLoginMutation,
+  usePairDeviceMutation,
+  useDevicePinUsersQuery,
+  useDevicePinLoginMutation,
 } = authApi;

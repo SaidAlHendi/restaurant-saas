@@ -91,7 +91,8 @@
       "settings": "Settings",
       "billing": "Billing",
       "branches": "Branches",
-      "staff": "Staff"
+      "staff": "Staff",
+      "devices": "Devices"
     },
     "today": {
       "title": "Today",
@@ -343,6 +344,8 @@
       "regenerateInvite": "Copy new invite link",
       "revokeInvite": "Revoke invite",
       "inviteDialogTitle": "Invite by email",
+      "inviteDialogDescription": "Send a sign-in link to a team member. The link is valid for 7 days.",
+      "close": "Close",
       "inviteEmail": "Email",
       "inviteRole": "Role",
       "inviteSubmit": "Send invite",
@@ -551,6 +554,7 @@
       "submit": "Unlock",
       "lockedCountdown": "Try again in",
       "switchUser": "Switch user",
+      "signOut": "Sign out (sign in as owner)",
       "pinDigits": "PIN, {{count}} digits"
     },
     "print": {
@@ -921,5 +925,59 @@
     "newBranchCancel": "Cancel",
     "newBranchCreated": "Branch created. You are now working in it.",
     "newBranchNameRequired": "Enter a branch name."
+  },
+  "devices": {
+    "title": "Cashier devices",
+    "description": "Link a tablet or computer to a branch so staff can sign in on it with just their PIN.",
+    "add": "Link a device",
+    "loadError": "Could not load devices.",
+    "empty": "No devices linked yet.",
+    "columnName": "Device",
+    "columnBranch": "Branch",
+    "columnStatus": "Status",
+    "columnLastUsed": "Last used",
+    "actions": "Actions",
+    "remove": "Remove",
+    "never": "Never",
+    "waitingToLink": "Waiting to be linked",
+    "revoked": "Device removed.",
+    "removeTitle": "Remove this device?",
+    "removeDescription": "It can no longer sign staff in and must be linked again. Device:",
+    "status": {
+      "pending": "Waiting for code",
+      "active": "Linked",
+      "revoked": "Removed"
+    },
+    "create": {
+      "title": "Link a device",
+      "description": "Name the device and choose its branch. You will get a one-time code.",
+      "nameLabel": "Device name",
+      "branchLabel": "Branch",
+      "submit": "Create code",
+      "nameRequired": "Enter a name for the device."
+    },
+    "code": {
+      "title": "Enter this code on the device",
+      "hint": "Valid for 15 minutes and works once.",
+      "steps": "On the device, open the sign-in page, choose Link this device, and type the code.",
+      "done": "Done"
+    },
+    "pair": {
+      "title": "Link this device",
+      "description": "Ask an owner or manager for a linking code from Dashboard, Devices.",
+      "codeLabel": "Linking code",
+      "submit": "Link device",
+      "invalidCode": "This code is invalid or has expired.",
+      "error": "Could not link the device. Try again."
+    },
+    "login": {
+      "subtitle": "Choose your name and enter your PIN.",
+      "submit": "Sign in",
+      "loadError": "Could not load the staff list.",
+      "useEmail": "Sign in with email instead",
+      "backToPin": "Sign in with PIN",
+      "unlink": "Unlink this device",
+      "linkDevice": "Link this device with a code"
+    }
   }
 }

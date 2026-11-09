@@ -40,7 +40,8 @@ function isAuthRefreshUrl(url: string): boolean {
     url.includes('/v1/auth/refresh') ||
     url.includes('/v1/auth/login') ||
     url.includes('/v1/auth/signup') ||
-    url.includes('/v1/auth/pin-login')
+    url.includes('/v1/auth/pin-login') ||
+    url.includes('/v1/auth/device/')
   );
 }
 
@@ -107,6 +108,7 @@ export const baseApi = createApi({
     'DailyReport',
     'OrgSettings',
     'Staff',
+    'PosDevice',
     'Billing',
   ],
   endpoints: (builder) => ({

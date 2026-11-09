@@ -1,4 +1,4 @@
-import { and, asc, eq, gt, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, sql } from 'drizzle-orm';
 import { Injectable } from '@nestjs/common';
 
 import { users } from '../../core/db/schema/identity';
@@ -7,6 +7,7 @@ import {
   membershipBranches,
   memberships,
   organizations,
+  posDevices,
   rolePermissions,
   roles,
 } from '../../core/db/schema/tenancy';
@@ -390,5 +391,78 @@ export class TenancyRepository {
       .from(branches)
       .where(and(eq(branches.orgId, orgId), eq(branches.isActive, true)));
     return rows.map((r) => r.id);
+  }
+
+  async pairPosDevice(tx: DrizzleTx, codeHash: string, keyHash: string, now: Date) {
+    const result = await tx.execute(
+      sql`SELECT device_id, org_id, branch_id, device_name FROM public.pair_pos_device(${codeHash}, ${keyHash}, ${now.toISOString()}::timestamptz)`,
+    );
+    const row = result.rows[0] as
+      | { device_id: string; org_id: string; branch_id: string; device_name: string }
+      | undefined;
+    return row
+      ? {
+          deviceId: row.device_id,
+          orgId: row.org_id,
+          branchId: row.branch_id,
+          deviceName: row.device_name,
+        }
+      : undefined;
+  }
+
+  async resolvePosDevice(tx: DrizzleTx, keyHash: string) {
+    const result = await tx.execute(
+      sql`SELECT device_id, org_id, branch_id, device_name FROM public.resolve_pos_device(${keyHash})`,
+    );
+    const row = result.rows[0] as
+      | { device_id: string; org_id: string; branch_id: string; device_name: string }
+      | undefined;
+    return row
+      ? {
+          deviceId: row.device_id,
+          orgId: row.org_id,
+          branchId: row.branch_id,
+          deviceName: row.device_name,
+        }
+      : undefined;
+  }
+
+  async touchPosDevice(tx: DrizzleTx, deviceId: string, now: Date) {
+    await tx.update(posDevices).set({ lastUsedAt: now }).where(eq(posDevices.id, deviceId));
+  }
+
+  async insertPosDevice(tx: DrizzleTx, row: typeof posDevices.$inferInsert) {
+    const inserted = await tx.insert(posDevices).values(row).returning();
+    return firstInsertedRow(inserted);
+  }
+
+  async listPosDevices(tx: DrizzleTx) {
+    return tx
+      .select({ device: posDevices, branchName: branches.name })
+      .from(posDevices)
+      .innerJoin(
+        branches,
+        and(eq(branches.id, posDevices.branchId), eq(branches.orgId, posDevices.orgId)),
+      )
+      .where(sql`${posDevices.status} <> 'revoked'`)
+      .orderBy(desc(posDevices.createdAt));
+  }
+
+  async findPosDeviceById(tx: DrizzleTx, deviceId: string) {
+    const rows = await tx.select().from(posDevices).where(eq(posDevices.id, deviceId)).limit(1);
+    return rows[0];
+  }
+
+  async revokePosDevice(tx: DrizzleTx, deviceId: string, now: Date) {
+    await tx
+      .update(posDevices)
+      .set({
+        status: 'revoked',
+        revokedAt: now,
+        deviceKeyHash: null,
+        pairingCodeHash: null,
+        pairingExpiresAt: null,
+      })
+      .where(eq(posDevices.id, deviceId));
   }
 }

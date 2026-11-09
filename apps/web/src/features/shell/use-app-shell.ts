@@ -3,6 +3,7 @@ import {
   ClipboardListIcon,
   CreditCardIcon,
   LayoutDashboardIcon,
+  MonitorSmartphoneIcon,
   SettingsIcon,
   StoreIcon,
   UsersIcon,
@@ -20,6 +21,7 @@ import { useAppDispatch, useAppSelector } from '../../app/hooks.js';
 import { setAppLanguage } from '../../lib/i18n.js';
 import { localizedName } from '../../lib/localized-name.js';
 import { useLogoutMutation } from '../auth/auth.api.js';
+import { writePosDeviceLocked } from '../pos/pos-device-lock-storage.js';
 import { daysUntil, isNavItemLocked } from '../billing/billing.utils.js';
 import { useBillingBanner } from '../billing/hooks/use-billing-banner.js';
 import { clearSession } from '../session/session.slice.js';
@@ -44,6 +46,7 @@ export function useAppShell() {
   const canManageBranches = useAppSelector(selectCan('branches.manage'));
   const canManageOrg = useAppSelector(selectCan('org.manage'));
   const canReadStaff = useAppSelector(selectCan('staff.read'));
+  const canManageStaff = useAppSelector(selectCan('staff.manage'));
   const canOpenSettings = canManageOrg;
   const canUsePos = useAppSelector(selectCan('orders.create'));
   const canUseKds = useAppSelector(selectCan('orders.update_status'));
@@ -132,6 +135,15 @@ export function useAppShell() {
         end: false,
       });
     }
+    if (canManageStaff) {
+      items.push({
+        id: 'devices',
+        to: '/dashboard/devices',
+        icon: MonitorSmartphoneIcon,
+        label: t('dashboard.nav.devices'),
+        end: false,
+      });
+    }
     if (canManageBilling) {
       items.push({
         id: 'billing',
@@ -153,6 +165,7 @@ export function useAppShell() {
     return items;
   }, [
     canManageBilling,
+    canManageStaff,
     canReadStaff,
     canManageBranches,
     canOpenSettings,
@@ -250,10 +263,11 @@ export function useAppShell() {
     } catch {
       // Sign out locally even when the server call fails (offline, expired session).
     } finally {
+      writePosDeviceLocked(org?.id, false);
       dispatch(clearSession());
       void navigate('/login', { replace: true });
     }
-  }, [dispatch, logout, navigate]);
+  }, [dispatch, logout, navigate, org?.id]);
 
   const isArabic = i18n.language.startsWith('ar');
   const brandName = org ? localizedName(org.name, i18n.language) : t('app.title');

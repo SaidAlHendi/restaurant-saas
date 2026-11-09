@@ -11,6 +11,7 @@ import { BranchSettingsPage } from '../../features/settings/pages/BranchSettings
 import { RestaurantSettingsPage } from '../../features/settings/pages/RestaurantSettingsPage.js';
 import { SettingsIndexRedirect } from '../../features/settings/pages/SettingsIndexRedirect.js';
 import { SettingsLayoutPage } from '../../features/settings/pages/SettingsLayoutPage.js';
+import { DevicesPage } from '../../features/devices/pages/DevicesPage.js';
 import { StaffSettingsPage } from '../../features/settings/pages/StaffSettingsPage.js';
 import { DashboardHome } from './DashboardHome.js';
 import { DashboardShell } from './DashboardShell.js';
@@ -49,6 +50,7 @@ export default function DashboardArea() {
         ) : null}
         <Route path="menu/*" element={<MenuRoutes />} />
         <Route path="staff" element={<StaffSettingsPage />} />
+        <Route path="devices" element={<DevicesPage />} />
         <Route path="branches" element={<BranchesPage />} />
         <Route path="branches/:branchId" element={<BranchSettingsPage />} />
         <Route path="billing" element={<BillingPage />} />

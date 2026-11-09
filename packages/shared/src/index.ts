@@ -431,3 +431,30 @@ export {
   adminOverviewPlanMixItemSchema,
 } from './admin/overview.js';
 export type { AdminOverview, AdminOverviewPlanMixItem } from './admin/overview.js';
+
+export {
+  PAIRING_CODE_ALPHABET,
+  PAIRING_CODE_LENGTH,
+  createPosDeviceBodySchema,
+  createPosDeviceResponseSchema,
+  devicePinLoginBodySchema,
+  devicePinUsersBodySchema,
+  devicePinUsersResponseSchema,
+  pairPosDeviceBodySchema,
+  pairPosDeviceResponseSchema,
+  posDeviceListItemSchema,
+  posDeviceListResponseSchema,
+  posDeviceStatusSchema,
+} from './devices/devices.js';
+export type {
+  CreatePosDeviceBody,
+  CreatePosDeviceResponse,
+  DevicePinLoginBody,
+  DevicePinUsersBody,
+  DevicePinUsersResponse,
+  PairPosDeviceBody,
+  PairPosDeviceResponse,
+  PosDeviceListItem,
+  PosDeviceListResponse,
+  PosDeviceStatus,
+} from './devices/devices.js';

@@ -38,7 +38,9 @@ function row(
   };
 }
 
-function minimalStaffVm(overrides: Partial<StaffSettingsPageViewModel> = {}): StaffSettingsPageViewModel {
+function minimalStaffVm(
+  overrides: Partial<StaffSettingsPageViewModel> = {},
+): StaffSettingsPageViewModel {
   const managerInviteRoles = [
     {
       value: 'cashier' as const,
@@ -176,6 +178,8 @@ function minimalStaffVm(overrides: Partial<StaffSettingsPageViewModel> = {}): St
       regenerateInvite: 'Regenerate',
       revokeInvite: 'Revoke',
       inviteDialogTitle: 'Invite',
+      inviteDialogDescription: 'Invite a team member',
+      close: 'Close',
       pinOnlyDialogTitle: 'PIN only',
       editDialogTitle: 'Edit',
       pinDialogTitle: 'Set PIN',

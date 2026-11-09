@@ -6,7 +6,10 @@ import { Public } from '../../core/auth/public.decorator';
 import { AuthService } from './auth.service';
 import {
   AcceptInviteBodyDto,
+  DevicePinLoginBodyDto,
+  DevicePinUsersBodyDto,
   LoginBodyDto,
+  PairPosDeviceBodyDto,
   PinLoginBodyDto,
   SignupBodyDto,
   SwitchOrgBodyDto,
@@ -61,6 +64,31 @@ export class AuthController {
   @Post('logout')
   logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     return this.auth.logout(req, res);
+  }
+
+  @Public()
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @Post('device/pair')
+  pairDevice(@Body() body: PairPosDeviceBodyDto) {
+    return this.auth.pairDevice(body);
+  }
+
+  @Public()
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @Post('device/pin-users')
+  devicePinUsers(@Body() body: DevicePinUsersBodyDto) {
+    return this.auth.devicePinUsers(body);
+  }
+
+  @Public()
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @Post('device/pin-login')
+  devicePinLogin(
+    @Body() body: DevicePinLoginBodyDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.auth.devicePinLogin(body, req, res);
   }
 
   @Authenticated()
