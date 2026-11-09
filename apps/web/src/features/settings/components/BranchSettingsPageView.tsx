@@ -1,4 +1,5 @@
-import { ChevronDownIcon } from 'lucide-react';
+import { ArrowLeftIcon, ChevronDownIcon } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 import {
   Button,
@@ -22,7 +23,11 @@ export function BranchSettingsPageView(props: BranchSettingsPageViewModel) {
   const {
     isLoading,
     isError,
-    branchName,
+    notFound,
+    name,
+    onNameChange,
+    isActive,
+    onIsActiveChange,
     payBeforeSend,
     onPayBeforeSendChange,
     acceptsCard,
@@ -66,14 +71,37 @@ export function BranchSettingsPageView(props: BranchSettingsPageViewModel) {
     return <p className="text-destructive p-6">{labels.loadError}</p>;
   }
 
+  if (notFound) {
+    return (
+      <div className="mx-auto flex w-full max-w-2xl flex-col gap-4">
+        <p className="text-muted-foreground">{labels.notFound}</p>
+        <Link to="/dashboard/branches" className="text-primary text-sm font-medium underline">
+          {labels.back}
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-5">
-      <SettingsSection
-        title={labels.title}
-        description={
-          branchName.length > 0 ? `${labels.description} · ${branchName}` : labels.description
-        }
+      <Link
+        to="/dashboard/branches"
+        className="text-muted-foreground hover:text-foreground inline-flex w-fit items-center gap-1 text-sm"
       >
+        <ArrowLeftIcon className="size-4 rtl:rotate-180" aria-hidden />
+        {labels.back}
+      </Link>
+      <SettingsSection title={labels.generalSection} description={labels.description}>
+        <div className="space-y-2">
+          <Label htmlFor="branch-name">{labels.nameLabel}</Label>
+          <Input
+            id="branch-name"
+            value={name}
+            onChange={(e) => {
+              onNameChange(e.target.value);
+            }}
+          />
+        </div>
         <div className="space-y-2">
           <Label htmlFor="branch-address">{labels.address}</Label>
           <Textarea
@@ -85,6 +113,14 @@ export function BranchSettingsPageView(props: BranchSettingsPageViewModel) {
             }}
           />
         </div>
+        <SettingsToggleRow
+          id="branch-active"
+          label={labels.activeLabel}
+          hint={labels.activeHint}
+          control={
+            <Switch id="branch-active" checked={isActive} onCheckedChange={onIsActiveChange} />
+          }
+        />
       </SettingsSection>
       <SettingsSection title={labels.taxSection} description={labels.taxSectionHint}>
         <div className="grid gap-4 sm:grid-cols-2">

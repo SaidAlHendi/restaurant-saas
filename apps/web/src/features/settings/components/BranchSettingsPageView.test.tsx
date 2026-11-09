@@ -1,4 +1,5 @@
 import { cleanup, render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { BranchSettingsPageView } from './BranchSettingsPageView.js';
@@ -12,6 +13,11 @@ function minimalBranchVm(
     isLoading: false,
     isError: false,
     branchName: 'Main',
+    notFound: false,
+    name: 'Main',
+    onNameChange: () => {},
+    isActive: true,
+    onIsActiveChange: () => {},
     payBeforeSend: true,
     onPayBeforeSendChange: () => {},
     acceptsCard: false,
@@ -42,6 +48,12 @@ function minimalBranchVm(
     saving: false,
     onSave: () => {},
     labels: {
+      generalSection: 'General',
+      nameLabel: 'Name',
+      activeLabel: 'Active',
+      activeHint: 'Hint',
+      back: 'Back',
+      notFound: 'Not found',
       taxSection: 'Tax',
       taxSectionHint: 'Hint',
       paymentsSection: 'Payments',
@@ -83,7 +95,11 @@ describe('BranchSettingsPageView', () => {
   });
 
   it('renders 7c payment switches with current values', () => {
-    render(<BranchSettingsPageView {...minimalBranchVm()} />);
+    render(
+      <MemoryRouter>
+        <BranchSettingsPageView {...minimalBranchVm()} />
+      </MemoryRouter>,
+    );
     expect(screen.getByLabelText('Pay before send')).toBeChecked();
     expect(screen.getByLabelText('Accept card')).not.toBeChecked();
     expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();

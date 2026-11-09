@@ -6,6 +6,9 @@ export function dashboardTitleKey(pathname: string): string {
   if (pathname.startsWith('/dashboard/menu')) {
     return 'dashboard.nav.menu';
   }
+  if (pathname.startsWith('/dashboard/branches')) {
+    return 'dashboard.nav.branches';
+  }
   if (pathname.startsWith('/dashboard/billing')) {
     return 'dashboard.nav.billing';
   }

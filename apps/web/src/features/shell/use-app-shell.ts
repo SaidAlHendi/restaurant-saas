@@ -4,6 +4,7 @@ import {
   CreditCardIcon,
   LayoutDashboardIcon,
   SettingsIcon,
+  StoreIcon,
   ShoppingBagIcon,
   UtensilsIcon,
   type LucideIcon,
@@ -42,7 +43,7 @@ export function useAppShell() {
   const canManageBranches = useAppSelector(selectCan('branches.manage'));
   const canManageOrg = useAppSelector(selectCan('org.manage'));
   const canReadStaff = useAppSelector(selectCan('staff.read'));
-  const canOpenSettings = canManageOrg || canManageBranches || canReadStaff;
+  const canOpenSettings = canManageOrg || canReadStaff;
   const canUsePos = useAppSelector(selectCan('orders.create'));
   const canUseKds = useAppSelector(selectCan('orders.update_status'));
   const canReports = useAppSelector(selectCan('reports.read'));
@@ -112,6 +113,15 @@ export function useAppShell() {
         end: false,
       });
     }
+    if (canManageBranches) {
+      items.push({
+        id: 'branches',
+        to: '/dashboard/branches',
+        icon: StoreIcon,
+        label: t('dashboard.nav.branches'),
+        end: false,
+      });
+    }
     if (canManageBilling) {
       items.push({
         id: 'billing',
@@ -131,7 +141,16 @@ export function useAppShell() {
       });
     }
     return items;
-  }, [canManageBilling, canOpenSettings, canReadMenu, canReports, canUsePos, canUseKds, t]);
+  }, [
+    canManageBilling,
+    canManageBranches,
+    canOpenSettings,
+    canReadMenu,
+    canReports,
+    canUsePos,
+    canUseKds,
+    t,
+  ]);
 
   const activeId = activeNavItemId(navItems, location.pathname);
 

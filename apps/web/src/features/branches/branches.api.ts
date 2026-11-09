@@ -24,7 +24,7 @@ export const branchesApi = baseApi.injectEndpoints({
         body: createBranchBodySchema.parse(body),
       }),
       transformResponse: (response: unknown) => branchSchema.parse(response),
-      invalidatesTags: [{ type: 'Branch', id: 'LIST' }],
+      invalidatesTags: [{ type: 'Branch', id: 'LIST' }, 'Me'],
     }),
     patchBranch: builder.mutation<Branch, { branchId: string; body: PatchBranchBody }>({
       query: ({ branchId, body }) => ({
@@ -37,6 +37,7 @@ export const branchesApi = baseApi.injectEndpoints({
         { type: 'Branch', id: 'LIST' },
         { type: 'Branch', id: arg.branchId },
         { type: 'PosMenu', id: arg.branchId },
+        'Me',
       ],
     }),
   }),

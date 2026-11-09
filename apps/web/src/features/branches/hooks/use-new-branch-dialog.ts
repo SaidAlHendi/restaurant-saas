@@ -5,10 +5,10 @@ import { toast } from '@app/ui';
 
 import { useAppDispatch, useAppSelector } from '../../../app/hooks.js';
 import { showApiError } from '../../../lib/show-api-error.js';
-import { useCreateBranchMutation, useListBranchesQuery } from '../../branches/branches.api.js';
+import { useCreateBranchMutation, useListBranchesQuery } from '../branches.api.js';
 import { applyDashboardBranchChange } from '../../session/apply-dashboard-branch-change.js';
 import { selectCurrentBranchId, selectSessionOrg } from '../../session/session.selectors.js';
-import { BRANCH_TIMEZONE_OPTIONS } from '../branch-timezone.utils.js';
+import { BRANCH_TIMEZONE_OPTIONS } from '../../settings/branch-timezone.utils.js';
 
 export function useNewBranchDialog() {
   const { t } = useTranslation();
@@ -41,7 +41,7 @@ export function useNewBranchDialog() {
     const trimmed = name.trim();
     const currency = current?.currency ?? org?.defaultCurrency;
     if (trimmed.length === 0) {
-      setErrorKey('settings.branch.newBranchNameRequired');
+      setErrorKey('branches.newBranchNameRequired');
       return;
     }
     if (!currency || !org) {
@@ -60,7 +60,7 @@ export function useNewBranchDialog() {
       return;
     }
     applyDashboardBranchChange(dispatch, org.id, result.data.id);
-    toast.success(t('settings.branch.newBranchCreated'));
+    toast.success(t('branches.newBranchCreated'));
     setOpen(false);
   }, [createBranch, current, dispatch, name, org, t, timezone]);
 
@@ -81,14 +81,14 @@ export function useNewBranchDialog() {
       void onSubmit();
     },
     labels: {
-      trigger: t('settings.branch.newBranch'),
-      title: t('settings.branch.newBranchTitle'),
-      description: t('settings.branch.newBranchDescription'),
-      name: t('settings.branch.newBranchName'),
-      namePlaceholder: t('settings.branch.newBranchNamePlaceholder'),
-      timezone: t('settings.branch.newBranchTimezone'),
-      create: t('settings.branch.newBranchCreate'),
-      cancel: t('settings.branch.newBranchCancel'),
+      trigger: t('branches.newBranch'),
+      title: t('branches.newBranchTitle'),
+      description: t('branches.newBranchDescription'),
+      name: t('branches.newBranchName'),
+      namePlaceholder: t('branches.newBranchNamePlaceholder'),
+      timezone: t('branches.newBranchTimezone'),
+      create: t('branches.newBranchCreate'),
+      cancel: t('branches.newBranchCancel'),
     },
   };
 }

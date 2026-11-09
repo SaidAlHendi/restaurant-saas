@@ -89,7 +89,8 @@
       "kitchen": "المطبخ",
       "branchSettings": "إعدادات الفرع",
       "settings": "الإعدادات",
-      "billing": "الفوترة"
+      "billing": "الفوترة",
+      "branches": "الفروع"
     },
     "today": {
       "title": "اليوم",
@@ -282,7 +283,7 @@
     },
     "branch": {
       "title": "إعدادات الفرع",
-      "description": "الضريبة والإيصالات ويوم العمل وخيارات الدفع للفرع الحالي.",
+      "description": "الاسم والعنوان والضريبة والدفع والإيصال لهذا الفرع.",
       "payBeforeSend": "الدفع قبل الإرسال",
       "payBeforeSendHint": "مفعّل: يصل الطلب للمطبخ بعد دفعه فقط. معطّل: يصل للمطبخ أولاً ويُدفع لاحقاً.",
       "acceptsCard": "قبول الدفع بالبطاقة",
@@ -324,16 +325,13 @@
       "businessDaySection": "يوم العمل والمنطقة الزمنية",
       "receiptSection": "الإيصال المطبوع",
       "receiptSectionHint": "نص اختياري يُطبع أعلى وأسفل إيصال الزبون، مثل الرقم الضريبي أو عبارة شكر.",
-      "newBranch": "فرع جديد",
-      "newBranchTitle": "إضافة فرع",
-      "newBranchDescription": "أنشئ موقعاً آخر. تقدر تنتقل بين الفروع من الشريط العلوي، ثم تضبط إعداداته من هنا.",
-      "newBranchName": "اسم الفرع",
-      "newBranchNamePlaceholder": "مثلاً: وسط البلد",
-      "newBranchTimezone": "المنطقة الزمنية",
-      "newBranchCreate": "إنشاء الفرع",
-      "newBranchCancel": "إلغاء",
-      "newBranchCreated": "تم إنشاء الفرع وأنت تعمل عليه الآن.",
-      "newBranchNameRequired": "أدخل اسم الفرع."
+      "generalSection": "عام",
+      "nameLabel": "اسم الفرع",
+      "activeLabel": "الفرع فعّال",
+      "activeHint": "أوقفه لمنع هذا الفرع من استقبال الطلبات. يبقى سجله محفوظاً.",
+      "back": "كل الفروع",
+      "notFound": "تعذّر العثور على هذا الفرع.",
+      "nameRequired": "أدخل اسم الفرع."
     },
     "staff": {
       "title": "الفريق والأدوار",
@@ -930,5 +928,29 @@
       "lockedNav": "يحتاج خطة أعلى",
       "featureToast": "هذا يحتاج خطة أعلى."
     }
+  },
+  "branches": {
+    "title": "الفروع",
+    "description": "كل مواقع مطعمك. أضف فرعاً أو غيّر اسمه أو إعداداته.",
+    "current": "الحالي",
+    "inactive": "معطّل",
+    "active": "فعّال",
+    "switch": "التحويل لهذا الفرع",
+    "settings": "الإعدادات",
+    "address": "لا يوجد عنوان بعد",
+    "switchedTo": "تم تغيير الفرع.",
+    "loadError": "تعذّر تحميل الفروع.",
+    "empty": "لا توجد فروع بعد.",
+    "breadcrumb": "الفروع",
+    "newBranch": "فرع جديد",
+    "newBranchTitle": "إضافة فرع",
+    "newBranchDescription": "أنشئ موقعاً آخر. تقدر تنتقل بين الفروع من الشريط العلوي، ثم تضبط إعداداته من هنا.",
+    "newBranchName": "اسم الفرع",
+    "newBranchNamePlaceholder": "مثلاً: وسط البلد",
+    "newBranchTimezone": "المنطقة الزمنية",
+    "newBranchCreate": "إنشاء الفرع",
+    "newBranchCancel": "إلغاء",
+    "newBranchCreated": "تم إنشاء الفرع وأنت تعمل عليه الآن.",
+    "newBranchNameRequired": "أدخل اسم الفرع."
   }
 }

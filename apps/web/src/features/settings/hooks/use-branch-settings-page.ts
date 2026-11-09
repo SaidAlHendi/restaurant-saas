@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useParams } from 'react-router-dom';
 
 import { toast } from '@app/ui';
 
@@ -7,7 +8,7 @@ import { useAppSelector } from '../../../app/hooks.js';
 import { formatMoney, intlLocaleForUi } from '../../../lib/money.js';
 import { useListBranchesQuery, usePatchBranchMutation } from '../../branches/branches.api.js';
 import { showApiError } from '../../../lib/show-api-error.js';
-import { selectCurrentBranchId, selectSessionOrg } from '../../session/session.selectors.js';
+import { selectSessionOrg } from '../../session/session.selectors.js';
 import { useSettingsPageAccess } from './use-settings-page-access.js';
 import { branchReceiptPreviewHtml } from '../branch-receipt-preview.utils.js';
 import { filterTimezoneOptions } from '../branch-timezone.utils.js';
@@ -16,7 +17,7 @@ import { parseTaxPercentInput, taxBpToPercentInput } from '../tax-rate.utils.js'
 export function useBranchSettingsPage() {
   const { t, i18n } = useTranslation();
   const { allowed, redirectTo } = useSettingsPageAccess('branches.manage');
-  const branchId = useAppSelector(selectCurrentBranchId);
+  const { branchId = null } = useParams();
   const org = useAppSelector(selectSessionOrg);
   const uiLocale = intlLocaleForUi(i18n.language);
   const { data, isLoading, isError } = useListBranchesQuery(undefined, { skip: !allowed });
@@ -24,6 +25,8 @@ export function useBranchSettingsPage() {
 
   const branch = useMemo(() => data?.items.find((b) => b.id === branchId), [branchId, data?.items]);
 
+  const [name, setName] = useState('');
+  const [isActive, setIsActive] = useState(true);
   const [payBeforeSend, setPayBeforeSend] = useState(false);
   const [acceptsCard, setAcceptsCard] = useState(true);
   const [taxInclusive, setTaxInclusive] = useState(false);
@@ -38,6 +41,8 @@ export function useBranchSettingsPage() {
 
   useEffect(() => {
     if (branch) {
+      setName(branch.name);
+      setIsActive(branch.isActive);
       setPayBeforeSend(branch.payBeforeSend);
       setAcceptsCard(branch.acceptsCard);
       setTaxInclusive(branch.taxInclusive);
@@ -61,6 +66,8 @@ export function useBranchSettingsPage() {
     const taxBp = parsedTax.ok ? parsedTax.bp : branch.taxRateBp;
     const hour = Number(dayStartHour);
     return (
+      name.trim() !== branch.name ||
+      isActive !== branch.isActive ||
       payBeforeSend !== branch.payBeforeSend ||
       acceptsCard !== branch.acceptsCard ||
       taxInclusive !== branch.taxInclusive ||
@@ -76,6 +83,8 @@ export function useBranchSettingsPage() {
     address,
     branch,
     dayStartHour,
+    isActive,
+    name,
     payBeforeSend,
     receiptFooter,
     receiptHeader,
@@ -146,10 +155,16 @@ export function useBranchSettingsPage() {
       setTaxErrorKey('settings.branch.dayStartInvalid');
       return;
     }
+    if (name.trim().length === 0) {
+      setTaxErrorKey('settings.branch.nameRequired');
+      return;
+    }
     setTaxErrorKey(null);
     const result = await patchBranch({
       branchId,
       body: {
+        name: name.trim(),
+        isActive,
         payBeforeSend,
         acceptsCard,
         taxInclusive,
@@ -171,6 +186,8 @@ export function useBranchSettingsPage() {
     address,
     branchId,
     dayStartHour,
+    isActive,
+    name,
     patchBranch,
     payBeforeSend,
     receiptFooter,
@@ -186,6 +203,11 @@ export function useBranchSettingsPage() {
     isLoading: allowed ? isLoading : false,
     isError,
     branchName: branch?.name ?? '',
+    notFound: !isLoading && !isError && branch === undefined,
+    name,
+    onNameChange: setName,
+    isActive,
+    onIsActiveChange: setIsActive,
     payBeforeSend,
     onPayBeforeSendChange: setPayBeforeSend,
     acceptsCard,
@@ -243,6 +265,12 @@ export function useBranchSettingsPage() {
       receiptHeader: t('settings.branch.receiptHeader'),
       receiptFooter: t('settings.branch.receiptFooter'),
       receiptPreview: t('settings.branch.receiptPreview'),
+      generalSection: t('settings.branch.generalSection'),
+      nameLabel: t('settings.branch.nameLabel'),
+      activeLabel: t('settings.branch.activeLabel'),
+      activeHint: t('settings.branch.activeHint'),
+      back: t('settings.branch.back'),
+      notFound: t('settings.branch.notFound'),
       taxSection: t('settings.branch.taxSection'),
       taxSectionHint: t('settings.branch.taxSectionHint'),
       paymentsSection: t('settings.branch.paymentsSection'),

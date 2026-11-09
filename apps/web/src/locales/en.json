@@ -89,7 +89,8 @@
       "kitchen": "Kitchen",
       "branchSettings": "Branch settings",
       "settings": "Settings",
-      "billing": "Billing"
+      "billing": "Billing",
+      "branches": "Branches"
     },
     "today": {
       "title": "Today",
@@ -274,7 +275,7 @@
     },
     "branch": {
       "title": "Branch settings",
-      "description": "Tax, receipts, business day and cashier payment options for the current branch.",
+      "description": "Name, address, tax, payments and receipts for this branch.",
       "payBeforeSend": "Pay before send",
       "payBeforeSendHint": "On: an order goes to the kitchen only after it is paid. Off: it goes to the kitchen first and is paid later.",
       "acceptsCard": "Accept card payments",
@@ -316,16 +317,13 @@
       "businessDaySection": "Business day and timezone",
       "receiptSection": "Printed receipt",
       "receiptSectionHint": "Optional text printed at the top and bottom of the customer receipt, for example your tax number or a thank-you.",
-      "newBranch": "New branch",
-      "newBranchTitle": "Add a branch",
-      "newBranchDescription": "Create another location. You can switch between branches from the top bar, then fine-tune its settings here.",
-      "newBranchName": "Branch name",
-      "newBranchNamePlaceholder": "e.g. Downtown",
-      "newBranchTimezone": "Timezone",
-      "newBranchCreate": "Create branch",
-      "newBranchCancel": "Cancel",
-      "newBranchCreated": "Branch created. You are now working in it.",
-      "newBranchNameRequired": "Enter a branch name."
+      "generalSection": "General",
+      "nameLabel": "Branch name",
+      "activeLabel": "Branch is active",
+      "activeHint": "Turn off to stop this branch taking orders. Its history is kept.",
+      "back": "All branches",
+      "notFound": "This branch could not be found.",
+      "nameRequired": "Enter a branch name."
     },
     "staff": {
       "title": "Staff & roles",
@@ -898,5 +896,29 @@
       "lockedNav": "Needs a higher plan",
       "featureToast": "This needs a higher plan."
     }
+  },
+  "branches": {
+    "title": "Branches",
+    "description": "Every location of your restaurant. Add a branch, rename it or change its settings.",
+    "current": "Current",
+    "inactive": "Inactive",
+    "active": "Active",
+    "switch": "Switch to this branch",
+    "settings": "Settings",
+    "address": "No address yet",
+    "switchedTo": "Switched branch.",
+    "loadError": "Could not load branches.",
+    "empty": "No branches yet.",
+    "breadcrumb": "Branches",
+    "newBranch": "New branch",
+    "newBranchTitle": "Add a branch",
+    "newBranchDescription": "Create another location. You can switch between branches from the top bar, then fine-tune its settings here.",
+    "newBranchName": "Branch name",
+    "newBranchNamePlaceholder": "e.g. Downtown",
+    "newBranchTimezone": "Timezone",
+    "newBranchCreate": "Create branch",
+    "newBranchCancel": "Cancel",
+    "newBranchCreated": "Branch created. You are now working in it.",
+    "newBranchNameRequired": "Enter a branch name."
   }
 }

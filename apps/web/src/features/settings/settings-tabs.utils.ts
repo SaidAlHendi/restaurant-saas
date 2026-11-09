@@ -1,12 +1,11 @@
 import type { PermissionKey } from '@app/shared';
 
-export type SettingsTabId = 'restaurant' | 'branch' | 'staff';
+export type SettingsTabId = 'restaurant' | 'staff';
 
-const TAB_ORDER: SettingsTabId[] = ['restaurant', 'branch', 'staff'];
+const TAB_ORDER: SettingsTabId[] = ['restaurant', 'staff'];
 
 const TAB_PERMISSION: Record<SettingsTabId, PermissionKey> = {
   restaurant: 'org.manage',
-  branch: 'branches.manage',
   staff: 'staff.read',
 };
 
