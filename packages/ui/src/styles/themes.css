@@ -53,23 +53,23 @@
   color-scheme: dark;
   /* Sahtain dark: near-black green-tinted neutrals (not saturated green), raised surfaces get lighter,
      mint actions, softened status colors. Also used by the kitchen display surface. */
-  --canvas: #0e1411;
-  --base-100: #161e1a;
-  --base-200: #1d2822;
-  --base-300: #28362f;
-  --base-content: #e7eee9;
-  --brand-primary: #8fd1a9;
+  --canvas: #0d100e;
+  --base-100: #171c19;
+  --base-200: #1f2521;
+  --base-300: #2c342f;
+  --base-content: #e9ece9;
+  --brand-primary: #7fcf9f;
   --brand-primary-content: #0b1a12;
-  --brand-secondary: #24352c;
+  --brand-secondary: #26322b;
   --brand-secondary-content: #cfe6d6;
-  --brand-accent: #24352c;
+  --brand-accent: #26322b;
   --brand-accent-content: #cfe6d6;
   --brand-accent-2: #6cce92;
   --brand-accent-2-content: #0b1a12;
   /* Warm surface for highlighted cards (open orders). */
   --brand-highlight: #3a2f17;
   --brand-highlight-content: #f2ca79;
-  --brand-neutral: #28362f;
+  --brand-neutral: #2c342f;
   --brand-neutral-content: #dceee0;
   --state-info: #7ca8c4;
   --state-info-content: #0b1a12;
@@ -81,11 +81,11 @@
   --state-error-content: #2b0a05;
   --radius: 0.375rem;
   --border-width: 1px;
-  --border-mix: 15%;
-  --input-mix: 26%;
-  --table-head-bg: #1a2420;
-  --table-row-alt: #131a16;
-  --table-row-hover: #212d27;
+  --border-mix: 13%;
+  --input-mix: 24%;
+  --table-head-bg: #1d231f;
+  --table-row-alt: #141915;
+  --table-row-hover: #232b26;
 }
 
 /* shadcn/ui tokens derived from the palette above (same for both themes) */

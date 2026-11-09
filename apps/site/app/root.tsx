@@ -11,7 +11,7 @@ import {
   useRouteLoaderData,
 } from 'react-router';
 
-export const links = () => [];
+export const links = () => [{ rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }];
 
 type RootLoaderData = {
   locale: string;
