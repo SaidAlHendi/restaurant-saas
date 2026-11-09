@@ -29,6 +29,7 @@ import type { UseFormReturn } from 'react-hook-form';
 import type { ModifierGroup } from '@app/shared';
 
 import type { ProductFormOutput, ProductFormValues } from '../hooks/use-product-form.js';
+import { BranchAvailabilityFieldView } from './BranchAvailabilityFieldView.js';
 import { LocalizedFieldsView } from './LocalizedFieldsView.js';
 
 export interface ProductFormSheetViewProps {
@@ -55,6 +56,15 @@ export interface ProductFormSheetViewProps {
   modifierGroups: ModifierGroup[];
   modifierGroupsLabel: string;
   modifierGroupLabel: (group: ModifierGroup) => string;
+  /** Where the product is shown. `show` is false when there is no branch to choose from. */
+  branchAvailability: {
+    show: boolean;
+    label: string;
+    hint: string;
+    allBranchesLabel: string;
+    branches: { id: string; name: string }[];
+    canChooseAll: boolean;
+  };
   imageUpload: {
     previewUrl: string | null;
     label: string;
@@ -97,6 +107,7 @@ export function ProductFormSheetView({
   modifierGroups,
   modifierGroupsLabel,
   modifierGroupLabel,
+  branchAvailability,
   imageUpload,
   planLimit = null,
 }: ProductFormSheetViewProps) {
@@ -206,6 +217,33 @@ export function ProductFormSheetView({
                   </FormItem>
                 )}
               />
+              {branchAvailability.show ? (
+                <FormField
+                  control={form.control}
+                  name="branchIds"
+                  render={({ field, fieldState }) => (
+                    <BranchAvailabilityFieldView
+                      label={branchAvailability.label}
+                      hint={branchAvailability.hint}
+                      allBranchesLabel={branchAvailability.allBranchesLabel}
+                      branches={branchAvailability.branches}
+                      canChooseAll={branchAvailability.canChooseAll}
+                      disabled={!canManage}
+                      value={{
+                        availableInAllBranches: form.watch('availableInAllBranches') ?? true,
+                        branchIds: field.value ?? [],
+                      }}
+                      onChange={(next) => {
+                        form.setValue('availableInAllBranches', next.availableInAllBranches, {
+                          shouldDirty: true,
+                        });
+                        field.onChange(next.branchIds);
+                      }}
+                      error={fieldState.error?.message}
+                    />
+                  )}
+                />
+              ) : null}
               {modifierGroups.length > 0 ? (
                 <FormField
                   control={form.control}

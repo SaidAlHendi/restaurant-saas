@@ -113,6 +113,13 @@
       "when": 1759668000000,
       "tag": "0015_accepts_card_default_off",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1759669000000,
+      "tag": "0016_branch_availability",
+      "breakpoints": true
     }
   ]
 }

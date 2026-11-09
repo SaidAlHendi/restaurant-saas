@@ -24,6 +24,7 @@ function stateWith(permissions: string[], accessToken: string | null, hasUser: b
       role: null,
       permissions,
       branches: [],
+    allBranches: true,
       orgs: [],
       entitlements: null,
       currentBranchId: null,

@@ -19,8 +19,10 @@ Translatable text = `jsonb` like `{"ar":"…","en":"…"}`. Tax in basis points 
 - **tables**: id, org_id, branch_id, label, qr_token (unique), is_active
 
 ## Catalog
-- **categories**: id, org_id, name jsonb, sort_order int, is_active, deleted_at
-- **products**: id, org_id, category_id, name jsonb, description jsonb, price_minor bigint, image_key, is_active, sort_order, deleted_at
+- **categories**: id, org_id, name jsonb, sort_order int, is_active, available_in_all_branches (default true), deleted_at
+- **category_branches**: category_id, branch_id, org_id (PK category_id+branch_id). Rows only matter when `available_in_all_branches` is false: the category is shown in exactly those branches.
+- **products**: id, org_id, category_id, name jsonb, description jsonb, price_minor bigint, image_key, is_active, available_in_all_branches (default true), sort_order, deleted_at
+- **product_branches**: product_id, branch_id, org_id (PK product_id+branch_id). Same rule as `category_branches`. A product is shown in a branch when it is active, its category is active, and both the product and the category are available in that branch (all-branches flag or a row for that branch).
 - **modifier_groups**: id, org_id, name jsonb, min_select smallint, max_select smallint, deleted_at
 - **modifiers**: id, org_id, group_id, name jsonb, price_delta_minor bigint default 0, is_active, sort_order, deleted_at
 - **product_modifier_groups**: product_id, group_id, org_id, sort_order — PK(product_id, group_id)

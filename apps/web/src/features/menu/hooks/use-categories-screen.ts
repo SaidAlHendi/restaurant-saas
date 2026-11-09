@@ -15,10 +15,11 @@ import {
   usePatchCategoryMutation,
   useReorderCategoriesMutation,
 } from '../menu.api.js';
+import { showBranchAvailability } from '../branch-availability.utils.js';
 import { categoryLabel } from '../menu.utils.js';
 import { isMutationError } from '../menu-mutation-result.js';
 import { showMenuApiError } from '../show-menu-api-error.js';
-import { useCategoryForm, type CategoryFormValues } from './use-category-form.js';
+import { useCategoryForm, type CategoryFormOutput } from './use-category-form.js';
 import { useOptimisticReorder } from './use-optimistic-reorder.js';
 
 export function useCategoriesScreen(): {
@@ -86,8 +87,26 @@ export function useCategoriesScreen(): {
     return out;
   }, [org.locales, t]);
 
+  const { branchScope } = categoryForm;
+  const showBranches = showBranchAvailability(branchScope);
+  const branchNameById = useMemo(
+    () => new Map(branchScope.branches.map((branch) => [branch.id, branch.name])),
+    [branchScope.branches],
+  );
+  const availabilityLabelFor = (category: Category) => {
+    if (category.availableInAllBranches) {
+      return t('menu.availability.allBranches');
+    }
+    if (category.branchIds.length === 1) {
+      return (
+        branchNameById.get(category.branchIds[0] ?? '') ?? t('menu.availability.count', { count: 1 })
+      );
+    }
+    return t('menu.availability.count', { count: category.branchIds.length });
+  };
+
   const onSubmitForm = () => {
-    void categoryForm.form.handleSubmit((values: CategoryFormValues) => {
+    void categoryForm.form.handleSubmit((values: CategoryFormOutput) => {
       if (formMode === 'create') {
         void createCategory(categoryForm.toCreateBody(values)).then((result) => {
           if (isMutationError(result)) {
@@ -145,6 +164,16 @@ export function useCategoriesScreen(): {
     formMode,
     formProps: {
       form: categoryForm.form,
+      branchAvailability: {
+        show: showBranches,
+        label: t('menu.availability.label'),
+        hint: branchScope.allBranchesScope
+          ? t('menu.availability.hintCategory')
+          : t('menu.availability.hintScopedCategory'),
+        allBranchesLabel: t('menu.availability.allBranches'),
+        branches: branchScope.branches,
+        canChooseAll: branchScope.allBranchesScope,
+      },
       onSubmit: onSubmitForm,
       isSaving: createState.isLoading || patchState.isLoading,
       titleCreate: t('menu.categories.createTitle'),
@@ -181,6 +210,7 @@ export function useCategoriesScreen(): {
     deleteLabel: t('menu.actions.delete'),
     activeLabel: t('menu.status.active'),
     inactiveLabel: t('menu.status.inactive'),
+    availabilityLabelFor: showBranches ? availabilityLabelFor : undefined,
     onEdit: (category) => {
       setFormMode('edit');
       setEditing(category);

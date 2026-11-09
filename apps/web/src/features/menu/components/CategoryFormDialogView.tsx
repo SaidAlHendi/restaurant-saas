@@ -14,7 +14,8 @@ import {
 } from '@app/ui';
 import type { UseFormReturn } from 'react-hook-form';
 
-import type { CategoryFormValues } from '../hooks/use-category-form.js';
+import type { CategoryFormOutput, CategoryFormValues } from '../hooks/use-category-form.js';
+import { BranchAvailabilityFieldView } from './BranchAvailabilityFieldView.js';
 import { LocalizedFieldsView } from './LocalizedFieldsView.js';
 
 export interface CategoryFormDialogViewProps {
@@ -32,7 +33,16 @@ export interface CategoryFormDialogViewProps {
   fieldLabels: { name: string; description: string };
   tabLabel: (locale: string) => string;
   defaultLocale: string;
-  form: UseFormReturn<CategoryFormValues>;
+  form: UseFormReturn<CategoryFormValues, unknown, CategoryFormOutput>;
+  /** Where the category is shown. `show` is false when there is no branch to choose from. */
+  branchAvailability: {
+    show: boolean;
+    label: string;
+    hint: string;
+    allBranchesLabel: string;
+    branches: { id: string; name: string }[];
+    canChooseAll: boolean;
+  };
   onSubmit: () => void;
   isSaving: boolean;
 }
@@ -52,6 +62,7 @@ export function CategoryFormDialogView({
   tabLabel,
   defaultLocale,
   form,
+  branchAvailability,
   onSubmit,
   isSaving,
 }: CategoryFormDialogViewProps) {
@@ -89,6 +100,32 @@ export function CategoryFormDialogView({
                   </FormItem>
                 )}
               />
+              {branchAvailability.show ? (
+                <FormField
+                  control={form.control}
+                  name="branchIds"
+                  render={({ field, fieldState }) => (
+                    <BranchAvailabilityFieldView
+                      label={branchAvailability.label}
+                      hint={branchAvailability.hint}
+                      allBranchesLabel={branchAvailability.allBranchesLabel}
+                      branches={branchAvailability.branches}
+                      canChooseAll={branchAvailability.canChooseAll}
+                      value={{
+                        availableInAllBranches: form.watch('availableInAllBranches') ?? true,
+                        branchIds: field.value ?? [],
+                      }}
+                      onChange={(next) => {
+                        form.setValue('availableInAllBranches', next.availableInAllBranches, {
+                          shouldDirty: true,
+                        });
+                        field.onChange(next.branchIds);
+                      }}
+                      error={fieldState.error?.message}
+                    />
+                  )}
+                />
+              ) : null}
             </DialogBody>
             <DialogFooter>
               <Button

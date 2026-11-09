@@ -114,6 +114,8 @@ export interface CategoryRowViewProps {
   deleteLabel: string;
   activeLabel: string;
   inactiveLabel: string;
+  /** Where the category is shown (e.g. "All branches"); omitted when there is one branch. */
+  availabilityLabel?: string | undefined;
   dragHandleProps: HTMLAttributes<HTMLButtonElement>;
   rowProps?: HTMLAttributes<HTMLLIElement> & { ref?: Ref<HTMLLIElement> };
   style?: CSSProperties;
@@ -132,6 +134,7 @@ export function CategoryRowView({
   deleteLabel,
   activeLabel,
   inactiveLabel,
+  availabilityLabel,
   dragHandleProps,
   rowProps,
   style,
@@ -157,6 +160,9 @@ export function CategoryRowView({
         </button>
       ) : null}
       <span className="flex-1 truncate text-sm font-medium">{label}</span>
+      {availabilityLabel ? (
+        <span className="text-muted-foreground hidden text-xs sm:inline">{availabilityLabel}</span>
+      ) : null}
       <Badge variant={category.isActive ? 'default' : 'secondary'}>
         {category.isActive ? activeLabel : inactiveLabel}
       </Badge>

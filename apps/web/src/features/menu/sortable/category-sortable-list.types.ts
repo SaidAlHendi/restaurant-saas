@@ -13,6 +13,8 @@ export interface CategorySortableListProps {
   deleteLabel: string;
   activeLabel: string;
   inactiveLabel: string;
+  /** Where the category is shown; undefined when the member has a single branch. */
+  availabilityLabelFor?: ((category: Category) => string) | undefined;
   onEdit: (category: Category) => void;
   onDelete: (category: Category) => void;
 }

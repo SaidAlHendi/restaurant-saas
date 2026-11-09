@@ -18,6 +18,8 @@ export const SEED_COVERAGE: Record<string, SeedCoverageEntry> = {
   modifier_groups: 'seeded',
   modifiers: 'seeded',
   product_modifier_groups: 'seeded',
+  product_branches: { skipped: 'seeded products are available in all branches (no per-branch rows)' },
+  category_branches: { skipped: 'seeded categories are available in all branches (no per-branch rows)' },
   tables: 'seeded',
   branch_counters: 'seeded',
   orders: 'seeded',

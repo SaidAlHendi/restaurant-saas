@@ -182,6 +182,12 @@ export {
   patchCategoryBodySchema,
   reorderBodySchema,
 } from './catalog/category.js';
+export {
+  branchAvailabilityFields,
+  branchAvailabilityInputFields,
+  branchAvailabilityInputValid,
+} from './catalog/branch-availability.js';
+export type { BranchAvailabilityInput } from './catalog/branch-availability.js';
 export type { Category, CreateCategoryBody, PatchCategoryBody, ReorderBody } from './catalog/category.js';
 
 export {

@@ -7,10 +7,16 @@ import { z } from 'zod';
 import type { ProductDetail } from '@app/shared';
 
 import {
+  branchAvailabilityDefaults,
+  branchAvailabilityToApi,
+  type BranchAvailabilityScope,
+} from '../branch-availability.utils.js';
+import {
   buildLocalizedFormSchema,
   localizedFormToApi,
   localizedRecordToFormDefaults,
 } from '../menu.utils.js';
+import { useBranchAvailabilityScope } from './use-branch-availability-scope.js';
 import { useCatalogOrg } from './use-catalog-org.js';
 import { menuFormResetKey, useMenuFormResetOnOpenOrEntity } from './use-menu-form-reset.js';
 
@@ -19,6 +25,10 @@ export function buildProductFormSchema(
   defaultLocale: string,
   categoryIds: string[],
   priceRequiredMessage: string,
+  branchRules: { requireBranchSelection: boolean; branchSelectionMessage: string } = {
+    requireBranchSelection: false,
+    branchSelectionMessage: '',
+  },
 ) {
   const nameSchema = buildLocalizedFormSchema(locales, defaultLocale);
   const descriptionShape: Record<string, z.ZodString> = {};
@@ -37,9 +47,22 @@ export function buildProductFormSchema(
         .nullable()
         .refine((value) => value !== null, { message: priceRequiredMessage }),
       isActive: z.boolean(),
+      availableInAllBranches: z.boolean().default(true),
+      branchIds: z.array(z.uuid()).default([]),
       modifierGroupIds: z.array(z.uuid()),
     })
     .superRefine((data, ctx) => {
+      if (
+        branchRules.requireBranchSelection &&
+        !data.availableInAllBranches &&
+        data.branchIds.length === 0
+      ) {
+        ctx.addIssue({
+          code: 'custom',
+          message: branchRules.branchSelectionMessage,
+          path: ['branchIds'],
+        });
+      }
       if (categoryIds.length > 0 && !categoryIds.includes(data.categoryId)) {
         ctx.addIssue({ code: 'custom', message: 'invalid category', path: ['categoryId'] });
       }
@@ -53,8 +76,10 @@ export function buildProductFormDefaultValues(
   product: ProductDetail | undefined,
   categoryIds: string[],
   locales: string[],
+  branchScope: BranchAvailabilityScope = { allBranchesScope: true, ownBranchIds: [] },
 ): ProductFormValues {
   return {
+    ...branchAvailabilityDefaults(product, branchScope),
     categoryId: product?.categoryId ?? categoryIds[0] ?? '',
     name: localizedRecordToFormDefaults(product?.name, locales),
     description: localizedRecordToFormDefaults(product?.description ?? undefined, locales),
@@ -72,6 +97,7 @@ export function useProductForm(options: {
 }) {
   const org = useCatalogOrg();
   const { t } = useTranslation();
+  const branchScope = useBranchAvailabilityScope();
 
   const productForForm =
     options.editingId !== undefined && options.product?.id === options.editingId
@@ -85,14 +111,26 @@ export function useProductForm(options: {
         org.defaultLocale,
         options.categoryIds,
         t('menu.products.priceRequired'),
+        {
+          // Staff limited to some branches may untick all of theirs when editing (other branches stay).
+          requireBranchSelection: options.editingId === undefined || branchScope.allBranchesScope,
+          branchSelectionMessage: t('menu.availability.pickOne'),
+        },
       ),
-    [org.defaultLocale, org.locales, options.categoryIds, t],
+    [
+      org.defaultLocale,
+      org.locales,
+      options.categoryIds,
+      options.editingId,
+      branchScope.allBranchesScope,
+      t,
+    ],
   );
 
   const valuesForReset = useCallback(
     (): ProductFormValues =>
-      buildProductFormDefaultValues(productForForm, options.categoryIds, org.locales),
-    [options.categoryIds, org.locales, productForForm],
+      buildProductFormDefaultValues(productForForm, options.categoryIds, org.locales, branchScope),
+    [branchScope, options.categoryIds, org.locales, productForForm],
   );
 
   const form = useForm<ProductFormValues, unknown, ProductFormOutput>({
@@ -109,6 +147,7 @@ export function useProductForm(options: {
     description: localizedFormToApi(values.description, org, { optional: true }),
     priceMinor: values.priceMinor,
     isActive: values.isActive,
+    ...branchAvailabilityToApi(values, branchScope),
   });
 
   const toPatchBody = (values: ProductFormOutput) => ({
@@ -117,11 +156,13 @@ export function useProductForm(options: {
     description: localizedFormToApi(values.description, org, { optional: true }),
     priceMinor: values.priceMinor,
     isActive: values.isActive,
+    ...branchAvailabilityToApi(values, branchScope),
   });
 
   return {
     form,
     org,
+    branchScope,
     toCreateBody,
     toPatchBody,
     modifierGroupIds: form.watch('modifierGroupIds'),

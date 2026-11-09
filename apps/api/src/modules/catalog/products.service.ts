@@ -20,9 +20,11 @@ import { decodeProductListCursor, encodeProductListCursor } from '../../lib/curs
 import { newUuidV7 } from '../../lib/uuid';
 import { EntitlementsService } from '../billing/entitlements.service';
 import { OrgSettingsService } from '../tenancy/org-settings.service';
+import { TenancyRepository } from '../tenancy/tenancy.repository';
 import { OBJECT_STORAGE } from '../../core/storage/storage.tokens';
 import type { ObjectStorage } from '../../core/storage/object-storage';
 
+import { resolveBranchAvailability } from './branch-availability';
 import { validateReorderIds } from './catalog-reorder';
 import { mapModifierGroup, mapProduct } from './catalog.mapper';
 import { optionalLocalizedText, requireLocalizedText } from './catalog-validation';
@@ -37,6 +39,7 @@ export class ProductsService {
   constructor(
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly repo: CatalogRepository,
+    private readonly tenancyRepo: TenancyRepository,
     private readonly orgSettings: OrgSettingsService,
     private readonly entitlements: EntitlementsService,
     private readonly images: ProductImageService,
@@ -52,6 +55,19 @@ export class ProductsService {
     return category;
   }
 
+  private async branchIdsFor(tx: DrizzleTx, productIds: string[]) {
+    return this.repo.listProductBranchIds(tx, productIds);
+  }
+
+  private async mapOne(
+    tx: DrizzleTx,
+    row: Parameters<typeof mapProduct>[0],
+    currency: string,
+  ) {
+    const ids = await this.branchIdsFor(tx, [row.id]);
+    return mapProduct(row, currency, this.storage, ids.get(row.id) ?? []);
+  }
+
   private async buildProductDetail(tx: DrizzleTx, orgId: string, productId: string) {
     const org = await this.orgSettings.getCatalogSettings(tx, orgId);
     const product = await this.repo.findProductById(tx, productId);
@@ -60,7 +76,7 @@ export class ProductsService {
     }
     const groups = await this.repo.listProductModifierGroups(tx, productId);
     return {
-      ...mapProduct(product, org.defaultCurrency, this.storage),
+      ...(await this.mapOne(tx, product, org.defaultCurrency)),
       modifierGroups: groups.map(({ group, link }) =>
         mapModifierGroup(group, link.sortOrder),
       ),
@@ -82,6 +98,7 @@ export class ProductsService {
         categoryId: query.categoryId,
         isActive: query.isActive,
         search: query.search,
+        branchId: query.branchId,
         cursor,
         limit: query.limit,
       });
@@ -92,8 +109,14 @@ export class ProductsService {
         hasMore && last
           ? encodeProductListCursor({ sortOrder: last.sortOrder, id: last.id })
           : null;
+      const branchIds = await this.branchIdsFor(
+        tx,
+        page.map((r) => r.id),
+      );
       return {
-        items: page.map((row) => mapProduct(row, org.defaultCurrency, this.storage)),
+        items: page.map((row) =>
+          mapProduct(row, org.defaultCurrency, this.storage, branchIds.get(row.id) ?? []),
+        ),
         nextCursor,
       };
     });
@@ -111,6 +134,12 @@ export class ProductsService {
         body.description !== undefined ? optionalLocalizedText(body.description, org) : null;
 
       await this.assertCategoryAvailable(tx, body.categoryId);
+      const availability = resolveBranchAvailability({
+        scope: ctx,
+        orgBranchIds: await this.tenancyRepo.listBranchIdsForOrg(tx, ctx.orgId),
+        input: body,
+        current: null,
+      });
       const count = await this.repo.countNonDeletedProducts(tx, ctx.orgId);
       await this.entitlements.assertWithinLimit(ctx.orgId, 'limit.products', count + 1, tx);
 
@@ -127,9 +156,11 @@ export class ProductsService {
         description: description ?? null,
         priceMinor: body.priceMinor,
         isActive: body.isActive ?? true,
+        availableInAllBranches: availability.availableInAllBranches,
         sortOrder,
       });
-      return mapProduct(row, org.defaultCurrency, this.storage);
+      await this.repo.replaceProductBranches(tx, row.id, ctx.orgId, availability.branchIds);
+      return mapProduct(row, org.defaultCurrency, this.storage, availability.branchIds);
     });
     this.menuCache.afterCatalogChange(ctx.orgId);
     return result;
@@ -157,18 +188,42 @@ export class ProductsService {
         );
       }
 
+      const touchesBranches =
+        body.availableInAllBranches !== undefined || body.branchIds !== undefined;
+      const currentBranchIds = (await this.branchIdsFor(tx, [productId])).get(productId) ?? [];
+      const availability = touchesBranches
+        ? resolveBranchAvailability({
+            scope: ctx,
+            orgBranchIds: await this.tenancyRepo.listBranchIdsForOrg(tx, ctx.orgId),
+            input: body,
+            current: {
+              availableInAllBranches: existing.availableInAllBranches,
+              branchIds: existing.availableInAllBranches ? [] : currentBranchIds,
+            },
+          })
+        : null;
+
       const updated = await this.repo.updateProduct(tx, productId, {
         categoryId: body.categoryId,
         name,
         description,
         priceMinor: body.priceMinor,
         isActive: body.isActive,
+        availableInAllBranches: availability?.availableInAllBranches,
         sortOrder,
       });
       if (!updated) {
         throw new NotFoundError();
       }
-      return mapProduct(updated, org.defaultCurrency, this.storage);
+      if (availability) {
+        await this.repo.replaceProductBranches(tx, productId, ctx.orgId, availability.branchIds);
+      }
+      return mapProduct(
+        updated,
+        org.defaultCurrency,
+        this.storage,
+        availability ? availability.branchIds : currentBranchIds,
+      );
     });
     this.menuCache.afterCatalogChange(ctx.orgId);
     return result;
@@ -181,7 +236,7 @@ export class ProductsService {
       if (!deleted) {
         throw new NotFoundError();
       }
-      return mapProduct(deleted, org.defaultCurrency, this.storage);
+      return this.mapOne(tx, deleted, org.defaultCurrency);
     });
     this.menuCache.afterCatalogChange(ctx.orgId);
     return result;
@@ -207,8 +262,14 @@ export class ProductsService {
         categoryId: body.categoryId,
         limit: 1000,
       });
+      const branchIds = await this.branchIdsFor(
+        tx,
+        rows.map((r) => r.id),
+      );
       return {
-        items: rows.map((row) => mapProduct(row, org.defaultCurrency, this.storage)),
+        items: rows.map((row) =>
+          mapProduct(row, org.defaultCurrency, this.storage, branchIds.get(row.id) ?? []),
+        ),
       };
     });
     this.menuCache.afterCatalogChange(ctx.orgId);
@@ -271,7 +332,8 @@ export class ProductsService {
         if (!updated) {
           throw new NotFoundError();
         }
-        return { updated, org };
+        const branchIds = (await this.branchIdsFor(tx, [productId])).get(productId) ?? [];
+        return { updated, org, branchIds };
       });
 
       if (previousPrefix && previousPrefix !== newPrefix) {
@@ -285,7 +347,12 @@ export class ProductsService {
         }
       }
 
-      const mapped = mapProduct(result.updated, result.org.defaultCurrency, this.storage);
+      const mapped = mapProduct(
+        result.updated,
+        result.org.defaultCurrency,
+        this.storage,
+        result.branchIds,
+      );
       this.menuCache.afterCatalogChange(ctx.orgId);
       return mapped;
     } catch (err: unknown) {
@@ -315,7 +382,8 @@ export class ProductsService {
       if (!updated) {
         throw new NotFoundError();
       }
-      return { updated, previousPrefix, org };
+      const branchIds = (await this.branchIdsFor(tx, [productId])).get(productId) ?? [];
+      return { updated, previousPrefix, org, branchIds };
     });
     if (result.previousPrefix) {
       try {
@@ -327,7 +395,12 @@ export class ProductsService {
         );
       }
     }
-    const mapped = mapProduct(result.updated, result.org.defaultCurrency, this.storage);
+    const mapped = mapProduct(
+      result.updated,
+      result.org.defaultCurrency,
+      this.storage,
+      result.branchIds,
+    );
     this.menuCache.afterCatalogChange(ctx.orgId);
     return mapped;
   }

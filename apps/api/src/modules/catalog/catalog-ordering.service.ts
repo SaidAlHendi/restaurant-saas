@@ -29,15 +29,20 @@ export class CatalogOrderingService {
   async validateAndSnapshotOrderLines(
     tx: DrizzleTx,
     items: OrderLineInput[],
+    branchId: string,
   ): Promise<OrderLineSnapshot[]> {
     const snapshots: OrderLineSnapshot[] = [];
     for (const item of items) {
-      snapshots.push(await this.snapshotOneLine(tx, item));
+      snapshots.push(await this.snapshotOneLine(tx, item, branchId));
     }
     return snapshots;
   }
 
-  private async snapshotOneLine(tx: DrizzleTx, item: OrderLineInput): Promise<OrderLineSnapshot> {
+  private async snapshotOneLine(
+    tx: DrizzleTx,
+    item: OrderLineInput,
+    branchId: string,
+  ): Promise<OrderLineSnapshot> {
     const product = await this.repo.findProductById(tx, item.productId);
     if (!product || !product.isActive) {
       throw new BusinessRuleError(
@@ -47,7 +52,11 @@ export class CatalogOrderingService {
       );
     }
     const category = await this.repo.findCategoryById(tx, product.categoryId);
-    if (!category || !category.isActive) {
+    if (
+      !category ||
+      !category.isActive ||
+      !(await this.repo.isProductShownInBranch(tx, product.id, branchId))
+    ) {
       throw new BusinessRuleError(
         'ORDER_PRODUCT_UNAVAILABLE',
         'Product is not available',

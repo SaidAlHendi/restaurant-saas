@@ -106,12 +106,14 @@ export class PublicMenuService {
       const productCurrency = orgRow.defaultCurrency;
 
       let branchField: PublicMenuPayload['branch'];
+      let menuBranchId: string | undefined;
 
       if (branchSlug !== undefined) {
         const branch = await this.repo.findActiveBranchBySlug(tx, orgId, branchSlug);
         if (!branch) {
           throw new NotFoundError();
         }
+        menuBranchId = branch.id;
         branchField = {
           name: branch.name,
           slug: branch.slug,
@@ -119,12 +121,13 @@ export class PublicMenuService {
         };
       }
 
-      const categoryRows = await this.repo.listActiveCategories(tx, orgId);
+      const categoryRows = await this.repo.listActiveCategories(tx, orgId, menuBranchId);
       const categoryIds = categoryRows.map((c) => c.id);
       const productRows = await this.repo.listActiveProductsForCategoryIds(
         tx,
         orgId,
         categoryIds,
+        menuBranchId,
       );
       const productIds = productRows.map((p) => p.id);
       const groupLinkRows = await this.repo.listProductModifierGroupsForProductIds(

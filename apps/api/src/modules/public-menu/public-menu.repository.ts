@@ -11,6 +11,7 @@ import {
 import { branches, organizations } from '../../core/db/schema/tenancy';
 import { DRIZZLE, type DrizzleDb } from '../../core/db/db.module';
 import type { DrizzleTx } from '../../core/db/with-org';
+import { categoryInBranch, productInBranch } from '../catalog/catalog.repository';
 
 export type PublicResolveOrgRow = {
   org_id: string;
@@ -91,6 +92,7 @@ export class PublicMenuRepository {
   async findActiveBranchBySlug(tx: DrizzleTx, orgId: string, branchSlug: string) {
     const rows = await tx
       .select({
+        id: branches.id,
         name: branches.name,
         slug: branches.slug,
         address: branches.address,
@@ -121,7 +123,8 @@ export class PublicMenuRepository {
     return rows[0];
   }
 
-  async listActiveCategories(tx: DrizzleTx, orgId: string) {
+  /** `branchId` set: only categories shown in that branch. Unset: the whole organization menu. */
+  async listActiveCategories(tx: DrizzleTx, orgId: string, branchId?: string) {
     return tx
       .select()
       .from(categories)
@@ -130,12 +133,18 @@ export class PublicMenuRepository {
           eq(categories.orgId, orgId),
           eq(categories.isActive, true),
           isNull(categories.deletedAt),
+          branchId ? categoryInBranch(branchId) : undefined,
         ),
       )
       .orderBy(asc(categories.sortOrder), asc(categories.id));
   }
 
-  async listActiveProductsForCategoryIds(tx: DrizzleTx, orgId: string, categoryIds: string[]) {
+  async listActiveProductsForCategoryIds(
+    tx: DrizzleTx,
+    orgId: string,
+    categoryIds: string[],
+    branchId?: string,
+  ) {
     if (categoryIds.length === 0) {
       return [];
     }
@@ -148,6 +157,7 @@ export class PublicMenuRepository {
           inArray(products.categoryId, categoryIds),
           eq(products.isActive, true),
           isNull(products.deletedAt),
+          branchId ? productInBranch(branchId) : undefined,
         ),
       )
       .orderBy(asc(products.categoryId), asc(products.sortOrder), asc(products.id));

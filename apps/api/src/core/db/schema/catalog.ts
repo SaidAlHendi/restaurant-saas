@@ -13,7 +13,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 
-import { organizations } from './tenancy';
+import { branches, organizations } from './tenancy';
 
 export const categories = pgTable(
   'categories',
@@ -25,6 +25,7 @@ export const categories = pgTable(
     name: jsonb('name').notNull(),
     sortOrder: integer('sort_order').notNull().default(0),
     isActive: boolean('is_active').notNull().default(true),
+    availableInAllBranches: boolean('available_in_all_branches').notNull().default(true),
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
@@ -45,6 +46,7 @@ export const products = pgTable(
     priceMinor: bigint('price_minor', { mode: 'number' }).notNull(),
     imageKey: text('image_key'),
     isActive: boolean('is_active').notNull().default(true),
+    availableInAllBranches: boolean('available_in_all_branches').notNull().default(true),
     sortOrder: integer('sort_order').notNull().default(0),
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -125,6 +127,54 @@ export const productModifierGroups = pgTable(
       name: 'product_modifier_groups_group_id_org_id_modifier_groups_id_org_id_fk',
       columns: [t.groupId, t.orgId],
       foreignColumns: [modifierGroups.id, modifierGroups.orgId],
+    }).onDelete('cascade'),
+  ],
+);
+
+export const productBranches = pgTable(
+  'product_branches',
+  {
+    productId: uuid('product_id').notNull(),
+    branchId: uuid('branch_id').notNull(),
+    orgId: uuid('org_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+  },
+  (t) => [
+    primaryKey({ columns: [t.productId, t.branchId] }),
+    foreignKey({
+      name: 'product_branches_product_id_org_id_products_id_org_id_fk',
+      columns: [t.productId, t.orgId],
+      foreignColumns: [products.id, products.orgId],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'product_branches_branch_id_org_id_branches_id_org_id_fk',
+      columns: [t.branchId, t.orgId],
+      foreignColumns: [branches.id, branches.orgId],
+    }).onDelete('cascade'),
+  ],
+);
+
+export const categoryBranches = pgTable(
+  'category_branches',
+  {
+    categoryId: uuid('category_id').notNull(),
+    branchId: uuid('branch_id').notNull(),
+    orgId: uuid('org_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+  },
+  (t) => [
+    primaryKey({ columns: [t.categoryId, t.branchId] }),
+    foreignKey({
+      name: 'category_branches_category_id_org_id_categories_id_org_id_fk',
+      columns: [t.categoryId, t.orgId],
+      foreignColumns: [categories.id, categories.orgId],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'category_branches_branch_id_org_id_branches_id_org_id_fk',
+      columns: [t.branchId, t.orgId],
+      foreignColumns: [branches.id, branches.orgId],
     }).onDelete('cascade'),
   ],
 );

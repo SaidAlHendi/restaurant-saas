@@ -9,6 +9,7 @@ export const selectSessionUser = (state: RootState) => state.session.user;
 export const selectSessionOrg = (state: RootState) => state.session.org;
 export const selectSessionRole = (state: RootState) => state.session.role;
 export const selectSessionBranches = (state: RootState) => state.session.branches;
+export const selectAllBranchesScope = (state: RootState) => state.session.allBranches;
 export const selectSessionOrgs = (state: RootState) => state.session.orgs;
 export const selectCurrentBranchId = (state: RootState) => state.session.currentBranchId;
 export const selectPermissions = (state: RootState) => state.session.permissions;

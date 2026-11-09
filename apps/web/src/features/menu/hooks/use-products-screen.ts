@@ -19,6 +19,7 @@ import {
   usePatchProductMutation,
   useSetProductModifierGroupsMutation,
 } from '../menu.api.js';
+import { ALL_BRANCHES_FILTER, showBranchAvailability } from '../branch-availability.utils.js';
 import { categoryLabel, pickLocalizedName, productLabel } from '../menu.utils.js';
 import type { ProductActiveFilter } from '../product-list-filters.js';
 import { isMutationError } from '../menu-mutation-result.js';
@@ -66,6 +67,7 @@ export function useProductsScreen(): ProductsPageViewProps {
 
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [branchFilter, setBranchFilter] = useState(ALL_BRANCHES_FILTER);
   const [activeFilter, setActiveFilter] = useState<ProductActiveFilter>('all');
   const [cursor, setCursor] = useState<string | undefined>(undefined);
   const [accumulated, setAccumulated] = useState<Product[]>([]);
@@ -86,6 +88,9 @@ export function useProductsScreen(): ProductsPageViewProps {
     if (categoryFilter !== 'all') {
       args.categoryId = categoryFilter;
     }
+    if (branchFilter !== ALL_BRANCHES_FILTER) {
+      args.branchId = branchFilter;
+    }
     if (debouncedSearch.length > 0) {
       args.search = debouncedSearch;
     }
@@ -95,7 +100,7 @@ export function useProductsScreen(): ProductsPageViewProps {
       args.isActive = false;
     }
     return args;
-  }, [activeFilter, categoryFilter, cursor, debouncedSearch]);
+  }, [activeFilter, branchFilter, categoryFilter, cursor, debouncedSearch]);
 
   const { data, isLoading, isFetching, error } = useListProductsQuery(listArgs);
   const { data: modifierGroupsData } = useListModifierGroupsQuery(undefined);
@@ -103,7 +108,7 @@ export function useProductsScreen(): ProductsPageViewProps {
 
   useEffect(() => {
     resetList();
-  }, [categoryFilter, debouncedSearch, activeFilter, resetList]);
+  }, [categoryFilter, branchFilter, debouncedSearch, activeFilter, resetList]);
 
   useEffect(() => {
     if (!data) {
@@ -244,6 +249,22 @@ export function useProductsScreen(): ProductsPageViewProps {
     });
   };
 
+  const { branchScope } = productForm;
+  const branchNameById = useMemo(
+    () => new Map(branchScope.branches.map((branch) => [branch.id, branch.name])),
+    [branchScope.branches],
+  );
+  const showBranches = showBranchAvailability(branchScope);
+  const availabilityLabelFor = (product: Product) => {
+    if (product.availableInAllBranches) {
+      return t('menu.availability.allBranches');
+    }
+    if (product.branchIds.length === 1) {
+      return branchNameById.get(product.branchIds[0] ?? '') ?? t('menu.availability.count', { count: 1 });
+    }
+    return t('menu.availability.count', { count: product.branchIds.length });
+  };
+
   const priceLabelFor = (product: Product) =>
     formatMoney(
       product.priceMinor,
@@ -262,6 +283,16 @@ export function useProductsScreen(): ProductsPageViewProps {
     searchPlaceholder: t('menu.products.searchPlaceholder'),
     categoryFilter,
     onCategoryFilterChange: setCategoryFilter,
+    branchFilter: showBranches
+      ? {
+          value: branchFilter,
+          onChange: setBranchFilter,
+          allLabel: t('menu.availability.filterAll'),
+          branches: branchScope.branches,
+        }
+      : null,
+    availabilityColumn: showBranches ? t('menu.availability.column') : null,
+    availabilityLabelFor,
     allCategoriesLabel: t('menu.products.allCategories'),
     activeFilter,
     onActiveFilterChange: setActiveFilter,
@@ -342,6 +373,16 @@ export function useProductsScreen(): ProductsPageViewProps {
       modifierGroups,
       modifierGroupsLabel: t('menu.products.fields.modifierGroups'),
       modifierGroupLabel: (group) => pickLocalizedName(group.name, org.uiLocale, org.defaultLocale),
+      branchAvailability: {
+        show: showBranches,
+        label: t('menu.availability.label'),
+        hint: branchScope.allBranchesScope
+          ? t('menu.availability.hint')
+          : t('menu.availability.hintScoped'),
+        allBranchesLabel: t('menu.availability.allBranches'),
+        branches: branchScope.branches,
+        canChooseAll: branchScope.allBranchesScope,
+      },
       imageUpload: {
         previewUrl: imageUpload.previewUrl,
         label: t('menu.products.imageLabel'),

@@ -4,6 +4,7 @@ import { DRIZZLE } from '../../core/db/db.module';
 import { OBJECT_STORAGE } from '../../core/storage/storage.tokens';
 import { EntitlementsService } from '../billing/entitlements.service';
 import { OrgSettingsService } from '../tenancy/org-settings.service';
+import { TenancyRepository } from '../tenancy/tenancy.repository';
 
 import { CatalogRepository } from './catalog.repository';
 import { CatalogMenuCacheNotifier } from './catalog-menu-cache.notifier';
@@ -29,6 +30,7 @@ describe('ProductsService', () => {
           provide: CatalogRepository,
           useValue: {
             findCategoryById: jest.fn().mockResolvedValue({ id: 'cat' }),
+            replaceProductBranches: jest.fn().mockResolvedValue(undefined),
             countNonDeletedProducts: jest.fn().mockResolvedValue(3),
             nextProductSortOrderInCategory: jest.fn().mockResolvedValue(0),
             insertProduct: jest.fn().mockResolvedValue({
@@ -43,6 +45,10 @@ describe('ProductsService', () => {
               sortOrder: 0,
             }),
           },
+        },
+        {
+          provide: TenancyRepository,
+          useValue: { listBranchIdsForOrg: jest.fn().mockResolvedValue([]) },
         },
         {
           provide: OrgSettingsService,
