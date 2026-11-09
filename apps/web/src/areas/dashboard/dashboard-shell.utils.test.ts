@@ -7,7 +7,8 @@ describe('dashboardTitleKey', () => {
     expect(dashboardTitleKey('/dashboard')).toBe('dashboard.nav.home');
     expect(dashboardTitleKey('/dashboard/orders/abc')).toBe('dashboard.nav.orders');
     expect(dashboardTitleKey('/dashboard/menu/products')).toBe('dashboard.nav.menu');
-    expect(dashboardTitleKey('/dashboard/settings/staff')).toBe('dashboard.nav.settings');
+    expect(dashboardTitleKey('/dashboard/staff')).toBe('dashboard.nav.staff');
+    expect(dashboardTitleKey('/dashboard/settings/restaurant')).toBe('dashboard.nav.settings');
     expect(dashboardTitleKey('/dashboard/billing')).toBe('dashboard.nav.billing');
   });
 });

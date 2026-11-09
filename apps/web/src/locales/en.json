@@ -90,7 +90,8 @@
       "branchSettings": "Branch settings",
       "settings": "Settings",
       "billing": "Billing",
-      "branches": "Branches"
+      "branches": "Branches",
+      "staff": "Staff"
     },
     "today": {
       "title": "Today",

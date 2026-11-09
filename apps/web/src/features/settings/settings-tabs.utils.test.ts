@@ -7,27 +7,16 @@ import {
 } from './settings-tabs.utils.js';
 
 describe('settingsTabsForPermissions', () => {
-  it('returns tabs in fixed order for each permission set', () => {
+  it('only offers the restaurant tab, to those who can manage the org', () => {
     expect(settingsTabsForPermissions(['org.manage'])).toEqual(['restaurant']);
-    expect(settingsTabsForPermissions(['branches.manage'])).toEqual([]);
-    expect(settingsTabsForPermissions(['staff.read'])).toEqual(['staff']);
-    expect(settingsTabsForPermissions(['org.manage', 'staff.read'])).toEqual([
-      'restaurant',
-      'staff',
-    ]);
-    expect(settingsTabsForPermissions(['org.manage', 'branches.manage', 'staff.read'])).toEqual([
-      'restaurant',
-      'staff',
-    ]);
+    expect(settingsTabsForPermissions(['branches.manage', 'staff.read'])).toEqual([]);
     expect(settingsTabsForPermissions(['menu.read'])).toEqual([]);
   });
 });
 
 describe('defaultSettingsPath', () => {
-  it('redirects to first accessible tab', () => {
-    expect(defaultSettingsPath(['staff.read', 'branches.manage'])).toBe(settingsTabPath('staff'));
-    expect(defaultSettingsPath(['staff.read'])).toBe(settingsTabPath('staff'));
+  it('redirects to the restaurant tab or back to the dashboard', () => {
     expect(defaultSettingsPath(['org.manage', 'staff.read'])).toBe(settingsTabPath('restaurant'));
-    expect(defaultSettingsPath(['menu.read'])).toBe('/dashboard');
+    expect(defaultSettingsPath(['staff.read'])).toBe('/dashboard');
   });
 });

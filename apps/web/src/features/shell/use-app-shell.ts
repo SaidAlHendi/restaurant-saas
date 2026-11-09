@@ -5,6 +5,7 @@ import {
   LayoutDashboardIcon,
   SettingsIcon,
   StoreIcon,
+  UsersIcon,
   ShoppingBagIcon,
   UtensilsIcon,
   type LucideIcon,
@@ -43,7 +44,7 @@ export function useAppShell() {
   const canManageBranches = useAppSelector(selectCan('branches.manage'));
   const canManageOrg = useAppSelector(selectCan('org.manage'));
   const canReadStaff = useAppSelector(selectCan('staff.read'));
-  const canOpenSettings = canManageOrg || canReadStaff;
+  const canOpenSettings = canManageOrg;
   const canUsePos = useAppSelector(selectCan('orders.create'));
   const canUseKds = useAppSelector(selectCan('orders.update_status'));
   const canReports = useAppSelector(selectCan('reports.read'));
@@ -122,6 +123,15 @@ export function useAppShell() {
         end: false,
       });
     }
+    if (canReadStaff) {
+      items.push({
+        id: 'staff',
+        to: '/dashboard/staff',
+        icon: UsersIcon,
+        label: t('dashboard.nav.staff'),
+        end: false,
+      });
+    }
     if (canManageBilling) {
       items.push({
         id: 'billing',
@@ -143,6 +153,7 @@ export function useAppShell() {
     return items;
   }, [
     canManageBilling,
+    canReadStaff,
     canManageBranches,
     canOpenSettings,
     canReadMenu,

@@ -24,7 +24,10 @@ import {
   Switch,
 } from '@app/ui';
 
-import type { StaffRoleOption, StaffSettingsPageViewModel } from '../hooks/use-staff-settings-page.js';
+import type {
+  StaffRoleOption,
+  StaffSettingsPageViewModel,
+} from '../hooks/use-staff-settings-page.js';
 
 type BranchScopeProps = {
   allBranches: boolean;
@@ -37,17 +40,20 @@ type BranchScopeProps = {
 };
 
 function StaffBranchScopeFields(props: BranchScopeProps) {
-  const { allBranches, branchIds, branchOptions, scopeError, labels, onAllBranchesChange, onBranchToggle } =
-    props;
+  const {
+    allBranches,
+    branchIds,
+    branchOptions,
+    scopeError,
+    labels,
+    onAllBranchesChange,
+    onBranchToggle,
+  } = props;
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-4">
         <Label htmlFor="all-branches">{labels.allBranches}</Label>
-        <Switch
-          id="all-branches"
-          checked={allBranches}
-          onCheckedChange={onAllBranchesChange}
-        />
+        <Switch id="all-branches" checked={allBranches} onCheckedChange={onAllBranchesChange} />
       </div>
       {!allBranches ? (
         <div className="space-y-2">
@@ -197,11 +203,11 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
+    <div className="flex w-full flex-col gap-6 p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h2 className="text-lg font-semibold">{labels.title}</h2>
-          <p className="text-muted-foreground mt-1 text-sm">{labels.description}</p>
+          <h1 className="text-2xl font-semibold tracking-tight">{labels.title}</h1>
+          <p className="text-muted-foreground mt-1">{labels.description}</p>
         </div>
         {canAddStaff ? (
           <DropdownMenu>
@@ -352,7 +358,9 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
                   onInviteEmailChange(e.target.value);
                 }}
               />
-              {inviteEmailError ? <p className="text-destructive text-sm">{inviteEmailError}</p> : null}
+              {inviteEmailError ? (
+                <p className="text-destructive text-sm">{inviteEmailError}</p>
+              ) : null}
             </div>
             <StaffRoleSelect
               label={labels.inviteRole}
@@ -402,7 +410,9 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
                   onPinOnlyNameChange(e.target.value);
                 }}
               />
-              {pinOnlyNameError ? <p className="text-destructive text-sm">{pinOnlyNameError}</p> : null}
+              {pinOnlyNameError ? (
+                <p className="text-destructive text-sm">{pinOnlyNameError}</p>
+              ) : null}
             </div>
             <StaffRoleSelect
               label={labels.inviteRole}
@@ -442,7 +452,9 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
                   onPinOnlyPinConfirmChange(e.target.value);
                 }}
               />
-              {pinOnlyPinError ? <p className="text-destructive text-sm">{pinOnlyPinError}</p> : null}
+              {pinOnlyPinError ? (
+                <p className="text-destructive text-sm">{pinOnlyPinError}</p>
+              ) : null}
             </div>
           </div>
           <DialogFooter>
@@ -600,7 +612,9 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
           </DialogHeader>
           <p className="text-muted-foreground text-sm">{labels.inviteLinkValidFor}</p>
           <Input readOnly value={inviteLinkUrl} className="font-mono text-xs" />
-          {inviteLinkCopyLabel ? <p className="text-muted-foreground text-sm">{inviteLinkCopyLabel}</p> : null}
+          {inviteLinkCopyLabel ? (
+            <p className="text-muted-foreground text-sm">{inviteLinkCopyLabel}</p>
+          ) : null}
           <DialogFooter>
             <Button
               type="button"

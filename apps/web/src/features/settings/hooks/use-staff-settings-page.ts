@@ -7,7 +7,11 @@ import { toast } from '@app/ui';
 
 import { showApiError } from '../../../lib/show-api-error.js';
 import { useAppSelector } from '../../../app/hooks.js';
-import { selectCan, selectSessionBranches, selectSessionRole } from '../../session/session.selectors.js';
+import {
+  selectCan,
+  selectSessionBranches,
+  selectSessionRole,
+} from '../../session/session.selectors.js';
 import { validatePinForm } from '../staff-pin-form.utils.js';
 import {
   assignableRoleKeys,
@@ -34,7 +38,6 @@ import {
   useRegenerateStaffInviteMutation,
   useRevokeStaffInviteMutation,
 } from '../settings.api.js';
-import { useSettingsPageAccess } from './use-settings-page-access.js';
 
 export type StaffRoleOption = {
   value: SystemRoleKey;
@@ -79,7 +82,8 @@ function roleOptionsForKeys(
 
 export function useStaffSettingsPage() {
   const { t } = useTranslation();
-  const { allowed, redirectTo } = useSettingsPageAccess('staff.read');
+  const allowed = useAppSelector(selectCan('staff.read'));
+  const redirectTo = allowed ? null : '/dashboard';
   const role = useAppSelector(selectSessionRole);
   const sessionBranches = useAppSelector(selectSessionBranches);
   const hasStaffManage = useAppSelector(selectCan('staff.manage'));
@@ -151,10 +155,7 @@ export function useStaffSettingsPage() {
     [sessionBranches],
   );
 
-  const roleLabel = useCallback(
-    (key: SystemRoleKey) => t(`settings.staff.roles.${key}`),
-    [t],
-  );
+  const roleLabel = useCallback((key: SystemRoleKey) => t(`settings.staff.roles.${key}`), [t]);
   const roleDescription = useCallback(
     (key: SystemRoleKey) => t(`settings.staff.roleDescriptions.${key}`),
     [t],
@@ -206,16 +207,19 @@ export function useStaffSettingsPage() {
     [t],
   );
 
-  const openInviteLinkDialog = useCallback((url: string | null) => {
-    if (url === null) {
-      // Existing account: the link was emailed to the invitee and is not shown here.
-      toast.success(t('settings.staff.inviteEmailed'));
-      return;
-    }
-    setInviteLinkUrl(url);
-    setInviteLinkCopyLabel(null);
-    setInviteLinkOpen(true);
-  }, [t]);
+  const openInviteLinkDialog = useCallback(
+    (url: string | null) => {
+      if (url === null) {
+        // Existing account: the link was emailed to the invitee and is not shown here.
+        toast.success(t('settings.staff.inviteEmailed'));
+        return;
+      }
+      setInviteLinkUrl(url);
+      setInviteLinkCopyLabel(null);
+      setInviteLinkOpen(true);
+    },
+    [t],
+  );
 
   const patchStatus = useCallback(
     async (membershipId: string, status: 'active' | 'disabled') => {
@@ -232,9 +236,7 @@ export function useStaffSettingsPage() {
 
   const openEditForMember = useCallback(
     (member: StaffListItem) => {
-      const activeBranchIds = new Set(
-        sessionBranches.filter((b) => b.isActive).map((b) => b.id),
-      );
+      const activeBranchIds = new Set(sessionBranches.filter((b) => b.isActive).map((b) => b.id));
       setEditMemberId(member.id);
       setEditMemberIsPinOnly(member.email === null);
       setEditRole(member.roleKey);
@@ -262,7 +264,9 @@ export function useStaffSettingsPage() {
       const meta = statusMeta(member.status);
       const emailLabel =
         member.email ??
-        (member.status === 'invited' ? t('settings.staff.pendingEmail') : t('settings.staff.pinOnly'));
+        (member.status === 'invited'
+          ? t('settings.staff.pendingEmail')
+          : t('settings.staff.pinOnly'));
       return {
         id: member.id,
         name: member.name,
@@ -344,7 +348,8 @@ export function useStaffSettingsPage() {
   const canAddStaff =
     hasStaffManage &&
     actorRoleKey !== null &&
-    (invitableRoleKeys(actorRoleKey).length > 0 || pinOnlyInvitableRoleKeys(actorRoleKey).length > 0);
+    (invitableRoleKeys(actorRoleKey).length > 0 ||
+      pinOnlyInvitableRoleKeys(actorRoleKey).length > 0);
 
   const onSubmitInvite = useCallback(async () => {
     const emailParsed = z.email().safeParse(inviteEmail.trim());
@@ -543,7 +548,9 @@ export function useStaffSettingsPage() {
       setInviteScopeError(null);
     },
     onInviteBranchToggle: (branchId: string, checked: boolean) => {
-      setInviteScope((prev) => toggleBranchInScope({ ...prev, allBranches: false }, branchId, checked));
+      setInviteScope((prev) =>
+        toggleBranchInScope({ ...prev, allBranches: false }, branchId, checked),
+      );
       setInviteScopeError(null);
     },
     inviteScopeError,
@@ -573,7 +580,9 @@ export function useStaffSettingsPage() {
       setPinOnlyScopeError(null);
     },
     onPinOnlyBranchToggle: (branchId: string, checked: boolean) => {
-      setPinOnlyScope((prev) => toggleBranchInScope({ ...prev, allBranches: false }, branchId, checked));
+      setPinOnlyScope((prev) =>
+        toggleBranchInScope({ ...prev, allBranches: false }, branchId, checked),
+      );
       setPinOnlyScopeError(null);
     },
     pinOnlyScopeError,
@@ -604,7 +613,9 @@ export function useStaffSettingsPage() {
       setEditScopeError(null);
     },
     onEditBranchToggle: (branchId: string, checked: boolean) => {
-      setEditScope((prev) => toggleBranchInScope({ ...prev, allBranches: false }, branchId, checked));
+      setEditScope((prev) =>
+        toggleBranchInScope({ ...prev, allBranches: false }, branchId, checked),
+      );
       setEditScopeError(null);
     },
     editScopeError,

@@ -48,6 +48,7 @@ export default function DashboardArea() {
           <Route path="orders/*" element={<UpgradeRequiredPage feature="reports.basic" />} />
         ) : null}
         <Route path="menu/*" element={<MenuRoutes />} />
+        <Route path="staff" element={<StaffSettingsPage />} />
         <Route path="branches" element={<BranchesPage />} />
         <Route path="branches/:branchId" element={<BranchSettingsPage />} />
         <Route path="billing" element={<BillingPage />} />
@@ -55,7 +56,7 @@ export default function DashboardArea() {
           <Route index element={<SettingsIndexRedirect />} />
           <Route path="restaurant" element={<RestaurantSettingsPage />} />
           <Route path="branch" element={<Navigate to="/dashboard/branches" replace />} />
-          <Route path="staff" element={<StaffSettingsPage />} />
+          <Route path="staff" element={<Navigate to="/dashboard/staff" replace />} />
         </Route>
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Route>
