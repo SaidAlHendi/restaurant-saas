@@ -5,7 +5,12 @@ import { useAppSelector } from '../../app/hooks.js';
 import { BillingPage } from '../../features/billing/pages/BillingPage.js';
 import { UpgradeRequiredPage } from '../../features/billing/pages/UpgradeRequiredPage.js';
 import { MenuRoutes } from '../../features/menu/MenuRoutes.js';
-import { selectCan, selectHasFeature } from '../../features/session/session.selectors.js';
+import { landingPathForPermissions } from '../../features/session/landing-path.js';
+import {
+  selectCan,
+  selectHasFeature,
+  selectPermissions,
+} from '../../features/session/session.selectors.js';
 import { BranchesPage } from '../../features/branches/pages/BranchesPage.js';
 import { BranchSettingsPage } from '../../features/settings/pages/BranchSettingsPage.js';
 import { RestaurantSettingsPage } from '../../features/settings/pages/RestaurantSettingsPage.js';
@@ -34,6 +39,13 @@ export default function DashboardArea() {
   const canReports = useAppSelector(selectCan('reports.read'));
   const hasReportsFeature = useAppSelector(selectHasFeature('reports.basic'));
   const showReports = canReports && hasReportsFeature;
+  const permissions = useAppSelector(selectPermissions);
+
+  // Cashiers and kitchen staff have nothing to manage here: send them to their own screen.
+  const home = landingPathForPermissions(permissions);
+  if (home !== '/dashboard') {
+    return <Navigate to={home} replace />;
+  }
 
   return (
     <Routes>

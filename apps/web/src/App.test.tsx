@@ -58,7 +58,7 @@ const bootstrappedMe: MeResponse = {
     key: 'owner',
     name: 'Owner',
   },
-  permissions: ['branches.read', 'orders.create'],
+  permissions: ['branches.read', 'orders.create', 'org.manage'],
   branches: [{ id: branchId, name: 'Main', slug: 'main', isActive: true }],
   orgs: [{ id: orgId, name: 'Demo', slug: 'demo' }],
   currentBranchId: branchId,
