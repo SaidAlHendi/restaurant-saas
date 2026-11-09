@@ -8,6 +8,7 @@ import {
   selectCurrentBranchId,
   selectSessionBranches,
   selectSessionOrg,
+  selectSessionRole,
   selectSessionUser,
 } from '../../features/session/session.selectors.js';
 import { localizedName } from '../../lib/localized-name.js';
@@ -20,6 +21,7 @@ export function useDashboardShell() {
   const user = useAppSelector(selectSessionUser);
   const dispatch = useAppDispatch();
   const org = useAppSelector(selectSessionOrg);
+  const role = useAppSelector(selectSessionRole);
   const branches = useAppSelector(selectSessionBranches);
   const currentBranchId = useAppSelector(selectCurrentBranchId);
 
@@ -46,7 +48,11 @@ export function useDashboardShell() {
   return {
     title: org ? localizedName(org.name, i18n.language) : t('app.title'),
     pageTitle: t(dashboardTitleKey(location.pathname)),
-    breadcrumb: `${t('app.title')} / ${t('shell.ownerArea')}`,
+    breadcrumb: `${t('app.title')} / ${
+      role
+        ? t(`settings.staff.roles.${role.key}`, { defaultValue: role.name })
+        : t('shell.ownerArea')
+    }`,
     userInitials: initialsOf(user?.name ?? ''),
     branchSwitcher,
     onBranchChange,
