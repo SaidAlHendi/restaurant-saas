@@ -4,7 +4,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DashboardOrdersView } from './DashboardOrdersView.js';
 import type { DashboardOrdersPageViewModel } from '../hooks/use-dashboard-orders-page.js';
 
-function minimalOrdersVm(overrides: Partial<DashboardOrdersPageViewModel> = {}): DashboardOrdersPageViewModel {
+function minimalOrdersVm(
+  overrides: Partial<DashboardOrdersPageViewModel> = {},
+): DashboardOrdersPageViewModel {
   return {
     searchInputKey: 'branch-1',
     orgSwitcher: {
@@ -72,6 +74,7 @@ function minimalOrdersVm(overrides: Partial<DashboardOrdersPageViewModel> = {}):
     onRetry: () => {},
     labels: {
       title: 'Orders',
+      showingRecords: 'Showing 0 records',
       loading: 'Loading',
       retry: 'Retry',
       empty: 'Empty',

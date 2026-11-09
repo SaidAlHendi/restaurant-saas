@@ -90,7 +90,7 @@ export function PosOrdersPageView(props: PosOrdersPageViewModel) {
                     {rows.map((row) => (
                       <tr
                         key={row.id}
-                        className="even:bg-table-alt hover:bg-table-hover cursor-pointer [&:last-child>td]:border-b-0"
+                        className="hover:bg-table-hover cursor-pointer [&:last-child>td]:border-b-0"
                         onClick={row.onSelect}
                       >
                         <td className="border-b px-4 py-3 font-semibold tabular-nums">

@@ -11,7 +11,7 @@ export function Table({ className, containerClassName, ...props }: TableProps) {
   return (
     <div
       data-slot="table-container"
-      className={cn('relative w-full overflow-auto rounded-lg border bg-card', containerClassName)}
+      className={cn('relative w-full overflow-auto rounded-lg bg-card', containerClassName)}
     >
       <table
         data-slot="table"
@@ -23,17 +23,14 @@ export function Table({ className, containerClassName, ...props }: TableProps) {
 }
 
 export function TableHeader({ className, ...props }: React.ComponentProps<'thead'>) {
-  return <thead data-slot="table-header" className={cn('bg-table-head', className)} {...props} />;
+  return <thead data-slot="table-header" className={cn('bg-transparent', className)} {...props} />;
 }
 
 export function TableBody({ className, ...props }: React.ComponentProps<'tbody'>) {
   return (
     <tbody
       data-slot="table-body"
-      className={cn(
-        '[&_tr:last-child>td]:border-b-0 [&_tr:nth-child(even)]:bg-table-alt',
-        className,
-      )}
+      className={cn('[&_tr:last-child>td]:border-b-0', className)}
       {...props}
     />
   );
@@ -67,7 +64,7 @@ export function TableHead({ className, ...props }: React.ComponentProps<'th'>) {
     <th
       data-slot="table-head"
       className={cn(
-        'h-11 whitespace-nowrap border-b px-4 text-start align-middle text-xs font-semibold uppercase tracking-wide text-muted-foreground [&:has([role=checkbox])]:pe-0',
+        'h-11 whitespace-nowrap border-b px-4 text-start align-middle text-xs font-semibold text-primary [&:has([role=checkbox])]:pe-0',
         className,
       )}
       {...props}
