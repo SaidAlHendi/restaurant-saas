@@ -2,8 +2,7 @@
  * Themes: "cupcake" (light, default) and "forest" (dark), mapped onto shadcn/ui tokens.
  * Theme ids are kept for saved preferences; the palette is the Sahtain design (sahtain-design):
  * warm off-white canvas, white surfaces, deep forest-green brand, and 1px borders. Radii stay rounded (set in the restyle).
- * Apply with <html data-theme="cupcake|forest">. Wrap a screen in data-surface="kds" to give it the
- * dark kitchen surface regardless of the theme.
+ * Apply with <html data-theme="cupcake|forest">.
  * Components must use these tokens through Tailwind classes (bg-background, text-primary, ...),
  * never raw colors.
  */
@@ -48,11 +47,10 @@
   --table-row-hover: #eef3ee;
 }
 
-[data-theme='forest'],
-[data-surface='kds'] {
+[data-theme='forest'] {
   color-scheme: dark;
   /* DaisyUI "dark" palette: slate-blue surfaces, indigo primary, pink secondary, teal accent. Also
-     used by the kitchen display surface. base-200 here is the raised/muted tone (lighter than the
+     base-200 here is the raised/muted tone (lighter than the
      card); the page canvas is daisy's darkest base-300. */
   --canvas: oklch(21.15% 0.012 254.09);
   --base-100: oklch(25.33% 0.016 252.42);
@@ -91,8 +89,7 @@
 
 /* shadcn/ui tokens derived from the palette above (same for both themes) */
 :root,
-[data-theme],
-[data-surface] {
+[data-theme] {
   --background: var(--canvas);
   --foreground: var(--base-content);
   --card: var(--base-100);
