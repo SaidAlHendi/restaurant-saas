@@ -35,12 +35,17 @@ export class PosMenuService {
         throw new NotFoundError();
       }
 
-      const categoryRows = await this.catalogRepo.listActiveCategoriesForPosMenu(tx, ctx.orgId);
+      const categoryRows = await this.catalogRepo.listActiveCategoriesForPosMenu(
+        tx,
+        ctx.orgId,
+        branchId,
+      );
       const categoryIds = categoryRows.map((c) => c.id);
       const productRows = await this.catalogRepo.listActiveProductsForCategoryIds(
         tx,
         ctx.orgId,
         categoryIds,
+        branchId,
       );
       const productIds = productRows.map((p) => p.id);
       const groupLinkRows = await this.catalogRepo.listProductModifierGroupsForProductIds(

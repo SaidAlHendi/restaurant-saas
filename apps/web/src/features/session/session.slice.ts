@@ -22,6 +22,8 @@ export type SessionState = {
   role: SessionRole | null;
   permissions: string[];
   branches: SessionBranch[];
+  /** Member can work in every branch (not limited to a chosen few). */
+  allBranches: boolean;
   orgs: SessionOrgOption[];
   entitlements: SessionEntitlements | null;
   currentBranchId: string | null;
@@ -39,6 +41,7 @@ const initialState: SessionState = {
   role: null,
   permissions: [],
   branches: [],
+  allBranches: false,
   orgs: [],
   entitlements: null,
   currentBranchId: null,
@@ -73,6 +76,7 @@ const sessionSlice = createSlice({
         state.role = me.role;
         state.permissions = me.permissions;
         state.branches = me.branches;
+        state.allBranches = me.allBranches;
         state.orgs = me.orgs;
         state.entitlements = me.entitlements;
         state.currentBranchId = pickCurrentBranchId({

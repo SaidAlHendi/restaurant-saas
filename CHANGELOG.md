@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-11-09 - Per-branch availability for products and categories
+
+### Added
+- Products and categories stay shared across the organization, but each can be shown in all branches (default) or only in chosen branches: `available_in_all_branches` columns plus `product_branches` and `category_branches` (migration 0016). Existing items stay in all branches.
+- `availableInAllBranches` and `branchIds` on product and category create, patch and responses; `GET /v1/products?branchId=` filters the list.
+- Branch availability field in the product and category forms, a branch filter and an availability column on the products page.
+- `GET /v1/me` now returns `allBranches` (the member can work in every branch).
+
+### Changed
+- POS menu, public branch menu and order creation only include products whose category and product are available in the branch (order lines for hidden products fail with `ORDER_PRODUCT_UNAVAILABLE`).
+- Staff limited to some branches can only pick their own branches. They can hide an all-branches item from their branches, which turns it into an explicit list of the other branches. Only staff with access to every branch can choose "All branches".
+
 ## 2026-11-04 - Step 12a: admin API foundations
 
 ### Added

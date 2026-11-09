@@ -49,6 +49,7 @@ const ownerMe: MeResponse = {
   permissions: ['billing.manage'],
   branches: [],
   orgs: [{ id: orgId, name: 'Demo', slug: 'demo' }],
+  allBranches: true,
   currentBranchId: null,
   entitlements: testMeEntitlements,
 };

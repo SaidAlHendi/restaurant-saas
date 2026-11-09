@@ -38,14 +38,35 @@ function productDetail(
     priceMinor,
     currency: 'SAR',
     isActive: true,
+    availableInAllBranches: true,
+    branchIds: [],
     sortOrder: 0,
     imageUrls: null,
     modifierGroups: [],
   };
 }
 
-function createTestStore() {
+const branchA = '01934567-89ab-7cde-b012-3456789abd01';
+const branchB = '01934567-89ab-7cde-b012-3456789abd02';
+
+function createTestStore(scope: { allBranches: boolean; branchIds: string[] } = {
+  allBranches: true,
+  branchIds: [branchA, branchB],
+}) {
+  const initialSession = sessionReducer(undefined, { type: 'init' });
   return configureStore({
+    preloadedState: {
+      session: {
+        ...initialSession,
+        allBranches: scope.allBranches,
+        branches: scope.branchIds.map((id) => ({
+          id,
+          name: id,
+          slug: id,
+          isActive: true,
+        })),
+      },
+    },
     reducer: {
       session: sessionReducer,
       [baseApi.reducerPath]: baseApi.reducer,
@@ -54,8 +75,8 @@ function createTestStore() {
   });
 }
 
-function createWrapper() {
-  const store = createTestStore();
+function createWrapper(scope?: { allBranches: boolean; branchIds: string[] }) {
+  const store = createTestStore(scope);
   return function Wrapper({ children }: { children: ReactNode }) {
     return createElement(Provider, {
       store,
@@ -202,6 +223,103 @@ describe('useProductForm', () => {
     const body = result.current.toCreateBody(submitted);
     expect(body.priceMinor).toBe(1500);
     expect(body.name.en).toBe('Burger');
+  });
+
+  it('defaults to all branches and sends only the flag', async () => {
+    const { result } = renderHook(
+      () =>
+        useProductForm({
+          editingId: undefined,
+          product: undefined,
+          categoryIds: [categoryId],
+          open: true,
+        }),
+      { wrapper: createWrapper() },
+    );
+    expect(result.current.form.getValues('availableInAllBranches')).toBe(true);
+    expect(result.current.form.getValues('branchIds')).toEqual([]);
+
+    act(() => {
+      result.current.form.setValue('name.en', 'Burger');
+      result.current.form.setValue('priceMinor', 1500);
+    });
+    let submitted: ProductFormOutput | undefined;
+    await act(async () => {
+      await result.current.form.handleSubmit((values) => {
+        submitted = values;
+      })();
+    });
+    expect(submitted).toBeDefined();
+    if (!submitted) {
+      throw new Error('expected submit');
+    }
+    expect(result.current.toCreateBody(submitted).availableInAllBranches).toBe(true);
+  });
+
+  it('requires at least one branch when specific branches are chosen', async () => {
+    const { result } = renderHook(
+      () =>
+        useProductForm({
+          editingId: undefined,
+          product: undefined,
+          categoryIds: [categoryId],
+          open: true,
+        }),
+      { wrapper: createWrapper() },
+    );
+    act(() => {
+      result.current.form.setValue('name.en', 'Burger');
+      result.current.form.setValue('priceMinor', 1500);
+      result.current.form.setValue('availableInAllBranches', false);
+      result.current.form.setValue('branchIds', []);
+    });
+    let submitted = false;
+    let branchError: string | undefined;
+    await act(async () => {
+      await result.current.form.handleSubmit(
+        () => {
+          submitted = true;
+        },
+        (errors) => {
+          branchError = errors.branchIds?.message;
+        },
+      )();
+    });
+    expect(submitted).toBe(false);
+    expect(branchError).toBe('Choose at least one branch.');
+  });
+
+  it('starts scoped staff with their own branches and never sends "all branches"', async () => {
+    const { result } = renderHook(
+      () =>
+        useProductForm({
+          editingId: undefined,
+          product: undefined,
+          categoryIds: [categoryId],
+          open: true,
+        }),
+      { wrapper: createWrapper({ allBranches: false, branchIds: [branchA] }) },
+    );
+    expect(result.current.form.getValues('availableInAllBranches')).toBe(false);
+    expect(result.current.form.getValues('branchIds')).toEqual([branchA]);
+
+    act(() => {
+      result.current.form.setValue('name.en', 'Burger');
+      result.current.form.setValue('priceMinor', 1500);
+    });
+    let submitted: ProductFormOutput | undefined;
+    await act(async () => {
+      await result.current.form.handleSubmit((values) => {
+        submitted = values;
+      })();
+    });
+    if (!submitted) {
+      throw new Error('expected submit');
+    }
+    expect(result.current.toCreateBody(submitted)).toMatchObject({
+      availableInAllBranches: false,
+      branchIds: [branchA],
+    });
   });
 
   it('resets to empty after edit close, then loads another product on edit', () => {

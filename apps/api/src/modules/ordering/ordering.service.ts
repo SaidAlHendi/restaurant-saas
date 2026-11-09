@@ -141,7 +141,11 @@ export class OrderingService {
         }
       }
 
-      const lineSnapshots = await this.catalogOrdering.validateAndSnapshotOrderLines(tx, body.items);
+      const lineSnapshots = await this.catalogOrdering.validateAndSnapshotOrderLines(
+        tx,
+        body.items,
+        branchId,
+      );
 
       const now = this.clock.now();
       const businessDate = computeBusinessDate({
@@ -500,7 +504,11 @@ export class OrderingService {
         throw new NotFoundError();
       }
 
-      const lineSnapshots = await this.catalogOrdering.validateAndSnapshotOrderLines(tx, body.items);
+      const lineSnapshots = await this.catalogOrdering.validateAndSnapshotOrderLines(
+        tx,
+        body.items,
+        branchId,
+      );
 
       const addedItemIds: string[] = [];
       for (const line of lineSnapshots) {

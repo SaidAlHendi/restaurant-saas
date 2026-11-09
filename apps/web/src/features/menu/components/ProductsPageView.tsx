@@ -36,6 +36,16 @@ export interface ProductsPageViewProps {
   searchPlaceholder: string;
   categoryFilter: string;
   onCategoryFilterChange: (value: string) => void;
+  /** Branch filter; null when the member has a single branch. */
+  branchFilter: {
+    value: string;
+    onChange: (value: string) => void;
+    allLabel: string;
+    branches: { id: string; name: string }[];
+  } | null;
+  /** Column showing where each product is available; null when there is one branch. */
+  availabilityColumn: string | null;
+  availabilityLabelFor: (product: Product) => string;
   allCategoriesLabel: string;
   activeFilter: ProductActiveFilter;
   onActiveFilterChange: (value: ProductActiveFilter) => void;
@@ -91,6 +101,9 @@ export function ProductsPageView({
   searchPlaceholder,
   categoryFilter,
   onCategoryFilterChange,
+  branchFilter,
+  availabilityColumn,
+  availabilityLabelFor,
   allCategoriesLabel,
   activeFilter,
   onActiveFilterChange,
@@ -169,6 +182,21 @@ export function ProductsPageView({
             ))}
           </SelectContent>
         </Select>
+        {branchFilter ? (
+          <Select value={branchFilter.value} onValueChange={branchFilter.onChange}>
+            <SelectTrigger className="sm:max-w-xs">
+              <SelectValue placeholder={branchFilter.allLabel} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{branchFilter.allLabel}</SelectItem>
+              {branchFilter.branches.map((branch) => (
+                <SelectItem key={branch.id} value={branch.id}>
+                  {branch.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : null}
         <Select
           value={activeFilter}
           onValueChange={(value) => {
@@ -202,6 +230,15 @@ export function ProductsPageView({
             header: priceColumn,
             cell: (row) => priceLabelFor(row),
           },
+          ...(availabilityColumn
+            ? [
+                {
+                  id: 'availability',
+                  header: availabilityColumn,
+                  cell: (row: Product) => availabilityLabelFor(row),
+                },
+              ]
+            : []),
           {
             id: 'status',
             header: statusColumn,

@@ -733,6 +733,19 @@
     "fields": {
       "name": "Name",
       "description": "Description"
+    },
+    "availability": {
+      "label": "Availability",
+      "allBranches": "All branches",
+      "hint": "Choose where this product is shown. \"All branches\" also covers branches you add later.",
+      "hintCategory": "Choose where this category is shown. Its products follow it. \"All branches\" also covers branches you add later.",
+      "hintScoped": "Choose which of your branches show this product. Other branches are not changed.",
+      "hintScopedCategory": "Choose which of your branches show this category. Other branches are not changed.",
+      "pickOne": "Choose at least one branch.",
+      "column": "Branches",
+      "filterAll": "All branches",
+      "count_one": "{{count}} branch",
+      "count_other": "{{count}} branches"
     }
   },
   "kds": {

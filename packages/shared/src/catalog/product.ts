@@ -2,6 +2,12 @@ import { z } from 'zod';
 
 import { localizedTextInputSchema, moneyMinorSchema } from '../i18n/localized-text.js';
 import { cursorListQuerySchema, cursorListResponseSchema } from './pagination.js';
+import {
+  BRANCH_AVAILABILITY_INPUT_MESSAGE,
+  branchAvailabilityFields,
+  branchAvailabilityInputFields,
+  branchAvailabilityInputValid,
+} from './branch-availability.js';
 import { modifierGroupSummarySchema } from './modifier-group.js';
 
 export const productImageUrlsSchema = z.object({
@@ -19,6 +25,7 @@ export const productSchema = z.object({
   priceMinor: moneyMinorSchema,
   currency: z.string().length(3),
   isActive: z.boolean(),
+  ...branchAvailabilityFields,
   sortOrder: z.number().int(),
   imageUrls: productImageUrlsSchema.nullable(),
 });
@@ -38,29 +45,43 @@ export const productListQuerySchema = cursorListQuerySchema.extend({
     .optional()
     .transform((v) => (v === undefined ? undefined : v === 'true')),
   search: z.string().trim().min(1).max(200).optional(),
+  /** Only products shown in this branch (all-branches products included). */
+  branchId: z.uuid().optional(),
 });
 
 export type ProductListQuery = z.infer<typeof productListQuerySchema>;
 
 export const productListResponseSchema = cursorListResponseSchema(productSchema);
 
-export const createProductBodySchema = z.object({
-  categoryId: z.uuid(),
-  name: localizedTextInputSchema,
-  description: localizedTextInputSchema.optional(),
-  priceMinor: moneyMinorSchema,
-  isActive: z.boolean().optional(),
-});
+export const createProductBodySchema = z
+  .object({
+    categoryId: z.uuid(),
+    name: localizedTextInputSchema,
+    description: localizedTextInputSchema.optional(),
+    priceMinor: moneyMinorSchema,
+    isActive: z.boolean().optional(),
+    ...branchAvailabilityInputFields,
+  })
+  .refine(branchAvailabilityInputValid, {
+    message: BRANCH_AVAILABILITY_INPUT_MESSAGE,
+    path: ['branchIds'],
+  });
 
 export type CreateProductBody = z.infer<typeof createProductBodySchema>;
 
-export const patchProductBodySchema = z.object({
-  categoryId: z.uuid().optional(),
-  name: localizedTextInputSchema.optional(),
-  description: localizedTextInputSchema.optional(),
-  priceMinor: moneyMinorSchema.optional(),
-  isActive: z.boolean().optional(),
-});
+export const patchProductBodySchema = z
+  .object({
+    categoryId: z.uuid().optional(),
+    name: localizedTextInputSchema.optional(),
+    description: localizedTextInputSchema.optional(),
+    priceMinor: moneyMinorSchema.optional(),
+    isActive: z.boolean().optional(),
+    ...branchAvailabilityInputFields,
+  })
+  .refine(branchAvailabilityInputValid, {
+    message: BRANCH_AVAILABILITY_INPUT_MESSAGE,
+    path: ['branchIds'],
+  });
 
 export type PatchProductBody = z.infer<typeof patchProductBodySchema>;
 

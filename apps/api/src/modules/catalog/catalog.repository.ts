@@ -3,14 +3,48 @@ import { Injectable } from '@nestjs/common';
 
 import {
   categories,
+  categoryBranches,
   modifierGroups,
   modifiers,
+  productBranches,
   productModifierGroups,
   products,
 } from '../../core/db/schema/catalog';
 import type { DrizzleTx } from '../../core/db/with-org';
 import { escapeLikePattern } from '../../lib/sql-like';
 import type { ProductListCursor } from '../../lib/cursor';
+
+/** Product is shown in `branchId`: marked for all branches, or listed for that branch. */
+export function productInBranch(branchId: string) {
+  return sql`(${products.availableInAllBranches} or exists (
+    select 1 from ${productBranches}
+    where ${productBranches.productId} = ${products.id} and ${productBranches.branchId} = ${branchId}
+  ))`;
+}
+
+/** Category is shown in `branchId`: marked for all branches, or listed for that branch. */
+export function categoryInBranch(branchId: string) {
+  return sql`(${categories.availableInAllBranches} or exists (
+    select 1 from ${categoryBranches}
+    where ${categoryBranches.categoryId} = ${categories.id} and ${categoryBranches.branchId} = ${branchId}
+  ))`;
+}
+
+function groupBranchIds<K extends string>(
+  rows: Array<Record<K, string> & { branchId: string }>,
+  key: K,
+): Map<string, string[]> {
+  const out = new Map<string, string[]>();
+  for (const row of rows) {
+    const list = out.get(row[key]);
+    if (list) {
+      list.push(row.branchId);
+    } else {
+      out.set(row[key], [row.branchId]);
+    }
+  }
+  return out;
+}
 
 function firstRow<T>(rows: T[]): T {
   const row = rows[0];
@@ -112,6 +146,7 @@ export class CatalogRepository {
       categoryId?: string;
       isActive?: boolean;
       search?: string;
+      branchId?: string;
       cursor?: ProductListCursor;
       limit: number;
     },
@@ -122,6 +157,9 @@ export class CatalogRepository {
     }
     if (opts.isActive !== undefined) {
       conditions.push(eq(products.isActive, opts.isActive));
+    }
+    if (opts.branchId) {
+      conditions.push(productInBranch(opts.branchId));
     }
     if (opts.search) {
       const pattern = `%${escapeLikePattern(opts.search)}%`;
@@ -389,7 +427,7 @@ export class CatalogRepository {
       );
   }
 
-  async listActiveCategoriesForPosMenu(tx: DrizzleTx, orgId: string) {
+  async listActiveCategoriesForPosMenu(tx: DrizzleTx, orgId: string, branchId: string) {
     return tx
       .select()
       .from(categories)
@@ -398,12 +436,18 @@ export class CatalogRepository {
           eq(categories.orgId, orgId),
           eq(categories.isActive, true),
           isNull(categories.deletedAt),
+          categoryInBranch(branchId),
         ),
       )
       .orderBy(asc(categories.sortOrder), asc(categories.id));
   }
 
-  async listActiveProductsForCategoryIds(tx: DrizzleTx, orgId: string, categoryIds: string[]) {
+  async listActiveProductsForCategoryIds(
+    tx: DrizzleTx,
+    orgId: string,
+    categoryIds: string[],
+    branchId: string,
+  ) {
     if (categoryIds.length === 0) {
       return [];
     }
@@ -416,6 +460,7 @@ export class CatalogRepository {
           inArray(products.categoryId, categoryIds),
           eq(products.isActive, true),
           isNull(products.deletedAt),
+          productInBranch(branchId),
         ),
       )
       .orderBy(asc(products.categoryId), asc(products.sortOrder), asc(products.id));
@@ -460,5 +505,66 @@ export class CatalogRepository {
         ),
       )
       .orderBy(asc(modifiers.groupId), asc(modifiers.sortOrder), asc(modifiers.id));
+  }
+
+  async listProductBranchIds(tx: DrizzleTx, productIds: string[]): Promise<Map<string, string[]>> {
+    if (productIds.length === 0) {
+      return new Map();
+    }
+    const rows = await tx
+      .select({ productId: productBranches.productId, branchId: productBranches.branchId })
+      .from(productBranches)
+      .where(inArray(productBranches.productId, productIds))
+      .orderBy(asc(productBranches.branchId));
+    return groupBranchIds(rows, 'productId');
+  }
+
+  async replaceProductBranches(tx: DrizzleTx, productId: string, orgId: string, branchIds: string[]) {
+    await tx.delete(productBranches).where(eq(productBranches.productId, productId));
+    if (branchIds.length === 0) {
+      return;
+    }
+    await tx
+      .insert(productBranches)
+      .values(branchIds.map((branchId) => ({ productId, branchId, orgId })));
+  }
+
+  async listCategoryBranchIds(tx: DrizzleTx, categoryIds: string[]): Promise<Map<string, string[]>> {
+    if (categoryIds.length === 0) {
+      return new Map();
+    }
+    const rows = await tx
+      .select({ categoryId: categoryBranches.categoryId, branchId: categoryBranches.branchId })
+      .from(categoryBranches)
+      .where(inArray(categoryBranches.categoryId, categoryIds))
+      .orderBy(asc(categoryBranches.branchId));
+    return groupBranchIds(rows, 'categoryId');
+  }
+
+  async replaceCategoryBranches(tx: DrizzleTx, categoryId: string, orgId: string, branchIds: string[]) {
+    await tx.delete(categoryBranches).where(eq(categoryBranches.categoryId, categoryId));
+    if (branchIds.length === 0) {
+      return;
+    }
+    await tx
+      .insert(categoryBranches)
+      .values(branchIds.map((branchId) => ({ categoryId, branchId, orgId })));
+  }
+
+  /** Whether the product and its category are both shown in the branch. */
+  async isProductShownInBranch(tx: DrizzleTx, productId: string, branchId: string): Promise<boolean> {
+    const rows = await tx
+      .select({ id: products.id })
+      .from(products)
+      .innerJoin(categories, eq(categories.id, products.categoryId))
+      .where(
+        and(
+          eq(products.id, productId),
+          productInBranch(branchId),
+          categoryInBranch(branchId),
+        ),
+      )
+      .limit(1);
+    return rows.length > 0;
   }
 }

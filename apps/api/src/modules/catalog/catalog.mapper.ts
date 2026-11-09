@@ -29,17 +29,24 @@ function asLocalizedText(value: unknown): LocalizedText {
   return {};
 }
 
-export function mapCategory(row: CategoryRow) {
+export function mapCategory(row: CategoryRow, branchIds: string[] = []) {
   return {
     id: row.id,
     orgId: row.orgId,
     name: asLocalizedText(row.name),
     sortOrder: row.sortOrder,
     isActive: row.isActive,
+    availableInAllBranches: row.availableInAllBranches,
+    branchIds: row.availableInAllBranches ? [] : branchIds,
   };
 }
 
-export function mapProduct(row: ProductRow, currency: string, storage: ObjectStorage) {
+export function mapProduct(
+  row: ProductRow,
+  currency: string,
+  storage: ObjectStorage,
+  branchIds: string[] = [],
+) {
   return {
     id: row.id,
     orgId: row.orgId,
@@ -49,6 +56,8 @@ export function mapProduct(row: ProductRow, currency: string, storage: ObjectSto
     priceMinor: row.priceMinor,
     currency,
     isActive: row.isActive,
+    availableInAllBranches: row.availableInAllBranches,
+    branchIds: row.availableInAllBranches ? [] : branchIds,
     sortOrder: row.sortOrder,
     imageUrls: imageUrlsFromPrefix(storage, row.imageKey),
   };
