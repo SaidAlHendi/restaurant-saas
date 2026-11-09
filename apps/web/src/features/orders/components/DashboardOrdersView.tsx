@@ -1,5 +1,6 @@
 import {
   Badge,
+  BoxedPagination,
   Button,
   Card,
   DataTable,
@@ -262,17 +263,21 @@ export function DashboardOrdersView(props: DashboardOrdersViewProps) {
             </div>
             <div className="flex items-center justify-between gap-3">
               <span className="text-muted-foreground text-sm">{labels.showingRecords}</span>
-              {loadMore ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={loadMore.loading}
-                  onClick={loadMore.onClick}
-                >
-                  {loadMore.label}
-                </Button>
-              ) : null}
+              <BoxedPagination
+                page={props.pagination.page}
+                pageCount={props.pagination.pageCount}
+                onPageChange={(n) => {
+                  if (n > props.pagination.page && loadMore && !loadMore.loading) {
+                    loadMore.onClick();
+                  }
+                }}
+                labels={{
+                  navigation: labels.paginationNav,
+                  previous: labels.paginationPrevious,
+                  next: labels.paginationNext,
+                  page: (n) => `${labels.paginationPage} ${String(n)}`,
+                }}
+              />
             </div>
           </>
         ) : null}

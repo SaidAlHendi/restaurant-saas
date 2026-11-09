@@ -130,6 +130,7 @@
       "empty": "لا طلبات تطابق الفلاتر.",
       "error": "تعذر تحميل الطلبات.",
       "branchDateError": "تعذر تحميل تاريخ عمل الفرع.",
+      "pagination": { "navigation": "التنقل بين الصفحات", "previous": "الصفحة السابقة", "next": "الصفحة التالية", "page": "صفحة" },
       "showingRecords": "عرض {{n}} طلب",
       "loadMore": "تحميل المزيد",
       "filters": {

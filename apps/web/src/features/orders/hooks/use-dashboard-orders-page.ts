@@ -309,12 +309,22 @@ export function useDashboardOrdersPage() {
             },
           }
         : null,
+    pagination: {
+      page: Math.max(1, Math.ceil(accumulated.length / PAGE_SIZE)),
+      pageCount:
+        Math.max(1, Math.ceil(accumulated.length / PAGE_SIZE)) +
+        (data?.nextCursor !== null && data?.nextCursor !== undefined ? 1 : 0),
+    },
     onRetry: () => {
       void refetch();
       void branchContext.refetch();
     },
     labels: {
       title: t('dashboard.orders.title'),
+      paginationNav: t('dashboard.orders.pagination.navigation'),
+      paginationPrevious: t('dashboard.orders.pagination.previous'),
+      paginationNext: t('dashboard.orders.pagination.next'),
+      paginationPage: t('dashboard.orders.pagination.page'),
       showingRecords: t('dashboard.orders.showingRecords', { n: accumulated.length }),
       loading: t('common.loading'),
       retry: t('pos.retry'),
