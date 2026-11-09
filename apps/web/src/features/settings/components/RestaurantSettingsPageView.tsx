@@ -12,7 +12,7 @@ import {
   Switch,
 } from '@app/ui';
 
-import { SettingsSection } from './SettingsSection.js';
+import { SettingsSection, UnsavedChangesAlert } from './SettingsSection.js';
 import type { RestaurantSettingsPageViewModel } from '../hooks/use-restaurant-settings-page.js';
 
 export function RestaurantSettingsPageView(props: RestaurantSettingsPageViewModel) {
@@ -53,6 +53,7 @@ export function RestaurantSettingsPageView(props: RestaurantSettingsPageViewMode
 
   return (
     <div className="grid w-full items-start gap-5 xl:grid-cols-2">
+      {dirty ? <UnsavedChangesAlert message={labels.unsavedChanges} /> : null}
       <SettingsSection title={labels.title} description={labels.description}>
         <div className="space-y-2">
           <Label htmlFor="org-name">{labels.name}</Label>

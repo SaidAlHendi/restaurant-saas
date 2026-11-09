@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@app/ui';
+import { Alert, AlertDescription, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@app/ui';
 
 export type SettingsSectionProps = {
   title: string;
@@ -40,5 +40,18 @@ export function SettingsToggleRow({ id, label, hint, control }: SettingsToggleRo
       </div>
       {control}
     </div>
+  );
+}
+
+export type UnsavedChangesAlertProps = {
+  message: string;
+};
+
+/** Reminder shown while a settings form has edits that are not saved yet. */
+export function UnsavedChangesAlert({ message }: UnsavedChangesAlertProps) {
+  return (
+    <Alert variant="warning" role="status" className="xl:col-span-2">
+      <AlertDescription className="text-foreground">{message}</AlertDescription>
+    </Alert>
   );
 }

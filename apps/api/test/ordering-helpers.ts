@@ -218,13 +218,13 @@ export async function createIsolatedBranch(
     throw new Error(`branch create failed: ${JSON.stringify(create.body)}`);
   }
   const branchId = (create.body as { id: string }).id;
-  if (opts?.payBeforeSend !== undefined || opts?.acceptsCard !== undefined) {
-    const patchBody: { payBeforeSend?: boolean; acceptsCard?: boolean } = {};
-    if (opts.payBeforeSend !== undefined) {
+  // New branches default to cards off; tests keep cards on unless they ask otherwise.
+  {
+    const patchBody: { payBeforeSend?: boolean; acceptsCard?: boolean } = {
+      acceptsCard: opts?.acceptsCard ?? true,
+    };
+    if (opts?.payBeforeSend !== undefined) {
       patchBody.payBeforeSend = opts.payBeforeSend;
-    }
-    if (opts.acceptsCard !== undefined) {
-      patchBody.acceptsCard = opts.acceptsCard;
     }
     const patch = await owner.patch(`/v1/branches/${branchId}`).send(patchBody);
     if (patch.status !== 200) {

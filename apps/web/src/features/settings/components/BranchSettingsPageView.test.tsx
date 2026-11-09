@@ -84,6 +84,7 @@ function minimalBranchVm(
       save: 'Save',
       loadError: 'Error',
       loading: 'Loading',
+      unsavedChanges: 'Unsaved changes',
     },
     ...overrides,
   };
@@ -103,5 +104,20 @@ describe('BranchSettingsPageView', () => {
     expect(screen.getByLabelText('Pay before send')).toBeChecked();
     expect(screen.getByLabelText('Accept card')).not.toBeChecked();
     expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
+  });
+
+  it('shows the unsaved changes alert only while the form is dirty', () => {
+    const { rerender } = render(
+      <MemoryRouter>
+        <BranchSettingsPageView {...minimalBranchVm()} />
+      </MemoryRouter>,
+    );
+    expect(screen.queryByText('Unsaved changes')).toBeNull();
+    rerender(
+      <MemoryRouter>
+        <BranchSettingsPageView {...minimalBranchVm({ dirty: true })} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText('Unsaved changes')).toBeInTheDocument();
   });
 });

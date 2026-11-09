@@ -28,7 +28,7 @@ export function useBranchSettingsPage() {
   const [name, setName] = useState('');
   const [isActive, setIsActive] = useState(true);
   const [payBeforeSend, setPayBeforeSend] = useState(false);
-  const [acceptsCard, setAcceptsCard] = useState(true);
+  const [acceptsCard, setAcceptsCard] = useState(false);
   const [taxInclusive, setTaxInclusive] = useState(false);
   const [dayStartHour, setDayStartHour] = useState('4');
   const [timezone, setTimezone] = useState('Asia/Riyadh');
@@ -282,6 +282,7 @@ export function useBranchSettingsPage() {
       receiptSectionHint: t('settings.branch.receiptSectionHint'),
       taxDayNote: t('settings.branch.taxDayNote'),
       save: t('settings.branch.save'),
+      unsavedChanges: t('settings.unsavedChanges'),
       loadError: t('settings.branch.loadError'),
       loading: t('common.loading'),
     },

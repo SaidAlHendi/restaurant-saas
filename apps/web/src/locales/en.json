@@ -246,6 +246,7 @@
     }
   },
   "settings": {
+    "unsavedChanges": "You have unsaved changes. Click \"Save changes\" for them to take effect.",
     "title": "Settings",
     "description": "Restaurant, branch and team configuration.",
     "tabs": {

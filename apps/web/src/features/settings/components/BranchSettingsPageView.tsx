@@ -16,7 +16,7 @@ import {
 } from '@app/ui';
 
 import { DayStartPicker } from './DayStartPicker.js';
-import { SettingsSection, SettingsToggleRow } from './SettingsSection.js';
+import { SettingsSection, SettingsToggleRow, UnsavedChangesAlert } from './SettingsSection.js';
 import type { BranchSettingsPageViewModel } from '../hooks/use-branch-settings-page.js';
 
 export function BranchSettingsPageView(props: BranchSettingsPageViewModel) {
@@ -84,6 +84,7 @@ export function BranchSettingsPageView(props: BranchSettingsPageViewModel) {
 
   return (
     <div className="grid w-full items-start gap-5 xl:grid-cols-2">
+      {dirty ? <UnsavedChangesAlert message={labels.unsavedChanges} /> : null}
       <Link
         to="/dashboard/branches"
         className="text-muted-foreground hover:text-foreground inline-flex xl:col-span-2 w-fit items-center gap-1 text-sm"

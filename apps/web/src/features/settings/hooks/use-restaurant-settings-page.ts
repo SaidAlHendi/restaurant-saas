@@ -166,6 +166,7 @@ export function useRestaurantSettingsPage() {
       logoRemove: t('settings.restaurant.logoRemove'),
       logoPreviewAlt: t('settings.restaurant.logoPreviewAlt'),
       save: t('settings.restaurant.save'),
+      unsavedChanges: t('settings.unsavedChanges'),
       loadError: t('settings.restaurant.loadError'),
       loading: t('common.loading'),
     },

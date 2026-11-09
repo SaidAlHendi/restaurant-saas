@@ -54,7 +54,7 @@ export const branches = pgTable(
     receiptHeader: text('receipt_header'),
     receiptFooter: text('receipt_footer'),
     payBeforeSend: boolean('pay_before_send').notNull().default(false),
-    acceptsCard: boolean('accepts_card').notNull().default(true),
+    acceptsCard: boolean('accepts_card').notNull().default(false),
     isActive: boolean('is_active').notNull().default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
