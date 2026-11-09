@@ -11,7 +11,7 @@ import {
   UtensilsIcon,
   type LucideIcon,
 } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -30,6 +30,7 @@ import {
   selectCan,
   selectEntitlements,
   selectSessionOrg,
+  selectSessionRole,
   selectSessionUser,
 } from '../session/session.selectors.js';
 import { activeNavItemId, readSidebarCollapsed, writeSidebarCollapsed } from './app-shell.utils.js';
@@ -43,6 +44,7 @@ export function useAppShell() {
   const dispatch = useAppDispatch();
   const user = useAppSelector(selectSessionUser);
   const org = useAppSelector(selectSessionOrg);
+  const role = useAppSelector(selectSessionRole);
   const canReadMenu = useAppSelector(selectCan('menu.read'));
   const canManageBranches = useAppSelector(selectCan('branches.manage'));
   const canManageOrg = useAppSelector(selectCan('org.manage'));
@@ -276,6 +278,13 @@ export function useAppShell() {
   }, [dispatch, logout, navigate, org?.id]);
 
   const isArabic = i18n.language.startsWith('ar');
+  const roleTabLabel = role
+    ? t(`settings.staff.roles.${role.key}`, { defaultValue: role.name })
+    : null;
+  useEffect(() => {
+    document.title = roleTabLabel ? `${roleTabLabel} – ${t('app.title')}` : t('app.title');
+  }, [roleTabLabel, t]);
+
   const brandName = org ? localizedName(org.name, i18n.language) : t('app.title');
   const isDark = theme === 'forest';
 
