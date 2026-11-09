@@ -1,3 +1,5 @@
+import { ChevronDownIcon } from 'lucide-react';
+
 import {
   Button,
   Input,
@@ -84,7 +86,7 @@ export function BranchSettingsPageView(props: BranchSettingsPageViewModel) {
           />
         </div>
       </SettingsSection>
-      <SettingsSection title={labels.taxPercent} description={labels.taxDayNote}>
+      <SettingsSection title={labels.taxSection} description={labels.taxSectionHint}>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="tax-percent">{labels.taxPercent}</Label>
@@ -111,77 +113,8 @@ export function BranchSettingsPageView(props: BranchSettingsPageViewModel) {
             />
           </div>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="day-start">{labels.dayStartHour}</Label>
-            <DayStartPicker
-              id="day-start"
-              value={dayStartHour}
-              onChange={onDayStartHourChange}
-              locale={uiLocale}
-              groups={dayStartGroups}
-            />
-            <p className="text-muted-foreground text-xs">{labels.dayStartHourHint}</p>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="timezone-search">{labels.timezone}</Label>
-            <Input
-              id="timezone-search"
-              value={timezoneQuery}
-              placeholder={timezone}
-              onChange={(e) => {
-                onTimezoneQueryChange(e.target.value);
-              }}
-            />
-            <Select value={timezone} onValueChange={onTimezoneChange}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {timezoneOptions.map((zone) => (
-                  <SelectItem key={zone} value={zone}>
-                    {zone}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
       </SettingsSection>
-      <SettingsSection title={labels.receiptPreview}>
-        <div className="space-y-2">
-          <Label htmlFor="receipt-header">{labels.receiptHeader}</Label>
-          <Textarea
-            id="receipt-header"
-            value={receiptHeader}
-            rows={2}
-            onChange={(e) => {
-              onReceiptHeaderChange(e.target.value);
-            }}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="receipt-footer">{labels.receiptFooter}</Label>
-          <Textarea
-            id="receipt-footer"
-            value={receiptFooter}
-            rows={2}
-            onChange={(e) => {
-              onReceiptFooterChange(e.target.value);
-            }}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label>{labels.receiptPreview}</Label>
-          <iframe
-            title={labels.receiptPreview}
-            className="bg-background h-64 w-full rounded-md border"
-            sandbox=""
-            srcDoc={receiptPreviewHtml}
-          />
-        </div>
-      </SettingsSection>
-      <SettingsSection title={labels.payBeforeSend}>
+      <SettingsSection title={labels.paymentsSection} description={labels.paymentsSectionHint}>
         <SettingsToggleRow
           id="pay-before-send"
           label={labels.payBeforeSend}
@@ -203,6 +136,91 @@ export function BranchSettingsPageView(props: BranchSettingsPageViewModel) {
           }
         />
       </SettingsSection>
+      <details className="group rounded-xl border bg-card">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4">
+          <span className="space-y-1">
+            <span className="block text-base font-semibold">{labels.advancedTitle}</span>
+            <span className="text-muted-foreground block text-sm">{labels.advancedHint}</span>
+          </span>
+          <ChevronDownIcon
+            className="text-muted-foreground size-5 shrink-0 transition-transform group-open:rotate-180"
+            aria-hidden
+          />
+        </summary>
+        <div className="flex flex-col gap-5 border-t p-5">
+          <SettingsSection title={labels.businessDaySection}>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="day-start">{labels.dayStartHour}</Label>
+                <DayStartPicker
+                  id="day-start"
+                  value={dayStartHour}
+                  onChange={onDayStartHourChange}
+                  locale={uiLocale}
+                  groups={dayStartGroups}
+                />
+                <p className="text-muted-foreground text-xs">{labels.dayStartHourHint}</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="timezone-search">{labels.timezone}</Label>
+                <Input
+                  id="timezone-search"
+                  value={timezoneQuery}
+                  placeholder={timezone}
+                  onChange={(e) => {
+                    onTimezoneQueryChange(e.target.value);
+                  }}
+                />
+                <Select value={timezone} onValueChange={onTimezoneChange}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {timezoneOptions.map((zone) => (
+                      <SelectItem key={zone} value={zone}>
+                        {zone}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </SettingsSection>
+          <SettingsSection title={labels.receiptSection} description={labels.receiptSectionHint}>
+            <div className="space-y-2">
+              <Label htmlFor="receipt-header">{labels.receiptHeader}</Label>
+              <Textarea
+                id="receipt-header"
+                value={receiptHeader}
+                rows={2}
+                onChange={(e) => {
+                  onReceiptHeaderChange(e.target.value);
+                }}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="receipt-footer">{labels.receiptFooter}</Label>
+              <Textarea
+                id="receipt-footer"
+                value={receiptFooter}
+                rows={2}
+                onChange={(e) => {
+                  onReceiptFooterChange(e.target.value);
+                }}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{labels.receiptPreview}</Label>
+              <iframe
+                title={labels.receiptPreview}
+                className="bg-background h-64 w-full rounded-md border"
+                sandbox=""
+                srcDoc={receiptPreviewHtml}
+              />
+            </div>
+          </SettingsSection>
+        </div>
+      </details>
       <div className="flex justify-end">
         <Button type="button" size="touch" disabled={!dirty || saving} onClick={onSave}>
           {labels.save}

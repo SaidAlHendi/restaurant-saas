@@ -1,7 +1,9 @@
 import {
   branchListResponseSchema,
   branchSchema,
+  createBranchBodySchema,
   patchBranchBodySchema,
+  type CreateBranchBody,
   type Branch,
   type PatchBranchBody,
 } from '@app/shared';
@@ -14,6 +16,15 @@ export const branchesApi = baseApi.injectEndpoints({
       query: () => '/v1/branches',
       transformResponse: (response: unknown) => branchListResponseSchema.parse(response),
       providesTags: [{ type: 'Branch', id: 'LIST' }],
+    }),
+    createBranch: builder.mutation<Branch, CreateBranchBody>({
+      query: (body) => ({
+        url: '/v1/branches',
+        method: 'POST',
+        body: createBranchBodySchema.parse(body),
+      }),
+      transformResponse: (response: unknown) => branchSchema.parse(response),
+      invalidatesTags: [{ type: 'Branch', id: 'LIST' }],
     }),
     patchBranch: builder.mutation<Branch, { branchId: string; body: PatchBranchBody }>({
       query: ({ branchId, body }) => ({
@@ -31,4 +42,5 @@ export const branchesApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { useListBranchesQuery, usePatchBranchMutation } = branchesApi;
+export const { useCreateBranchMutation, useListBranchesQuery, usePatchBranchMutation } =
+  branchesApi;
