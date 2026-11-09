@@ -11,7 +11,7 @@ export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
 const badgeVariants = cva(
   [
-    'inline-flex w-fit shrink-0 items-center justify-center gap-1 overflow-hidden whitespace-nowrap rounded-md border px-2 py-0.5 text-xs font-medium transition-colors',
+    'inline-flex w-fit shrink-0 items-center justify-center gap-1 overflow-hidden whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors',
     '[&>svg]:pointer-events-none [&>svg]:size-3',
     focusRing,
   ],

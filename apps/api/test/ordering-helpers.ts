@@ -135,6 +135,17 @@ export function businessDateForBranch(timezone: string, dayStartHour: number, no
   return computeBusinessDate({ now, timezone, dayStartHour });
 }
 
+/**
+ * New branches default to cards off. Suites that pay by card on the seeded demo branch turn
+ * cards on explicitly instead of relying on the default.
+ */
+export async function enableCardPayments(owner: Agent, branchId: string): Promise<void> {
+  const res = await owner.patch(`/v1/branches/${branchId}`).send({ acceptsCard: true });
+  if (res.status !== 200) {
+    throw new Error(`enable card payments failed: ${JSON.stringify(res.body)}`);
+  }
+}
+
 export async function demoOwnerContext(
   agent: Agent,
   db: DrizzleDb,
@@ -159,6 +170,7 @@ export async function demoOwnerContext(
   if (!branchId) {
     throw new Error('demo org has no active branch');
   }
+  await enableCardPayments(client, branchId);
   let membershipId = '';
   await withOrg(db, SEED_ORG.demo.id, async (tx) => {
     const rows = await tx

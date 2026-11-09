@@ -130,6 +130,7 @@
       "empty": "No orders match your filters.",
       "error": "Could not load orders.",
       "branchDateError": "Could not load the branch business date.",
+      "showingRecords": "Showing {{n}} records",
       "loadMore": "Load more",
       "filters": {
         "status": "Status",

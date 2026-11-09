@@ -152,7 +152,10 @@ export function useDashboardOrdersPage() {
       const next = { ...filters, ...patch };
       const patchKeys = Object.keys(patch);
       const qOnly = patchKeys.length === 1 && patchKeys[0] === 'q';
-      setSearchParams(dashboardOrdersFiltersToSearchParams(next), qOnly ? { replace: true } : undefined);
+      setSearchParams(
+        dashboardOrdersFiltersToSearchParams(next),
+        qOnly ? { replace: true } : undefined,
+      );
     },
     [filters, setSearchParams],
   );
@@ -182,9 +185,12 @@ export function useDashboardOrdersPage() {
         .map((m) => t(`dashboard.orders.paymentMethod.${m}`))
         .join(', '),
       onSelect: () => {
-        void navigate(`/dashboard/orders/${order.id}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`, {
-          state: { listSearch: searchParams.toString() },
-        });
+        void navigate(
+          `/dashboard/orders/${order.id}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`,
+          {
+            state: { listSearch: searchParams.toString() },
+          },
+        );
       },
     }));
   }, [accumulated, formatMinor, navigate, searchParams, t, timezone, uiLocale]);
@@ -199,15 +205,7 @@ export function useDashboardOrdersPage() {
     () => [
       { value: 'all', label: filterAllLabel },
       ...(
-        [
-          'draft',
-          'placed',
-          'preparing',
-          'ready',
-          'completed',
-          'cancelled',
-          'refunded',
-        ] as const
+        ['draft', 'placed', 'preparing', 'ready', 'completed', 'cancelled', 'refunded'] as const
       ).map((s) => ({
         value: s,
         label: t(`dashboard.orders.status.${s}`),
@@ -317,6 +315,7 @@ export function useDashboardOrdersPage() {
     },
     labels: {
       title: t('dashboard.orders.title'),
+      showingRecords: t('dashboard.orders.showingRecords', { n: accumulated.length }),
       loading: t('common.loading'),
       retry: t('pos.retry'),
       empty: t('dashboard.orders.empty'),

@@ -228,7 +228,7 @@ export function DashboardTodayView(props: DashboardTodayViewProps) {
                 <div className="overflow-x-auto rounded-lg border">
                   <table className="w-full border-separate border-spacing-0 text-sm">
                     <thead>
-                      <tr className="text-muted-foreground bg-table-head text-xs uppercase tracking-wide">
+                      <tr className="text-primary text-xs">
                         <th className="border-b px-3 py-2.5 text-start font-semibold">
                           {labels.colOrder}
                         </th>
@@ -253,7 +253,7 @@ export function DashboardTodayView(props: DashboardTodayViewProps) {
                       {recentRows.map((row) => (
                         <tr
                           key={row.id}
-                          className="even:bg-table-alt hover:bg-table-hover [&:last-child>td]:border-b-0"
+                          className="hover:bg-table-hover [&:last-child>td]:border-b-0"
                         >
                           <td className="border-b px-3 py-2.5 font-semibold tabular-nums">
                             {row.number}
