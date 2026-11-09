@@ -15,7 +15,7 @@ import {
 } from './catalog-helpers';
 import { createTestApp } from './create-test-app';
 import { apiAgent } from './http';
-import { seedCatalogProduct } from './ordering-helpers';
+import { enableCardPayments, seedCatalogProduct } from './ordering-helpers';
 
 function postOrder(
   client: Agent,
@@ -84,6 +84,7 @@ describe('Ordering payments (e2e)', () => {
     if (!branchId) {
       throw new Error('no branch');
     }
+    await enableCardPayments(owner, branchId);
     ({ productId } = await seedCatalogProduct(agent));
   });
 
