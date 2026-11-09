@@ -4,7 +4,9 @@ import {
   ConfirmDialog,
   DataTable,
   Dialog,
+  DialogBody,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -343,16 +345,19 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
       />
 
       <Dialog open={inviteOpen} onOpenChange={onInviteOpenChange}>
-        <DialogContent className="max-h-[90dvh] overflow-y-auto">
+        <DialogContent closeLabel={labels.close}>
           <DialogHeader>
             <DialogTitle>{labels.inviteDialogTitle}</DialogTitle>
+            <DialogDescription>{labels.inviteDialogDescription}</DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <DialogBody>
             <div className="space-y-2">
               <Label htmlFor="invite-email">{labels.inviteEmail}</Label>
               <Input
                 id="invite-email"
                 type="email"
+                dir="ltr"
+                autoComplete="off"
                 value={inviteEmail}
                 onChange={(e) => {
                   onInviteEmailChange(e.target.value);
@@ -377,7 +382,7 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
               onAllBranchesChange={onInviteAllBranchesChange}
               onBranchToggle={onInviteBranchToggle}
             />
-          </div>
+          </DialogBody>
           <DialogFooter>
             <Button
               type="button"
@@ -396,11 +401,11 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
       </Dialog>
 
       <Dialog open={pinOnlyOpen} onOpenChange={onPinOnlyOpenChange}>
-        <DialogContent className="max-h-[90dvh] overflow-y-auto">
+        <DialogContent closeLabel={labels.close}>
           <DialogHeader>
             <DialogTitle>{labels.pinOnlyDialogTitle}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <DialogBody>
             <div className="space-y-2">
               <Label htmlFor="pin-only-name">{labels.pinOnlyName}</Label>
               <Input
@@ -456,7 +461,7 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
                 <p className="text-destructive text-sm">{pinOnlyPinError}</p>
               ) : null}
             </div>
-          </div>
+          </DialogBody>
           <DialogFooter>
             <Button
               type="button"
@@ -475,11 +480,11 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
       </Dialog>
 
       <Dialog open={editOpen} onOpenChange={onEditOpenChange}>
-        <DialogContent className="max-h-[90dvh] overflow-y-auto">
+        <DialogContent closeLabel={labels.close}>
           <DialogHeader>
             <DialogTitle>{labels.editDialogTitle}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <DialogBody>
             <StaffRoleSelect
               label={labels.inviteRole}
               value={editRole}
@@ -495,7 +500,7 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
               onAllBranchesChange={onEditAllBranchesChange}
               onBranchToggle={onEditBranchToggle}
             />
-          </div>
+          </DialogBody>
           <DialogFooter>
             <Button
               type="button"
@@ -514,12 +519,12 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
       </Dialog>
 
       <Dialog open={pinDialogOpen} onOpenChange={onPinDialogOpenChange}>
-        <DialogContent>
+        <DialogContent closeLabel={labels.close}>
           <DialogHeader>
             <DialogTitle>{labels.pinDialogTitle}</DialogTitle>
           </DialogHeader>
-          <p className="text-muted-foreground text-sm">{pinDialogMemberName}</p>
-          <div className="space-y-4">
+          <DialogBody>
+            <p className="text-muted-foreground text-sm">{pinDialogMemberName}</p>
             <div className="space-y-2">
               <Label htmlFor="set-pin">{labels.pinLabel}</Label>
               <Input
@@ -545,7 +550,7 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
               />
               {pinFormError ? <p className="text-destructive text-sm">{pinFormError}</p> : null}
             </div>
-          </div>
+          </DialogBody>
           <DialogFooter>
             <Button
               type="button"
@@ -606,15 +611,17 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
       />
 
       <Dialog open={inviteLinkOpen} onOpenChange={onInviteLinkOpenChange}>
-        <DialogContent>
+        <DialogContent closeLabel={labels.close}>
           <DialogHeader>
             <DialogTitle>{labels.inviteLinkDialogTitle}</DialogTitle>
+            <DialogDescription>{labels.inviteLinkValidFor}</DialogDescription>
           </DialogHeader>
-          <p className="text-muted-foreground text-sm">{labels.inviteLinkValidFor}</p>
-          <Input readOnly value={inviteLinkUrl} className="font-mono text-xs" />
-          {inviteLinkCopyLabel ? (
-            <p className="text-muted-foreground text-sm">{inviteLinkCopyLabel}</p>
-          ) : null}
+          <DialogBody>
+            <Input readOnly dir="ltr" value={inviteLinkUrl} className="font-mono text-xs" />
+            {inviteLinkCopyLabel ? (
+              <p className="text-muted-foreground text-sm">{inviteLinkCopyLabel}</p>
+            ) : null}
+          </DialogBody>
           <DialogFooter>
             <Button
               type="button"

@@ -343,6 +343,8 @@
       "regenerateInvite": "Copy new invite link",
       "revokeInvite": "Revoke invite",
       "inviteDialogTitle": "Invite by email",
+      "inviteDialogDescription": "Send a sign-in link to a team member. The link is valid for 7 days.",
+      "close": "Close",
       "inviteEmail": "Email",
       "inviteRole": "Role",
       "inviteSubmit": "Send invite",
@@ -551,6 +553,7 @@
       "submit": "Unlock",
       "lockedCountdown": "Try again in",
       "switchUser": "Switch user",
+      "signOut": "Sign out (sign in as owner)",
       "pinDigits": "PIN, {{count}} digits"
     },
     "print": {

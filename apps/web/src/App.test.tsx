@@ -6,10 +6,7 @@ import { Provider } from 'react-redux';
 import { RouterProvider, createMemoryRouter } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import {
-  POS_DEVICE_LOCKED_STORAGE_KEY,
-  writePosDeviceLocked,
-} from './features/pos/pos-device-lock-storage.js';
+import { writePosDeviceLocked } from './features/pos/pos-device-lock-storage.js';
 
 import { appRoutes } from './app/router.js';
 import { baseApi } from './app/api/base-api.js';
@@ -84,12 +81,12 @@ function createTestStore() {
 
 describe('App root', () => {
   afterEach(() => {
-    window.localStorage.removeItem(POS_DEVICE_LOCKED_STORAGE_KEY);
+    window.localStorage.clear();
   });
 
   it('redirects dashboard to POS when device lock flag is set', async () => {
     await initI18n();
-    writePosDeviceLocked(true);
+    writePosDeviceLocked(orgId, true);
     await import('./areas/pos/PosArea.js');
     await import('./areas/dashboard/DashboardArea.js');
     const memoryRouter = createMemoryRouter(appRoutes, { initialEntries: ['/dashboard'] });
@@ -107,7 +104,7 @@ describe('App root', () => {
   });
 
   it('renders dashboard shell when session is bootstrapped', async () => {
-    window.localStorage.removeItem(POS_DEVICE_LOCKED_STORAGE_KEY);
+    window.localStorage.clear();
     await initI18n();
     // DashboardArea is lazy and now pulls in the menu feature; load it before render so the
     // Suspense fallback does not outlast findByText's 1s window on a slow CI runner.

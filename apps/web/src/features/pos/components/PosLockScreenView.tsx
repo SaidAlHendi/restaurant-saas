@@ -1,10 +1,10 @@
-import { Spinner } from '@app/ui';
+import { Button, Spinner } from '@app/ui';
 
 import type { PosLockScreenViewModel } from '../hooks/use-pos-lock-screen.js';
 import { PosPinPadView } from './PosPinPadView.js';
 
 export function PosLockScreenView(props: PosLockScreenViewModel) {
-  const { loading, users, pinPad, errorMessage, lockCountdown, labels } = props;
+  const { loading, users, pinPad, errorMessage, lockCountdown, onSignOut, labels } = props;
 
   if (loading) {
     return (
@@ -59,6 +59,9 @@ export function PosLockScreenView(props: PosLockScreenViewModel) {
         onSubmit={pinPad.onSubmit}
         labels={{ backspace: labels.backspace, submit: labels.submit }}
       />
+      <Button type="button" variant="ghost" onClick={onSignOut}>
+        {labels.signOut}
+      </Button>
     </div>
   );
 }

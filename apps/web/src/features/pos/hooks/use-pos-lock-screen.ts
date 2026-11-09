@@ -4,7 +4,10 @@ import { useTranslation } from 'react-i18next';
 import { useAppDispatch } from '../../../app/hooks.js';
 import { baseApi } from '../../../app/api/base-api.js';
 import { authApi, usePinLoginMutation } from '../../auth/auth.api.js';
-import { messageFromOrdersMutationError, parseOrdersApiErrorCode } from '../../orders/orders-api-errors.js';
+import {
+  messageFromOrdersMutationError,
+  parseOrdersApiErrorCode,
+} from '../../orders/orders-api-errors.js';
 import { hydrateFromMe, setAccessToken } from '../../session/session.slice.js';
 import { formatPinLockCountdown, parsePinLockedUntilIso } from '../pos-pin-lock.utils.js';
 import { useListPinUsersQuery } from '../pos.api.js';
@@ -15,6 +18,7 @@ export function usePosLockScreen(input: {
   branchId: string | null;
   enabled: boolean;
   onUnlocked: () => void;
+  onSignOut: () => void;
 }) {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
@@ -92,8 +96,7 @@ export function usePosLockScreen(input: {
     input.onUnlocked();
   }, [dispatch, input, lockCountdown, pinLogin, pinPad, selectedMembershipId, t]);
 
-  const canSubmitPin =
-    pinPad.canSubmit && selectedMembershipId !== null && lockCountdown === null;
+  const canSubmitPin = pinPad.canSubmit && selectedMembershipId !== null && lockCountdown === null;
 
   usePosPinPadKeyboard({
     enabled: input.enabled,
@@ -129,6 +132,8 @@ export function usePosLockScreen(input: {
     },
     errorMessage,
     lockCountdown,
+    noPinUsers: pinUsersQuery.isSuccess && users.length === 0,
+    onSignOut: input.onSignOut,
     labels: {
       title: t('pos.lock.title'),
       subtitle: t('pos.lock.subtitle'),
@@ -138,6 +143,7 @@ export function usePosLockScreen(input: {
       submit: t('pos.lock.submit'),
       locked: t('pos.lock.lockedCountdown'),
       loading: t('common.loading'),
+      signOut: t('pos.lock.signOut'),
     },
   };
 }

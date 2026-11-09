@@ -1,4 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
+import { setupListeners } from '@reduxjs/toolkit/query';
 
 import { cartPersistenceListener } from '../features/cart/cart.listener.js';
 import { cartReducer } from '../features/cart/cart.slice.js';
@@ -23,6 +24,9 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(baseApi.middleware, cartPersistenceListener.middleware),
 });
+
+// Enables `refetchOnFocus` / `refetchOnReconnect` for queries that opt in.
+setupListeners(store.dispatch);
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

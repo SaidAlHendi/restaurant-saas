@@ -39,6 +39,9 @@ import {
   useRevokeStaffInviteMutation,
 } from '../settings.api.js';
 
+/** Keeps pending invites honest: an accepted invite turns "active" without a manual refresh. */
+const STAFF_POLL_INTERVAL_MS = 30_000;
+
 export type StaffRoleOption = {
   value: SystemRoleKey;
   label: string;
@@ -87,7 +90,11 @@ export function useStaffSettingsPage() {
   const role = useAppSelector(selectSessionRole);
   const sessionBranches = useAppSelector(selectSessionBranches);
   const hasStaffManage = useAppSelector(selectCan('staff.manage'));
-  const { data, isLoading, isError } = useListStaffQuery(undefined, { skip: !allowed });
+  const { data, isLoading, isError } = useListStaffQuery(undefined, {
+    skip: !allowed,
+    pollingInterval: STAFF_POLL_INTERVAL_MS,
+    refetchOnFocus: true,
+  });
 
   const actorRoleKey = useMemo(() => parseSystemRoleKey(role?.key), [role?.key]);
   const actorMembershipId = useMemo(
@@ -684,6 +691,8 @@ export function useStaffSettingsPage() {
       regenerateInvite: t('settings.staff.regenerateInvite'),
       revokeInvite: t('settings.staff.revokeInvite'),
       inviteDialogTitle: t('settings.staff.inviteDialogTitle'),
+      inviteDialogDescription: t('settings.staff.inviteDialogDescription'),
+      close: t('settings.staff.close'),
       pinOnlyDialogTitle: t('settings.staff.pinOnlyDialogTitle'),
       editDialogTitle: t('settings.staff.editDialogTitle'),
       pinDialogTitle: t('settings.staff.pinDialogTitle'),

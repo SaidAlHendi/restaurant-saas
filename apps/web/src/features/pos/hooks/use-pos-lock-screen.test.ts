@@ -54,6 +54,7 @@ describe('usePosLockScreen user selection', () => {
         branchId: '01932a1a-7b3e-7000-8000-000000000030',
         enabled: true,
         onUnlocked: () => {},
+        onSignOut: () => {},
       }),
     );
 

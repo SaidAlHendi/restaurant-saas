@@ -34,6 +34,8 @@ function minimalLockVm(overrides: Partial<PosLockScreenViewModel> = {}): PosLock
     },
     errorMessage: null,
     lockCountdown: null,
+    noPinUsers: false,
+    onSignOut: vi.fn(),
     labels: {
       title: 'Enter PIN',
       subtitle: 'Sign in',
@@ -43,6 +45,7 @@ function minimalLockVm(overrides: Partial<PosLockScreenViewModel> = {}): PosLock
       submit: 'Unlock',
       locked: 'Wait',
       loading: 'Loading',
+      signOut: 'Sign out',
     },
     ...overrides,
   };

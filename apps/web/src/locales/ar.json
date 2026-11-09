@@ -351,6 +351,8 @@
       "regenerateInvite": "نسخ رابط دعوة جديد",
       "revokeInvite": "إلغاء الدعوة",
       "inviteDialogTitle": "دعوة بالبريد",
+      "inviteDialogDescription": "أرسل رابط تسجيل دخول لأحد أعضاء الفريق. الرابط صالح لمدة ٧ أيام.",
+      "close": "إغلاق",
       "inviteEmail": "البريد الإلكتروني",
       "inviteRole": "الدور",
       "inviteSubmit": "إرسال الدعوة",
@@ -559,6 +561,7 @@
       "submit": "فتح",
       "lockedCountdown": "حاول مرة أخرى بعد",
       "switchUser": "تبديل المستخدم",
+      "signOut": "تسجيل الخروج (دخول المالك)",
       "pinDigits": "الرمز السري، {{count}} أرقام"
     },
     "print": {
