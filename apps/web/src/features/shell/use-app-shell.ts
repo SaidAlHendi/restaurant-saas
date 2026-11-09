@@ -17,6 +17,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useDisclosure, useTheme } from '@app/ui';
 
+import { baseApi } from '../../app/api/base-api.js';
 import { useAppDispatch, useAppSelector } from '../../app/hooks.js';
 import { setAppLanguage } from '../../lib/i18n.js';
 import { localizedName } from '../../lib/localized-name.js';
@@ -267,6 +268,7 @@ export function useAppShell() {
     } finally {
       writePosDeviceLocked(org?.id, false);
       dispatch(clearSession());
+      dispatch(baseApi.util.resetApiState());
       void navigate('/login', { replace: true });
     }
   }, [dispatch, logout, navigate, org?.id]);

@@ -24,14 +24,21 @@ export function useLoginPage() {
   const onSubmit = form.handleSubmit(async (values) => {
     const result = await login(values).unwrap();
     dispatch(setAccessToken(result.accessToken));
-    const me = await dispatch(authApi.endpoints.getMe.initiate(undefined)).unwrap();
+    const me = await dispatch(
+      authApi.endpoints.getMe.initiate(undefined, { forceRefetch: true }),
+    ).unwrap();
     dispatch(hydrateFromMe(me));
     void navigate(landingPathForPermissions(me.permissions), { replace: true });
   });
 
   const errorMessage =
-    error && 'data' in error && error.data && typeof error.data === 'object' && 'error' in error.data
-      ? ((error.data as { error?: { message?: string } }).error?.message ?? t('auth.errors.generic'))
+    error &&
+    'data' in error &&
+    error.data &&
+    typeof error.data === 'object' &&
+    'error' in error.data
+      ? ((error.data as { error?: { message?: string } }).error?.message ??
+        t('auth.errors.generic'))
       : error
         ? t('auth.errors.generic')
         : null;

@@ -92,7 +92,9 @@ export function useDevicePinLogin(input: {
     dispatch(baseApi.util.resetApiState());
     dispatch(setAccessToken(result.data.accessToken));
     try {
-      const me = await dispatch(authApi.endpoints.getMe.initiate(undefined)).unwrap();
+      const me = await dispatch(
+        authApi.endpoints.getMe.initiate(undefined, { forceRefetch: true }),
+      ).unwrap();
       dispatch(hydrateFromMe(me));
       void navigate(landingPathForPermissions(me.permissions), { replace: true });
     } catch {

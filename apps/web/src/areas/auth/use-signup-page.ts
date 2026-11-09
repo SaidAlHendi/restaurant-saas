@@ -35,14 +35,21 @@ export function useSignupPage() {
   const onSubmit = form.handleSubmit(async (values) => {
     const result = await signup(values).unwrap();
     dispatch(setAccessToken(result.accessToken));
-    const me = await dispatch(authApi.endpoints.getMe.initiate(undefined)).unwrap();
+    const me = await dispatch(
+      authApi.endpoints.getMe.initiate(undefined, { forceRefetch: true }),
+    ).unwrap();
     dispatch(hydrateFromMe(me));
     void navigate('/dashboard', { replace: true });
   });
 
   const errorMessage =
-    error && 'data' in error && error.data && typeof error.data === 'object' && 'error' in error.data
-      ? ((error.data as { error?: { message?: string } }).error?.message ?? t('auth.errors.generic'))
+    error &&
+    'data' in error &&
+    error.data &&
+    typeof error.data === 'object' &&
+    'error' in error.data
+      ? ((error.data as { error?: { message?: string } }).error?.message ??
+        t('auth.errors.generic'))
       : error
         ? t('auth.errors.generic')
         : null;

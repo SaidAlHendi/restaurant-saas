@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
+import { baseApi } from '../../../app/api/base-api.js';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks.js';
 import { useLogoutMutation } from '../../auth/auth.api.js';
 import { clearSession } from '../../session/session.slice.js';
@@ -47,6 +48,7 @@ export function usePosArea() {
       // Sign out locally even when the server call fails (offline, expired session).
     } finally {
       dispatch(clearSession());
+      dispatch(baseApi.util.resetApiState());
       void navigate('/login', { replace: true });
     }
   }, [dispatch, logout, navigate, orgId]);
