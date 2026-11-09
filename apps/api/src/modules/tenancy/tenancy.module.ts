@@ -8,6 +8,8 @@ import { NotificationsModule } from '../notifications/notifications.module';
 
 import { BranchesController } from './branches.controller';
 import { BranchesService } from './branches.service';
+import { DevicesController } from './devices.controller';
+import { DevicesService } from './devices.service';
 import { MembershipsController } from './memberships.controller';
 import { MembershipsService } from './memberships.service';
 import { OrgLogoService } from './org-logo.service';
@@ -27,6 +29,7 @@ import { TenancyRepository } from './tenancy.repository';
   ],
   controllers: [
     BranchesController,
+    DevicesController,
     MembershipsController,
     OrgSettingsController,
     StaffController,
@@ -34,6 +37,7 @@ import { TenancyRepository } from './tenancy.repository';
   providers: [
     TenancyRepository,
     BranchesService,
+    DevicesService,
     MembershipsService,
     OrgSettingsService,
     OrgLogoService,

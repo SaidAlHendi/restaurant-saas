@@ -1,5 +1,6 @@
 import {
   boolean,
+  foreignKey,
   integer,
   pgEnum,
   pgTable,
@@ -9,6 +10,8 @@ import {
   unique,
   uuid,
 } from 'drizzle-orm/pg-core';
+
+export const posDeviceStatusEnum = pgEnum('pos_device_status', ['pending', 'active', 'revoked']);
 
 export const orgStatusEnum = pgEnum('org_status', [
   'trial',
@@ -122,4 +125,36 @@ export const membershipBranches = pgTable(
       .references(() => organizations.id),
   },
   (t) => [primaryKey({ columns: [t.membershipId, t.branchId] })],
+);
+
+/** A cashier device linked to one branch. Staff sign in on it with a PIN; the device key never leaves the browser. */
+export const posDevices = pgTable(
+  'pos_devices',
+  {
+    id: uuid('id').primaryKey(),
+    orgId: uuid('org_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    branchId: uuid('branch_id').notNull(),
+    name: text('name').notNull(),
+    status: posDeviceStatusEnum('status').notNull().default('pending'),
+    pairingCodeHash: text('pairing_code_hash'),
+    pairingExpiresAt: timestamp('pairing_expires_at', { withTimezone: true }),
+    deviceKeyHash: text('device_key_hash'),
+    createdBy: uuid('created_by')
+      .notNull()
+      .references(() => memberships.id),
+    pairedAt: timestamp('paired_at', { withTimezone: true }),
+    lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('pos_devices_id_org_id_unique').on(t.id, t.orgId),
+    foreignKey({
+      columns: [t.branchId, t.orgId],
+      foreignColumns: [branches.id, branches.orgId],
+      name: 'pos_devices_branch_id_org_id_branches_id_org_id_fk',
+    }).onDelete('cascade'),
+  ],
 );

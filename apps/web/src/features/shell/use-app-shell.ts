@@ -3,6 +3,7 @@ import {
   ClipboardListIcon,
   CreditCardIcon,
   LayoutDashboardIcon,
+  MonitorSmartphoneIcon,
   SettingsIcon,
   StoreIcon,
   UsersIcon,
@@ -45,6 +46,7 @@ export function useAppShell() {
   const canManageBranches = useAppSelector(selectCan('branches.manage'));
   const canManageOrg = useAppSelector(selectCan('org.manage'));
   const canReadStaff = useAppSelector(selectCan('staff.read'));
+  const canManageStaff = useAppSelector(selectCan('staff.manage'));
   const canOpenSettings = canManageOrg;
   const canUsePos = useAppSelector(selectCan('orders.create'));
   const canUseKds = useAppSelector(selectCan('orders.update_status'));
@@ -133,6 +135,15 @@ export function useAppShell() {
         end: false,
       });
     }
+    if (canManageStaff) {
+      items.push({
+        id: 'devices',
+        to: '/dashboard/devices',
+        icon: MonitorSmartphoneIcon,
+        label: t('dashboard.nav.devices'),
+        end: false,
+      });
+    }
     if (canManageBilling) {
       items.push({
         id: 'billing',
@@ -154,6 +165,7 @@ export function useAppShell() {
     return items;
   }, [
     canManageBilling,
+    canManageStaff,
     canReadStaff,
     canManageBranches,
     canOpenSettings,
