@@ -72,8 +72,9 @@ export function useProductsScreen(): ProductsPageViewProps {
   const [togglingProductId, setTogglingProductId] = useState<string | null>(null);
 
   const resetList = useCallback(() => {
+    // Do not clear `accumulated`: the data effect below refills it from the (re)fetched first
+    // page. Clearing it raced with the refetch and left the list empty until reload.
     setCursor(undefined);
-    setAccumulated([]);
   }, []);
 
   const listArgs = useMemo((): ProductListQuery => {
@@ -215,8 +216,15 @@ export function useProductsScreen(): ProductsPageViewProps {
             return;
           }
         }
+        const uploaded = await imageUpload.uploadPending(created.id);
         resetList();
-        setEditingId(created.id);
+        if (uploaded) {
+          setSheetOpen(false);
+          setEditingId(undefined);
+        } else {
+          // Product exists but the photo failed: stay open in edit mode so they can retry.
+          setEditingId(created.id);
+        }
       }
     })();
   };
@@ -290,6 +298,7 @@ export function useProductsScreen(): ProductsPageViewProps {
     isLoadingMore: isFetching && Boolean(cursor),
     onAdd: () => {
       setPlanLimitMessage(null);
+      imageUpload.reset();
       setEditingId(undefined);
       setSheetOpen(true);
     },
@@ -317,7 +326,7 @@ export function useProductsScreen(): ProductsPageViewProps {
       cancelLabel: t('menu.actions.cancel'),
       form: productForm.form,
       onSubmit,
-      isSaving: createState.isLoading || patchState.isLoading,
+      isSaving: createState.isLoading || patchState.isLoading || imageUpload.isUploading,
       canManage,
       locales: org.locales,
       localeLabels,
@@ -345,7 +354,7 @@ export function useProductsScreen(): ProductsPageViewProps {
         isUploading: imageUpload.isUploading || imageUpload.isRemoving,
         onFileSelect: imageUpload.onFileSelect,
         onRemove: imageUpload.onRemove,
-        show: Boolean(editingId && productDetail),
+        show: !editingId || Boolean(productDetail),
       },
       planLimit:
         planLimitMessage === null

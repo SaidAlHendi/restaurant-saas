@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import type { Product } from '@app/shared';
 
@@ -23,21 +23,48 @@ export function useProductImageUpload(
 ) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [localError, setLocalError] = useState<ProductImageUploadError | null>(null);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [uploadProductImage, uploadState] = useUploadProductImageMutation();
   const [deleteProductImage, deleteState] = useDeleteProductImageMutation();
 
   useEffect(() => {
     setPreviewUrl(product ? productImagePreviewUrl(product) : null);
     setLocalError(null);
+    setPendingFile(null);
   }, [product]);
 
+  // Create mode: keep the chosen file locally; it is uploaded right after the product is created.
+  const uploadPending = useCallback(
+    async (productId: string): Promise<boolean> => {
+      if (!pendingFile) {
+        return true;
+      }
+      const result = await uploadProductImage({ productId, file: pendingFile });
+      if (isMutationError(result)) {
+        options.onApiError(result.error);
+        return false;
+      }
+      setPendingFile(null);
+      return true;
+    },
+    [pendingFile, uploadProductImage, options],
+  );
+
+  const reset = useCallback(() => {
+    setPendingFile(null);
+    setPreviewUrl(null);
+    setLocalError(null);
+  }, []);
+
   const onFileSelect = (file: File) => {
-    if (!product) {
-      return;
-    }
     setLocalError(null);
     if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
       setLocalError('local_unsupported_type');
+      return;
+    }
+    if (!product) {
+      setPendingFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
       return;
     }
     const objectUrl = URL.createObjectURL(file);
@@ -59,6 +86,8 @@ export function useProductImageUpload(
 
   const onRemove = () => {
     if (!product) {
+      setPendingFile(null);
+      setPreviewUrl(null);
       return;
     }
     setLocalError(null);
@@ -80,5 +109,8 @@ export function useProductImageUpload(
     localError,
     onFileSelect,
     onRemove,
+    uploadPending,
+    reset,
+    hasPending: pendingFile !== null,
   };
 }
