@@ -52,6 +52,8 @@ export function useAppShell() {
   const canUseKds = useAppSelector(selectCan('orders.update_status'));
   const canReports = useAppSelector(selectCan('reports.read'));
   const canManageBilling = useAppSelector(selectCan('billing.manage'));
+  const canUseDashboard =
+    canReports || canReadStaff || canManageBranches || canManageOrg || canManageBilling;
   const entitlements = useAppSelector(selectEntitlements);
   const banner = useBillingBanner();
   const { theme, toggleTheme } = useTheme();
@@ -189,7 +191,7 @@ export function useAppShell() {
       to: '/dashboard',
       icon: LayoutDashboardIcon,
       label: t('shell.dashboardArea'),
-      allowed: true,
+      allowed: canUseDashboard,
     },
     {
       id: 'pos',

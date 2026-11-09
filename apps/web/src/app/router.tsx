@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate, type RouteObject } from 'react-router-do
 
 import { App } from '../App.js';
 import { GuestLayout } from '../areas/auth/GuestLayout.js';
+import { LandingRedirect } from '../features/session/LandingRedirect.js';
 import { RequireAuth } from '../features/session/RequireAuth.js';
 import { AppShellLayout } from '../features/shell/AppShellLayout.js';
 
@@ -29,7 +30,7 @@ export const appRoutes: RouteObject[] = [
     path: '/',
     element: <App />,
     children: [
-      { index: true, element: <Navigate to="/dashboard" replace /> },
+      { index: true, element: <LandingRedirect /> },
       {
         element: <GuestLayout />,
         children: [
