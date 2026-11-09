@@ -12,6 +12,7 @@ import {
   Switch,
 } from '@app/ui';
 
+import { SettingsSection } from './SettingsSection.js';
 import type { RestaurantSettingsPageViewModel } from '../hooks/use-restaurant-settings-page.js';
 
 export function RestaurantSettingsPageView(props: RestaurantSettingsPageViewModel) {
@@ -51,81 +52,88 @@ export function RestaurantSettingsPageView(props: RestaurantSettingsPageViewMode
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-col gap-6">
-      <div>
-        <h2 className="text-lg font-semibold">{labels.title}</h2>
-        <p className="text-muted-foreground mt-1 text-sm">{labels.description}</p>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="org-name">{labels.name}</Label>
-        <Input id="org-name" value={name} onChange={(e) => { onNameChange(e.target.value); }} />
-      </div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-1">
-          <Label>{labels.slug}</Label>
-          <p className="text-muted-foreground text-sm">{slug}</p>
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-5">
+      <SettingsSection title={labels.title} description={labels.description}>
+        <div className="space-y-2">
+          <Label htmlFor="org-name">{labels.name}</Label>
+          <Input
+            id="org-name"
+            value={name}
+            onChange={(e) => {
+              onNameChange(e.target.value);
+            }}
+          />
         </div>
-        <div className="space-y-1">
-          <Label>{labels.currency}</Label>
-          <p className="text-muted-foreground text-sm">{currency}</p>
-        </div>
-      </div>
-      <div className="space-y-2">
-        <Label>{labels.logo}</Label>
-        <ImageUpload
-          previewUrl={logoUrl}
-          disabled={logoUploading || logoRemoving}
-          isUploading={logoUploading}
-          accept="image/jpeg,image/png,image/webp"
-          onFileSelect={onLogoSelect}
-          onRemove={logoUrl ? onLogoRemove : undefined}
-          label={labels.logo}
-          chooseLabel={labels.logoChoose}
-          uploadingLabel={labels.logoUploading}
-          removeLabel={labels.logoRemove}
-          previewAlt={labels.logoPreviewAlt}
-        />
-      </div>
-      <div className="space-y-3">
-        <Label>{labels.locales}</Label>
-        {localeOptions.map((opt) => (
-          <div key={opt.code} className="flex items-center justify-between gap-4">
-            <span className="text-sm">{opt.label}</span>
-            <Switch
-              checked={opt.checked}
-              onCheckedChange={(checked) => {
-                onToggleLocale(opt.code, checked);
-              }}
-            />
+        <div className="bg-muted/50 grid gap-4 rounded-md p-3 sm:grid-cols-2">
+          <div className="space-y-1">
+            <Label>{labels.slug}</Label>
+            <p className="text-muted-foreground text-sm">{slug}</p>
           </div>
-        ))}
-        {localeErrorKey ? <p className="text-destructive text-sm">{localeErrorKey}</p> : null}
+          <div className="space-y-1">
+            <Label>{labels.currency}</Label>
+            <p className="text-muted-foreground text-sm">{currency}</p>
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label>{labels.logo}</Label>
+          <ImageUpload
+            previewUrl={logoUrl}
+            disabled={logoUploading || logoRemoving}
+            isUploading={logoUploading}
+            accept="image/jpeg,image/png,image/webp"
+            onFileSelect={onLogoSelect}
+            onRemove={logoUrl ? onLogoRemove : undefined}
+            label={labels.logo}
+            chooseLabel={labels.logoChoose}
+            uploadingLabel={labels.logoUploading}
+            removeLabel={labels.logoRemove}
+            previewAlt={labels.logoPreviewAlt}
+          />
+        </div>
+      </SettingsSection>
+      <SettingsSection title={labels.locales}>
+        <div className="flex flex-col gap-3">
+          {localeOptions.map((opt) => (
+            <div key={opt.code} className="flex items-center justify-between gap-4">
+              <span className="text-sm">{opt.label}</span>
+              <Switch
+                checked={opt.checked}
+                onCheckedChange={(checked) => {
+                  onToggleLocale(opt.code, checked);
+                }}
+              />
+            </div>
+          ))}
+          {localeErrorKey ? <p className="text-destructive text-sm">{localeErrorKey}</p> : null}
+        </div>
+        <div className="space-y-2">
+          <Label>{labels.defaultLocale}</Label>
+          <Select
+            value={defaultLocale}
+            onValueChange={(value) => {
+              onDefaultLocaleChange(value);
+            }}
+          >
+            <SelectTrigger className="w-full sm:w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {localeOptions
+                .filter((o) => o.checked)
+                .map((o) => (
+                  <SelectItem key={o.code} value={o.code}>
+                    {o.label}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </SettingsSection>
+      <div className="flex justify-end">
+        <Button type="button" size="touch" disabled={!dirty || saving} onClick={onSave}>
+          {labels.save}
+        </Button>
       </div>
-      <div className="space-y-2">
-        <Label>{labels.defaultLocale}</Label>
-        <Select
-          value={defaultLocale}
-          onValueChange={(value) => {
-            onDefaultLocaleChange(value);
-          }}
-        >
-          <SelectTrigger className="w-full sm:w-48">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {localeOptions
-              .filter((o) => o.checked)
-              .map((o) => (
-                <SelectItem key={o.code} value={o.code}>
-                  {o.label}
-                </SelectItem>
-              ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <Button type="button" size="touch" disabled={!dirty || saving} onClick={onSave}>
-        {labels.save}
-      </Button>
     </div>
   );
 }
