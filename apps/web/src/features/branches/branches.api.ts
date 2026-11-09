@@ -8,6 +8,8 @@ import {
   type PatchBranchBody,
 } from '@app/shared';
 
+import type { AppDispatch } from '../../app/store.js';
+import { refreshSessionFromMe } from '../session/refresh-session-from-me.js';
 import { baseApi } from '../../app/api/base-api.js';
 
 export const branchesApi = baseApi.injectEndpoints({
@@ -24,7 +26,15 @@ export const branchesApi = baseApi.injectEndpoints({
         body: createBranchBodySchema.parse(body),
       }),
       transformResponse: (response: unknown) => branchSchema.parse(response),
-      invalidatesTags: [{ type: 'Branch', id: 'LIST' }, 'Me'],
+      invalidatesTags: [{ type: 'Branch', id: 'LIST' }],
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+        } catch {
+          return;
+        }
+        await refreshSessionFromMe(dispatch as AppDispatch);
+      },
     }),
     patchBranch: builder.mutation<Branch, { branchId: string; body: PatchBranchBody }>({
       query: ({ branchId, body }) => ({
@@ -37,8 +47,15 @@ export const branchesApi = baseApi.injectEndpoints({
         { type: 'Branch', id: 'LIST' },
         { type: 'Branch', id: arg.branchId },
         { type: 'PosMenu', id: arg.branchId },
-        'Me',
       ],
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+        } catch {
+          return;
+        }
+        await refreshSessionFromMe(dispatch as AppDispatch);
+      },
     }),
   }),
 });
