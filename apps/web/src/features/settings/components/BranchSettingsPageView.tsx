@@ -83,10 +83,10 @@ export function BranchSettingsPageView(props: BranchSettingsPageViewModel) {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-5">
+    <div className="grid w-full items-start gap-5 xl:grid-cols-2">
       <Link
         to="/dashboard/branches"
-        className="text-muted-foreground hover:text-foreground inline-flex w-fit items-center gap-1 text-sm"
+        className="text-muted-foreground hover:text-foreground inline-flex xl:col-span-2 w-fit items-center gap-1 text-sm"
       >
         <ArrowLeftIcon className="size-4 rtl:rotate-180" aria-hidden />
         {labels.back}
@@ -172,7 +172,7 @@ export function BranchSettingsPageView(props: BranchSettingsPageViewModel) {
           }
         />
       </SettingsSection>
-      <details className="group rounded-xl border bg-card">
+      <details className="group xl:col-span-2 rounded-xl border bg-card">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4">
           <span className="space-y-1">
             <span className="block text-base font-semibold">{labels.advancedTitle}</span>
@@ -257,7 +257,7 @@ export function BranchSettingsPageView(props: BranchSettingsPageViewModel) {
           </SettingsSection>
         </div>
       </details>
-      <div className="flex justify-end">
+      <div className="flex justify-end xl:col-span-2">
         <Button type="button" size="touch" disabled={!dirty || saving} onClick={onSave}>
           {labels.save}
         </Button>

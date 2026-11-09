@@ -52,7 +52,7 @@ export function RestaurantSettingsPageView(props: RestaurantSettingsPageViewMode
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-5">
+    <div className="grid w-full items-start gap-5 xl:grid-cols-2">
       <SettingsSection title={labels.title} description={labels.description}>
         <div className="space-y-2">
           <Label htmlFor="org-name">{labels.name}</Label>
@@ -129,7 +129,7 @@ export function RestaurantSettingsPageView(props: RestaurantSettingsPageViewMode
           </Select>
         </div>
       </SettingsSection>
-      <div className="flex justify-end">
+      <div className="flex justify-end xl:col-span-2">
         <Button type="button" size="touch" disabled={!dirty || saving} onClick={onSave}>
           {labels.save}
         </Button>
