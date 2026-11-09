@@ -84,7 +84,7 @@ export function useAppShell() {
           end: false,
         },
       );
-    } else {
+    } else if (canUseDashboard) {
       items.push({
         id: 'home',
         to: '/dashboard',
@@ -93,7 +93,8 @@ export function useAppShell() {
         end: true,
       });
     }
-    if (canReadMenu) {
+    // The dashboard menu editor is for people with dashboard access; cashiers use the menu inside the POS.
+    if (canReadMenu && canUseDashboard) {
       items.push({
         id: 'menu',
         to: '/dashboard/menu',
@@ -173,6 +174,7 @@ export function useAppShell() {
     canManageBranches,
     canOpenSettings,
     canReadMenu,
+    canUseDashboard,
     canReports,
     canUsePos,
     canUseKds,
