@@ -22,10 +22,7 @@ export function useBranchSettingsPage() {
   const { data, isLoading, isError } = useListBranchesQuery(undefined, { skip: !allowed });
   const [patchBranch, patchState] = usePatchBranchMutation();
 
-  const branch = useMemo(
-    () => data?.items.find((b) => b.id === branchId),
-    [branchId, data?.items],
-  );
+  const branch = useMemo(() => data?.items.find((b) => b.id === branchId), [branchId, data?.items]);
 
   const [payBeforeSend, setPayBeforeSend] = useState(false);
   const [acceptsCard, setAcceptsCard] = useState(true);
@@ -54,10 +51,7 @@ export function useBranchSettingsPage() {
     }
   }, [branch]);
 
-  const timezoneOptions = useMemo(
-    () => filterTimezoneOptions(timezoneQuery),
-    [timezoneQuery],
-  );
+  const timezoneOptions = useMemo(() => filterTimezoneOptions(timezoneQuery), [timezoneQuery]);
 
   const dirty = useMemo(() => {
     if (!branch) {
@@ -200,6 +194,13 @@ export function useBranchSettingsPage() {
     onTaxInclusiveChange: setTaxInclusive,
     dayStartHour,
     onDayStartHourChange: setDayStartHour,
+    uiLocale,
+    dayStartGroups: [
+      { label: t('settings.branch.dayPartNight'), hours: [0, 1, 2, 3, 4, 5] },
+      { label: t('settings.branch.dayPartMorning'), hours: [6, 7, 8, 9, 10, 11] },
+      { label: t('settings.branch.dayPartAfternoon'), hours: [12, 13, 14, 15, 16, 17] },
+      { label: t('settings.branch.dayPartEvening'), hours: [18, 19, 20, 21, 22, 23] },
+    ],
     timezone,
     onTimezoneChange: setTimezone,
     timezoneQuery,

@@ -12,6 +12,7 @@ import {
   Textarea,
 } from '@app/ui';
 
+import { DayStartPicker } from './DayStartPicker.js';
 import { SettingsSection, SettingsToggleRow } from './SettingsSection.js';
 import type { BranchSettingsPageViewModel } from '../hooks/use-branch-settings-page.js';
 
@@ -27,6 +28,8 @@ export function BranchSettingsPageView(props: BranchSettingsPageViewModel) {
     taxInclusive,
     onTaxInclusiveChange,
     dayStartHour,
+    uiLocale,
+    dayStartGroups,
     onDayStartHourChange,
     timezone,
     onTimezoneChange,
@@ -111,13 +114,12 @@ export function BranchSettingsPageView(props: BranchSettingsPageViewModel) {
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="day-start">{labels.dayStartHour}</Label>
-            <Input
+            <DayStartPicker
               id="day-start"
-              inputMode="numeric"
               value={dayStartHour}
-              onChange={(e) => {
-                onDayStartHourChange(e.target.value);
-              }}
+              onChange={onDayStartHourChange}
+              locale={uiLocale}
+              groups={dayStartGroups}
             />
             <p className="text-muted-foreground text-xs">{labels.dayStartHourHint}</p>
           </div>

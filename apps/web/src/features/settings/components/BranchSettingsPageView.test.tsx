@@ -20,6 +20,8 @@ function minimalBranchVm(
     onTaxInclusiveChange: () => {},
     dayStartHour: '4',
     onDayStartHourChange: () => {},
+    uiLocale: 'en',
+    dayStartGroups: [{ label: 'Night', hours: [0, 4] }],
     timezone: 'Asia/Riyadh',
     onTimezoneChange: () => {},
     timezoneQuery: '',
