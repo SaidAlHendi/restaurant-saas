@@ -234,6 +234,23 @@
     "perMonth": "/ شهر",
     "perBranchMonth": "/ فرع / شهر",
     "unlimited": "غير محدود",
+    "feature": {
+      "menu_multilang": "منيو بالعربية والإنجليزية",
+      "menu_branding": "هوية المنيو",
+      "menu_table_qr": "رمز QR لكل طاولة",
+      "pos_access": "الوصول إلى الكاشير",
+      "kds_access": "شاشة المطبخ",
+      "reports_basic": "التقارير الأساسية",
+      "reports_advanced": "التقارير المتقدمة",
+      "reports_export": "تصدير التقارير",
+      "branches_multi": "فروع متعددة",
+      "roles_custom": "أدوار مخصصة",
+      "ordering_table_qr": "الطلب من الطاولة",
+      "api_access": "الوصول إلى API",
+      "limit_products": "حد المنتجات",
+      "limit_users_per_branch": "الموظفون لكل فرع",
+      "limit_devices_per_branch": "الأجهزة لكل فرع"
+    },
     "columns": {
       "plan": "الباقة",
       "price": "السعر"

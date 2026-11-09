@@ -226,6 +226,23 @@
     "perMonth": "/ month",
     "perBranchMonth": "/ branch / month",
     "unlimited": "Unlimited",
+    "feature": {
+      "menu_multilang": "Menu in Arabic & English",
+      "menu_branding": "Menu branding",
+      "menu_table_qr": "Table QR codes",
+      "pos_access": "POS access",
+      "kds_access": "Kitchen display",
+      "reports_basic": "Basic reports",
+      "reports_advanced": "Advanced reports",
+      "reports_export": "Report export",
+      "branches_multi": "Multiple branches",
+      "roles_custom": "Custom roles",
+      "ordering_table_qr": "Order from table",
+      "api_access": "API access",
+      "limit_products": "Products limit",
+      "limit_users_per_branch": "Staff per branch",
+      "limit_devices_per_branch": "Devices per branch"
+    },
     "columns": {
       "plan": "Plan",
       "price": "Price"

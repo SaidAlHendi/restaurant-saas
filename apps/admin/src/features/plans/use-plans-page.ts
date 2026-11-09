@@ -17,6 +17,9 @@ export function usePlansPage() {
     featureKeys,
     isLoading: isFetching && !data,
     isError,
+    /** Readable, translated name for a feature key (falls back to the raw key). */
+    featureName: (key: string) =>
+      t(`plans.feature.${key.replaceAll('.', '_')}`, { defaultValue: key }),
     retry: () => void refetch(),
     formatPrice: (priceMinor: number, currency: string) => {
       try {

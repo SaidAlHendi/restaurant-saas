@@ -40,7 +40,7 @@ export default function PlansPage() {
             <TableHead>{t('plans.columns.price')}</TableHead>
             {vm.featureKeys.map((key) => (
               <TableHead key={key} className="whitespace-nowrap">
-                <span dir="ltr">{key}</span>
+                {vm.featureName(key)}
               </TableHead>
             ))}
           </TableRow>
