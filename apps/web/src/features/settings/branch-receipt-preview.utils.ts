@@ -1,6 +1,15 @@
 import type { OrderDetail, PosMenuPayload } from '@app/shared';
 
+import { buildPrintDocumentHtml, printLocaleFromUi } from '../../lib/print/print-document.js';
 import { renderReceiptHtml, type ReceiptPrintLabels } from '../../lib/print/receipt-html.js';
+
+/** Paper-on-gray look for the on-screen preview only; real printing ignores this. */
+const PREVIEW_CSS = `
+html { background: #eef0ec; }
+body { width: auto; padding: 16px; display: flex; justify-content: center; }
+.paper { width: 100%; max-width: 300px; background: #fff; padding: 18px 16px; border-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,.15); font-size: 13px; line-height: 1.6; }
+h1 { font-size: 17px; }
+`;
 
 export function branchReceiptPreviewHtml(input: {
   branchName: string;
@@ -66,7 +75,7 @@ export function branchReceiptPreviewHtml(input: {
       {
         id: '00000000-0000-4000-8000-000000000070',
         productId: '00000000-0000-4000-8000-000000000040',
-        productNameSnapshot: { en: 'Sample item' },
+        productNameSnapshot: { en: 'Sample item', ar: 'صنف تجريبي' },
         unitPriceMinor: 1000,
         quantity: 1,
         lineTotalMinor: 1000,
@@ -81,7 +90,7 @@ export function branchReceiptPreviewHtml(input: {
     payments: [],
   };
 
-  return renderReceiptHtml({
+  const bodyHtml = renderReceiptHtml({
     order,
     menu,
     tableLabel: null,
@@ -90,5 +99,12 @@ export function branchReceiptPreviewHtml(input: {
     formatMinor: input.formatMinor,
     printedAt: new Date('2026-04-01T10:05:00.000Z'),
     labels: input.labels,
+  });
+
+  return buildPrintDocumentHtml({
+    title: input.branchName,
+    bodyHtml: `<div class="paper">${bodyHtml}</div>`,
+    locale: printLocaleFromUi(input.locale),
+    extraCss: PREVIEW_CSS,
   });
 }

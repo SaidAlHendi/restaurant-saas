@@ -3,7 +3,7 @@ export const PRINT_80MM_STYLES = `
 @page { size: 80mm auto; margin: 2mm; }
 * { box-sizing: border-box; }
 body {
-  font-family: system-ui, sans-serif;
+  font-family: system-ui, 'Segoe UI', Tahoma, 'Noto Sans Arabic', 'Noto Naskh Arabic', Arial, sans-serif;
   font-size: 12px;
   line-height: 1.35;
   color: #000;
