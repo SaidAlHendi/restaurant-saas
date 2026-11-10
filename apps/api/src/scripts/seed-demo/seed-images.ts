@@ -75,7 +75,10 @@ async function downloadToCache(cacheFile: string, rawUrl: string): Promise<Buffe
       throw err;
     }
   }
-  const url = `${rawUrl}${rawUrl.includes('?') ? '&' : '?'}w=1200&q=80&fm=jpg`;
+  // Resize params are imgix (Unsplash) syntax; other providers (Pixabay) serve a fixed-size file.
+  const url = rawUrl.startsWith('https://images.unsplash.com/')
+    ? `${rawUrl}${rawUrl.includes('?') ? '&' : '?'}w=1200&q=80&fm=jpg`
+    : rawUrl;
   const res = await fetch(url);
   if (!res.ok) {
     throw new Error(`Image download failed: ${String(res.status)}`);
