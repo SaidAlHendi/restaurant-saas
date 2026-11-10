@@ -12,7 +12,7 @@ import {
 import { isMutationError } from '../menu-mutation-result.js';
 import { showMenuApiError } from '../show-menu-api-error.js';
 import {
-  EMPTY_MODIFIER_ROW,
+  emptyModifierRow,
   minSelectFromForm,
   useModifierGroupForm,
   type ModifierGroupFormValues,
@@ -98,7 +98,7 @@ export function useModifierGroupDialog(options: {
   const formProps: Omit<ModifierGroupFormDialogViewProps, 'open' | 'onOpenChange' | 'mode'> = {
     form: groupForm.form,
     modifierRows: groupForm.modifierRows,
-    emptyModifierRow: { ...EMPTY_MODIFIER_ROW },
+    emptyModifierRow: emptyModifierRow(org.locales),
     onSubmit: submit,
     isSaving:
       createGroupState.isLoading || patchGroupState.isLoading || createModifierState.isLoading,
@@ -122,9 +122,10 @@ export function useModifierGroupDialog(options: {
     summaryFor,
     modifiersTitle: t('menu.modifierGroups.form.modifiersTitle'),
     modifiersHelp: t('menu.modifierGroups.form.modifiersHelp'),
-    modifierNameLabel: t('menu.modifierGroups.form.modifierName', {
-      language: localeLabels[org.defaultLocale] ?? org.defaultLocale,
-    }),
+    modifierNameLabel: (locale) =>
+      t('menu.modifierGroups.form.modifierName', {
+        language: localeLabels[locale] ?? locale,
+      }),
     modifierPriceLabel: t('menu.modifiers.fields.priceDelta'),
     addRowLabel: t('menu.modifierGroups.form.addRow'),
     removeRowLabel: t('menu.modifierGroups.form.removeRow'),

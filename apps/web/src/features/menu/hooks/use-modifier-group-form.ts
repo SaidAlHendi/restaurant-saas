@@ -22,23 +22,26 @@ export function buildModifierGroupFormSchema(locales: string[], defaultLocale: s
       /** "Choose up to" — maps to maxSelect. */
       maxSelect: z.number().int().min(1),
       /**
-       * Choices typed while creating the group. Name is in the organization's default language;
-       * other languages can be added later under "Manage modifiers". Fully blank rows are ignored.
+       * Choices typed while creating the group. The default language is required; fully blank
+       * rows are ignored.
        */
       modifiers: z.array(
         z.object({
-          name: z.string(),
+          name: z.record(z.string(), z.string()),
           priceDeltaMinor: z.number().int(),
         }),
       ),
     })
     .superRefine((values, ctx) => {
       values.modifiers.forEach((row, index) => {
-        if (row.name.trim().length === 0 && row.priceDeltaMinor !== 0) {
+        if (
+          !isUsableModifierRow(row, defaultLocale) &&
+          (hasAnyText(row.name) || row.priceDeltaMinor !== 0)
+        ) {
           ctx.addIssue({
             code: 'custom',
             message: 'Modifier name is required',
-            path: ['modifiers', index, 'name'],
+            path: ['modifiers', index, 'name', defaultLocale],
           });
         }
       });
@@ -47,11 +50,25 @@ export function buildModifierGroupFormSchema(locales: string[], defaultLocale: s
 
 export type ModifierGroupFormValues = z.infer<ReturnType<typeof buildModifierGroupFormSchema>>;
 
-export const EMPTY_MODIFIER_ROW = { name: '', priceDeltaMinor: 0 } as const;
+/** A blank choice row with one empty name per enabled language. */
+export function emptyModifierRow(locales: string[]) {
+  const name: Record<string, string> = {};
+  for (const locale of locales) {
+    name[locale] = '';
+  }
+  return { name, priceDeltaMinor: 0 };
+}
 
-/** A row counts when it has a name; a price without a name is flagged by the form. */
-export function isUsableModifierRow(row: { name: string }): boolean {
-  return row.name.trim().length > 0;
+function hasAnyText(name: Record<string, string>): boolean {
+  return Object.values(name).some((value) => value.trim().length > 0);
+}
+
+/** A row counts when it has a name in the default language. */
+export function isUsableModifierRow(
+  row: { name: Record<string, string> },
+  defaultLocale: string,
+): boolean {
+  return (row.name[defaultLocale] ?? '').trim().length > 0;
 }
 
 /** Required → at least 1 (keeps an existing higher minimum); optional → 0. Never above max. */
@@ -86,7 +103,7 @@ export function useModifierGroupForm(options: {
       name: localizedRecordToFormDefaults(groupForForm?.name, org.locales),
       isRequired: (groupForForm?.minSelect ?? 0) >= 1,
       maxSelect: groupForForm?.maxSelect ?? 1,
-      modifiers: groupForForm ? [] : [{ ...EMPTY_MODIFIER_ROW }],
+      modifiers: groupForForm ? [] : [emptyModifierRow(org.locales)],
     };
   }, [groupForForm, org.locales]);
 
@@ -108,10 +125,12 @@ export function useModifierGroupForm(options: {
 
   /** Bodies for the modifiers typed in the dialog (blank rows dropped). */
   const toModifierBodies = (values: ModifierGroupFormValues) =>
-    values.modifiers.filter(isUsableModifierRow).map((row) => ({
-      name: localizedFormToApi({ [org.defaultLocale]: row.name.trim() }, org),
-      priceDeltaMinor: row.priceDeltaMinor,
-    }));
+    values.modifiers
+      .filter((row) => isUsableModifierRow(row, org.defaultLocale))
+      .map((row) => ({
+        name: localizedFormToApi(row.name, org),
+        priceDeltaMinor: row.priceDeltaMinor,
+      }));
 
   return { form, org, modifierRows, toGroupBody, toModifierBodies };
 }
