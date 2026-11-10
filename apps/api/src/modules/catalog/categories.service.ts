@@ -64,7 +64,7 @@ export class CategoriesService {
       await this.repo.replaceCategoryBranches(tx, row.id, ctx.orgId, availability.branchIds);
       return mapCategory(row, availability.branchIds);
     });
-    this.menuCache.afterCatalogChange(ctx.orgId);
+    await this.menuCache.afterCatalogChange(ctx.orgId);
     return result;
   }
 
@@ -104,7 +104,7 @@ export class CategoriesService {
       }
       return mapCategory(updated, availability ? availability.branchIds : currentBranchIds);
     });
-    this.menuCache.afterCatalogChange(ctx.orgId);
+    await this.menuCache.afterCatalogChange(ctx.orgId);
     return result;
   }
 
@@ -128,7 +128,7 @@ export class CategoriesService {
       }
       return (await this.mapMany(tx, [deleted]))[0];
     });
-    this.menuCache.afterCatalogChange(ctx.orgId);
+    await this.menuCache.afterCatalogChange(ctx.orgId);
     return result;
   }
 
@@ -146,7 +146,7 @@ export class CategoriesService {
       const rows = await this.repo.listCategories(tx, ctx.orgId);
       return { items: await this.mapMany(tx, rows) };
     });
-    this.menuCache.afterCatalogChange(ctx.orgId);
+    await this.menuCache.afterCatalogChange(ctx.orgId);
     return result;
   }
 }

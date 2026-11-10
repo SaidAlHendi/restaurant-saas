@@ -468,6 +468,8 @@
     "cart": {
       "title": "Cart",
       "empty": "Add products from the menu.",
+      "unavailable": "No longer available. Remove it to send the order.",
+      "unavailableRemoved": "Some items are no longer available and were removed.",
       "decreaseQty": "Decrease quantity",
       "increaseQty": "Increase quantity",
       "removeLine": "Remove line",

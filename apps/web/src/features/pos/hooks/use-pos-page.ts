@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { toast } from '@app/ui';
-import type { OrderDetail, OrderStatus } from '@app/shared';
+import type { CatalogRealtimePayload, OrderDetail, OrderStatus } from '@app/shared';
 
 import { baseApi } from '../../../app/api/base-api.js';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks.js';
@@ -31,6 +31,7 @@ import {
   ALL_CATEGORIES,
   lastLineOfProduct,
   quantityByProduct,
+  unavailableProductIds,
   visiblePosProducts,
 } from '../pos-catalog.utils.js';
 import { orderStatusBadgeTone } from '../../orders/orders-display.utils.js';
@@ -44,6 +45,8 @@ import { usePosOrderDetail } from './use-pos-order-detail.js';
 import { shouldShowSentToKitchenToast } from '../pos-payment-toast.utils.js';
 import { usePosPaymentDialog } from './use-pos-payment-dialog.js';
 import { usePosLockRequest } from '../pos-lock-context.js';
+
+const MENU_REFETCH_DEBOUNCE_MS = 500;
 
 export function usePosPage() {
   const { t, i18n } = useTranslation();
@@ -98,12 +101,42 @@ export function usePosPage() {
     [branchId, dispatch],
   );
   const onRealtimeResync = useCallback(() => {
-    dispatch(baseApi.util.invalidateTags(['Order']));
-  }, [dispatch]);
+    dispatch(
+      baseApi.util.invalidateTags(
+        branchId ? ['Order', { type: 'PosMenu', id: branchId }] : ['Order'],
+      ),
+    );
+  }, [branchId, dispatch]);
+  // A burst of catalog edits refetches the menu once.
+  const menuRefetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onCatalogUpdated = useCallback(
+    (payload: CatalogRealtimePayload) => {
+      if (payload.branchId !== branchId) {
+        return;
+      }
+      if (menuRefetchTimerRef.current !== null) {
+        clearTimeout(menuRefetchTimerRef.current);
+      }
+      menuRefetchTimerRef.current = setTimeout(() => {
+        menuRefetchTimerRef.current = null;
+        dispatch(baseApi.util.invalidateTags([{ type: 'PosMenu', id: payload.branchId }]));
+      }, MENU_REFETCH_DEBOUNCE_MS);
+    },
+    [branchId, dispatch],
+  );
+  useEffect(
+    () => () => {
+      if (menuRefetchTimerRef.current !== null) {
+        clearTimeout(menuRefetchTimerRef.current);
+      }
+    },
+    [],
+  );
   const realtime = useBranchRealtime({
     branchId,
     onEvent: onRealtimeEvent,
     onResync: onRealtimeResync,
+    onCatalogUpdated,
   });
 
   const { data: openOrdersData, isLoading: openOrdersLoading } = useListOrdersQuery(
@@ -125,6 +158,19 @@ export function usePosPage() {
   const clearAdditionLines = useCallback(() => {
     setAdditionLines([]);
   }, []);
+
+  // Items being added to a sent order that left the menu are dropped (the server would reject them).
+  useEffect(() => {
+    if (!menu || additionLines.length === 0) {
+      return;
+    }
+    const gone = unavailableProductIds(additionLines, menu.categories);
+    if (gone.size === 0) {
+      return;
+    }
+    setAdditionLines((prev) => prev.filter((line) => !gone.has(line.productId)));
+    toast.info(t('pos.cart.unavailableRemoved'));
+  }, [menu, additionLines, t]);
 
   const modifierSheet = usePosModifierSheet({
     locale,
@@ -401,8 +447,12 @@ export function usePosPage() {
     void onSendToKitchen();
   }, [onSendToKitchen]);
 
+  // A product that left the menu while it sat in the cart must be removed before sending.
+  const unavailableIds = menu ? unavailableProductIds(cart.lines, menu.categories) : new Set<string>();
+
   const cartLines = cart.lines.map((line) => ({
     localId: line.localId,
+    warning: unavailableIds.has(line.productId) ? t('pos.cart.unavailable') : undefined,
     imageUrl: imageByProductId.get(line.productId) ?? null,
     name: posLocalizedName(line.nameSnapshot, locale, defaultLocale),
     unitPriceLabel: formatMinor(line.unitPriceMinor),
@@ -501,7 +551,7 @@ export function usePosPage() {
 
   const sending = createState.isLoading;
   const showOfflineBanner = !isOnline || sendError;
-  const canSend = buildCreateOrderBody(cart) !== null;
+  const canSend = buildCreateOrderBody(cart) !== null && unavailableIds.size === 0;
 
   return {
     branchName,
