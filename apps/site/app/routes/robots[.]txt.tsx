@@ -1,14 +1,9 @@
 import { getSiteEnv } from '../lib/env.server.js';
+import { buildRobotsTxt } from '../lib/sitemap.js';
 
 export function loader() {
   const { PUBLIC_SITE_URL } = getSiteEnv();
-  const base = PUBLIC_SITE_URL.replace(/\/$/, '');
-  const body = `User-agent: *
-Allow: /
-
-Sitemap: ${base}/sitemap.xml
-`;
-  return new Response(body, {
+  return new Response(buildRobotsTxt(PUBLIC_SITE_URL), {
     headers: {
       'Content-Type': 'text/plain; charset=utf-8',
       'Cache-Control': 'public, s-maxage=86400',

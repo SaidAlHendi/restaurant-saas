@@ -76,17 +76,30 @@ public endpoints in route `loader`s (server side). No Redux here: pages are most
 
 ```
 apps/site/app/
-  root.tsx                      # <html lang dir>, global meta, fonts
+  root.tsx                      # <html lang dir>, global meta, icons, manifest
   routes/
-    _index.tsx                  # marketing home (prerendered)
-    pricing.tsx  features.tsx   # prerendered
-    $locale.m.$orgSlug.tsx      # restaurant menu (SSR, cached at CDN)
-    $locale.m.$orgSlug.$branchSlug.tsx
-    sitemap[.]xml.tsx           # all published restaurants and locales
+    home.tsx                    # `/` -> 302 to /ar or /en by Accept-Language (Vary: Accept-Language)
+    locale-home.tsx             # `/:locale` landing page (SSR) + JSON-LD
+    locale-privacy.tsx          # `/:locale/privacy`, `/:locale/terms` (indexable documents)
+    locale-terms.tsx
+    locale-thanks.tsx           # `/:locale/thanks` conversion page (noindex, no-store)
+    locale-menu.tsx             # `/:locale/m/:orgSlug` restaurant menu (SSR, cached at CDN)
+    locale-menu-branch.tsx
+    sitemap[.]xml.tsx           # landing + legal pages with hreflang alternates, and published menus
     robots[.]txt.tsx
+  features/landing/             # landing page: content (ar/en .ts), components (UI only), hooks, css, seo
+  features/consent/             # cookie banner and consent-gated tags (GA4, Google Ads, Meta pixel)
   lib/api.server.ts             # fetch public API, Zod-validate
-  lib/seo.ts                    # meta builders
+  lib/locale.ts                 # ar/en negotiation and paths
+  lib/seo.ts  lib/sitemap.ts    # meta builders, sitemap.xml and robots.txt builders
+  lib/attribution.ts            # first-touch utm_*, gclid, fbclid (kept in sessionStorage for the lead form)
+apps/site/scripts/build-landing-media.mjs   # `pnpm --filter @app/site media`: AVIF/WebP/JPEG + manifest
 ```
+
+Landing page text lives in typed content files (`features/landing/content/ar.ts`, `en.ts`), not in `.tsx`. Fonts
+(Lalezar, IBM Plex Sans Arabic) are self-hosted from `public/fonts`. Tracking IDs (`PUBLIC_GA4_ID`,
+`PUBLIC_GOOGLE_ADS_ID`, `PUBLIC_META_PIXEL_ID`) are optional; no third-party script loads before consent.
+Launch steps: `docs/launch/landing-checklist.md`.
 
 ### SEO requirements (every public page)
 - Full HTML from the server (SSR or prerender); content readable with JavaScript disabled.
