@@ -1,4 +1,4 @@
-import { and, asc, eq, gt, inArray, isNull, or, sql } from 'drizzle-orm';
+import { and, asc, eq, getTableColumns, gt, inArray, isNull, or, sql } from 'drizzle-orm';
 import { Injectable } from '@nestjs/common';
 
 import {
@@ -81,7 +81,11 @@ export class CatalogRepository {
     return firstRow(await tx.insert(categories).values(row).returning());
   }
 
-  async updateCategory(tx: DrizzleTx, categoryId: string, patch: Partial<typeof categories.$inferInsert>) {
+  async updateCategory(
+    tx: DrizzleTx,
+    categoryId: string,
+    patch: Partial<typeof categories.$inferInsert>,
+  ) {
     const rows = await tx
       .update(categories)
       .set({ ...patch, updatedAt: new Date() })
@@ -204,7 +208,11 @@ export class CatalogRepository {
     return firstRow(await tx.insert(products).values(row).returning());
   }
 
-  async updateProduct(tx: DrizzleTx, productId: string, patch: Partial<typeof products.$inferInsert>) {
+  async updateProduct(
+    tx: DrizzleTx,
+    productId: string,
+    patch: Partial<typeof products.$inferInsert>,
+  ) {
     const rows = await tx
       .update(products)
       .set({ ...patch, updatedAt: new Date() })
@@ -258,9 +266,25 @@ export class CatalogRepository {
     return (result[0]?.max ?? -1) + 1;
   }
 
+  /** Groups with how many modifiers they hold and how many (non-deleted) products use them. */
   async listModifierGroups(tx: DrizzleTx, orgId: string) {
+    // Inside the subqueries Drizzle would print a bare "id" (the inner table's), so the outer
+    // group id is written out qualified.
+    const outerGroupId = sql.raw('"modifier_groups"."id"');
     return tx
-      .select()
+      .select({
+        ...getTableColumns(modifierGroups),
+        modifierCount: sql<number>`(
+          select count(*)::int from ${modifiers}
+          where ${modifiers.groupId} = ${outerGroupId} and ${modifiers.deletedAt} is null
+        )`,
+        productCount: sql<number>`(
+          select count(*)::int from ${productModifierGroups}
+          inner join ${products} on ${products.id} = ${productModifierGroups.productId}
+          where ${productModifierGroups.groupId} = ${outerGroupId}
+            and ${products.deletedAt} is null
+        )`,
+      })
       .from(modifierGroups)
       .where(and(eq(modifierGroups.orgId, orgId), isNull(modifierGroups.deletedAt)))
       .orderBy(asc(modifierGroups.id));
@@ -332,7 +356,11 @@ export class CatalogRepository {
     return firstRow(await tx.insert(modifiers).values(row).returning());
   }
 
-  async updateModifier(tx: DrizzleTx, modifierId: string, patch: Partial<typeof modifiers.$inferInsert>) {
+  async updateModifier(
+    tx: DrizzleTx,
+    modifierId: string,
+    patch: Partial<typeof modifiers.$inferInsert>,
+  ) {
     const rows = await tx
       .update(modifiers)
       .set({ ...patch, updatedAt: new Date() })
@@ -374,6 +402,29 @@ export class CatalogRepository {
     return (result[0]?.max ?? -1) + 1;
   }
 
+  /** productId → number of linked (non-deleted) modifier groups. */
+  async countModifierGroupsByProduct(tx: DrizzleTx, productIds: string[]) {
+    const counts = new Map<string, number>();
+    if (productIds.length === 0) {
+      return counts;
+    }
+    const rows = await tx
+      .select({
+        productId: productModifierGroups.productId,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(productModifierGroups)
+      .innerJoin(modifierGroups, eq(productModifierGroups.groupId, modifierGroups.id))
+      .where(
+        and(inArray(productModifierGroups.productId, productIds), isNull(modifierGroups.deletedAt)),
+      )
+      .groupBy(productModifierGroups.productId);
+    for (const row of rows) {
+      counts.set(row.productId, row.count);
+    }
+    return counts;
+  }
+
   async listProductModifierGroups(tx: DrizzleTx, productId: string) {
     return tx
       .select({
@@ -382,12 +433,7 @@ export class CatalogRepository {
       })
       .from(productModifierGroups)
       .innerJoin(modifierGroups, eq(productModifierGroups.groupId, modifierGroups.id))
-      .where(
-        and(
-          eq(productModifierGroups.productId, productId),
-          isNull(modifierGroups.deletedAt),
-        ),
-      )
+      .where(and(eq(productModifierGroups.productId, productId), isNull(modifierGroups.deletedAt)))
       .orderBy(asc(productModifierGroups.sortOrder), asc(modifierGroups.id));
   }
 
@@ -478,10 +524,7 @@ export class CatalogRepository {
       .from(productModifierGroups)
       .innerJoin(modifierGroups, eq(productModifierGroups.groupId, modifierGroups.id))
       .where(
-        and(
-          inArray(productModifierGroups.productId, productIds),
-          isNull(modifierGroups.deletedAt),
-        ),
+        and(inArray(productModifierGroups.productId, productIds), isNull(modifierGroups.deletedAt)),
       )
       .orderBy(
         asc(productModifierGroups.productId),
@@ -519,7 +562,12 @@ export class CatalogRepository {
     return groupBranchIds(rows, 'productId');
   }
 
-  async replaceProductBranches(tx: DrizzleTx, productId: string, orgId: string, branchIds: string[]) {
+  async replaceProductBranches(
+    tx: DrizzleTx,
+    productId: string,
+    orgId: string,
+    branchIds: string[],
+  ) {
     await tx.delete(productBranches).where(eq(productBranches.productId, productId));
     if (branchIds.length === 0) {
       return;
@@ -529,7 +577,10 @@ export class CatalogRepository {
       .values(branchIds.map((branchId) => ({ productId, branchId, orgId })));
   }
 
-  async listCategoryBranchIds(tx: DrizzleTx, categoryIds: string[]): Promise<Map<string, string[]>> {
+  async listCategoryBranchIds(
+    tx: DrizzleTx,
+    categoryIds: string[],
+  ): Promise<Map<string, string[]>> {
     if (categoryIds.length === 0) {
       return new Map();
     }
@@ -541,7 +592,12 @@ export class CatalogRepository {
     return groupBranchIds(rows, 'categoryId');
   }
 
-  async replaceCategoryBranches(tx: DrizzleTx, categoryId: string, orgId: string, branchIds: string[]) {
+  async replaceCategoryBranches(
+    tx: DrizzleTx,
+    categoryId: string,
+    orgId: string,
+    branchIds: string[],
+  ) {
     await tx.delete(categoryBranches).where(eq(categoryBranches.categoryId, categoryId));
     if (branchIds.length === 0) {
       return;
@@ -552,18 +608,16 @@ export class CatalogRepository {
   }
 
   /** Whether the product and its category are both shown in the branch. */
-  async isProductShownInBranch(tx: DrizzleTx, productId: string, branchId: string): Promise<boolean> {
+  async isProductShownInBranch(
+    tx: DrizzleTx,
+    productId: string,
+    branchId: string,
+  ): Promise<boolean> {
     const rows = await tx
       .select({ id: products.id })
       .from(products)
       .innerJoin(categories, eq(categories.id, products.categoryId))
-      .where(
-        and(
-          eq(products.id, productId),
-          productInBranch(branchId),
-          categoryInBranch(branchId),
-        ),
-      )
+      .where(and(eq(products.id, productId), productInBranch(branchId), categoryInBranch(branchId)))
       .limit(1);
     return rows.length > 0;
   }

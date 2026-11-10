@@ -51,7 +51,14 @@ export const productListQuerySchema = cursorListQuerySchema.extend({
 
 export type ProductListQuery = z.infer<typeof productListQuerySchema>;
 
-export const productListResponseSchema = cursorListResponseSchema(productSchema);
+/** List rows also carry how many modifier groups are linked ("Has options" badge). */
+export const productListItemSchema = productSchema.extend({
+  modifierGroupCount: z.number().int().min(0),
+});
+
+export type ProductListItem = z.infer<typeof productListItemSchema>;
+
+export const productListResponseSchema = cursorListResponseSchema(productListItemSchema);
 
 export const createProductBodySchema = z
   .object({

@@ -59,11 +59,7 @@ export class ProductsService {
     return this.repo.listProductBranchIds(tx, productIds);
   }
 
-  private async mapOne(
-    tx: DrizzleTx,
-    row: Parameters<typeof mapProduct>[0],
-    currency: string,
-  ) {
+  private async mapOne(tx: DrizzleTx, row: Parameters<typeof mapProduct>[0], currency: string) {
     const ids = await this.branchIdsFor(tx, [row.id]);
     return mapProduct(row, currency, this.storage, ids.get(row.id) ?? []);
   }
@@ -77,9 +73,7 @@ export class ProductsService {
     const groups = await this.repo.listProductModifierGroups(tx, productId);
     return {
       ...(await this.mapOne(tx, product, org.defaultCurrency)),
-      modifierGroups: groups.map(({ group, link }) =>
-        mapModifierGroup(group, link.sortOrder),
-      ),
+      modifierGroups: groups.map(({ group, link }) => mapModifierGroup(group, link.sortOrder)),
     };
   }
 
@@ -113,17 +107,24 @@ export class ProductsService {
         tx,
         page.map((r) => r.id),
       );
+      const groupCounts = await this.repo.countModifierGroupsByProduct(
+        tx,
+        page.map((r) => r.id),
+      );
       return {
-        items: page.map((row) =>
-          mapProduct(row, org.defaultCurrency, this.storage, branchIds.get(row.id) ?? []),
-        ),
+        items: page.map((row) => ({
+          ...mapProduct(row, org.defaultCurrency, this.storage, branchIds.get(row.id) ?? []),
+          modifierGroupCount: groupCounts.get(row.id) ?? 0,
+        })),
         nextCursor,
       };
     });
   }
 
   async get(ctx: RequestContext, productId: string) {
-    return withOrg(this.db, ctx.orgId, async (tx) => this.buildProductDetail(tx, ctx.orgId, productId));
+    return withOrg(this.db, ctx.orgId, async (tx) =>
+      this.buildProductDetail(tx, ctx.orgId, productId),
+    );
   }
 
   async create(ctx: RequestContext, body: CreateProductBody) {
@@ -181,11 +182,7 @@ export class ProductsService {
       let sortOrder: number | undefined;
       if (body.categoryId !== undefined && body.categoryId !== existing.categoryId) {
         await this.assertCategoryAvailable(tx, body.categoryId);
-        sortOrder = await this.repo.nextProductSortOrderInCategory(
-          tx,
-          ctx.orgId,
-          body.categoryId,
-        );
+        sortOrder = await this.repo.nextProductSortOrderInCategory(tx, ctx.orgId, body.categoryId);
       }
 
       const touchesBranches =
@@ -251,7 +248,10 @@ export class ProductsService {
         ctx.orgId,
         body.categoryId,
       );
-      validateReorderIds(body.orderedIds, locked.map((r) => r.id));
+      validateReorderIds(
+        body.orderedIds,
+        locked.map((r) => r.id),
+      );
       for (let i = 0; i < body.orderedIds.length; i += 1) {
         const id = body.orderedIds[i];
         if (id) {
@@ -276,7 +276,11 @@ export class ProductsService {
     return result;
   }
 
-  async setModifierGroups(ctx: RequestContext, productId: string, body: SetProductModifierGroupsBody) {
+  async setModifierGroups(
+    ctx: RequestContext,
+    productId: string,
+    body: SetProductModifierGroupsBody,
+  ) {
     try {
       assertNoDuplicateIds(body.groupIds, 'groupIds');
     } catch (err: unknown) {

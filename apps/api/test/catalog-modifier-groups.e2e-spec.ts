@@ -18,6 +18,53 @@ describe('Catalog modifier groups (e2e)', () => {
     await app.close();
   });
 
+  it('list reports how many modifiers a group holds and how many products use it', async () => {
+    const owner = await asDemoOwner(agent);
+    const category = await owner.post('/v1/categories').send({ name: { en: 'Cnt', ar: 'عد' } });
+    expect(category.status).toBe(201);
+    const categoryId = (category.body as { id: string }).id;
+    const group = await owner.post('/v1/modifier-groups').send({
+      name: { en: 'Counted', ar: 'معدود' },
+      minSelect: 0,
+      maxSelect: 2,
+    });
+    const groupId = (group.body as { id: string }).id;
+    await owner.post(`/v1/modifier-groups/${groupId}/modifiers`).send({
+      name: { en: 'A', ar: 'أ' },
+      priceDeltaMinor: 0,
+    });
+    await owner.post(`/v1/modifier-groups/${groupId}/modifiers`).send({
+      name: { en: 'B', ar: 'ب' },
+      priceDeltaMinor: 100,
+    });
+    const product = await owner.post('/v1/products').send({
+      categoryId,
+      name: { en: 'Counted dish', ar: 'طبق' },
+      priceMinor: 1000,
+    });
+    const productId = (product.body as { id: string }).id;
+    await owner.put(`/v1/products/${productId}/modifier-groups`).send({ groupIds: [groupId] });
+
+    const find = async () => {
+      const list = await owner.get('/v1/modifier-groups');
+      expect(list.status).toBe(200);
+      return (
+        list.body as { items: { id: string; modifierCount: number; productCount: number }[] }
+      ).items.find((g) => g.id === groupId);
+    };
+    expect(await find()).toMatchObject({ modifierCount: 2, productCount: 1 });
+
+    const listed = await owner.get(`/v1/products?categoryId=${categoryId}`);
+    expect(
+      (listed.body as { items: { id: string; modifierGroupCount: number }[] }).items.find(
+        (item) => item.id === productId,
+      )?.modifierGroupCount,
+    ).toBe(1);
+
+    await owner.delete(`/v1/products/${productId}`);
+    expect(await find()).toMatchObject({ modifierCount: 2, productCount: 0 });
+  });
+
   it('happy path group and modifier CRUD with reorder', async () => {
     const owner = await asDemoOwner(agent);
     const group = await owner.post('/v1/modifier-groups').send({

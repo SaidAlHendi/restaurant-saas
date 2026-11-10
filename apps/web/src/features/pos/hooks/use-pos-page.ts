@@ -22,11 +22,7 @@ import {
   selectSessionOrg,
 } from '../../session/session.selectors.js';
 import { useListDiningTablesQuery } from '../../tables/tables.api.js';
-import {
-  ordersApi,
-  useCreateOrderMutation,
-  useListOrdersQuery,
-} from '../../orders/orders.api.js';
+import { ordersApi, useCreateOrderMutation, useListOrdersQuery } from '../../orders/orders.api.js';
 import {
   ALL_CATEGORIES,
   lastLineOfProduct,
@@ -448,7 +444,9 @@ export function usePosPage() {
   }, [onSendToKitchen]);
 
   // A product that left the menu while it sat in the cart must be removed before sending.
-  const unavailableIds = menu ? unavailableProductIds(cart.lines, menu.categories) : new Set<string>();
+  const unavailableIds = menu
+    ? unavailableProductIds(cart.lines, menu.categories)
+    : new Set<string>();
 
   const cartLines = cart.lines.map((line) => ({
     localId: line.localId,
@@ -661,6 +659,20 @@ export function usePosPage() {
       locale,
       defaultLocale,
       validationMessage: t('pos.modifiers.invalid'),
+      groupHint: (group: { minSelect: number; maxSelect: number }) => {
+        if (group.minSelect >= 1 && group.maxSelect === 1) {
+          return t('pos.modifiers.hintRequiredOne');
+        }
+        if (group.minSelect >= 1) {
+          return t('pos.modifiers.hintRequiredRange', {
+            min: group.minSelect,
+            max: group.maxSelect,
+          });
+        }
+        return group.maxSelect === 1
+          ? t('pos.modifiers.hintOptionalOne')
+          : t('pos.modifiers.hintOptionalUpTo', { max: group.maxSelect });
+      },
       addLabel: t('pos.modifiers.addToCart'),
       quantityLabel: t('pos.modifiers.quantity'),
       noteLabel: t('pos.modifiers.note'),

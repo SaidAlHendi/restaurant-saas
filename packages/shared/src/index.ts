@@ -51,11 +51,7 @@ export type { MeResponse } from './auth/me.js';
 export { switchOrgBodySchema, switchOrgResponseSchema } from './auth/switch-org.js';
 export type { SwitchOrgBody, SwitchOrgResponse } from './auth/switch-org.js';
 
-export {
-  canAssignRole,
-  canInviteRole,
-  canManageMember,
-} from './auth/staff-rules.js';
+export { canAssignRole, canInviteRole, canManageMember } from './auth/staff-rules.js';
 export type {
   CanManageMemberResult,
   StaffRulesActor,
@@ -129,7 +125,10 @@ export {
 } from './branches/branch.js';
 export type { Branch, CreateBranchBody, PatchBranchBody } from './branches/branch.js';
 
-export { membershipListItemSchema, membershipListResponseSchema } from './memberships/membership.js';
+export {
+  membershipListItemSchema,
+  membershipListResponseSchema,
+} from './memberships/membership.js';
 export type { MembershipListItem } from './memberships/membership.js';
 
 export {
@@ -148,10 +147,7 @@ export type { OrgLocaleCode } from './i18n/org-locales.js';
 
 export { currencyDigits, currencySymbol, formatMinor } from './money/currency.js';
 export { formatMoney, intlLocaleForUi } from './money/format-money.js';
-export {
-  computeLineTotalMinor,
-  computeOrderTotals,
-} from './money/order-totals.js';
+export { computeLineTotalMinor, computeOrderTotals } from './money/order-totals.js';
 export type { OrderLineForTotals, OrderTotals, OrderTotalsInput } from './money/order-totals.js';
 export { computeDueMinor, computePaymentStatus } from './money/payment-status.js';
 
@@ -188,13 +184,19 @@ export {
   branchAvailabilityInputValid,
 } from './catalog/branch-availability.js';
 export type { BranchAvailabilityInput } from './catalog/branch-availability.js';
-export type { Category, CreateCategoryBody, PatchCategoryBody, ReorderBody } from './catalog/category.js';
+export type {
+  Category,
+  CreateCategoryBody,
+  PatchCategoryBody,
+  ReorderBody,
+} from './catalog/category.js';
 
 export {
   productSchema,
   productDetailSchema,
   productListQuerySchema,
   productListResponseSchema,
+  productListItemSchema,
   createProductBodySchema,
   patchProductBodySchema,
   reorderProductsBodySchema,
@@ -205,6 +207,7 @@ export type {
   Product,
   ProductDetail,
   ProductListQuery,
+  ProductListItem,
   CreateProductBody,
   PatchProductBody,
   ReorderProductsBody,
@@ -216,6 +219,7 @@ export {
   modifierGroupSchema,
   modifierGroupDetailSchema,
   modifierGroupListResponseSchema,
+  modifierGroupListItemSchema,
   createModifierGroupBodySchema,
   patchModifierGroupBodySchema,
   createModifierBodySchema,
@@ -226,6 +230,7 @@ export type {
   Modifier,
   ModifierGroup,
   ModifierGroupDetail,
+  ModifierGroupListItem,
   CreateModifierGroupBody,
   PatchModifierGroupBody,
   CreateModifierBody,
@@ -242,12 +247,7 @@ export {
   paymentStatusSchema,
   orderItemStatusSchema,
 } from './orders/enums.js';
-export type {
-  OrderType,
-  OrderStatus,
-  PaymentStatus,
-  OrderItemStatus,
-} from './orders/enums.js';
+export type { OrderType, OrderStatus, PaymentStatus, OrderItemStatus } from './orders/enums.js';
 
 export {
   orderRealtimeChangeSchema,
@@ -291,17 +291,10 @@ export {
   orderEventSchema,
   orderEventListResponseSchema,
 } from './orders/order.js';
-export {
-  createPaymentBodySchema,
-  paymentSchema,
-  paymentMethodSchema,
-} from './orders/payment.js';
+export { createPaymentBodySchema, paymentSchema, paymentMethodSchema } from './orders/payment.js';
 export type { CreatePaymentBody, Payment, PaymentMethod } from './orders/payment.js';
 export { PAYMENT_METHODS_SORTED, sortPaymentMethods } from './orders/payment-methods.js';
-export {
-  businessDateSchema,
-  inclusiveBusinessDaySpan,
-} from './dates/business-date.js';
+export { businessDateSchema, inclusiveBusinessDaySpan } from './dates/business-date.js';
 export type { BusinessDate } from './dates/business-date.js';
 export {
   dailyReportQuerySchema,

@@ -36,8 +36,16 @@ export const modifierGroupSummarySchema = modifierGroupSchema.extend({
   sortOrder: z.number().int(),
 });
 
+/** List rows also say how many modifiers the group holds and how many products use it. */
+export const modifierGroupListItemSchema = modifierGroupSchema.extend({
+  modifierCount: z.number().int().min(0),
+  productCount: z.number().int().min(0),
+});
+
+export type ModifierGroupListItem = z.infer<typeof modifierGroupListItemSchema>;
+
 export const modifierGroupListResponseSchema = z.object({
-  items: z.array(modifierGroupSchema),
+  items: z.array(modifierGroupListItemSchema),
 });
 
 export const createModifierGroupBodySchema = z
