@@ -22,8 +22,7 @@ const sampleLine: CartLineInput = {
 function createTestStore() {
   return configureStore({
     reducer: { cart: cartSlice.reducer },
-    middleware: (getDefault) =>
-      getDefault().concat(cartPersistenceListener.middleware),
+    middleware: (getDefault) => getDefault().concat(cartPersistenceListener.middleware),
   });
 }
 
@@ -72,5 +71,44 @@ describe('cart slice', () => {
     storeB.dispatch(cartActions.initCartForBranch(branchB));
     storeB.dispatch(cartActions.replaceCartBranch(branchA));
     expect(storeB.getState().cart.lines).toHaveLength(1);
+  });
+});
+
+describe('cart slice replaceLine', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  const withMod = (id: string, quantity = 1): CartLineInput => ({
+    ...sampleLine,
+    modifierIds: [id],
+    modifierNames: { [id]: { en: id } },
+    quantity,
+  });
+
+  it('replaces a line in place keeping its position', () => {
+    const store = createTestStore();
+    store.dispatch(cartActions.initCartForBranch(branchA));
+    store.dispatch(cartActions.addLine(withMod('a')));
+    store.dispatch(cartActions.addLine({ ...sampleLine, productId: 'other' }));
+    const first = store.getState().cart.lines[0];
+    if (!first) throw new Error('missing line');
+    store.dispatch(cartActions.replaceLine({ localId: first.localId, line: withMod('b', 2) }));
+    const lines = store.getState().cart.lines;
+    expect(lines).toHaveLength(2);
+    expect(lines[0]).toMatchObject({ localId: first.localId, modifierIds: ['b'], quantity: 2 });
+  });
+
+  it('merges into an identical line', () => {
+    const store = createTestStore();
+    store.dispatch(cartActions.initCartForBranch(branchA));
+    store.dispatch(cartActions.addLine(withMod('a')));
+    store.dispatch(cartActions.addLine(withMod('b')));
+    const first = store.getState().cart.lines[0];
+    if (!first) throw new Error('missing line');
+    store.dispatch(cartActions.replaceLine({ localId: first.localId, line: withMod('b') }));
+    const lines = store.getState().cart.lines;
+    expect(lines).toHaveLength(1);
+    expect(lines[0]?.quantity).toBe(2);
   });
 });

@@ -216,6 +216,16 @@ export function usePosPage() {
     return map;
   }, [menu]);
 
+  const productById = useMemo(() => {
+    const map = new Map<string, PosMenuProduct>();
+    for (const category of menu?.categories ?? []) {
+      for (const product of category.products) {
+        map.set(product.id, product);
+      }
+    }
+    return map;
+  }, [menu]);
+
   const currency = menu?.branch.currency ?? org?.defaultCurrency ?? 'USD';
 
   const totals = useMemo(() => {
@@ -448,36 +458,46 @@ export function usePosPage() {
     ? unavailableProductIds(cart.lines, menu.categories)
     : new Set<string>();
 
-  const cartLines = cart.lines.map((line) => ({
-    localId: line.localId,
-    warning: unavailableIds.has(line.productId) ? t('pos.cart.unavailable') : undefined,
-    imageUrl: imageByProductId.get(line.productId) ?? null,
-    name: posLocalizedName(line.nameSnapshot, locale, defaultLocale),
-    unitPriceLabel: formatMinor(line.unitPriceMinor),
-    lineTotalLabel: formatMinor(line.unitPriceMinor * line.quantity),
-    quantity: line.quantity,
-    modifiers: line.modifierIds.map((id) => ({
-      id,
-      label: posLocalizedName(line.modifierNames[id] ?? { en: id }, locale, defaultLocale),
-    })),
-    note: line.note,
-    onIncrease: () => {
-      dispatch(
-        cartActions.updateLineQuantity({ localId: line.localId, quantity: line.quantity + 1 }),
-      );
-    },
-    onDecrease: () => {
-      dispatch(
-        cartActions.updateLineQuantity({ localId: line.localId, quantity: line.quantity - 1 }),
-      );
-    },
-    onRemove: () => {
-      dispatch(cartActions.removeLine(line.localId));
-    },
-    decreaseLabel: t('pos.cart.decreaseQty'),
-    increaseLabel: t('pos.cart.increaseQty'),
-    removeLabel: t('pos.cart.removeLine'),
-  }));
+  const cartLines = cart.lines.map((line) => {
+    const menuProduct = productById.get(line.productId);
+    const canEdit = menuProduct !== undefined && menuProduct.modifierGroups.length > 0;
+    return {
+      localId: line.localId,
+      onEdit: canEdit
+        ? () => {
+            modifierSheet.openForLine(menuProduct, line);
+          }
+        : undefined,
+      editLabel: t('pos.cart.editLine'),
+      warning: unavailableIds.has(line.productId) ? t('pos.cart.unavailable') : undefined,
+      imageUrl: imageByProductId.get(line.productId) ?? null,
+      name: posLocalizedName(line.nameSnapshot, locale, defaultLocale),
+      unitPriceLabel: formatMinor(line.unitPriceMinor),
+      lineTotalLabel: formatMinor(line.unitPriceMinor * line.quantity),
+      quantity: line.quantity,
+      modifiers: line.modifierIds.map((id) => ({
+        id,
+        label: posLocalizedName(line.modifierNames[id] ?? { en: id }, locale, defaultLocale),
+      })),
+      note: line.note,
+      onIncrease: () => {
+        dispatch(
+          cartActions.updateLineQuantity({ localId: line.localId, quantity: line.quantity + 1 }),
+        );
+      },
+      onDecrease: () => {
+        dispatch(
+          cartActions.updateLineQuantity({ localId: line.localId, quantity: line.quantity - 1 }),
+        );
+      },
+      onRemove: () => {
+        dispatch(cartActions.removeLine(line.localId));
+      },
+      decreaseLabel: t('pos.cart.decreaseQty'),
+      increaseLabel: t('pos.cart.increaseQty'),
+      removeLabel: t('pos.cart.removeLine'),
+    };
+  });
 
   // While adding items to a sent order, the cards count the additions, not the cart.
   const stepperLines = isAddingItems ? additionLines : cart.lines;
@@ -673,7 +693,9 @@ export function usePosPage() {
           ? t('pos.modifiers.hintOptionalOne')
           : t('pos.modifiers.hintOptionalUpTo', { max: group.maxSelect });
       },
-      addLabel: t('pos.modifiers.addToCart'),
+      addLabel: modifierSheet.isEditing
+        ? t('pos.modifiers.saveChanges')
+        : t('pos.modifiers.addToCart'),
       quantityLabel: t('pos.modifiers.quantity'),
       noteLabel: t('pos.modifiers.note'),
       notePlaceholder: t('pos.modifiers.notePlaceholder'),
