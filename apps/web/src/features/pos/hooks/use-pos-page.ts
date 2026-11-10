@@ -159,6 +159,19 @@ export function usePosPage() {
     setAdditionLines([]);
   }, []);
 
+  // Items being added to a sent order that left the menu are dropped (the server would reject them).
+  useEffect(() => {
+    if (!menu || additionLines.length === 0) {
+      return;
+    }
+    const gone = unavailableProductIds(additionLines, menu.categories);
+    if (gone.size === 0) {
+      return;
+    }
+    setAdditionLines((prev) => prev.filter((line) => !gone.has(line.productId)));
+    toast.info(t('pos.cart.unavailableRemoved'));
+  }, [menu, additionLines, t]);
+
   const modifierSheet = usePosModifierSheet({
     locale,
     defaultLocale,
