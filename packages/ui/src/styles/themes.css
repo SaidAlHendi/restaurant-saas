@@ -1,7 +1,7 @@
 /*
  * Themes: "cupcake" (light, default) and "forest" (dark), mapped onto shadcn/ui tokens.
  * Theme ids are kept for saved preferences; the palette is the Sahtain design (sahtain-design):
- * warm off-white canvas, white surfaces, deep forest-green brand, and 1px borders. Radii stay rounded (set in the restyle).
+ * Cosmic Latte light palette (mocha cream surfaces, deep burgundy brand; dark theme unchanged), and 1px borders. Radii stay rounded (set in the restyle).
  * Apply with <html data-theme="cupcake|forest">.
  * Components must use these tokens through Tailwind classes (bg-background, text-primary, ...),
  * never raw colors.
@@ -13,23 +13,24 @@
 :root,
 [data-theme='cupcake'] {
   color-scheme: light;
-  --canvas: #f8f9f5;
-  --base-100: #ffffff;
-  --base-200: #eef2ed;
-  --base-300: #dfe6df;
-  --base-content: #171b18;
-  --brand-primary: #173f32;
+  /* Cosmic latte palette: Cosmic Latte #B7AB9A, Mocha Cream #E8DCC6, Deep Burgundy #722F37. */
+  --canvas: #f3ecdf;
+  --base-100: #fbf8f2;
+  --base-200: #e8dcc6;
+  --base-300: #d9ccb4;
+  --base-content: #2b1f1c;
+  --brand-primary: #722f37;
   --brand-primary-content: #ffffff;
-  --brand-secondary: #e8efe9;
-  --brand-secondary-content: #173f32;
-  --brand-accent: #fff3dc;
-  --brand-accent-content: #8a5a14;
-  --brand-accent-2: #285b46;
-  --brand-accent-2-content: #ffffff;
+  --brand-secondary: #e8dcc6;
+  --brand-secondary-content: #5a252c;
+  --brand-accent: #f1e6d0;
+  --brand-accent-content: #6b4a1f;
+  --brand-accent-2: #b7ab9a;
+  --brand-accent-2-content: #2b1f1c;
   --brand-highlight: var(--brand-accent);
   --brand-highlight-content: var(--brand-accent-content);
-  --brand-neutral: #173f32;
-  --brand-neutral-content: #dceee0;
+  --brand-neutral: #722f37;
+  --brand-neutral-content: #f3ecdf;
   --state-info: #527c9c;
   --state-info-content: #ffffff;
   --state-success: #2e8b57;
@@ -40,11 +41,11 @@
   --state-error-content: #ffffff;
   --radius: 0.375rem;
   --border-width: 1px;
-  --border-mix: 11%;
-  --input-mix: 20%;
-  --table-head-bg: #f1f4ef;
-  --table-row-alt: #fbfcfa;
-  --table-row-hover: #eef3ee;
+  --border-mix: 14%;
+  --input-mix: 24%;
+  --table-head-bg: #ece2cf;
+  --table-row-alt: #f7f2e8;
+  --table-row-hover: #efe5d2;
 }
 
 [data-theme='forest'] {
