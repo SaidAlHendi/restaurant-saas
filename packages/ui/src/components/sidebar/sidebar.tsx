@@ -1,4 +1,4 @@
-import type * as React from 'react';
+import * as React from 'react';
 import { Slot } from '@radix-ui/react-slot';
 import { ChevronDownIcon, PanelLeftIcon } from 'lucide-react';
 
@@ -159,8 +159,18 @@ export function SidebarItem({
   const { collapsed, onNavigate } = useSidebarContext();
   const dir = useDirection();
   const Comp = asChild ? Slot : 'button';
+  const itemRef = React.useRef<HTMLButtonElement>(null);
+  // Keep the active entry visible when the sidebar list is taller than the screen.
+  React.useEffect(() => {
+    const element = itemRef.current;
+    // jsdom (tests) has no scrollIntoView.
+    if (active && element && typeof element.scrollIntoView === 'function') {
+      element.scrollIntoView({ block: 'nearest' });
+    }
+  }, [active]);
   const item = (
     <Comp
+      ref={itemRef}
       data-slot="sidebar-item"
       data-active={active}
       aria-current={active ? 'page' : undefined}

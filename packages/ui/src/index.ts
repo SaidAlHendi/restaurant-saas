@@ -30,6 +30,8 @@ export * from './components/card/index.js';
 export * from './components/tabs/index.js';
 export * from './components/spinner/index.js';
 export * from './components/empty-state/index.js';
+export * from './components/help-tip/index.js';
+export * from './components/info-note/index.js';
 export * from './components/alert/index.js';
 export * from './components/stat-card/index.js';
 export * from './components/toast/index.js';

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import type { Product, ProductListQuery } from '@app/shared';
+import type { Product, ProductListItem, ProductListQuery } from '@app/shared';
 
 import { useAppSelector } from '../../../app/hooks.js';
 import { formatMoney, intlLocaleForUi, productDisplayCurrency } from '../../../lib/money.js';
@@ -25,6 +25,7 @@ import type { ProductActiveFilter } from '../product-list-filters.js';
 import { isMutationError } from '../menu-mutation-result.js';
 import { showMenuApiError } from '../show-menu-api-error.js';
 import { useCatalogOrg } from './use-catalog-org.js';
+import { useModifierGroupDialog } from './use-modifier-group-dialog.js';
 import { useProductForm, type ProductFormOutput } from './use-product-form.js';
 import { useProductImageUpload, type ProductImageUploadError } from './use-product-image-upload.js';
 
@@ -70,7 +71,7 @@ export function useProductsScreen(): ProductsPageViewProps {
   const [branchFilter, setBranchFilter] = useState(ALL_BRANCHES_FILTER);
   const [activeFilter, setActiveFilter] = useState<ProductActiveFilter>('all');
   const [cursor, setCursor] = useState<string | undefined>(undefined);
-  const [accumulated, setAccumulated] = useState<Product[]>([]);
+  const [accumulated, setAccumulated] = useState<ProductListItem[]>([]);
   const [togglingProductId, setTogglingProductId] = useState<string | null>(null);
 
   const resetList = useCallback(() => {
@@ -139,6 +140,16 @@ export function useProductsScreen(): ProductsPageViewProps {
     product: productDetail,
     categoryIds,
     open: sheetOpen,
+  });
+
+  // "+ New group" inside the product form: create the group, then tick it on this product.
+  const groupDialog = useModifierGroupDialog({
+    onCreated: (group) => {
+      const current = productForm.form.getValues('modifierGroupIds');
+      productForm.form.setValue('modifierGroupIds', [...current, group.id], {
+        shouldDirty: true,
+      });
+    },
   });
 
   const imageUpload = useProductImageUpload(productDetail, {
@@ -260,7 +271,9 @@ export function useProductsScreen(): ProductsPageViewProps {
       return t('menu.availability.allBranches');
     }
     if (product.branchIds.length === 1) {
-      return branchNameById.get(product.branchIds[0] ?? '') ?? t('menu.availability.count', { count: 1 });
+      return (
+        branchNameById.get(product.branchIds[0] ?? '') ?? t('menu.availability.count', { count: 1 })
+      );
     }
     return t('menu.availability.count', { count: product.branchIds.length });
   };
@@ -306,6 +319,17 @@ export function useProductsScreen(): ProductsPageViewProps {
     labelFor: (product) => productLabel(product, org.uiLocale, org.defaultLocale),
     categoryLabelFor: (product) => categoryNameById.get(product.categoryId) ?? '—',
     priceLabelFor,
+    optionsColumn: t('menu.products.optionsColumn'),
+    optionsLabelFor: (product) =>
+      product.modifierGroupCount > 0
+        ? t('menu.products.optionsBadge', { count: product.modifierGroupCount })
+        : null,
+    newGroupDialog: {
+      open: groupDialog.open,
+      onOpenChange: groupDialog.onOpenChange,
+      mode: groupDialog.mode,
+      ...groupDialog.formProps,
+    },
     activeLabel: t('menu.status.active'),
     inactiveLabel: t('menu.status.inactive'),
     priceColumn: t('menu.products.columns.price'),
@@ -373,6 +397,13 @@ export function useProductsScreen(): ProductsPageViewProps {
       modifierGroups,
       modifierGroupsLabel: t('menu.products.fields.modifierGroups'),
       modifierGroupLabel: (group) => pickLocalizedName(group.name, org.uiLocale, org.defaultLocale),
+      newGroup: {
+        label: t('menu.products.newGroup'),
+        help: t('menu.products.modifierGroupsHelp'),
+        helpLabel: t('menu.help.whatIsThis'),
+        emptyHint: t('menu.products.modifierGroupsEmpty'),
+        onClick: groupDialog.openCreate,
+      },
       branchAvailability: {
         show: showBranches,
         label: t('menu.availability.label'),

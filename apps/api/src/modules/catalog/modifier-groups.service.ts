@@ -33,7 +33,13 @@ export class ModifierGroupsService {
   list(ctx: RequestContext) {
     return withOrg(this.db, ctx.orgId, async (tx) => {
       const rows = await this.repo.listModifierGroups(tx, ctx.orgId);
-      return { items: rows.map((row) => mapModifierGroup(row)) };
+      return {
+        items: rows.map((row) => ({
+          ...mapModifierGroup(row),
+          modifierCount: row.modifierCount,
+          productCount: row.productCount,
+        })),
+      };
     });
   }
 
@@ -184,7 +190,10 @@ export class ModifierGroupsService {
         throw new NotFoundError();
       }
       const locked = await this.repo.lockActiveModifiersInGroupForUpdate(tx, groupId);
-      validateReorderIds(body.orderedIds, locked.map((r) => r.id));
+      validateReorderIds(
+        body.orderedIds,
+        locked.map((r) => r.id),
+      );
       for (let i = 0; i < body.orderedIds.length; i += 1) {
         const id = body.orderedIds[i];
         if (id) {

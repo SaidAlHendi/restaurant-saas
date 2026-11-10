@@ -130,7 +130,12 @@
       "empty": "لا طلبات تطابق الفلاتر.",
       "error": "تعذر تحميل الطلبات.",
       "branchDateError": "تعذر تحميل تاريخ عمل الفرع.",
-      "pagination": { "navigation": "التنقل بين الصفحات", "previous": "الصفحة السابقة", "next": "الصفحة التالية", "page": "صفحة" },
+      "pagination": {
+        "navigation": "التنقل بين الصفحات",
+        "previous": "الصفحة السابقة",
+        "next": "الصفحة التالية",
+        "page": "صفحة"
+      },
       "showingRecords": "عرض {{n}} طلب",
       "loadMore": "تحميل المزيد",
       "filters": {
@@ -489,7 +494,11 @@
       "addToCart": "أضف إلى السلة",
       "quantity": "الكمية",
       "note": "ملاحظة السطر",
-      "notePlaceholder": "ملاحظة اختيارية للمطبخ"
+      "notePlaceholder": "ملاحظة اختيارية للمطبخ",
+      "hintRequiredOne": "اختر خيارًا واحدًا (إلزامي)",
+      "hintRequiredRange": "اختر من {{min}} إلى {{max}} (إلزامي)",
+      "hintOptionalOne": "اختر خيارًا واحدًا (اختياري)",
+      "hintOptionalUpTo": "اختر حتى {{max}} (اختياري)"
     },
     "result": {
       "orderNumber": "طلب رقم {{number}}"
@@ -693,7 +702,17 @@
       "imageRemove": "إزالة الصورة",
       "imagePreviewAlt": "معاينة المنتج",
       "imageUploadError": "فشل الرفع. جرّب ملفاً آخر.",
-      "imageRemoveError": "تعذرت إزالة الصورة."
+      "imageRemoveError": "تعذرت إزالة الصورة.",
+      "newGroup": "مجموعة جديدة",
+      "modifierGroupsHelp": "مجموعات الإضافات هي خيارات يختارها العميل لهذا المنتج، مثل الحجم أو الإضافات. فعّل المجموعات المناسبة.",
+      "modifierGroupsEmpty": "لا توجد مجموعات إضافات بعد. أنشئ واحدة لتقديم أحجام أو إضافات.",
+      "optionsBadge_zero": "بلا خيارات",
+      "optionsBadge_one": "مجموعة إضافات واحدة",
+      "optionsBadge_two": "مجموعتا إضافات",
+      "optionsBadge_few": "{{count}} مجموعات إضافات",
+      "optionsBadge_many": "{{count}} مجموعة إضافات",
+      "optionsBadge_other": "{{count}} مجموعة إضافات",
+      "optionsColumn": "الخيارات"
     },
     "modifierGroups": {
       "title": "مجموعات الإضافات",
@@ -702,16 +721,50 @@
       "createTitle": "مجموعة إضافات جديدة",
       "editTitle": "تعديل المجموعة",
       "emptyTitle": "لا توجد مجموعات",
-      "emptyDescription": "أنشئ مجموعات للأحجام أو الإضافات أو الأطباق الجانبية.",
-      "minMax": "اختر {{min}}–{{max}}",
+      "emptyDescription": "أضف مجموعات للأحجام أو الإضافات أو الأطباق الجانبية، ثم اربطها بالمنتجات.",
       "manageModifiers": "إدارة الإضافات",
       "detailTitle": "مجموعة الإضافات",
       "deleteConfirm": "ستُفك هذه المجموعة من المنتجات المرتبطة.",
       "decrease": "إنقاص",
       "increase": "زيادة",
-      "fields": {
-        "minSelect": "الحد الأدنى",
-        "maxSelect": "الحد الأقصى"
+      "summary": {
+        "requiredOne": "على العميل اختيار خيار واحد",
+        "requiredRange": "على العميل اختيار من {{min}} إلى {{max}} خيارات",
+        "optionalOne": "يمكن للعميل اختيار خيار واحد (اختياري)",
+        "optionalUpTo": "يمكن للعميل اختيار حتى {{max}} خيارات (اختياري)"
+      },
+      "usage": "{{modifiers}} · {{products}}",
+      "modifierCount_zero": "لا خيارات",
+      "modifierCount_one": "خيار واحد",
+      "modifierCount_two": "خياران",
+      "modifierCount_few": "{{count}} خيارات",
+      "modifierCount_many": "{{count}} خيارًا",
+      "modifierCount_other": "{{count}} خيار",
+      "productCount_zero": "غير مستخدمة",
+      "productCount_one": "مستخدمة في منتج واحد",
+      "productCount_two": "مستخدمة في منتجين",
+      "productCount_few": "مستخدمة في {{count}} منتجات",
+      "productCount_many": "مستخدمة في {{count}} منتجًا",
+      "productCount_other": "مستخدمة في {{count}} منتج",
+      "info": {
+        "title": "كيف تعمل مجموعات الإضافات",
+        "intro": "مجموعة الإضافات هي سؤال تطرحه على العميل، والإضافات هي الإجابات التي يختار منها.",
+        "step1": "أنشئ مجموعة وحدد قاعدتها: إلزامية أو اختيارية، وكم خيارًا يمكن اختياره.",
+        "step2": "أضف الخيارات (الإضافات) ولكل منها تغيير اختياري في السعر.",
+        "step3": "افتح منتجًا وفعّل المجموعة لربطها به.",
+        "example": "مثال: مجموعة «الحجم» (إلزامية، اختيار واحد) تضم صغير ووسط وكبير. فعّلها على كل بيتزا."
+      },
+      "form": {
+        "requiredLabel": "يجب على العميل الاختيار",
+        "requiredHelp": "مفعّل: على العميل اختيار خيار واحد على الأقل قبل الطلب (مثل الحجم). غير مفعّل: الخيارات إضافات اختيارية.",
+        "maxLabel": "الاختيار حتى",
+        "maxHelp": "أقصى عدد من الخيارات يمكن للعميل اختياره من هذه المجموعة. استخدم 1 لـ«اختر واحدًا»، أو رقمًا أكبر للإضافات.",
+        "modifiersTitle": "الخيارات (الإضافات)",
+        "modifiersHelp": "الخيارات التي يختار منها العميل، مثل صغير ووسط وكبير. يُضاف تغيير السعر إلى سعر المنتج (اتركه 0 إن كان مجانيًا).",
+        "modifierName": "اسم الخيار ({{language}})",
+        "addRow": "إضافة خيار آخر",
+        "removeRow": "حذف الخيار",
+        "modifiersLaterHint": "لتعديل الخيارات استخدم «إدارة الإضافات» في بطاقة المجموعة."
       }
     },
     "modifiers": {
@@ -766,6 +819,11 @@
       "count_few": "{{count}} فروع",
       "count_many": "{{count}} فرعاً",
       "count_other": "{{count}} فرع"
+    },
+    "help": {
+      "whatIsThis": "ما معنى هذا؟",
+      "showNote": "إظهار الشرح",
+      "hideNote": "إخفاء الشرح"
     }
   },
   "kds": {

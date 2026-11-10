@@ -60,6 +60,8 @@ export const appRoutes: RouteObject[] = [
           </RequireAuth>
         ),
       },
+      // Unknown URLs (e.g. /menu/products) go to the landing redirect instead of a blank page.
+      { path: '*', element: <Navigate to="/" replace /> },
     ],
   },
   ...devRoutes,

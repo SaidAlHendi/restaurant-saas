@@ -130,7 +130,12 @@
       "empty": "No orders match your filters.",
       "error": "Could not load orders.",
       "branchDateError": "Could not load the branch business date.",
-      "pagination": { "navigation": "Pagination", "previous": "Previous page", "next": "Next page", "page": "Page" },
+      "pagination": {
+        "navigation": "Pagination",
+        "previous": "Previous page",
+        "next": "Next page",
+        "page": "Page"
+      },
       "showingRecords": "Showing {{n}} records",
       "loadMore": "Load more",
       "filters": {
@@ -481,7 +486,11 @@
       "addToCart": "Add to cart",
       "quantity": "Quantity",
       "note": "Line note",
-      "notePlaceholder": "Optional note for the kitchen"
+      "notePlaceholder": "Optional note for the kitchen",
+      "hintRequiredOne": "Choose 1 (required)",
+      "hintRequiredRange": "Choose {{min}} to {{max}} (required)",
+      "hintOptionalOne": "Choose 1 (optional)",
+      "hintOptionalUpTo": "Choose up to {{max}} (optional)"
     },
     "result": {
       "orderNumber": "Order #{{number}}"
@@ -681,7 +690,13 @@
       "imageRemove": "Remove image",
       "imagePreviewAlt": "Product preview",
       "imageUploadError": "Upload failed. Try another file.",
-      "imageRemoveError": "Could not remove the image."
+      "imageRemoveError": "Could not remove the image.",
+      "newGroup": "New group",
+      "modifierGroupsHelp": "Modifier groups are choices the customer picks for this product, such as size or extras. Tick the groups that apply.",
+      "modifierGroupsEmpty": "No modifier groups yet. Create one to offer sizes or extras.",
+      "optionsBadge_one": "{{count}} modifier group",
+      "optionsBadge_other": "{{count}} modifier groups",
+      "optionsColumn": "Options"
     },
     "modifierGroups": {
       "title": "Modifier groups",
@@ -690,16 +705,42 @@
       "createTitle": "New modifier group",
       "editTitle": "Edit modifier group",
       "emptyTitle": "No modifier groups",
-      "emptyDescription": "Create groups for sizes, extras, or sides.",
-      "minMax": "Select {{min}}–{{max}}",
+      "emptyDescription": "Add groups for sizes, extras, or sides, then attach them to products.",
       "manageModifiers": "Manage modifiers",
       "detailTitle": "Modifier group",
       "deleteConfirm": "This group will be unlinked from products.",
       "decrease": "Decrease",
       "increase": "Increase",
-      "fields": {
-        "minSelect": "Minimum choices",
-        "maxSelect": "Maximum choices"
+      "summary": {
+        "requiredOne": "Customer must pick 1 choice",
+        "requiredRange": "Customer must pick {{min}} to {{max}} choices",
+        "optionalOne": "Customer may pick 1 choice (optional)",
+        "optionalUpTo": "Customer may pick up to {{max}} choices (optional)"
+      },
+      "usage": "{{modifiers}} · {{products}}",
+      "modifierCount_one": "{{count}} modifier",
+      "modifierCount_other": "{{count}} modifiers",
+      "productCount_one": "used by {{count}} product",
+      "productCount_other": "used by {{count}} products",
+      "info": {
+        "title": "How modifier groups work",
+        "intro": "A modifier group is a question you ask the customer. The modifiers are the answers they can pick from.",
+        "step1": "Create a group and set its rule: required or optional, and how many choices.",
+        "step2": "Add the choices (modifiers), each with an optional price change.",
+        "step3": "Open a product and tick the group to attach it.",
+        "example": "Example: the group “Size” (required, pick 1) holds Small, Medium and Large. Tick it on every pizza."
+      },
+      "form": {
+        "requiredLabel": "Customer must choose",
+        "requiredHelp": "On: the customer has to pick at least one choice before ordering (for example a size). Off: the choices are optional extras.",
+        "maxLabel": "Choose up to",
+        "maxHelp": "The most choices the customer can pick from this group. Use 1 for “pick one”, or a higher number for extras.",
+        "modifiersTitle": "Choices (modifiers)",
+        "modifiersHelp": "The options the customer picks from, such as Small, Medium, Large. The price change is added to the product price (leave 0 for free).",
+        "modifierName": "Choice name ({{language}})",
+        "addRow": "Add another choice",
+        "removeRow": "Remove choice",
+        "modifiersLaterHint": "To change the choices, use “Manage modifiers” on the group card."
       }
     },
     "modifiers": {
@@ -750,6 +791,11 @@
       "filterAll": "All branches",
       "count_one": "{{count}} branch",
       "count_other": "{{count}} branches"
+    },
+    "help": {
+      "whatIsThis": "What does this mean?",
+      "showNote": "Show explanation",
+      "hideNote": "Hide explanation"
     }
   },
   "kds": {

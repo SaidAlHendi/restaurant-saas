@@ -1,4 +1,5 @@
 import {
+  HelpTip,
   Alert,
   AlertDescription,
   Button,
@@ -24,6 +25,7 @@ import {
   SheetTitle,
   Switch,
 } from '@app/ui';
+import { PlusIcon } from 'lucide-react';
 import type { UseFormReturn } from 'react-hook-form';
 
 import type { ModifierGroup } from '@app/shared';
@@ -56,6 +58,14 @@ export interface ProductFormSheetViewProps {
   modifierGroups: ModifierGroup[];
   modifierGroupsLabel: string;
   modifierGroupLabel: (group: ModifierGroup) => string;
+  /** Create a modifier group without leaving the product form; the new group gets ticked. */
+  newGroup: {
+    label: string;
+    help: string;
+    helpLabel: string;
+    emptyHint: string;
+    onClick: () => void;
+  };
   /** Where the product is shown. `show` is false when there is no branch to choose from. */
   branchAvailability: {
     show: boolean;
@@ -107,6 +117,7 @@ export function ProductFormSheetView({
   modifierGroups,
   modifierGroupsLabel,
   modifierGroupLabel,
+  newGroup,
   branchAvailability,
   imageUpload,
   planLimit = null,
@@ -131,7 +142,12 @@ export function ProductFormSheetView({
                   <AlertDescription>
                     <p>{planLimit.message}</p>
                     {planLimit.upgradeLabel ? (
-                      <Button type="button" variant="link" className="h-auto p-0" onClick={planLimit.onUpgrade}>
+                      <Button
+                        type="button"
+                        variant="link"
+                        className="h-auto p-0"
+                        onClick={planLimit.onUpgrade}
+                      >
                         {planLimit.upgradeLabel}
                       </Button>
                     ) : null}
@@ -244,13 +260,32 @@ export function ProductFormSheetView({
                   )}
                 />
               ) : null}
-              {modifierGroups.length > 0 ? (
+              {modifierGroups.length > 0 || canManage ? (
                 <FormField
                   control={form.control}
                   name="modifierGroupIds"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{modifierGroupsLabel}</FormLabel>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1">
+                          <FormLabel>{modifierGroupsLabel}</FormLabel>
+                          <HelpTip label={newGroup.helpLabel}>{newGroup.help}</HelpTip>
+                        </div>
+                        {canManage ? (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={newGroup.onClick}
+                          >
+                            <PlusIcon className="size-4" aria-hidden />
+                            {newGroup.label}
+                          </Button>
+                        ) : null}
+                      </div>
+                      {modifierGroups.length === 0 ? (
+                        <p className="text-muted-foreground text-sm">{newGroup.emptyHint}</p>
+                      ) : null}
                       <div className="flex flex-col gap-2">
                         {modifierGroups.map((group) => {
                           const checked = field.value.includes(group.id);

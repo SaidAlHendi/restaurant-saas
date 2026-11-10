@@ -3,6 +3,7 @@ import type { ComponentProps } from 'react';
 import {
   Alert,
   AlertDescription,
+  Badge,
   Button,
   ConfirmDialog,
   DataTable,
@@ -19,10 +20,11 @@ import {
 } from '@app/ui';
 import { PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 
-import type { Product } from '@app/shared';
+import type { Product, ProductListItem } from '@app/shared';
 
 import type { ProductActiveFilter } from '../product-list-filters.js';
 
+import { ModifierGroupFormDialogView } from './ModifierGroupFormDialogView.js';
 import { ProductFormSheetView } from './ProductFormSheetView.js';
 
 export interface ProductsPageViewProps {
@@ -53,7 +55,10 @@ export interface ProductsPageViewProps {
   activeOnlyLabel: string;
   inactiveOnlyLabel: string;
   categories: { id: string; label: string }[];
-  products: Product[];
+  products: ProductListItem[];
+  /** "Options" column: shows how many modifier groups a product has. */
+  optionsColumn: string;
+  optionsLabelFor: (product: ProductListItem) => string | null;
   isLoading: boolean;
   errorMessage: string | null;
   labelFor: (product: Product) => string;
@@ -82,6 +87,7 @@ export interface ProductsPageViewProps {
   onEdit: (product: Product) => void;
   onDelete: (product: Product) => void;
   sheetProps: ComponentProps<typeof ProductFormSheetView>;
+  newGroupDialog: ComponentProps<typeof ModifierGroupFormDialogView>;
   confirmDeleteOpen: boolean;
   onConfirmDeleteOpenChange: (open: boolean) => void;
   onConfirmDelete: () => void;
@@ -140,6 +146,9 @@ export function ProductsPageView({
   onEdit,
   onDelete,
   sheetProps,
+  newGroupDialog,
+  optionsColumn,
+  optionsLabelFor,
   confirmDeleteOpen,
   onConfirmDeleteOpenChange,
   onConfirmDelete,
@@ -230,6 +239,18 @@ export function ProductsPageView({
             header: priceColumn,
             cell: (row) => priceLabelFor(row),
           },
+          {
+            id: 'options',
+            header: optionsColumn,
+            cell: (row: ProductListItem) => {
+              const label = optionsLabelFor(row);
+              return label ? (
+                <Badge variant="secondary">{label}</Badge>
+              ) : (
+                <span className="text-muted-foreground">—</span>
+              );
+            },
+          },
           ...(availabilityColumn
             ? [
                 {
@@ -302,6 +323,7 @@ export function ProductsPageView({
         </Button>
       ) : null}
       <ProductFormSheetView {...sheetProps} />
+      <ModifierGroupFormDialogView {...newGroupDialog} />
       <ConfirmDialog
         open={confirmDeleteOpen}
         onOpenChange={onConfirmDeleteOpenChange}

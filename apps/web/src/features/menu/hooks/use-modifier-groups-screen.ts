@@ -15,16 +15,15 @@ import { isMutationError } from '../menu-mutation-result.js';
 import { showMenuApiError } from '../show-menu-api-error.js';
 import type { ModifierSortableListProps } from '../sortable/modifier-sortable-list.types.js';
 import { useModifierForm, type ModifierFormValues } from './use-modifier-form.js';
-import { useModifierGroupForm, type ModifierGroupFormValues } from './use-modifier-group-form.js';
+import { useCatalogOrg } from './use-catalog-org.js';
+import { useModifierGroupDialog } from './use-modifier-group-dialog.js';
 import { useOptimisticReorder } from './use-optimistic-reorder.js';
 import {
-  useCreateModifierGroupMutation,
   useCreateModifierMutation,
   useDeleteModifierGroupMutation,
   useDeleteModifierMutation,
   useGetModifierGroupQuery,
   useListModifierGroupsQuery,
-  usePatchModifierGroupMutation,
   useReorderModifiersMutation,
 } from '../menu.api.js';
 
@@ -41,24 +40,23 @@ export function useModifierGroupsScreen(): {
   const { data, isLoading } = useListModifierGroupsQuery(undefined);
   const groups = data?.items ?? [];
 
-  const [formOpen, setFormOpen] = useState(false);
-  const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
-  const [editing, setEditing] = useState<ModifierGroup | undefined>();
-  const groupForm = useModifierGroupForm({
-    editingId: editing?.id,
-    group: editing,
-    open: formOpen,
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>();
+  const groupDialog = useModifierGroupDialog({
+    onCreated: (group, info) => {
+      if (!info.allModifiersSaved) {
+        // Some typed modifiers failed: open the group so the owner can finish adding them.
+        setSelectedGroupId(group.id);
+        setDetailOpen(true);
+      }
+    },
   });
 
-  const [createGroup, createGroupState] = useCreateModifierGroupMutation();
-  const [patchGroup, patchGroupState] = usePatchModifierGroupMutation();
   const [deleteGroup, deleteGroupState] = useDeleteModifierGroupMutation();
 
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState<ModifierGroup | undefined>();
 
-  const [detailOpen, setDetailOpen] = useState(false);
-  const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>();
   const { data: groupDetail, isLoading: detailLoading } = useGetModifierGroupQuery(
     selectedGroupId ?? '',
     { skip: !selectedGroupId },
@@ -72,7 +70,7 @@ export function useModifierGroupsScreen(): {
   const [deleteModifier] = useDeleteModifierMutation();
   const [reorderModifiers] = useReorderModifiersMutation();
 
-  const org = groupForm.org;
+  const org = useCatalogOrg();
   const moneyLocale = intlLocaleForUi(org.uiLocale);
 
   const applyModifierOptimistic = useCallback(
@@ -133,31 +131,6 @@ export function useModifierGroupsScreen(): {
     return modifier.priceDeltaMinor > 0 ? `+${formatted}` : formatted;
   };
 
-  const onSubmitGroupForm = () => {
-    void groupForm.form.handleSubmit((values: ModifierGroupFormValues) => {
-      if (formMode === 'create') {
-        void createGroup(groupForm.toCreateBody(values)).then((result) => {
-          if (isMutationError(result)) {
-            showMenuApiError(result.error, t);
-            return;
-          }
-          setFormOpen(false);
-        });
-      } else if (editing) {
-        void patchGroup({
-          groupId: editing.id,
-          body: groupForm.toPatchBody(values),
-        }).then((result) => {
-          if (isMutationError(result)) {
-            showMenuApiError(result.error, t);
-            return;
-          }
-          setFormOpen(false);
-        });
-      }
-    })();
-  };
-
   const onSubmitModifierForm = () => {
     if (!selectedGroupId) {
       return;
@@ -199,34 +172,43 @@ export function useModifierGroupsScreen(): {
     emptyDescription: t('menu.modifierGroups.emptyDescription'),
     editLabel: t('menu.actions.edit'),
     deleteLabel: t('menu.actions.delete'),
-    minMaxLabel: (group) =>
-      t('menu.modifierGroups.minMax', { min: group.minSelect, max: group.maxSelect }),
-    formOpen,
-    onFormOpenChange: (open) => {
-      setFormOpen(open);
-      if (!open) {
-        setEditing(undefined);
+    minMaxLabel: (group) => {
+      if (group.minSelect >= 1) {
+        return group.maxSelect === 1 && group.minSelect === 1
+          ? t('menu.modifierGroups.summary.requiredOne')
+          : t('menu.modifierGroups.summary.requiredRange', {
+              min: group.minSelect,
+              max: group.maxSelect,
+            });
       }
+      return group.maxSelect === 1
+        ? t('menu.modifierGroups.summary.optionalOne')
+        : t('menu.modifierGroups.summary.optionalUpTo', { max: group.maxSelect });
     },
-    formMode,
+    usageLabel: (group) =>
+      t('menu.modifierGroups.usage', {
+        modifiers: t('menu.modifierGroups.modifierCount', { count: group.modifierCount }),
+        products: t('menu.modifierGroups.productCount', { count: group.productCount }),
+      }),
+    infoNote: {
+      title: t('menu.modifierGroups.info.title'),
+      intro: t('menu.modifierGroups.info.intro'),
+      steps: [
+        t('menu.modifierGroups.info.step1'),
+        t('menu.modifierGroups.info.step2'),
+        t('menu.modifierGroups.info.step3'),
+      ],
+      example: t('menu.modifierGroups.info.example'),
+      storageKey: 'menu.modifierGroups.infoNote',
+      showLabel: t('menu.help.showNote'),
+      hideLabel: t('menu.help.hideNote'),
+    },
+    formOpen: groupDialog.open,
+    onFormOpenChange: groupDialog.onOpenChange,
+    formMode: groupDialog.mode,
     formProps: {
-      form: groupForm.form,
-      onSubmit: onSubmitGroupForm,
-      isSaving: createGroupState.isLoading || patchGroupState.isLoading,
-      titleCreate: t('menu.modifierGroups.createTitle'),
-      titleEdit: t('menu.modifierGroups.editTitle'),
-      submitLabel: t('menu.actions.save'),
-      cancelLabel: t('menu.actions.cancel'),
+      ...groupDialog.formProps,
       deleteHint: t('menu.modifierGroups.deleteConfirm'),
-      minLabel: t('menu.modifierGroups.fields.minSelect'),
-      maxLabel: t('menu.modifierGroups.fields.maxSelect'),
-      decreaseLabel: t('menu.modifierGroups.decrease'),
-      increaseLabel: t('menu.modifierGroups.increase'),
-      locales: org.locales,
-      localeLabels,
-      fieldLabels: { name: t('menu.fields.name'), description: t('menu.fields.description') },
-      tabLabel: (locale) => t(`auth.locales.${locale}`, { defaultValue: locale }),
-      defaultLocale: org.defaultLocale,
     },
     confirmDeleteOpen,
     onConfirmDeleteOpenChange: setConfirmDeleteOpen,
@@ -244,16 +226,8 @@ export function useModifierGroupsScreen(): {
       });
     },
     isDeleting: deleteGroupState.isLoading,
-    onAdd: () => {
-      setFormMode('create');
-      setEditing(undefined);
-      setFormOpen(true);
-    },
-    onEdit: (group) => {
-      setFormMode('edit');
-      setEditing(group);
-      setFormOpen(true);
-    },
+    onAdd: groupDialog.openCreate,
+    onEdit: groupDialog.openEdit,
     onDelete: (group) => {
       setDeleting(group);
       setConfirmDeleteOpen(true);
