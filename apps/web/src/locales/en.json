@@ -478,12 +478,14 @@
       "decreaseQty": "Decrease quantity",
       "increaseQty": "Increase quantity",
       "removeLine": "Remove line",
+      "editLine": "Edit options",
       "eyebrow": "CURRENT ORDER",
       "orderType": "Order type"
     },
     "modifiers": {
       "invalid": "Choose the required options.",
       "addToCart": "Add to cart",
+      "saveChanges": "Save changes",
       "quantity": "Quantity",
       "note": "Line note",
       "notePlaceholder": "Optional note for the kitchen",

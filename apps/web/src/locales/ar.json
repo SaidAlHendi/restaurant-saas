@@ -486,12 +486,14 @@
       "decreaseQty": "تقليل الكمية",
       "increaseQty": "زيادة الكمية",
       "removeLine": "حذف السطر",
+      "editLine": "تعديل الخيارات",
       "eyebrow": "الطلب الحالي",
       "orderType": "نوع الطلب"
     },
     "modifiers": {
       "invalid": "اختر الخيارات المطلوبة.",
       "addToCart": "أضف إلى السلة",
+      "saveChanges": "حفظ التعديلات",
       "quantity": "الكمية",
       "note": "ملاحظة السطر",
       "notePlaceholder": "ملاحظة اختيارية للمطبخ",

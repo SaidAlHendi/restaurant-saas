@@ -78,10 +78,7 @@ export const cartSlice = createSlice({
         state.lines = mergeCartLine(state.lines, action.payload);
       },
     },
-    updateLineQuantity(
-      state,
-      action: PayloadAction<{ localId: string; quantity: number }>,
-    ) {
+    updateLineQuantity(state, action: PayloadAction<{ localId: string; quantity: number }>) {
       const line = state.lines.find((row) => row.localId === action.payload.localId);
       if (!line) {
         return;
@@ -90,6 +87,25 @@ export const cartSlice = createSlice({
       if (line.quantity <= 0) {
         state.lines = state.lines.filter((row) => row.localId !== action.payload.localId);
       }
+    },
+    /** Replaces a line in place (edit modifiers); merges into a twin line if one now matches. */
+    replaceLine(state, action: PayloadAction<{ localId: string; line: CartLineInput }>) {
+      const index = state.lines.findIndex((row) => row.localId === action.payload.localId);
+      if (index === -1) {
+        return;
+      }
+      const replacement: CartLine = { ...action.payload.line, localId: action.payload.localId };
+      const without = state.lines.filter((row) => row.localId !== action.payload.localId);
+      const twinIndex = without.findIndex(
+        (row) => cartLineMergeKey(row) === cartLineMergeKey(replacement),
+      );
+      const twin = without[twinIndex];
+      if (twin !== undefined) {
+        twin.quantity += replacement.quantity;
+        state.lines = without;
+        return;
+      }
+      state.lines = [...without.slice(0, index), replacement, ...without.slice(index)];
     },
     removeLine(state, action: PayloadAction<string>) {
       state.lines = state.lines.filter((row) => row.localId !== action.payload);
