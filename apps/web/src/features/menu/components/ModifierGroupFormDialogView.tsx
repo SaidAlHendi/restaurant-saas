@@ -48,7 +48,7 @@ export interface ModifierGroupFormDialogViewProps {
     UseFieldArrayReturn<ModifierGroupFormValues, 'modifiers'>,
     'fields' | 'append' | 'remove'
   >;
-  emptyModifierRow: { name: string; priceDeltaMinor: number };
+  emptyModifierRow: { name: Record<string, string>; priceDeltaMinor: number };
   onSubmit: () => void;
   isSaving: boolean;
   requiredLabel: string;
@@ -59,7 +59,8 @@ export interface ModifierGroupFormDialogViewProps {
   summaryFor: (values: Pick<ModifierGroupFormValues, 'isRequired' | 'maxSelect'>) => string;
   modifiersTitle: string;
   modifiersHelp: string;
-  modifierNameLabel: string;
+  /** Placeholder for the name field of one language, e.g. "Choice name (English)". */
+  modifierNameLabel: (locale: string) => string;
   modifierPriceLabel: string;
   addRowLabel: string;
   removeRowLabel: string;
@@ -181,22 +182,30 @@ export function ModifierGroupFormDialogView({
                   </div>
                   {modifierRows.fields.map((row, index) => (
                     <div key={row.id} className="grid grid-cols-[1fr_8rem_auto] items-start gap-2">
-                      <FormField
-                        control={form.control}
-                        name={`modifiers.${index.toString()}.name` as `modifiers.${number}.name`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                aria-label={modifierNameLabel}
-                                placeholder={modifierNameLabel}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      <div className="flex flex-col gap-2">
+                        {locales.map((locale) => (
+                          <FormField
+                            key={locale}
+                            control={form.control}
+                            name={
+                              `modifiers.${index.toString()}.name.${locale}` as `modifiers.${number}.name.${string}`
+                            }
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Input
+                                    {...field}
+                                    value={typeof field.value === 'string' ? field.value : ''}
+                                    aria-label={modifierNameLabel(locale)}
+                                    placeholder={modifierNameLabel(locale)}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        ))}
+                      </div>
                       <FormField
                         control={form.control}
                         name={
