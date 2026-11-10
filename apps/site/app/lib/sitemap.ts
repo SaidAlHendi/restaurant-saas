@@ -1,6 +1,6 @@
-import { LANDING_LOCALES } from './locale.js';
+import { INDEXED_PAGE_KEYS, LANDING_LOCALES } from './locale.js';
 
-const PAGES: Array<'' | 'privacy' | 'terms'> = ['', 'privacy', 'terms'];
+const PAGES: Array<'' | (typeof INDEXED_PAGE_KEYS)[number]> = ['', ...INDEXED_PAGE_KEYS];
 
 function escapeXml(value: string): string {
   return value
@@ -28,7 +28,7 @@ function landingEntries(base: string): SitemapEntry[] {
 }
 
 /**
- * sitemap.xml: the landing, privacy and terms pages in both locales with xhtml:link alternates,
+ * sitemap.xml: the home, plans, FAQ, contact, privacy and terms pages in both locales with xhtml:link alternates,
  * then one entry per published restaurant menu. The thank-you page is intentionally absent.
  */
 export function buildSitemapXml(

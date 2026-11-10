@@ -1,14 +1,14 @@
 import { cn } from '@app/ui';
 
 import type { FlowMedia, LandingContent } from '../content/types.js';
-import type { LandingPageViewModel } from '../hooks/use-landing-page.js';
+import type { useLandingPage } from '../hooks/use-landing-page.js';
 import { imageUrl } from '../landing.utils.js';
 import { Picture } from './Picture.js';
 import { Tile } from './Tile.js';
 
 export type FlowSectionProps = {
   flow: LandingContent['flow'];
-  curve: LandingPageViewModel['curve'];
+  curve: ReturnType<typeof useLandingPage>['curve'];
 };
 
 function FlowMediaView({ media }: { media: FlowMedia }) {

@@ -47,7 +47,15 @@ export function otherLocale(locale: LandingLocale): LandingLocale {
   return locale === 'ar' ? 'en' : 'ar';
 }
 
-/** Path of a landing page: `/ar`, `/en/privacy`, ... */
-export function landingPath(locale: LandingLocale, page?: 'privacy' | 'terms' | 'thanks'): string {
+/** Pages under `/:locale/` besides the home page. */
+export const PAGE_KEYS = ['plans', 'faq', 'contact', 'privacy', 'terms', 'thanks'] as const;
+export type PageKey = (typeof PAGE_KEYS)[number];
+
+/** Pages that search engines should index and the sitemap should list. */
+export const INDEXED_PAGE_KEYS = ['plans', 'faq', 'contact', 'privacy', 'terms'] as const;
+export type IndexedPageKey = (typeof INDEXED_PAGE_KEYS)[number];
+
+/** Path of a landing page: `/ar`, `/en/plans`, `/ar/privacy`, ... */
+export function landingPath(locale: LandingLocale, page?: PageKey): string {
   return page === undefined ? `/${locale}` : `/${locale}/${page}`;
 }

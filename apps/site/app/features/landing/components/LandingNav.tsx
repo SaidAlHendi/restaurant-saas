@@ -1,16 +1,16 @@
 import { Button, cn } from '@app/ui';
 
 import type { LandingContent } from '../content/types.js';
-import type { LandingPageViewModel } from '../hooks/use-landing-page.js';
+import type { SiteShellViewModel } from '../hooks/use-site-shell.js';
 
 export type LandingNavProps = {
   content: LandingContent['nav'];
-  homeHref: string;
-  nav: LandingPageViewModel['nav'];
-  links: LandingPageViewModel['links'];
+  nav: SiteShellViewModel['nav'];
+  navLinks: SiteShellViewModel['navLinks'];
+  links: SiteShellViewModel['links'];
 };
 
-export function LandingNav({ content, homeHref, nav, links }: LandingNavProps) {
+export function LandingNav({ content, nav, navLinks, links }: LandingNavProps) {
   return (
     <header
       className={cn(
@@ -20,7 +20,7 @@ export function LandingNav({ content, homeHref, nav, links }: LandingNavProps) {
     >
       <div className="flex items-center justify-between gap-4">
         <a
-          href={homeHref}
+          href={links.home}
           aria-label={content.brandLabel}
           className="lp-display flex items-center gap-1 text-[34px] leading-none text-primary"
         >
@@ -29,22 +29,19 @@ export function LandingNav({ content, homeHref, nav, links }: LandingNavProps) {
         </a>
 
         <nav aria-label={content.ariaLabel} className="hidden gap-1 text-[15px] font-medium md:flex">
-          {content.links.map((link) => {
-            const active = nav.activeId === link.id;
-            return (
-              <a
-                key={link.id}
-                href={`#${link.id}`}
-                aria-current={active ? 'location' : undefined}
-                className={cn(
-                  'rounded-lg px-4 py-3 text-foreground/75 transition-colors hover:bg-accent hover:text-foreground',
-                  active && 'bg-foreground text-background hover:bg-foreground hover:text-background',
-                )}
-              >
-                {link.label}
-              </a>
-            );
-          })}
+          {navLinks.map((link) => (
+            <a
+              key={link.key}
+              href={link.href}
+              aria-current={link.active ? 'page' : undefined}
+              className={cn(
+                'rounded-lg px-4 py-3 text-foreground/75 transition-colors hover:bg-accent hover:text-foreground',
+                link.active && 'bg-foreground text-background hover:bg-foreground hover:text-background',
+              )}
+            >
+              {link.label}
+            </a>
+          ))}
         </nav>
 
         <div className="flex items-center gap-2.5">
@@ -58,7 +55,7 @@ export function LandingNav({ content, homeHref, nav, links }: LandingNavProps) {
             {content.switchLabel}
           </a>
           <Button asChild size="lg" className="hidden md:inline-flex">
-            <a href="#trial">{content.cta}</a>
+            <a href={links.contact}>{content.cta}</a>
           </Button>
           <button
             type="button"
@@ -81,12 +78,16 @@ export function LandingNav({ content, homeHref, nav, links }: LandingNavProps) {
           nav.menuOpen ? 'grid' : 'hidden',
         )}
       >
-        {content.links.map((link) => (
+        {navLinks.map((link) => (
           <a
-            key={link.id}
-            href={`#${link.id}`}
+            key={link.key}
+            href={link.href}
             onClick={nav.closeMenu}
-            className="rounded-lg px-3.5 py-4 text-[19px] font-medium hover:bg-accent"
+            aria-current={link.active ? 'page' : undefined}
+            className={cn(
+              'rounded-lg px-3.5 py-4 text-[19px] font-medium hover:bg-accent',
+              link.active && 'bg-accent',
+            )}
           >
             {link.label}
           </a>
@@ -100,7 +101,7 @@ export function LandingNav({ content, homeHref, nav, links }: LandingNavProps) {
           {content.switchName}
         </a>
         <Button asChild size="touch" className="mt-1.5">
-          <a href="#trial" onClick={nav.closeMenu}>
+          <a href={links.contact} onClick={nav.closeMenu}>
             {content.cta}
           </a>
         </Button>

@@ -12,22 +12,24 @@ import {
   useRouteLoaderData,
 } from 'react-router';
 
+import { getWhatsappNumber } from './lib/env.server.js';
+import type { RootLoaderData } from './lib/root-data.js';
+
 export const links = () => [
   { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
   { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
   { rel: 'manifest', href: '/site.webmanifest' },
 ];
 
-type RootLoaderData = {
-  locale: string;
-  dir: 'rtl' | 'ltr';
-};
-
 export function loader({ request }: { request: Request }) {
   const url = new URL(request.url);
   const segment = url.pathname.split('/').filter(Boolean)[0];
   const locale = segment === 'ar' || segment === 'en' ? segment : 'en';
-  return { locale, dir: locale === 'ar' ? 'rtl' : 'ltr' } satisfies RootLoaderData;
+  return {
+    locale,
+    dir: locale === 'ar' ? 'rtl' : 'ltr',
+    whatsappNumber: getWhatsappNumber(),
+  } satisfies RootLoaderData;
 }
 
 export function Layout({ children }: { children: ReactNode }) {

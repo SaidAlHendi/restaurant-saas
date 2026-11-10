@@ -2,7 +2,7 @@ import { parseTrackingIds, type TrackingIds } from '../features/consent/tracking
 import { getSiteEnv } from './env.server.js';
 import { isLandingLocale, type LandingLocale } from './locale.js';
 
-/** Shared loader for `/:locale/*` landing routes: 404 for unknown locales, plus the public site URL. */
+/** Shared loader for `/:locale/*` pages: 404 for unknown locales, plus the public site URL. */
 export function loadLandingRoute(params: { locale?: string }): {
   locale: LandingLocale;
   siteBaseUrl: string;

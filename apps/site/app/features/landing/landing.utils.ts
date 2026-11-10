@@ -1,4 +1,5 @@
-import type { LandingLocale } from '../../lib/locale.js';
+import { landingPath, type LandingLocale, type PageKey } from '../../lib/locale.js';
+import type { LandingContent, NavKey, NavSectionId } from './content/types.js';
 import { LANDING_IMAGES, type LandingImageName } from './landing-media.generated.js';
 
 export type ImageFormat = 'avif' | 'webp' | 'jpg';
@@ -64,3 +65,34 @@ export function curveProgress(sectionTop: number, sectionHeight: number, viewpor
   const raw = (viewportHeight * 0.65 - sectionTop) / (sectionHeight + 80);
   return Math.min(1, Math.max(0, raw));
 }
+
+/** Which page is being rendered: the home page or one of the pages under `/:locale/`. */
+export type CurrentPage = 'home' | PageKey;
+
+const HOME_SECTION_KEYS: readonly NavKey[] = ['flow', 'kitchen'];
+
+export function isSectionKey(key: NavKey): key is NavSectionId {
+  return HOME_SECTION_KEYS.includes(key);
+}
+
+/** Sections scroll within the home page; everything else is a page of its own. */
+export function navHref(locale: LandingLocale, key: NavKey, current: CurrentPage): string {
+  if (isSectionKey(key)) {
+    return current === 'home' ? `#${key}` : `${landingPath(locale)}#${key}`;
+  }
+  return landingPath(locale, key);
+}
+
+/** The same page in the other language (the language switch must not drop you on the home page). */
+export function switchLocalePath(target: LandingLocale, current: CurrentPage): string {
+  return current === 'home' ? landingPath(target) : landingPath(target, current);
+}
+
+export function buildPlanViews(plans: LandingContent['plans']['items'], locale: LandingLocale) {
+  return plans.map((plan) => ({
+    ...plan,
+    price: formatPlanPrice(plan.priceMinor, plan.currency, locale),
+  }));
+}
+
+export type PlanView = ReturnType<typeof buildPlanViews>[number];

@@ -13,10 +13,11 @@ export const landingAr: LandingContent = {
     brandLabel: 'صحتين، الصفحة الرئيسية',
     ariaLabel: 'التنقل الرئيسي',
     links: [
-      { id: 'flow', label: 'كيف يعمل' },
-      { id: 'kitchen', label: 'المطبخ' },
-      { id: 'plans', label: 'الباقات' },
-      { id: 'faq', label: 'أسئلة' },
+      { key: 'flow', label: 'كيف يعمل' },
+      { key: 'kitchen', label: 'المطبخ' },
+      { key: 'plans', label: 'الباقات' },
+      { key: 'faq', label: 'أسئلة' },
+      { key: 'contact', label: 'تواصل' },
     ],
     cta: 'ابدأ تجربتك المجانية',
     menuLabel: 'القائمة',
@@ -133,6 +134,7 @@ export const landingAr: LandingContent = {
   },
   plans: {
     title: 'أربع باقات. أسعار واضحة.',
+    lead: 'الأسعار بالدولار. باقتا المطعم والأعمال تُحسبان لكل فرع.',
     items: [
       {
         key: 'free',
@@ -174,6 +176,7 @@ export const landingAr: LandingContent = {
   },
   faq: {
     title: 'أسئلة شائعة',
+    lead: 'إجابات قصيرة عن أكثر ما يسأل عنه أصحاب المطاعم.',
     items: [
       {
         q: 'ما هي صحتين؟',
@@ -186,6 +189,88 @@ export const landingAr: LandingContent = {
       { q: 'هل تدعم أكثر من فرع؟', a: 'نعم، في باقة الأعمال.' },
       { q: 'كيف أبدأ؟', a: 'اطلب تجربة مجانية وسنفتح لك حسابك.' },
     ],
+  },
+  contact: {
+    title: 'تواصل معنا',
+    lead: 'اطلب تجربتك المجانية أو اسألنا عن صحتين. سنفتح لك حسابك.',
+    emailLabel: 'البريد الإلكتروني',
+    emailCta: 'راسلنا',
+  },
+  whatsapp: { label: 'تواصل معنا عبر واتساب', message: 'مرحبًا، أريد معرفة المزيد عن صحتين.' },
+  form: {
+    title: 'اطلب تجربتك المجانية',
+    labels: {
+      name: 'الاسم',
+      restaurantName: 'اسم المطعم',
+      phone: 'رقم الهاتف أو واتساب',
+      email: 'البريد الإلكتروني',
+      country: 'الدولة',
+      branches: 'عدد الفروع',
+      message: 'رسالتك (اختياري)',
+    },
+    placeholders: {
+      name: 'اسمك الكامل',
+      restaurantName: 'مثال: مقهى القهوة',
+      phone: '+966 5X XXX XXXX',
+      email: 'name@example.com',
+      message: 'أخبرنا عن مطعمك أو اسألنا أي سؤال.',
+    },
+    countryPlaceholder: 'اختر الدولة',
+    countries: [
+      { code: 'SA', name: 'السعودية' },
+      { code: 'AE', name: 'الإمارات' },
+      { code: 'KW', name: 'الكويت' },
+      { code: 'QA', name: 'قطر' },
+      { code: 'BH', name: 'البحرين' },
+      { code: 'OM', name: 'عُمان' },
+      { code: 'JO', name: 'الأردن' },
+      { code: 'LB', name: 'لبنان' },
+      { code: 'EG', name: 'مصر' },
+      { code: 'IQ', name: 'العراق' },
+      { code: 'SY', name: 'سوريا' },
+      { code: 'MA', name: 'المغرب' },
+      { code: 'TN', name: 'تونس' },
+      { code: 'DZ', name: 'الجزائر' },
+      { code: 'TR', name: 'تركيا' },
+      { code: 'ZZ', name: 'دولة أخرى' },
+    ],
+    submit: 'أرسل الطلب',
+    sending: 'جارٍ الإرسال…',
+    privacyNote: 'بإرسال الطلب توافق على أن نتواصل معك بشأنه.',
+    privacyLink: 'سياسة الخصوصية',
+    errors: {
+      required: 'هذا الحقل مطلوب.',
+      invalid: 'تحقق من هذه القيمة.',
+      rateLimited: 'طلبات كثيرة. انتظر دقيقة ثم حاول مرة أخرى.',
+      unavailable: 'تعذّر إرسال الطلب الآن. حاول مرة أخرى بعد قليل أو راسلنا بالبريد.',
+    },
+  },
+  teasers: {
+    plans: {
+      title: 'أربع باقات. أسعار واضحة.',
+      body: 'من باقة مجانية إلى ٧٩ $ لكل فرع في الشهر.',
+      cta: 'شاهد الباقات',
+    },
+    faq: {
+      title: 'عندك سؤال؟',
+      body: 'أجوبة عن الأجهزة والفروع وطريقة البدء.',
+      cta: 'الأسئلة الشائعة',
+    },
+  },
+  pages: {
+    plans: {
+      title: 'الباقات والأسعار — صحتين',
+      description:
+        'باقة مجانية، والقائمة ١٢ $ شهريًا، والمطعم ٣٩ $ لكل فرع، والأعمال ٧٩ $ لكل فرع. قارن الباقات واختر ما يناسب مطعمك.',
+    },
+    faq: {
+      title: 'أسئلة شائعة — صحتين',
+      description: 'إجابات عن أجهزة التشغيل وتعدد الفروع وطريقة بدء التجربة المجانية في صحتين.',
+    },
+    contact: {
+      title: 'تواصل معنا — صحتين',
+      description: 'اطلب تجربتك المجانية أو اسألنا عن صحتين، وسنفتح لك حسابك.',
+    },
   },
   closing: {
     title: 'جاهز لتقديم أول طلب؟',

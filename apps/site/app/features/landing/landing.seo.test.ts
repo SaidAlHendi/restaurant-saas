@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { getLandingContent } from './content/index.js';
 import {
-  buildDocumentMeta,
+  buildInnerPageMeta,
   buildLandingMeta,
   buildNoindexMeta,
   landingUrl,
@@ -57,18 +57,33 @@ describe('other page meta', () => {
     expect(tags.some((t) => t['rel'] === 'canonical')).toBe(false);
   });
 
-  it('gives privacy and terms their own canonical and alternates', () => {
-    const tags = asTags(
-      buildDocumentMeta({
-        title: 't',
-        description: 'd',
-        locale: 'en',
-        siteBaseUrl: SITE,
-        page: 'privacy',
-      }),
-    );
-    expect(tags.find((t) => t['rel'] === 'canonical')?.['href']).toBe(`${SITE}/en/privacy`);
-    expect(tags.find((t) => t['hrefLang'] === 'ar')?.['href']).toBe(`${SITE}/ar/privacy`);
+  it('gives every inner page its own canonical, alternates and share image', () => {
+    for (const page of ['plans', 'faq', 'contact', 'privacy', 'terms'] as const) {
+      const tags = asTags(
+        buildInnerPageMeta({
+          title: 't',
+          description: 'd',
+          locale: 'en',
+          siteBaseUrl: SITE,
+          page,
+          ogAlt: 'alt',
+        }),
+      );
+      expect(tags.find((t) => t['rel'] === 'canonical')?.['href']).toBe(`${SITE}/en/${page}`);
+      expect(tags.find((t) => t['hrefLang'] === 'ar')?.['href']).toBe(`${SITE}/ar/${page}`);
+      expect(tags.find((t) => t['hrefLang'] === 'x-default')?.['href']).toBe(`${SITE}/ar/${page}`);
+      expect(metaValue(tags, 'property', 'og:image')).toBe(`${SITE}/landing/og-en.jpg`);
+    }
+  });
+
+  it('keeps every page title and description within search limits', () => {
+    for (const locale of ['ar', 'en'] as const) {
+      const content = getLandingContent(locale);
+      for (const page of ['plans', 'faq', 'contact'] as const) {
+        expect(content.pages[page].title.length).toBeLessThanOrEqual(60);
+        expect(content.pages[page].description.length).toBeLessThanOrEqual(155);
+      }
+    }
   });
 
   it('builds clean landing urls', () => {

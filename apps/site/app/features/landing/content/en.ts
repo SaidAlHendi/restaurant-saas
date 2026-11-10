@@ -13,10 +13,11 @@ export const landingEn: LandingContent = {
     brandLabel: 'Sahtain, home',
     ariaLabel: 'Main navigation',
     links: [
-      { id: 'flow', label: 'How it works' },
-      { id: 'kitchen', label: 'Kitchen' },
-      { id: 'plans', label: 'Plans' },
-      { id: 'faq', label: 'FAQ' },
+      { key: 'flow', label: 'How it works' },
+      { key: 'kitchen', label: 'Kitchen' },
+      { key: 'plans', label: 'Plans' },
+      { key: 'faq', label: 'FAQ' },
+      { key: 'contact', label: 'Contact' },
     ],
     cta: 'Start your free trial',
     menuLabel: 'Menu',
@@ -134,6 +135,7 @@ export const landingEn: LandingContent = {
   },
   plans: {
     title: 'Four plans. Clear prices.',
+    lead: 'Prices are in US dollars. The Restaurant and Business plans are charged per branch.',
     items: [
       {
         key: 'free',
@@ -175,6 +177,7 @@ export const landingEn: LandingContent = {
   },
   faq: {
     title: 'Frequently asked questions',
+    lead: 'Short answers to what restaurant owners ask most.',
     items: [
       {
         q: 'What is Sahtain?',
@@ -187,6 +190,88 @@ export const landingEn: LandingContent = {
       { q: 'Do you support more than one branch?', a: 'Yes, on the Business plan.' },
       { q: 'How do I start?', a: 'Request a free trial and we will open your account.' },
     ],
+  },
+  contact: {
+    title: 'Contact us',
+    lead: 'Request your free trial or ask us about Sahtain. We will open your account.',
+    emailLabel: 'Email',
+    emailCta: 'Write to us',
+  },
+  whatsapp: { label: 'Chat with us on WhatsApp', message: 'Hello, I would like to know more about Sahtain.' },
+  form: {
+    title: 'Request your free trial',
+    labels: {
+      name: 'Name',
+      restaurantName: 'Restaurant name',
+      phone: 'Phone or WhatsApp number',
+      email: 'Email',
+      country: 'Country',
+      branches: 'Number of branches',
+      message: 'Your message (optional)',
+    },
+    placeholders: {
+      name: 'Your full name',
+      restaurantName: 'e.g. Qahwa Cafe',
+      phone: '+966 5X XXX XXXX',
+      email: 'name@example.com',
+      message: 'Tell us about your restaurant or ask us anything.',
+    },
+    countryPlaceholder: 'Choose a country',
+    countries: [
+      { code: 'SA', name: 'Saudi Arabia' },
+      { code: 'AE', name: 'United Arab Emirates' },
+      { code: 'KW', name: 'Kuwait' },
+      { code: 'QA', name: 'Qatar' },
+      { code: 'BH', name: 'Bahrain' },
+      { code: 'OM', name: 'Oman' },
+      { code: 'JO', name: 'Jordan' },
+      { code: 'LB', name: 'Lebanon' },
+      { code: 'EG', name: 'Egypt' },
+      { code: 'IQ', name: 'Iraq' },
+      { code: 'SY', name: 'Syria' },
+      { code: 'MA', name: 'Morocco' },
+      { code: 'TN', name: 'Tunisia' },
+      { code: 'DZ', name: 'Algeria' },
+      { code: 'TR', name: 'Türkiye' },
+      { code: 'ZZ', name: 'Another country' },
+    ],
+    submit: 'Send request',
+    sending: 'Sending…',
+    privacyNote: 'By sending this request you agree that we contact you about it.',
+    privacyLink: 'Privacy policy',
+    errors: {
+      required: 'This field is required.',
+      invalid: 'Please check this value.',
+      rateLimited: 'Too many requests. Wait a minute and try again.',
+      unavailable: 'We could not send your request right now. Try again shortly or email us.',
+    },
+  },
+  teasers: {
+    plans: {
+      title: 'Four plans. Clear prices.',
+      body: 'From a free plan to $79 per branch per month.',
+      cta: 'See the plans',
+    },
+    faq: {
+      title: 'Got a question?',
+      body: 'Answers about hardware, branches and how to start.',
+      cta: 'Read the FAQ',
+    },
+  },
+  pages: {
+    plans: {
+      title: 'Plans and pricing — Sahtain',
+      description:
+        'A free plan, Menu at $12 a month, Restaurant at $39 per branch and Business at $79 per branch. Compare the plans and pick the one that fits.',
+    },
+    faq: {
+      title: 'FAQ — Sahtain',
+      description: 'Answers about hardware, multiple branches and how to start your free trial with Sahtain.',
+    },
+    contact: {
+      title: 'Contact us — Sahtain',
+      description: 'Request your free trial or ask us about Sahtain, and we will open your account.',
+    },
   },
   closing: {
     title: 'Ready for your first order?',

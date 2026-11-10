@@ -1,9 +1,9 @@
 import type { LandingContent } from '../content/types.js';
-import type { LandingPageViewModel } from '../hooks/use-landing-page.js';
+import type { SiteShellViewModel } from '../hooks/use-site-shell.js';
 
 export type LandingFooterProps = {
   footer: LandingContent['footer'];
-  links: LandingPageViewModel['links'];
+  links: SiteShellViewModel['links'];
 };
 
 export function LandingFooter({ footer, links }: LandingFooterProps) {

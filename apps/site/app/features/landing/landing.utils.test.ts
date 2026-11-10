@@ -2,13 +2,18 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildCurvePath,
+  buildPlanViews,
   contactHref,
   curveProgress,
   formatPlanPrice,
   imageFallbackSrc,
   imageSrcSet,
   imageUrl,
+  isSectionKey,
+  navHref,
+  switchLocalePath,
 } from './landing.utils.js';
+import { getLandingContent } from './content/index.js';
 
 describe('image helpers', () => {
   it('builds urls and srcsets from the generated manifest', () => {
@@ -65,5 +70,32 @@ describe('curve geometry', () => {
     const mid = curveProgress(0, 1000, 800);
     expect(mid).toBeGreaterThan(0);
     expect(mid).toBeLessThan(1);
+  });
+});
+
+describe('navigation helpers', () => {
+  it('scrolls to sections on the home page and links back to them from other pages', () => {
+    expect(navHref('ar', 'flow', 'home')).toBe('#flow');
+    expect(navHref('ar', 'kitchen', 'plans')).toBe('/ar#kitchen');
+    expect(isSectionKey('flow')).toBe(true);
+    expect(isSectionKey('faq')).toBe(false);
+  });
+
+  it('links pages by path from anywhere', () => {
+    expect(navHref('en', 'plans', 'home')).toBe('/en/plans');
+    expect(navHref('en', 'contact', 'faq')).toBe('/en/contact');
+  });
+
+  it('keeps the page when switching language', () => {
+    expect(switchLocalePath('en', 'home')).toBe('/en');
+    expect(switchLocalePath('en', 'faq')).toBe('/en/faq');
+    expect(switchLocalePath('ar', 'privacy')).toBe('/ar/privacy');
+  });
+});
+
+describe('buildPlanViews', () => {
+  it('adds a formatted price to every plan', () => {
+    const views = buildPlanViews(getLandingContent('en').plans.items, 'en');
+    expect(views.map((p) => p.price)).toEqual(['$0', '$12', '$39', '$79']);
   });
 });

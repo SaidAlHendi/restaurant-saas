@@ -1,18 +1,22 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import type { NavSectionId } from '../content/types.js';
+import type { NavKey, NavSectionId } from '../content/types.js';
+import type { CurrentPage } from '../landing.utils.js';
 
 /** Tailwind `md`: the menu button is only shown below this width. */
 const DESKTOP_MIN_WIDTH = 768;
 
+const NAV_KEYS: readonly string[] = ['flow', 'kitchen', 'plans', 'faq', 'contact'];
+
 /**
  * Navbar state: shadow after scrolling, the mobile menu (closes on Escape, link tap or when the
- * window grows), and which section is being read so its link can be highlighted.
+ * window grows), and which link is current. On the home page that is the section being read; on
+ * every other page it is the page itself.
  */
-export function useLandingNav(sectionIds: readonly NavSectionId[]) {
+export function useLandingNav(sectionIds: readonly NavSectionId[], current: CurrentPage) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [activeId, setActiveId] = useState<NavSectionId | null>(null);
+  const [activeSection, setActiveSection] = useState<NavSectionId | null>(null);
 
   const toggleMenu = useCallback(() => {
     setMenuOpen((open) => !open);
@@ -52,6 +56,9 @@ export function useLandingNav(sectionIds: readonly NavSectionId[]) {
   }, []);
 
   useEffect(() => {
+    if (current !== 'home') {
+      return undefined;
+    }
     const targets = sectionIds
       .map((id) => document.getElementById(id))
       .filter((el): el is HTMLElement => el !== null);
@@ -59,7 +66,7 @@ export function useLandingNav(sectionIds: readonly NavSectionId[]) {
       (entries) => {
         for (const entry of entries) {
           if (entry.isIntersecting) {
-            setActiveId(entry.target.id as NavSectionId);
+            setActiveSection(entry.target.id as NavSectionId);
           }
         }
       },
@@ -71,7 +78,10 @@ export function useLandingNav(sectionIds: readonly NavSectionId[]) {
     return () => {
       observer.disconnect();
     };
-  }, [sectionIds]);
+  }, [sectionIds, current]);
 
-  return { scrolled, menuOpen, activeId, toggleMenu, closeMenu };
+  const activeKey: NavKey | null =
+    current === 'home' ? activeSection : NAV_KEYS.includes(current) ? (current as NavKey) : null;
+
+  return { scrolled, menuOpen, activeKey, toggleMenu, closeMenu };
 }

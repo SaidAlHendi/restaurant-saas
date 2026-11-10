@@ -7,8 +7,21 @@ const SITE = 'https://getsahtain.com/';
 describe('buildSitemapXml', () => {
   const xml = buildSitemapXml(SITE, [{ slug: 'al-bait', locales: ['ar', 'en'] }]);
 
-  it('lists landing, privacy and terms in both locales', () => {
-    for (const path of ['/ar', '/en', '/ar/privacy', '/en/privacy', '/ar/terms', '/en/terms']) {
+  it('lists every public page in both locales', () => {
+    for (const path of [
+      '/ar',
+      '/en',
+      '/ar/plans',
+      '/en/plans',
+      '/ar/faq',
+      '/en/faq',
+      '/ar/contact',
+      '/en/contact',
+      '/ar/privacy',
+      '/en/privacy',
+      '/ar/terms',
+      '/en/terms',
+    ]) {
       expect(xml).toContain(`<loc>https://getsahtain.com${path}</loc>`);
     }
   });
@@ -18,7 +31,7 @@ describe('buildSitemapXml', () => {
       '<xhtml:link rel="alternate" hreflang="x-default" href="https://getsahtain.com/ar"/>',
     );
     expect(xml).toContain(
-      '<xhtml:link rel="alternate" hreflang="en" href="https://getsahtain.com/en/privacy"/>',
+      '<xhtml:link rel="alternate" hreflang="en" href="https://getsahtain.com/en/plans"/>',
     );
   });
 

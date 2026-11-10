@@ -1,7 +1,13 @@
 import type { LandingLocale } from '../../../lib/locale.js';
 import type { LandingImageName } from '../landing-media.generated.js';
 
-export type NavSectionId = 'flow' | 'kitchen' | 'plans' | 'faq';
+/** Sections of the home page that the navbar can scroll to. */
+export type NavSectionId = 'flow' | 'kitchen';
+
+/** Pages of the site that have their own entry in the navbar. */
+export type NavPageId = 'plans' | 'faq' | 'contact';
+
+export type NavKey = NavSectionId | NavPageId;
 
 export type FlowMedia =
   | { kind: 'image'; image: LandingImageName; alt: string }
@@ -48,7 +54,7 @@ export type LandingContent = {
     brand: string;
     brandLabel: string;
     ariaLabel: string;
-    links: Array<{ id: NavSectionId; label: string }>;
+    links: Array<{ key: NavKey; label: string }>;
     cta: string;
     menuLabel: string;
     switchLabel: string;
@@ -66,8 +72,29 @@ export type LandingContent = {
   photos: Record<PhotoKey, { alt: string; caption: string }>;
   flow: { tag: string; title: string; lead: string; stops: FlowStop[] };
   kitchen: { title: string; tickets: TicketContent[] };
-  plans: { title: string; items: PlanContent[] };
-  faq: { title: string; items: Array<{ q: string; a: string }> };
+  plans: { title: string; lead: string; items: PlanContent[] };
+  faq: { title: string; lead: string; items: Array<{ q: string; a: string }> };
+  contact: { title: string; lead: string; emailLabel: string; emailCta: string };
+  whatsapp: { label: string; message: string };
+  form: {
+    title: string;
+    labels: Record<'name' | 'restaurantName' | 'phone' | 'email' | 'country' | 'branches' | 'message', string>;
+    placeholders: Record<'name' | 'restaurantName' | 'phone' | 'email' | 'message', string>;
+    countryPlaceholder: string;
+    countries: Array<{ code: string; name: string }>;
+    submit: string;
+    sending: string;
+    privacyNote: string;
+    privacyLink: string;
+    errors: { required: string; invalid: string; rateLimited: string; unavailable: string };
+  };
+  /** Two small tiles on the home page that point to the plans and FAQ pages. */
+  teasers: {
+    plans: { title: string; body: string; cta: string };
+    faq: { title: string; body: string; cta: string };
+  };
+  /** Search title and description of the pages that have their own URL. */
+  pages: Record<NavPageId, { title: string; description: string }>;
   closing: { title: string; body: string; cta: string; ctaSubject: string };
   footer: { rights: string; privacy: string; terms: string; contact: string };
 };

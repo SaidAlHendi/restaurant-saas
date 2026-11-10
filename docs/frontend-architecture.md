@@ -79,7 +79,10 @@ apps/site/app/
   root.tsx                      # <html lang dir>, global meta, icons, manifest
   routes/
     home.tsx                    # `/` -> 302 to /ar or /en by Accept-Language (Vary: Accept-Language)
-    locale-home.tsx             # `/:locale` landing page (SSR) + JSON-LD
+    locale-home.tsx             # `/:locale` home: promise, six real screens, kitchen, doors to the pages below
+    locale-plans.tsx            # `/:locale/plans` plans and prices (SoftwareApplication offers)
+    locale-faq.tsx              # `/:locale/faq` (FAQPage)
+    locale-contact.tsx          # `/:locale/contact` (ContactPage)
     locale-privacy.tsx          # `/:locale/privacy`, `/:locale/terms` (indexable documents)
     locale-terms.tsx
     locale-thanks.tsx           # `/:locale/thanks` conversion page (noindex, no-store)
@@ -87,7 +90,7 @@ apps/site/app/
     locale-menu-branch.tsx
     sitemap[.]xml.tsx           # landing + legal pages with hreflang alternates, and published menus
     robots[.]txt.tsx
-  features/landing/             # landing page: content (ar/en .ts), components (UI only), hooks, css, seo
+  features/landing/             # site pages: content (ar/en .ts), components (UI only, one SiteShell for every page), hooks, css, seo
   features/consent/             # cookie banner and consent-gated tags (GA4, Google Ads, Meta pixel)
   lib/api.server.ts             # fetch public API, Zod-validate
   lib/locale.ts                 # ar/en negotiation and paths

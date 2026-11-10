@@ -8,10 +8,11 @@ import { Tile } from './Tile.js';
 export type HeroSectionProps = {
   hero: LandingContent['hero'];
   photos: LandingContent['photos'];
+  ctaHref: string;
 };
 
 /** First screen: the wordmark, the one-line promise, the tablet with the real cashier screen, two photos. */
-export function HeroSection({ hero, photos }: HeroSectionProps) {
+export function HeroSection({ hero, photos, ctaHref }: HeroSectionProps) {
   return (
     <>
       <Tile tone="paper" className="md:col-span-7 md:min-h-[560px]">
@@ -24,7 +25,7 @@ export function HeroSection({ hero, photos }: HeroSectionProps) {
         <p className="lp-display lp-stm">{hero.statement}</p>
         <p className="max-w-[26em] text-base">{hero.body}</p>
         <Button asChild variant="secondary" size="touch" className="self-start">
-          <a href="#trial">{hero.cta}</a>
+          <a href={ctaHref}>{hero.cta}</a>
         </Button>
       </Tile>
 

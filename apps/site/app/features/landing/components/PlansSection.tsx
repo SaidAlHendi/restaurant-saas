@@ -1,10 +1,11 @@
-import type { LandingPageViewModel } from '../hooks/use-landing-page.js';
 import type { PlanKey } from '../content/types.js';
+import type { PlanView } from '../landing.utils.js';
 import { Tile, type TileTone } from './Tile.js';
 
 export type PlansSectionProps = {
   title: string;
-  plans: LandingPageViewModel['plans'];
+  lead: string;
+  plans: PlanView[];
 };
 
 const PLAN_TONE: Record<PlanKey, TileTone> = {
@@ -15,11 +16,12 @@ const PLAN_TONE: Record<PlanKey, TileTone> = {
 };
 
 /** Real plans and prices (Free $0, Menu $12, Restaurant $39 per branch, Business $79 per branch). */
-export function PlansSection({ title, plans }: PlansSectionProps) {
+export function PlansSection({ title, lead, plans }: PlansSectionProps) {
   return (
     <>
-      <Tile as="section" tone="paper" id="plans" className="md:min-h-[200px]">
-        <h2 className="lp-display lp-stm">{title}</h2>
+      <Tile as="section" tone="paper" className="md:min-h-[200px]">
+        <h1 className="lp-display lp-stm">{title}</h1>
+        <p className="max-w-[36em] text-base text-foreground/75">{lead}</p>
       </Tile>
       {plans.map((plan) => (
         <Tile

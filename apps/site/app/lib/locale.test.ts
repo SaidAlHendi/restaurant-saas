@@ -46,5 +46,7 @@ describe('locale helpers', () => {
   it('builds clean paths without a trailing slash', () => {
     expect(landingPath('ar')).toBe('/ar');
     expect(landingPath('en', 'privacy')).toBe('/en/privacy');
+    expect(landingPath('ar', 'plans')).toBe('/ar/plans');
+    expect(landingPath('en', 'contact')).toBe('/en/contact');
   });
 });

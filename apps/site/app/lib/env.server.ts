@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { parseWhatsappNumber } from './whatsapp.js';
+
 const optionalId = z.preprocess(
   (value) => (value === '' ? undefined : value),
   z.string().optional(),
@@ -29,6 +31,14 @@ export function getSiteEnv(): SiteEnv {
     });
   }
   return cached;
+}
+
+/**
+ * The business WhatsApp number (digits with country code). Read on its own, with no required-env
+ * check, so a missing value falls back to the placeholder instead of breaking every page.
+ */
+export function getWhatsappNumber(): string {
+  return parseWhatsappNumber(process.env['PUBLIC_WHATSAPP_NUMBER']);
 }
 
 /** Test-only reset. */

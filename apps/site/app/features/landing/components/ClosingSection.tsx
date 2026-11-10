@@ -14,7 +14,7 @@ export type ClosingSectionProps = {
 export function ClosingSection({ closing, wordmark, trialHref, photo }: ClosingSectionProps) {
   return (
     <>
-      <Tile as="section" tone="ink" id="trial" className="pb-0 md:col-span-8 md:min-h-[560px] md:pb-0">
+      <Tile as="section" tone="ink" className="pb-0 md:col-span-8 md:min-h-[560px] md:pb-0">
         <div>
           <h2 className="lp-display lp-stm">{closing.title}</h2>
           <p className="mt-4 max-w-[26em] text-lg opacity-80">{closing.body}</p>

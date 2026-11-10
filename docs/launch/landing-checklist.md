@@ -1,6 +1,6 @@
 # Landing page launch checklist (getsahtain.com)
 
-Companion to `15-sahtain-landing-page.md`. The page lives in `apps/site` (routes `/ar`, `/en`, `/:locale/privacy`, `/:locale/terms`, `/:locale/thanks`; `/` redirects by `Accept-Language`).
+Companion to `15-sahtain-landing-page.md`. The site lives in `apps/site`: the home page (`/ar`, `/en`) plus `/:locale/plans`, `/:locale/faq`, `/:locale/contact`, `/:locale/privacy`, `/:locale/terms` and the conversion page `/:locale/thanks`. `/` redirects by `Accept-Language`.
 
 ## 1. Environment
 
@@ -8,6 +8,7 @@ Companion to `15-sahtain-landing-page.md`. The page lives in `apps/site` (routes
 |---|---|---|
 | `PUBLIC_SITE_URL` | `https://getsahtain.com` | Used for canonicals, hreflang, sitemap, Open Graph and JSON-LD. |
 | `PUBLIC_API_URL` | the public API origin | Needed by the menu pages and the sitemap. |
+| `PUBLIC_WHATSAPP_NUMBER` | digits with country code, e.g. `966501234567` | The chat button shown on every page. **Unset = a fictional placeholder number that reaches nobody.** |
 | `PUBLIC_GA4_ID` | `G-XXXXXXXXXX` | Optional. Empty = GA4 never loads. |
 | `PUBLIC_GOOGLE_ADS_ID` | `AW-XXXXXXXXXX` | Optional. Empty = no Ads tag. |
 | `PUBLIC_META_PIXEL_ID` | numeric pixel id | Optional. Empty = no pixel. |
@@ -25,7 +26,8 @@ Invalid IDs (wrong format) are ignored on purpose. Scripts load only after the v
 
 HTML responses already send `Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=600`.
 
-- [ ] Cache Rule: **cache** `/ar`, `/en`, `/ar/privacy`, `/en/privacy`, `/ar/terms`, `/en/terms` and respect the origin TTL.
+- [ ] Cache Rule: **cache** every page except the two below (`/ar`, `/en`, and `/ar|en/plans`, `/faq`, `/contact`, `/privacy`, `/terms`) and respect the origin TTL.
+- [ ] Rate-limit rule: `POST` to `/ar/contact` and `/en/contact` (for example 10 per minute per IP). The site limits each visitor to 3 requests per 10 minutes inside one process, and the API only sees the site server's address, so the CDN rule is the shared backstop. Forward the visitor's address (`CF-Connecting-IP`), which the form action uses for its limit.
 - [ ] Cache Rule: **bypass** `/` (the redirect depends on `Accept-Language`; Cloudflare does not vary on it, so a cached redirect would send everyone to one language) and `/*/thanks` (sends `no-store`).
 - [ ] `/assets/*` (hashed by Vite): cache for a year, immutable.
 - [ ] `/fonts/*`, `/landing/*` (not hashed): edge TTL 1 day, browser 1 week, and **purge the cache on each deploy** that changes them.
@@ -36,9 +38,9 @@ HTML responses already send `Cache-Control: public, max-age=0, s-maxage=3600, st
 
 - [ ] Add the `getsahtain.com` domain property in Google Search Console (DNS TXT verification).
 - [ ] Submit `https://getsahtain.com/sitemap.xml`.
-- [ ] URL-inspect `/ar` and `/en`: page is indexable, canonical is the page itself, hreflang `ar`, `en` and `x-default` are detected.
+- [ ] URL-inspect `/ar`, `/en` and one of each inner page (`plans`, `faq`, `contact`): indexable, canonical is the page itself, hreflang `ar`, `en` and `x-default` are detected.
 - [ ] Confirm `/ar/thanks` and `/en/thanks` are **not** indexed (they send `noindex`; they are deliberately not blocked in `robots.txt` so crawlers can see it).
-- [ ] Rich Results Test on `/ar` and `/en`: `FAQPage`, `SoftwareApplication`, `Organization`, `WebSite` are valid.
+- [ ] Rich Results Test: `/ar` and `/en` (`Organization`, `WebSite`, `SoftwareApplication`), `/ar/plans` and `/en/plans` (`SoftwareApplication` with one `Offer` per plan), `/ar/faq` and `/en/faq` (`FAQPage`), `/ar/contact` and `/en/contact` (`ContactPage`) are valid.
 - [ ] Link the Google Business Profile (if one exists) to the same domain.
 
 ## 5. Ads accounts
@@ -55,14 +57,23 @@ HTML responses already send `Cache-Control: public, max-age=0, s-maxage=3600, st
 - [ ] Clear the `sahtain_consent` cookie, click "Accept": GA4 `page_view` and the Meta `PageView` fire.
 - [ ] With consent given, open `/ar/thanks`: GA4 DebugView shows `generate_lead` and Meta Pixel Helper shows `Lead`. Opening any other page fires neither.
 - [ ] With consent rejected, `/ar/thanks` fires nothing.
-- [ ] Open `/ar?utm_source=google&utm_medium=cpc&gclid=test` and check `sessionStorage['sahtain_attribution']` holds the values (used by the lead form).
+- [ ] Open `/ar?utm_source=google&utm_medium=cpc&gclid=test`, check `sessionStorage['sahtain_attribution']` holds the values, then send the form on `/ar/contact`: the lead row has `utm_source`, `utm_medium` and `gclid` filled in.
+
+## 6b. Contact form and WhatsApp
+
+- [ ] Send the form with valid data: you land on `/ar/thanks` (or `/en/thanks`), and a `leads` row exists. Read leads with the owner connection: `select created_at, name, restaurant_name, phone, email, country, branches, utm_source, gclid from leads order by created_at desc;` (the API user cannot read this table on purpose).
+- [ ] Send it with a bad email (for example `a@b`): the same page shows the message under the field and keeps what you typed.
+- [ ] Stop the API and send the form: a clear "could not send" message appears, nothing is lost.
+- [ ] Send four valid forms within ten minutes from one address: the fourth is refused with the "too many requests" message.
+- [ ] The WhatsApp button is visible on every page (home, plans, FAQ, contact, privacy, terms, thanks), in both languages, and lifts above the cookie banner while it is open.
+- [ ] Set `PUBLIC_WHATSAPP_NUMBER`, restart, and click the button: WhatsApp opens a chat with the real number and the prefilled message.
 
 ## 7. Page quality gates
 
-- [ ] Lighthouse mobile: Performance >= 90, Accessibility >= 95, Best Practices and SEO = 100. Paste the numbers in the PR.
+- [ ] Lighthouse mobile on the home page and on `/plans`: Performance >= 90, Accessibility >= 95, Best Practices and SEO = 100. Paste the numbers in the PR.
 - [ ] LCP < 2.5 s, CLS < 0.1, INP < 200 ms on a throttled mobile profile.
-- [ ] View source shows the full page in HTML (server-rendered), one `<h1>`, `lang`/`dir` set.
-- [ ] Keyboard only: skip link, nav, menu button, FAQ, consent buttons all reachable with a visible focus ring.
+- [ ] View source of every page shows the full content in HTML (server-rendered), exactly one `<h1>`, `lang`/`dir` set.
+- [ ] Keyboard only: skip link, nav (current page marked), menu button, FAQ, consent buttons all reachable with a visible focus ring. The language switch keeps you on the same page.
 - [ ] RTL check at 375, 768 and 1440 px; English check at the same widths.
 - [ ] `prefers-reduced-motion`: the curved line is shown complete, videos show the poster only.
 
@@ -73,4 +84,5 @@ HTML responses already send `Cache-Control: public, max-age=0, s-maxage=3600, st
 - [ ] Confirm `hello@getsahtain.com` is a monitored mailbox (shown in the footer and used by the trial button).
 - [ ] Replace the placeholder wordmark and icons when the logo exists (`public/icon-*.png`, `public/favicon.svg`, `public/landing/og-*.jpg`).
 - [ ] Record an English-UI cut of the POS and kitchen videos (the page currently reuses the Arabic recording on `/en`).
-- [ ] Lead form (name, restaurant, phone/WhatsApp, email, country, branches) and its API endpoint: pending, not shipped yet.
+- [ ] Set the real `PUBLIC_WHATSAPP_NUMBER` (the placeholder reaches nobody).
+- [ ] Decide who is told about a new lead. Leads are stored only: nothing emails or messages anyone yet, so check the table (or add a notification) before ad traffic starts.

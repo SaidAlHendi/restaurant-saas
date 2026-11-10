@@ -1,4 +1,4 @@
-import { type LandingLocale, LANDING_LOCALES } from '../../lib/locale.js';
+import { type IndexedPageKey, type LandingLocale, LANDING_LOCALES } from '../../lib/locale.js';
 import { buildPageMeta } from '../../lib/page-meta.js';
 import type { LandingContent } from './content/types.js';
 import { imageSrcSet } from './landing.utils.js';
@@ -39,7 +39,7 @@ function lcpImagePreload() {
   };
 }
 
-export function landingUrl(siteBaseUrl: string, locale: LandingLocale, page?: string): string {
+export function landingUrl(siteBaseUrl: string, locale: LandingLocale, page?: IndexedPageKey | 'thanks'): string {
   return new URL(page === undefined ? `/${locale}` : `/${locale}/${page}`, siteBaseUrl).toString();
 }
 
@@ -97,26 +97,37 @@ export function buildNoindexMeta(input: {
   ];
 }
 
-/** A plain indexable page (privacy, terms) with one canonical and the ar/en alternates. */
-export function buildDocumentMeta(input: {
+/** An indexable inner page (plans, FAQ, contact, privacy, terms): own canonical, ar/en alternates, share image. */
+export function buildInnerPageMeta(input: {
   title: string;
   description: string;
   locale: LandingLocale;
   siteBaseUrl: string;
-  page: 'privacy' | 'terms';
+  page: IndexedPageKey;
+  ogAlt: string;
 }) {
-  const { title, description, locale, siteBaseUrl, page } = input;
+  const { title, description, locale, siteBaseUrl, page, ogAlt } = input;
+  const image = ogImageUrl(siteBaseUrl, locale);
   return [
     ...buildPageMeta({
       title,
       description,
       canonical: landingUrl(siteBaseUrl, locale, page),
       locale: locale === 'ar' ? 'ar_SA' : 'en_US',
+      imageUrl: image,
       alternateLocales: [
         ...LANDING_LOCALES.map((l) => ({ locale: l, href: landingUrl(siteBaseUrl, l, page) })),
         { locale: 'x-default', href: landingUrl(siteBaseUrl, 'ar', page) },
       ],
     }),
+    { property: 'og:type', content: 'website' },
+    { property: 'og:url', content: landingUrl(siteBaseUrl, locale, page) },
+    { property: 'og:site_name', content: locale === 'ar' ? 'صحتين' : 'Sahtain' },
+    { property: 'og:image:width', content: String(OG_IMAGE_SIZE.width) },
+    { property: 'og:image:height', content: String(OG_IMAGE_SIZE.height) },
+    { property: 'og:image:alt', content: ogAlt },
+    { name: 'twitter:image', content: image },
+    { name: 'theme-color', content: '#f3ecdf' },
     ...fontPreloadTags(locale),
   ];
 }

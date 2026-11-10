@@ -9,8 +9,9 @@ export type FaqSectionProps = {
 export function FaqSection({ faq }: FaqSectionProps) {
   return (
     <>
-      <Tile as="section" tone="paper" id="faq" className="md:col-span-4 md:row-span-2">
-        <h2 className="lp-display lp-stm">{faq.title}</h2>
+      <Tile as="section" tone="paper" className="md:col-span-4 md:row-span-2">
+        <h1 className="lp-display lp-stm">{faq.title}</h1>
+        <p className="max-w-[26em] text-base text-foreground/75">{faq.lead}</p>
       </Tile>
       {faq.items.map((item, index) => (
         <details
