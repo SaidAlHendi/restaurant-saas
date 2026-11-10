@@ -65,7 +65,7 @@ export class ModifierGroupsService {
       });
       return mapModifierGroup(row);
     });
-    this.menuCache.afterCatalogChange(ctx.orgId);
+    await this.menuCache.afterCatalogChange(ctx.orgId);
     return result;
   }
 
@@ -92,7 +92,7 @@ export class ModifierGroupsService {
       }
       return mapModifierGroup(updated);
     });
-    this.menuCache.afterCatalogChange(ctx.orgId);
+    await this.menuCache.afterCatalogChange(ctx.orgId);
     return result;
   }
 
@@ -104,7 +104,7 @@ export class ModifierGroupsService {
       }
       return mapModifierGroup(deleted);
     });
-    this.menuCache.afterCatalogChange(ctx.orgId);
+    await this.menuCache.afterCatalogChange(ctx.orgId);
     return result;
   }
 
@@ -128,7 +128,7 @@ export class ModifierGroupsService {
       });
       return mapModifier(row, org.defaultCurrency);
     });
-    this.menuCache.afterCatalogChange(ctx.orgId);
+    await this.menuCache.afterCatalogChange(ctx.orgId);
     return result;
   }
 
@@ -155,7 +155,7 @@ export class ModifierGroupsService {
       }
       return mapModifier(updated, org.defaultCurrency);
     });
-    this.menuCache.afterCatalogChange(ctx.orgId);
+    await this.menuCache.afterCatalogChange(ctx.orgId);
     return result;
   }
 
@@ -172,7 +172,7 @@ export class ModifierGroupsService {
       }
       return mapModifier(deleted, org.defaultCurrency);
     });
-    this.menuCache.afterCatalogChange(ctx.orgId);
+    await this.menuCache.afterCatalogChange(ctx.orgId);
     return result;
   }
 
@@ -194,7 +194,7 @@ export class ModifierGroupsService {
       const rows = await this.repo.listModifiersInGroup(tx, groupId);
       return { items: rows.map((m) => mapModifier(m, org.defaultCurrency)) };
     });
-    this.menuCache.afterCatalogChange(ctx.orgId);
+    await this.menuCache.afterCatalogChange(ctx.orgId);
     return result;
   }
 }

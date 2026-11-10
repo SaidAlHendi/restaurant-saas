@@ -464,3 +464,6 @@ export type {
   PosDeviceListResponse,
   PosDeviceStatus,
 } from './devices/devices.js';
+
+export { CATALOG_UPDATED_EVENT, catalogRealtimePayloadSchema } from './catalog/realtime-payload.js';
+export type { CatalogRealtimePayload } from './catalog/realtime-payload.js';

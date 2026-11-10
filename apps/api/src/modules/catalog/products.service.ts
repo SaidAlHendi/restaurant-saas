@@ -162,7 +162,7 @@ export class ProductsService {
       await this.repo.replaceProductBranches(tx, row.id, ctx.orgId, availability.branchIds);
       return mapProduct(row, org.defaultCurrency, this.storage, availability.branchIds);
     });
-    this.menuCache.afterCatalogChange(ctx.orgId);
+    await this.menuCache.afterCatalogChange(ctx.orgId);
     return result;
   }
 
@@ -225,7 +225,7 @@ export class ProductsService {
         availability ? availability.branchIds : currentBranchIds,
       );
     });
-    this.menuCache.afterCatalogChange(ctx.orgId);
+    await this.menuCache.afterCatalogChange(ctx.orgId);
     return result;
   }
 
@@ -238,7 +238,7 @@ export class ProductsService {
       }
       return this.mapOne(tx, deleted, org.defaultCurrency);
     });
-    this.menuCache.afterCatalogChange(ctx.orgId);
+    await this.menuCache.afterCatalogChange(ctx.orgId);
     return result;
   }
 
@@ -272,7 +272,7 @@ export class ProductsService {
         ),
       };
     });
-    this.menuCache.afterCatalogChange(ctx.orgId);
+    await this.menuCache.afterCatalogChange(ctx.orgId);
     return result;
   }
 
@@ -300,7 +300,7 @@ export class ProductsService {
       await this.repo.replaceProductModifierGroups(tx, productId, ctx.orgId, body.groupIds);
       return this.buildProductDetail(tx, ctx.orgId, productId);
     });
-    this.menuCache.afterCatalogChange(ctx.orgId);
+    await this.menuCache.afterCatalogChange(ctx.orgId);
     return result;
   }
 
@@ -353,7 +353,7 @@ export class ProductsService {
         this.storage,
         result.branchIds,
       );
-      this.menuCache.afterCatalogChange(ctx.orgId);
+      await this.menuCache.afterCatalogChange(ctx.orgId);
       return mapped;
     } catch (err: unknown) {
       if (newPrefix) {
@@ -401,7 +401,7 @@ export class ProductsService {
       this.storage,
       result.branchIds,
     );
-    this.menuCache.afterCatalogChange(ctx.orgId);
+    await this.menuCache.afterCatalogChange(ctx.orgId);
     return mapped;
   }
 }
