@@ -1,4 +1,5 @@
 import '@app/ui/globals.css';
+import './features/landing/landing.css';
 
 import type { ReactNode } from 'react';
 import {
@@ -11,7 +12,11 @@ import {
   useRouteLoaderData,
 } from 'react-router';
 
-export const links = () => [{ rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }];
+export const links = () => [
+  { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+  { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
+  { rel: 'manifest', href: '/site.webmanifest' },
+];
 
 type RootLoaderData = {
   locale: string;

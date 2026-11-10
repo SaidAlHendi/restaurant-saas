@@ -1,0 +1,168 @@
+@import './landing-fonts.css';
+
+/*
+ * Landing page styles that Tailwind utilities cannot express (display type scale, torn ticket edge,
+ * the drawn line, motion). Colors come from the theme tokens only (see packages/ui themes.css).
+ */
+.lp-root {
+  --lp-display: 'Lalezar', 'IBM Plex Sans Arabic', ui-sans-serif, system-ui, sans-serif;
+  --lp-text: 'IBM Plex Sans Arabic', ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--lp-text);
+}
+
+/* The global RTL rule sets Cairo on <html>; the landing page keeps its own pair. */
+html[dir='rtl'] .lp-root {
+  font-family: var(--lp-text);
+}
+
+.lp-display {
+  font-family: var(--lp-display);
+  font-weight: 400;
+}
+
+.lp-word {
+  font-size: clamp(110px, 17vw, 280px);
+  line-height: 0.95;
+  color: var(--primary);
+}
+
+.lp-stm {
+  font-size: clamp(36px, 4.6vw, 76px);
+  line-height: 1.08;
+}
+
+.lp-med {
+  font-size: clamp(28px, 2.8vw, 44px);
+  line-height: 1.15;
+}
+
+.lp-price {
+  font-size: clamp(54px, 5.6vw, 88px);
+  line-height: 1;
+}
+
+/* Decorative: the text is generated content, so assistive tech and contrast audits skip it. */
+.lp-ghost::before {
+  content: attr(data-word);
+}
+
+.lp-ghost {
+  font-size: clamp(150px, 24vw, 360px);
+  line-height: 0.8;
+  margin-bottom: -0.14em;
+  text-align: center;
+  color: color-mix(in oklch, var(--background) 10%, var(--foreground));
+  user-select: none;
+}
+
+/* "Sahtain" is longer than the Arabic wordmark, so the Latin display sizes are a little smaller. */
+html[lang='en'] .lp-word {
+  font-size: clamp(84px, 12.5vw, 210px);
+}
+
+html[lang='en'] .lp-ghost {
+  font-size: clamp(110px, 19vw, 290px);
+}
+
+/* Kitchen tickets with a torn top edge. */
+.lp-ticket {
+  position: relative;
+  padding: 26px 20px 24px;
+  border-radius: 0 0 12px 12px;
+  background: var(--card);
+  color: var(--card-foreground);
+  clip-path: polygon(
+    0 0,
+    5% 8px,
+    10% 0,
+    15% 8px,
+    20% 0,
+    25% 8px,
+    30% 0,
+    35% 8px,
+    40% 0,
+    45% 8px,
+    50% 0,
+    55% 8px,
+    60% 0,
+    65% 8px,
+    70% 0,
+    75% 8px,
+    80% 0,
+    85% 8px,
+    90% 0,
+    95% 8px,
+    100% 0,
+    100% 100%,
+    0 100%
+  );
+}
+
+.lp-ticket[data-tone='cooking'] {
+  background: var(--highlight);
+}
+
+/* The curved line behind the product screens. Hidden on phones, where the cards stack. */
+.lp-curve-path {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+@media (max-width: 767px) {
+  .lp-curve-svg {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-curve-path {
+    stroke-dashoffset: 0;
+  }
+}
+
+.lp-check::before {
+  content: '✓';
+  margin-inline-end: 0.5rem;
+  font-weight: 700;
+}
+
+.lp-burger-line {
+  position: absolute;
+  inset-inline-start: 12px;
+  width: 20px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  transition:
+    transform 0.25s,
+    top 0.25s;
+}
+
+/* Scroll reveal: content is visible by default; only elements that start below the fold are
+   hidden by the motion hook, and only when the visitor has not asked for reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal='pending'] {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+
+  [data-reveal='in'] {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 0.8s,
+      transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  .lp-ticket {
+    transition: transform 0.25s;
+  }
+
+  .lp-ticket:hover {
+    transform: translateY(-6px);
+  }
+}
