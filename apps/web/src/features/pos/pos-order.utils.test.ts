@@ -9,6 +9,7 @@ const baseCart = (): CartState => ({
   orderType: 'takeaway',
   tableId: null,
   customerName: '',
+  pagerNumber: '',
   orderNote: '',
   lines: [
     {

@@ -13,6 +13,7 @@ export type ReceiptPrintLabels = {
   orderNumber: string;
   dineIn: string;
   takeaway: string;
+  pager?: string;
   paymentMethodCash: string;
   paymentMethodCard: string;
   paymentMethodOther: string;

@@ -8,6 +8,7 @@ import {
   productModifierGroups,
   products,
 } from '../../core/db/schema/catalog';
+import { orders } from '../../core/db/schema/ordering';
 import { branches, organizations } from '../../core/db/schema/tenancy';
 import { DRIZZLE, type DrizzleDb } from '../../core/db/db.module';
 import type { DrizzleTx } from '../../core/db/with-org';
@@ -96,6 +97,7 @@ export class PublicMenuRepository {
         name: branches.name,
         slug: branches.slug,
         address: branches.address,
+        pagerEnabled: branches.pagerEnabled,
       })
       .from(branches)
       .where(
@@ -107,6 +109,15 @@ export class PublicMenuRepository {
       )
       .limit(1);
     return rows[0];
+  }
+
+  async listReadyOrders(tx: DrizzleTx, branchId: string) {
+    return tx
+      .select({ orderNumber: orders.orderNumber, pagerNumber: orders.pagerNumber })
+      .from(orders)
+      .where(and(eq(orders.branchId, branchId), eq(orders.status, 'ready')))
+      .orderBy(asc(orders.updatedAt), asc(orders.id))
+      .limit(60);
   }
 
   async findBranchSlugs(tx: DrizzleTx, orgId: string, branchId: string) {

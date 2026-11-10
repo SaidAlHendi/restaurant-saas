@@ -26,6 +26,8 @@ export function postOrder(
     clientOrderId: string;
     type: 'takeaway' | 'dine_in';
     tableId?: string;
+    customerName?: string;
+    pagerNumber?: number;
     items: Array<{ productId: string; quantity: number; modifierIds: string[] }>;
   },
   idempotencyKey?: string,
@@ -332,6 +334,7 @@ export async function insertPlacedOrderForBusinessDate(
       paymentStatus: 'unpaid',
       tableId: null,
       customerName: null,
+      pagerNumber: null,
       notes: null,
       subtotalMinor: total,
       discountMinor: 0,

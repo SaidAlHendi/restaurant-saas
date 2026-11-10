@@ -19,6 +19,7 @@ export const cartStateSchema = z.object({
   orderType: z.enum(['dine_in', 'takeaway']),
   tableId: z.uuid().nullable(),
   customerName: z.string(),
+  pagerNumber: z.string().default(''),
   orderNote: z.string(),
   lines: z.array(cartLineSchema),
 });

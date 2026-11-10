@@ -13,6 +13,7 @@ export const FEATURE_KEYS = [
   'branches.multi',
   'roles.custom',
   'ordering.table_qr',
+  'ordering.pager',
   'api.access',
 ] as const;
 
@@ -57,6 +58,7 @@ export const PLAN_FEATURE_SEED: Record<
     { key: 'pos.access', limitValue: null },
     { key: 'kds.access', limitValue: null },
     { key: 'reports.basic', limitValue: null },
+    { key: 'ordering.pager', limitValue: null },
     { key: 'limit.users_per_branch', limitValue: 10 },
     { key: 'limit.devices_per_branch', limitValue: 4 },
   ],
@@ -74,6 +76,7 @@ export const PLAN_FEATURE_SEED: Record<
     { key: 'branches.multi', limitValue: null },
     { key: 'roles.custom', limitValue: null },
     { key: 'ordering.table_qr', limitValue: null },
+    { key: 'ordering.pager', limitValue: null },
     { key: 'api.access', limitValue: null },
   ],
 };

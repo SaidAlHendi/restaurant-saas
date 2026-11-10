@@ -26,6 +26,7 @@ export const branchSchema = z.object({
   receiptFooter: z.string().nullable(),
   payBeforeSend: z.boolean(),
   acceptsCard: z.boolean(),
+  pagerEnabled: z.boolean(),
   isActive: z.boolean(),
 });
 
@@ -61,6 +62,7 @@ export const patchBranchBodySchema = z.object({
   receiptFooter: nullableTrimmedText(500),
   payBeforeSend: z.boolean().optional(),
   acceptsCard: z.boolean().optional(),
+  pagerEnabled: z.boolean().optional(),
   isActive: z.boolean().optional(),
 });
 

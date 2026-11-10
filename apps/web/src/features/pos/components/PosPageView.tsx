@@ -45,6 +45,9 @@ export function PosPageView(props: PosPageViewModel) {
     onTableChange,
     customerName,
     onCustomerNameChange,
+    pagerEnabled,
+    pagerNumber,
+    onPagerNumberChange,
     orderNote,
     onOrderNoteChange,
     tableOptions,
@@ -208,6 +211,23 @@ export function PosPageView(props: PosPageViewModel) {
                 />
               </div>
             )}
+            {pagerEnabled ? (
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="pos-pager">{labels.pagerNumber}</Label>
+                <Input
+                  id="pos-pager"
+                  className="h-12"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  maxLength={4}
+                  placeholder={labels.pagerNumberHint}
+                  value={pagerNumber}
+                  onChange={(event) => {
+                    onPagerNumberChange(event.target.value);
+                  }}
+                />
+              </div>
+            ) : null}
           </div>
 
           <div className="min-h-40 flex-1 overflow-y-auto px-5">

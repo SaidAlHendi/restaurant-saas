@@ -15,6 +15,7 @@ function emptyCartForBranch(branchId: string): StoredCartState {
     orderType: 'takeaway',
     tableId: null,
     customerName: '',
+    pagerNumber: '',
     orderNote: '',
     lines: [],
   };
@@ -30,6 +31,7 @@ const initialState: CartState = {
   orderType: 'takeaway',
   tableId: null,
   customerName: '',
+  pagerNumber: '',
   orderNote: '',
   lines: [],
 };
@@ -61,6 +63,9 @@ export const cartSlice = createSlice({
     },
     setCustomerName(state, action: PayloadAction<string>) {
       state.customerName = action.payload;
+    },
+    setPagerNumber(state, action: PayloadAction<string>) {
+      state.pagerNumber = action.payload.replace(/\D/g, '').slice(0, 4);
     },
     setOrderNote(state, action: PayloadAction<string>) {
       state.orderNote = action.payload;

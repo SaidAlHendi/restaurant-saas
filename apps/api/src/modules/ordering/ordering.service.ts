@@ -134,6 +134,10 @@ export class OrderingService {
         );
       }
 
+      if (body.pagerNumber !== undefined && !branch.pagerEnabled) {
+        throw new BusinessRuleError('PAGER_DISABLED', 'Pager numbers are not enabled for this branch');
+      }
+
       if (body.type === 'dine_in' && body.tableId) {
         const table = await this.repo.findActiveTableForBranch(tx, branchId, body.tableId);
         if (!table) {
@@ -191,6 +195,7 @@ export class OrderingService {
         paymentStatus,
         tableId: body.tableId ?? null,
         customerName: body.customerName ?? null,
+        pagerNumber: body.pagerNumber ?? null,
         notes: body.notes ?? null,
         subtotalMinor: totals.subtotalMinor,
         discountMinor: totals.discountMinor,

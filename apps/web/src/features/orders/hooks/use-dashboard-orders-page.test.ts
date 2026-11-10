@@ -24,6 +24,7 @@ const sampleOrder = {
   currency: 'SAR',
   tableId: null,
   customerName: null,
+  pagerNumber: null,
   notes: null,
   version: 1,
   placedAt: '2026-03-15T10:00:00.000Z',

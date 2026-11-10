@@ -63,6 +63,18 @@ export class PublicMenuController {
     }
   }
 
+  /** Customer-facing "Ready" screen; always fresh (polled every few seconds). */
+  @Get('display/:orgSlug/:branchSlug')
+  async getReadyDisplay(
+    @Param('orgSlug') orgSlug: string,
+    @Param('branchSlug') branchSlug: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const body = await this.publicMenu.getReadyDisplay(orgSlug, branchSlug);
+    setCacheHeader(res, 'public, s-maxage=2');
+    return body;
+  }
+
   @Get('tables/:token')
   async getTable(
     @Param('token') token: string,

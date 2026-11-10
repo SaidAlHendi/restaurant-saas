@@ -13,6 +13,7 @@ const AcceptInvitePage = lazy(() => import('../features/auth/pages/AcceptInviteP
 const DashboardArea = lazy(() => import('../areas/dashboard/DashboardArea.js'));
 const PosArea = lazy(() => import('../areas/pos/PosArea.js'));
 const KdsArea = lazy(() => import('../areas/kds/KdsArea.js'));
+const DisplayPage = lazy(() => import('../areas/display/DisplayPage.js'));
 const AdminArea = lazy(() => import('../areas/admin/AdminArea.js'));
 
 const devRoutes: RouteObject[] = import.meta.env.DEV
@@ -39,6 +40,7 @@ export const appRoutes: RouteObject[] = [
           { path: 'invite/:token', element: <AcceptInvitePage /> },
         ],
       },
+      { path: 'display/:orgSlug/:branchSlug', element: <DisplayPage /> },
       { path: 'auth/*', element: <Navigate to="/login" replace /> },
       {
         element: (

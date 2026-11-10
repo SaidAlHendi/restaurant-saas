@@ -19,6 +19,8 @@ export type CartState = {
   orderType: CartOrderType;
   tableId: string | null;
   customerName: string;
+  /** Digits only; empty when no pager was handed out. */
+  pagerNumber: string;
   orderNote: string;
   lines: CartLine[];
 };

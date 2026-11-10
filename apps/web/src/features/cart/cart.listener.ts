@@ -25,6 +25,7 @@ function persistCartIfReady(cart: CartState): void {
     orderType: cart.orderType,
     tableId: cart.tableId,
     customerName: cart.customerName,
+    pagerNumber: cart.pagerNumber,
     orderNote: cart.orderNote,
     lines: cart.lines,
   });
@@ -38,6 +39,7 @@ cartPersistenceListener.startListening({
     cartActions.setOrderType,
     cartActions.setTableId,
     cartActions.setCustomerName,
+    cartActions.setPagerNumber,
     cartActions.setOrderNote,
     cartActions.addLine,
     cartActions.updateLineQuantity,

@@ -120,6 +120,13 @@
       "when": 1759669000000,
       "tag": "0016_branch_availability",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1759670000000,
+      "tag": "0017_pager_numbers",
+      "breakpoints": true
     }
   ]
 }

@@ -36,6 +36,7 @@ describe('orderFromVersionConflict', () => {
       dueMinor: 100,
       tableId: null,
       customerName: null,
+      pagerNumber: null,
       notes: null,
       version: 2,
       placedAt: null,

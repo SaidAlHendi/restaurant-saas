@@ -290,6 +290,10 @@
       "payBeforeSendHint": "On: an order goes to the kitchen only after it is paid. Off: it goes to the kitchen first and is paid later.",
       "acceptsCard": "Accept card payments",
       "acceptsCardHint": "Off: the cashier can only record cash payments.",
+      "pager": "Pickup numbers / pagers",
+      "pagerHint": "On: the cashier can enter a pager number on each order. It shows on kitchen tickets and receipts, and on the customer \"Ready\" screen.",
+      "pagerPlanHint": "Available on the Restaurant plan and above.",
+      "pagerDisplayLink": "Customer \"Ready\" screen address",
       "taxPercent": "Tax rate (%)",
       "taxPercentHint": "For example 15 for 15%. Use 0 if you don't charge tax.",
       "taxInvalid": "Enter a valid tax rate between 0 and 100.",
@@ -463,6 +467,8 @@
     },
     "table": "Table",
     "customer": "Customer name",
+    "pagerNumber": "Pager no.",
+    "pagerNumberHint": "Optional",
     "orderNote": "Order note",
     "totals": {
       "subtotal": "Subtotal",
@@ -582,7 +588,8 @@
       "kitchenAdditionTitle": "Additions",
       "paid": "Paid",
       "due": "Due",
-      "taxInclSuffix": "(incl.)"
+      "taxInclSuffix": "(incl.)",
+      "pager": "Pager"
     },
     "noAccess": {
       "title": "Cashier not available",
@@ -800,6 +807,14 @@
       "hideNote": "Hide explanation"
     }
   },
+  "pickupDisplay": {
+    "heading": "Ready for pickup",
+    "empty": "No orders ready yet",
+    "enableSound": "Turn on sound",
+    "soundOn": "Sound on",
+    "notFound": "This screen is not available.",
+    "error": "Can't load orders. Retrying…"
+  },
   "kds": {
     "title": "Kitchen",
     "loadError": "Could not load the kitchen board. Try again later.",
@@ -813,6 +828,7 @@
     "card": {
       "orderNumber": "#{{number}}",
       "table": "Table {{label}}",
+      "pager": "Pager {{number}}",
       "added": "ADDED",
       "voided": "VOID",
       "start": "Start",
@@ -916,6 +932,7 @@
       "branches.multi": "Multiple branches",
       "roles.custom": "Custom roles",
       "ordering.table_qr": "Order from the table",
+      "ordering.pager": "Pickup numbers and \"Ready\" screen",
       "api.access": "API access"
     },
     "limits": {

@@ -37,6 +37,7 @@ export const kitchenBoardOrderSchema = z.object({
   placedAt: z.iso.datetime(),
   tableLabel: z.string().nullable(),
   customerName: z.string().nullable(),
+  pagerNumber: z.number().int().nullable(),
   notes: z.string().nullable(),
   paymentStatus: paymentStatusSchema,
   items: z.array(kitchenBoardItemSchema),
