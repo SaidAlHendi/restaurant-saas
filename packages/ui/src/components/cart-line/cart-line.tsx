@@ -15,6 +15,8 @@ export type CartLineProps = {
   quantity: number;
   modifiers: CartLineModifier[];
   note?: string;
+  /** Shown in red under the options, e.g. when the product left the menu. */
+  warning?: string;
   /** Small product photo; a placeholder is shown when missing. */
   imageUrl?: string | null;
   decreaseLabel: string;
@@ -34,6 +36,7 @@ export function CartLine({
   quantity,
   modifiers,
   note,
+  warning,
   imageUrl,
   decreaseLabel,
   increaseLabel,
@@ -77,6 +80,11 @@ export function CartLine({
         ) : null}
         {note && note.length > 0 ? (
           <p className="text-xs italic text-muted-foreground">{note}</p>
+        ) : null}
+        {warning && warning.length > 0 ? (
+          <p role="alert" className="text-xs font-medium text-destructive">
+            {warning}
+          </p>
         ) : null}
         <div className="mt-1 flex items-center justify-between gap-2">
           <div className="flex flex-col">

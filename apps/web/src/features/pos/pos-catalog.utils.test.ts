@@ -7,6 +7,7 @@ import {
   ALL_CATEGORIES,
   lastLineOfProduct,
   quantityByProduct,
+  unavailableProductIds,
   visiblePosProducts,
 } from './pos-catalog.utils.js';
 
@@ -66,5 +67,16 @@ describe('cart quantities per product', () => {
   it('finds the newest line of a product', () => {
     expect(lastLineOfProduct(lines, 'p1')?.localId).toBe('c');
     expect(lastLineOfProduct(lines, 'p3')).toBeNull();
+  });
+});
+
+describe('unavailableProductIds', () => {
+  it('returns cart products that are not on the menu any more', () => {
+    const lines = [line('l1', 'p1', 1), line('l2', 'gone', 2)];
+    expect([...unavailableProductIds(lines, categories)]).toEqual(['gone']);
+  });
+
+  it('is empty when every cart product is still on the menu', () => {
+    expect(unavailableProductIds([line('l1', 'p3', 1)], categories).size).toBe(0);
   });
 });
