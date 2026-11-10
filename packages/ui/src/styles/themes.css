@@ -1,7 +1,7 @@
 /*
  * Themes: "cupcake" (light, default) and "forest" (dark), mapped onto shadcn/ui tokens.
  * Theme ids are kept for saved preferences; the palette is the Sahtain design (sahtain-design):
- * Cosmic Latte light palette (mocha cream surfaces, deep burgundy brand; dark theme unchanged), and 1px borders. Radii stay rounded (set in the restyle).
+ * Cosmic Latte light palette (mocha cream surfaces, paprika orange brand (from staging); dark theme unchanged), and 1px borders. Radii stay rounded (set in the restyle).
  * Apply with <html data-theme="cupcake|forest">.
  * Components must use these tokens through Tailwind classes (bg-background, text-primary, ...),
  * never raw colors.
@@ -13,23 +13,23 @@
 :root,
 [data-theme='cupcake'] {
   color-scheme: light;
-  /* Cosmic latte palette: Cosmic Latte #B7AB9A, Mocha Cream #E8DCC6, Deep Burgundy #722F37. */
+  /* Cosmic latte palette: Cosmic Latte #B7AB9A, Mocha Cream #E8DCC6, brand orange oklch(55% 0.15 38) copied from staging. */
   --canvas: #f3ecdf;
   --base-100: #fbf8f2;
   --base-200: #e8dcc6;
   --base-300: #d9ccb4;
   --base-content: #2b1f1c;
-  --brand-primary: #722f37;
+  --brand-primary: oklch(55% 0.15 38);
   --brand-primary-content: #ffffff;
   --brand-secondary: #e8dcc6;
-  --brand-secondary-content: #5a252c;
+  --brand-secondary-content: oklch(42% 0.12 38);
   --brand-accent: #f1e6d0;
   --brand-accent-content: #6b4a1f;
   --brand-accent-2: #b7ab9a;
   --brand-accent-2-content: #2b1f1c;
   --brand-highlight: var(--brand-accent);
   --brand-highlight-content: var(--brand-accent-content);
-  --brand-neutral: #722f37;
+  --brand-neutral: oklch(27% 0.012 60);
   --brand-neutral-content: #f3ecdf;
   --state-info: #527c9c;
   --state-info-content: #ffffff;
