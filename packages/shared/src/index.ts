@@ -460,3 +460,14 @@ export type {
 
 export { CATALOG_UPDATED_EVENT, catalogRealtimePayloadSchema } from './catalog/realtime-payload.js';
 export type { CatalogRealtimePayload } from './catalog/realtime-payload.js';
+
+export {
+  leadAttributionSchema,
+  leadCountrySchema,
+  leadCreateBodySchema,
+  leadCreateResponseSchema,
+  leadLocaleSchema,
+  leadPhoneSchema,
+  normalizeDigits,
+} from './leads/lead-schemas.js';
+export type { LeadAttribution, LeadCreateBody, LeadCreateResponse } from './leads/lead-schemas.js';

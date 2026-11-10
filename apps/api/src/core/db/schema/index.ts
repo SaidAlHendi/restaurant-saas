@@ -5,3 +5,4 @@ export * from './ordering';
 export * from './infra';
 export * from './billing';
 export * from './admin';
+export * from './leads';

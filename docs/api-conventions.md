@@ -23,6 +23,7 @@
   Checkout/change conflicts: `BILLING_USE_CHANGE_PLAN` (live Paddle sub — use change-plan), `BILLING_NO_SUBSCRIPTION` (no live sub / no customer id for portal), same-plan `CONFLICT` (409), except change-plan to the current plan while a change is scheduled (e.g. a pending cancel) removes that scheduled change. Free plan checkout → 400. Paddle is called only after the DB transaction has finished.
   Paddle provider failures → 502 `BILLING_PROVIDER_ERROR` with `details.paddleErrorCode` (never log Authorization or full request bodies).
   Public webhook: `POST /v1/billing/webhooks/paddle` (raw body + `Paddle-Signature`; missing/invalid secret or signature → 401; no `billing_events` row). A signed payload that cannot be mapped is stored with `error = 'unmappable_payload'` when it has an `event_id`.
+  Public contact form: `POST /v1/public/leads` (no auth; body `leadCreateBodySchema` in `@app/shared`; 201 `{ ok: true }`, 400 on validation, 429 over the limit; never cached). A filled honeypot field `website` gets the same 201 and stores nothing. The API sees only the site server's address (no `trust proxy`), so its 30/min limit is a site-wide safety net; the site's form action limits per visitor.
 - Idempotent creates: header `Idempotency-Key`; for orders it equals `client_order_id`.
 - Pagination: cursor-based `?cursor=&limit=` (max 100), response `{ items, nextCursor }`.
 - Money in API = integer minor units + `currency`. Dates ISO 8601 UTC; `businessDate` as `YYYY-MM-DD`.
