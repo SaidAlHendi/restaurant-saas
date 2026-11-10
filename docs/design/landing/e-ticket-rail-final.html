@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>صحتين — الصفحة النهائية: سكّة التذاكر</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lalezar&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--display:'Lalezar','IBM Plex Sans Arabic',sans-serif;--text:'IBM Plex Sans Arabic',sans-serif;--canvas:#f3ecdf;--card:#fbf8f2;--ink:#2b1f1c;--soft:#6b5d57;--brand:oklch(55% 0.15 38);--brand-deep:oklch(42% 0.12 38);--deep:#2b1f1c;--esp2:#3a2c27;--mocha:#e8dcc6;--cream:#f1e6d0;--saffron:#e6a23c;--taupe:#b7ab9a;--line:#d9ccb4;--g:8px}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth;scroll-padding-top:88px}
+body{background:var(--deep);color:var(--ink);font:400 17px/1.65 var(--text);padding:var(--g)}
+a{color:inherit;text-decoration:none}img{display:block;max-width:100%;height:auto}
+:focus-visible{outline:3px solid var(--saffron);outline-offset:3px;border-radius:6px}
+.board{display:grid;grid-template-columns:repeat(12,1fr);gap:var(--g);max-width:1600px;margin:auto}
+.t{border-radius:10px;padding:clamp(18px,2.2vw,32px);position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;gap:16px}
+.s3{grid-column:span 3}.s4{grid-column:span 4}.s5{grid-column:span 5}.s6{grid-column:span 6}.s7{grid-column:span 7}.s8{grid-column:span 8}.s12{grid-column:span 12}
+.h2{min-height:200px}.h3{min-height:300px}.h4{min-height:420px}.h5{min-height:560px}
+.paper{background:var(--canvas)}.mist{background:var(--mocha)}.brand{background:var(--brand);color:#fff}.cream{background:var(--cream)}.saf{background:var(--saffron);color:#3a2606}.esp{background:var(--deep);color:#f3ecdf;box-shadow:inset 0 0 0 1px var(--esp2)}.dk{background:var(--esp2);color:#f3ecdf}
+.nav{position:sticky;top:var(--g);z-index:50;overflow:visible;flex-direction:row;align-items:center;justify-content:space-between;gap:16px;padding:10px 12px 10px 20px;transition:box-shadow .3s}
+.nav.scrolled{box-shadow:0 16px 34px -14px rgba(0,0,0,.55)}
+.nav .logo{display:flex;align-items:center;gap:4px;font:400 34px/1 var(--display);color:var(--brand)}
+.nav .dot{width:9px;height:9px;border-radius:50%;background:var(--saffron);margin-top:12px}
+.nav .links{display:flex;gap:4px;font:500 15px/1 var(--text)}
+.nav .links a{padding:11px 16px;border-radius:8px;color:var(--soft);transition:background .2s,color .2s}
+.nav .links a:hover{background:var(--mocha);color:var(--ink)}
+.nav .links a.on{background:var(--deep);color:#f3ecdf}
+.nav .actions{display:flex;align-items:center;gap:10px}
+.nav .lang{font:600 13px/1 var(--text);padding:9px 12px;border-radius:8px;box-shadow:inset 0 0 0 1.5px var(--ink);transition:background .2s,color .2s}
+.nav .lang:hover{background:var(--ink);color:var(--canvas)}
+.nav .btn{padding:11px 20px;align-self:auto}
+.burger{display:none;width:44px;height:44px;border:0;border-radius:8px;background:var(--mocha);cursor:pointer;position:relative}
+.burger span{position:absolute;inset-inline-start:12px;width:20px;height:2px;border-radius:2px;background:var(--ink);transition:transform .25s,top .25s}
+.burger span:first-child{top:17px}.burger span:last-child{top:25px}
+.burger[aria-expanded=true] span:first-child{top:21px;transform:rotate(45deg)}
+.burger[aria-expanded=true] span:last-child{top:21px;transform:rotate(-45deg)}
+.menu{position:absolute;inset-inline:0;top:calc(100% + var(--g));background:var(--canvas);border-radius:10px;padding:12px;display:grid;gap:4px;box-shadow:0 24px 50px -18px rgba(0,0,0,.6)}
+.menu[hidden]{display:none}
+.menu a:not(.btn){padding:15px 14px;border-radius:8px;font:500 19px/1.2 var(--text)}
+.menu a:not(.btn):hover,.menu a.on{background:var(--mocha)}
+.menu .btn{text-align:center;margin-top:6px;padding:15px}
+.btn{display:inline-block;background:var(--brand);color:#fff;padding:12px 24px;border-radius:8px;font-weight:600;font-size:16px;align-self:flex-start}
+.btn.w{background:var(--card);color:#8f3419}.btn.k{background:var(--ink)}.btn.s{background:var(--saffron);color:#3a2606}
+.word{font:400 clamp(110px,17vw,280px)/.95 var(--display);color:var(--brand);letter-spacing:-.02em}
+.stm{font:400 clamp(36px,4.6vw,76px)/1.08 var(--display)}
+.med{font:400 clamp(28px,2.8vw,44px)/1.15 var(--display)}
+.sm{font-size:16px;max-width:26em}
+.shot{padding:0;background:var(--card)}
+.shot>img{height:100%;width:100%;object-fit:cover;position:absolute;inset:0}
+.cap{position:absolute;inset-inline-start:14px;bottom:14px;background:var(--deep);color:#f3ecdf;border-radius:6px;padding:6px 12px;font-size:14px;font-weight:500;z-index:2}
+/* tablet photo with a real POS capture warped onto its screen */
+.tab{padding:0;background:#d8c9b2}
+.tabwrap{position:relative;width:100%;aspect-ratio:2336/1744;overflow:hidden}
+.native{position:absolute;left:0;top:0;width:2336px;height:1744px;transform-origin:0 0}
+.native>img.photo{width:2336px;height:1744px;max-width:none}
+.native .scr{position:absolute;left:0;top:0;width:1280px;height:800px;transform-origin:0 0;overflow:hidden;background:#fff}
+.native .scr img{width:1280px;height:800px;max-width:none}
+.native .glare{position:absolute;inset:0;background:linear-gradient(115deg,rgba(255,255,255,.18),rgba(255,255,255,0) 38%,rgba(0,0,0,.08))}
+/* tickets (kitchen section from design A) */
+.rail{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.ticket{background:var(--card);color:var(--ink);padding:26px 20px 24px;position:relative;border-radius:0 0 12px 12px;
+  clip-path:polygon(0 0,5% 8px,10% 0,15% 8px,20% 0,25% 8px,30% 0,35% 8px,40% 0,45% 8px,50% 0,55% 8px,60% 0,65% 8px,70% 0,75% 8px,80% 0,85% 8px,90% 0,95% 8px,100% 0,100% 100%,0 100%)}
+.ticket.late{background:var(--cream)}
+.ticket h3{font:400 38px/1 var(--display);display:flex;justify-content:space-between;margin-top:8px;gap:8px}
+.ticket h3 span:last-child{font-size:20px;align-self:flex-end}
+.ticket small{color:var(--soft);font-size:14px}
+.ticket ul{list-style:none;padding:0;margin-top:12px;font-size:17px}
+.ticket li{padding:5px 0}.ticket li b{color:var(--brand)}
+.pr .big{font:400 clamp(54px,5.6vw,88px)/1 var(--display)}
+.pr .big small{font:500 14px var(--text);opacity:.7;margin-inline-start:6px}
+.pr ul{list-style:none;padding:0;font-size:15.5px;line-height:1.75}
+.pr li::before{content:'✓ ';font-weight:700}
+.q{cursor:pointer}.q summary{font:500 20px/1.4 var(--text);list-style:none}.q summary::-webkit-details-marker{display:none}.q p{margin-top:10px;font-size:16px}
+/* scroll section from design D1: one curved line drawn behind the screens */
+.flowtile{padding:clamp(28px,5vw,72px)}
+.flowtile .ftag{display:inline-block;font-size:14px;font-weight:700;color:var(--brand-deep);background:var(--mocha);border-radius:8px;padding:3px 12px;margin-bottom:14px}
+.curve{position:relative;margin-top:clamp(30px,5vw,70px)}
+.curve .thread{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:visible}
+.curve .thread path{fill:none;stroke:var(--brand);stroke-width:3;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1}
+.cstop{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1.25fr;gap:clamp(24px,5vw,80px);align-items:center;margin-bottom:clamp(60px,9vw,130px)}
+.cstop:last-child{margin-bottom:0}
+.cstop:nth-child(even){direction:ltr}.cstop:nth-child(even)>*{direction:rtl}
+.cstop h3{font:600 clamp(24px,2.6vw,38px)/1.3 var(--text)}
+.cstop p{margin-top:10px;color:var(--soft);max-width:24em}
+.fshot{background:var(--card);border-radius:20px;padding:10px;box-shadow:0 24px 50px -28px rgba(43,31,28,.5)}
+.fshot img,.fshot video{display:block;width:100%;height:auto;aspect-ratio:8/5;object-fit:cover;object-position:top right;border-radius:11px;background:var(--mocha)}
+/* closing (from design A) */
+.close{padding-bottom:0}
+.ghost{font:400 clamp(150px,24vw,360px)/.8 var(--display);color:var(--esp2);text-align:center;margin-top:2vw;margin-bottom:-.14em;user-select:none}
+footer{grid-column:span 12;color:var(--taupe);font-size:14px;display:flex;justify-content:space-between;padding:10px 12px;flex-wrap:wrap;gap:8px}
+.reveal{opacity:1}
+@media(max-width:900px){
+  .board>*{grid-column:span 12!important}
+  .nav .links,.nav .lang,.nav .actions .btn{display:none}
+  .burger{display:block}
+  .h2,.h3,.h4,.h5{min-height:0}
+  .shot{min-height:300px}
+  .word{font-size:27vw}
+  .pr{grid-column:span 6!important}
+  .cstop,.cstop:nth-child(even){grid-template-columns:1fr;direction:rtl}.curve .thread{display:none}
+  .rail{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:no-preference){
+  .t{opacity:0;transform:translateY(18px);animation:in .6s forwards cubic-bezier(.2,.7,.2,1)}
+  @keyframes in{to{opacity:1;transform:none}}
+  .reveal{opacity:0;transform:translateY(22px);transition:opacity .8s,transform .8s cubic-bezier(.2,.7,.2,1)}
+  .reveal.in{opacity:1;transform:none}
+  .ticket{transition:transform .25s}.ticket:hover{transform:translateY(-6px)}
+}
+</style>
+</head>
+<body id="top">
+<main class="board">
+  <header class="t paper nav s12" id="nav">
+    <a class="logo" href="#top" aria-label="صحتين، الصفحة الرئيسية"><span>صحتين</span><i class="dot" aria-hidden="true"></i></a>
+    <nav class="links" aria-label="التنقل الرئيسي"><a href="#flow">كيف يعمل</a><a href="#kitchen">المطبخ</a><a href="#plans">الباقات</a><a href="#faq">أسئلة</a></nav>
+    <div class="actions"><a class="lang" href="#" lang="en" hreflang="en">EN</a><a class="btn" href="#trial">ابدأ تجربتك المجانية</a>
+      <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="القائمة"><span></span><span></span></button></div>
+    <div class="menu" id="menu" hidden><a href="#flow">كيف يعمل</a><a href="#kitchen">المطبخ</a><a href="#plans">الباقات</a><a href="#faq">أسئلة</a><a href="#" lang="en" hreflang="en">English</a><a class="btn" href="#trial">ابدأ تجربتك المجانية</a></div>
+  </header>
+
+  <div class="t paper s7 h5"><div class="word" aria-hidden="true">صحتين</div><h1 class="med">نظام المطعم الذي يفهم العربية.</h1></div>
+  <div class="t brand s5 h5"><p class="stm">الطلب يُكتب مرة. ويصل المطبخ في لحظته.</p><p class="sm">كاشير، وشاشة مطبخ، ولوحة للمالك. كلها من اليمين إلى اليسار.</p><a class="btn w" href="#trial">ابدأ تجربتك المجانية</a></div>
+
+  <div class="t tab s7"><div class="tabwrap" id="tabwrap"><div class="native" id="native"><img class="photo" src="assets/p-tablet.jpg" width="2336" height="1744" alt="يد تحمل جهازًا لوحيًا يعرض شاشة الكاشير في مطعم"><div class="scr" id="scr"><img src="assets/w-pos.png" alt="" width="2880" height="1800"><div class="glare"></div></div></div></div><span class="cap">الكاشير</span></div>
+  <div class="t mist s5"><p class="stm">من الكاشير إلى المطبخ، بلا صراخ.</p><p class="sm">نقطة بيع وشاشة مطبخ ولوحة للمالك في نظام واحد، مبني للعربية من اليمين إلى اليسار.</p></div>
+
+  <div class="t shot s8 h4"><img src="assets/p-room.jpg" alt="صالة مطعم دافئة بإضاءة المساء وطبق على الطاولة" width="2688" height="1520" loading="lazy" style="object-position:center 62%"><span class="cap">الصالة</span></div>
+  <div class="t shot s4 h4"><img src="assets/p-pasta.jpg" alt="طبق سباغيتي بصلصة الطماطم والريحان على طاولة خشبية" width="1344" height="752" loading="lazy" style="object-position:55% center"><span class="cap">الطبق</span></div>
+
+  <section class="t paper flowtile s12" id="flow"><div>
+    <span class="ftag">يوم واحد في مطعمك</span>
+    <p class="stm">من القائمة إلى الفاتورة، على شاشة واحدة.</p>
+    <p class="sm" style="margin-top:12px;color:var(--soft)">من ترتيب القائمة قبل الفتح، إلى الطلب الأول، إلى حساب آخر الشهر.</p>
+    <div class="curve" id="curve"><svg class="thread" id="thread" preserveAspectRatio="none" aria-hidden="true"><path id="tp" pathLength="1"/></svg>
+    <div class="cstop"><div class="txt reveal"><span class="ftag">قبل الفتح</span><h3>رتّب قائمتك بنفسك</h3><p>أصناف وأسعار وصور بالعربية والإنجليزية. تعديل واحد يظهر في الكاشير وفي قائمة QR.</p></div><div class="vis reveal"><div class="fshot"><img src="assets/w-products.png" width="2880" height="1800" alt="شاشة المنتجات" loading="lazy"></div></div></div>
+    <div class="cstop"><div class="txt reveal"><span class="ftag">قبل الفتح</span><h3>الإضافات كما يطلبها زبونك</h3><p>الحجم، نوع الحليب، درجة السكر. اجعل الخيار إلزاميًا أو اختياريًا، وحدّد الفرق في السعر.</p></div><div class="vis reveal"><div class="fshot"><img src="assets/w-modifiers.png" width="2880" height="1800" alt="شاشة مجموعات الإضافات" loading="lazy"></div></div></div>
+    <div class="cstop"><div class="txt reveal"><span class="ftag">أثناء الخدمة</span><h3>الكاشير يضيف الطلب</h3><p>لمسة على الصنف، ثم «أرسل إلى المطبخ». تسجيل حقيقي من التطبيق.</p></div><div class="vis reveal"><div class="fshot"><video class="vid" muted loop playsinline preload="metadata" poster="media/sahtain-pos-ar-poster.jpg" width="1280" height="800" aria-label="تسجيل حقيقي لشاشة الكاشير: إضافة ثلاثة أصناف وإرسال الطلب إلى المطبخ"><source src="media/sahtain-pos-ar.webm" type="video/webm"></video></div></div></div>
+    <div class="cstop"><div class="txt reveal"><span class="ftag">أثناء الخدمة</span><h3>التذكرة تظهر في المطبخ فورًا</h3><p>جديد، ثم قيد التحضير، ثم جاهز. يعرف الكاشير الحالة من مكانه.</p></div><div class="vis reveal"><div class="fshot"><video class="vid" muted loop playsinline preload="metadata" poster="media/sahtain-kds-ar-poster.jpg" width="1280" height="800" aria-label="تسجيل حقيقي لشاشة المطبخ: تصل التذكرة ثم يبدأ الطاهي ثم يصبح الطلب جاهزًا"><source src="media/sahtain-kds-ar.webm" type="video/webm"></video></div></div></div>
+    <div class="cstop"><div class="txt reveal"><span class="ftag">بعد الخدمة</span><h3>كل فروعك في لوحة واحدة</h3><p>الفروع والموظفون والأجهزة، من أي مكان وفي أي وقت.</p></div><div class="vis reveal"><div class="fshot"><img src="assets/w-branches.png" width="2880" height="1800" alt="شاشة الفروع" loading="lazy"></div></div></div>
+    <div class="cstop"><div class="txt reveal"><span class="ftag">آخر الشهر</span><h3>فاتورة واضحة وباقة تكبر معك</h3><p>تعرف ما تدفعه ولماذا. غيّر الباقة حين يتغير مطعمك.</p></div><div class="vis reveal"><div class="fshot"><img src="assets/w-billing.png" width="2880" height="1800" alt="شاشة الفوترة" loading="lazy"></div></div></div>
+    </div></div></section>
+
+  <section class="t esp s8 h5" id="kitchen"><p class="stm">شاشة المطبخ: كل تذكرة في مكانها.</p>
+    <div class="rail">
+      <div class="ticket"><small>طاولة ٤ · ١٢:٤٠</small><h3><span>#٢٣</span><span>جديد</span></h3><ul><li><b>٢×</b> لاتيه</li><li><b>١×</b> كرواسان زعتر</li></ul></div>
+      <div class="ticket late"><small>سفري · ١٢:٣٤</small><h3><span>#٢٢</span><span>قيد التحضير</span></h3><ul><li><b>١×</b> إسبريسو مزدوج</li><li><b>١×</b> كيك الجزر</li><li><b>١×</b> شاي كرك</li></ul></div>
+      <div class="ticket"><small>طاولة ٢ · ١٢:٣٠</small><h3><span>#٢١</span><span>جاهز</span></h3><ul><li><b>٣×</b> كابتشينو</li></ul></div>
+    </div></section>
+  <div class="t shot s4 h5"><img src="assets/p-pass.jpg" alt="يدا طاهٍ تقدّمان طبق سمك عند نافذة التسليم بجانب تذكرة الطلب" width="1344" height="752" loading="lazy" style="object-position:38% center"><span class="cap">المطبخ</span></div>
+
+  <div class="t paper s12 h2" id="plans" style="flex-direction:row;align-items:center"><p class="stm">أربع باقات. أسعار واضحة.</p></div>
+  <div class="t paper pr s3 h4"><div><h3 class="med">مجانية</h3><div class="big">٠ $</div></div><ul><li>حتى ٤٠ منتجًا</li><li>موظف واحد لكل فرع</li></ul></div>
+  <div class="t mist pr s3 h4"><div><h3 class="med">القائمة</h3><div class="big">١٢ $<small>/ شهر</small></div></div><ul><li>عربي وإنجليزي</li><li>شعارك بدون «Powered by»</li><li>QR لكل طاولة</li><li>منتجات غير محدودة</li></ul></div>
+  <div class="t brand pr s3 h4"><div><h3 class="med">المطعم</h3><div class="big">٣٩ $<small>/ فرع / شهر</small></div></div><ul><li>الكاشير وشاشة المطبخ</li><li>تقارير يومية</li><li>١٠ موظفين لكل فرع</li></ul></div>
+  <div class="t cream pr s3 h4"><div><h3 class="med">الأعمال</h3><div class="big">٧٩ $<small>/ فرع / شهر</small></div></div><ul><li>عدة فروع</li><li>تقارير متقدمة وتصدير</li><li>أدوار مخصصة وAPI</li></ul></div>
+
+  <div class="t paper s4 h4" id="faq"><p class="stm">أسئلة شائعة</p></div>
+  <details class="t q mist s4 h4" open><summary>ما هي صحتين؟</summary><p>نظام لإدارة المطعم: كاشير، وشاشة مطبخ، وقائمة رقمية، ولوحة مالك.</p></details>
+  <div class="t s4 h4" style="padding:0;background:none;display:grid;grid-template-rows:1fr 1fr 1fr;gap:var(--g)">
+    <details class="q cream" style="border-radius:10px;padding:18px 22px"><summary>هل أحتاج أجهزة خاصة؟</summary><p>تعمل من المتصفح. [نص للمراجعة]</p></details>
+    <details class="q paper" style="border-radius:10px;padding:18px 22px"><summary>هل تدعم أكثر من فرع؟</summary><p>نعم، في باقة الأعمال.</p></details>
+    <details class="q mist" style="border-radius:10px;padding:18px 22px"><summary>كيف أبدأ؟</summary><p>اطلب تجربة مجانية وسنفتح لك حسابك.</p></details>
+  </div>
+
+  <section class="t esp close s8 h5" id="trial"><div><p class="stm">جاهز لتقديم أول طلب؟</p><div style="margin-top:28px"><a class="btn s" href="#">ابدأ تجربتك المجانية</a></div></div><div class="ghost" aria-hidden="true">صحتين</div></section>
+  <div class="t shot s4 h5"><img src="assets/p-tiramisu.jpg" alt="قطعة تيراميسو مع فنجان قهوة على طاولة رخام" width="1024" height="1024" loading="lazy"><span class="cap">الحلو والقهوة</span></div>
+  <footer><span>© صحتين · getsahtain.com</span><span>الخصوصية · الشروط · تواصل معنا</span></footer>
+</main>
+
+<script>
+(function(){
+  var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  /* navbar: shadow once scrolled, mobile menu, and the link of the section being read */
+  var nav=document.getElementById('nav'),burger=document.getElementById('burger'),menu=document.getElementById('menu');
+  function setMenu(open){burger.setAttribute('aria-expanded',open?'true':'false');if(open){menu.removeAttribute('hidden')}else{menu.setAttribute('hidden','')}}
+  burger.addEventListener('click',function(){setMenu(burger.getAttribute('aria-expanded')!=='true')});
+  menu.addEventListener('click',function(e){if(e.target.closest('a'))setMenu(false)});
+  addEventListener('keydown',function(e){if(e.key==='Escape')setMenu(false)});
+  addEventListener('resize',function(){if(innerWidth>900)setMenu(false)});
+  function navTick(){nav.classList.toggle('scrolled',scrollY>12)}navTick();addEventListener('scroll',navTick,{passive:true});
+  var spy=['flow','kitchen','plans','faq'].map(function(id){return document.getElementById(id)}).filter(Boolean);
+  function mark(id){document.querySelectorAll('#nav .links a,#menu a').forEach(function(a){a.classList.toggle('on',a.getAttribute('href')==='#'+id)})}
+  var spyIO=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)mark(e.target.id)})},{rootMargin:'-40% 0px -55% 0px'});
+  spy.forEach(function(el){spyIO.observe(el)});
+  /* tablet: scale the native-size photo to its tile, and warp the POS capture onto the tablet screen */
+  var Q=[818,642,1653,590,1758,1256,905,1337];
+  function solve(A,b){var n=b.length,i,j,k;for(i=0;i<n;i++){var m=i;for(j=i+1;j<n;j++)if(Math.abs(A[j][i])>Math.abs(A[m][i]))m=j;var t=A[i];A[i]=A[m];A[m]=t;t=b[i];b[i]=b[m];b[m]=t;
+    for(j=i+1;j<n;j++){var f=A[j][i]/A[i][i];for(k=i;k<n;k++)A[j][k]-=f*A[i][k];b[j]-=f*b[i]}}
+    var x=new Array(n);for(i=n-1;i>=0;i--){var s=b[i];for(j=i+1;j<n;j++)s-=A[i][j]*x[j];x[i]=s/A[i][i]}return x}
+  function homography(w,h,q){var s=[[0,0],[w,0],[w,h],[0,h]],d=[[q[0],q[1]],[q[2],q[3]],[q[4],q[5]],[q[6],q[7]]],A=[],b=[];
+    for(var i=0;i<4;i++){var x=s[i][0],y=s[i][1],u=d[i][0],v=d[i][1];
+      A.push([x,y,1,0,0,0,-u*x,-u*y]);b.push(u);A.push([0,0,0,x,y,1,-v*x,-v*y]);b.push(v)}
+    var c=solve(A,b);return 'matrix3d('+[c[0],c[3],0,c[6],c[1],c[4],0,c[7],0,0,1,0,c[2],c[5],0,1].join(',')+')'}
+  var scr=document.getElementById('scr');if(scr)scr.style.transform=homography(1280,800,Q);
+  var wrap=document.getElementById('tabwrap'),nat=document.getElementById('native');
+  function fit(){if(wrap&&nat)nat.style.transform='scale('+(wrap.clientWidth/2336)+')'}
+  fit();addEventListener('resize',fit);addEventListener('load',fit);
+  /* curved line behind the screens */
+  var sec=document.getElementById('curve'),sv=document.getElementById('thread'),tp=document.getElementById('tp');
+  var cs=[].slice.call(sec.querySelectorAll('.cstop'));
+  function layout(){
+    var r=sec.getBoundingClientRect(),w=r.width,h=r.height;sv.setAttribute('viewBox','0 0 '+w+' '+h);
+    var d='M '+(w*0.5)+' -40',px=w*0.5,py=-40;
+    cs.forEach(function(s){var b=s.querySelector('.vis').getBoundingClientRect();var cx=b.left-r.left+b.width/2,cy=b.top-r.top+b.height/2,m=(cy-py)/2;
+      d+=' C '+px+' '+(py+m)+' '+cx+' '+(cy-m)+' '+cx+' '+cy;px=cx;py=cy});
+    d+=' C '+px+' '+(py+160)+' '+(w*0.5)+' '+h+' '+(w*0.5)+' '+(h+80);
+    tp.setAttribute('d',d);
+  }
+  function draw(){var r=sec.getBoundingClientRect();var v=Math.min(1,Math.max(0,(innerHeight*0.65-r.top)/(r.height+80)));tp.style.strokeDashoffset=1-v}
+  layout();if(reduce){tp.style.strokeDashoffset=0}else{draw();addEventListener('scroll',draw,{passive:true})}
+  addEventListener('resize',function(){layout();if(!reduce)draw()});addEventListener('load',function(){layout();if(!reduce)draw()});
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.15});
+  document.querySelectorAll('.reveal').forEach(function(e){io.observe(e)});
+  if(!reduce){
+    var vio=new IntersectionObserver(function(es){es.forEach(function(e){var v=e.target;if(e.isIntersecting){var p=v.play();if(p&&p.catch)p.catch(function(){})}else{v.pause()}})},{threshold:.5});
+    document.querySelectorAll('video.vid').forEach(function(v){vio.observe(v)});
+  }
+})();
+</script>
+</body>
+</html>
