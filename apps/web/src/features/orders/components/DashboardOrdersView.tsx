@@ -103,7 +103,7 @@ export function DashboardOrdersView(props: DashboardOrdersViewProps) {
       id: 'payment',
       header: labels.colPayment,
       cell: (row: (typeof rows)[number]) => (
-        <span className="flex flex-col items-start gap-1">
+        <span className="inline-flex items-center gap-2">
           <Badge variant="outline" className="w-fit">{row.paymentLabel}</Badge>
           {row.paymentMethodsLabel.length > 0 ? (
             <span className="text-muted-foreground text-xs">{row.paymentMethodsLabel}</span>
