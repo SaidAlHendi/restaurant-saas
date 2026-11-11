@@ -4,10 +4,10 @@ import type { TrackingIds } from '../../consent/tracking.js';
 import { getThanksContent } from '../content/index.js';
 import { useSiteShell } from './use-site-shell.js';
 
-/** The thank-you page: the only place the lead conversion fires, and only after consent. */
-export function useThanksPage(locale: LandingLocale, tracking: TrackingIds) {
+/** The thank-you page: the only place the lead conversion fires, after consent and a real submit. */
+export function useThanksPage(locale: LandingLocale, tracking: TrackingIds, leadSubmitted: boolean) {
   const shell = useSiteShell(locale, tracking, 'thanks');
-  useLeadConversion(tracking, shell.consent.choice);
+  useLeadConversion(tracking, shell.consent.choice, leadSubmitted);
   return {
     shell,
     content: getThanksContent(locale),

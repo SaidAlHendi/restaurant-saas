@@ -10,6 +10,7 @@ import type { ContactActionData } from '../features/landing/hooks/use-contact-fo
 import { SITE_CONTACT_EMAIL } from '../lib/brand.js';
 import { readLeadForm, validateLeadForm } from '../lib/lead-form.js';
 import { LANDING_CACHE_CONTROL, loadLandingRoute } from '../lib/landing-route.server.js';
+import { leadSubmittedCookie } from '../lib/lead-cookie.server.js';
 import { submitLead } from '../lib/leads.server.js';
 import { isLandingLocale, landingPath } from '../lib/locale.js';
 import { clientIp, createRateLimiter } from '../lib/rate-limit.server.js';
@@ -28,7 +29,7 @@ export function loader({ params }: { params: { locale?: string } }) {
   return { locale, siteBaseUrl, jsonLd, tracking };
 }
 
-/** Three requests per visitor per ten minutes; the API has its own site-wide limit behind this. */
+/** Three accepted leads per visitor per ten minutes; the API has its own site-wide limit behind this. */
 const leadLimiter = createRateLimiter({ limit: 3, windowMs: 10 * 60_000 });
 
 const NO_STORE = { 'Cache-Control': 'no-store' };
@@ -50,7 +51,10 @@ export async function action({ request, params }: { request: Request; params: { 
       { status: 400, headers: NO_STORE },
     );
   }
-  if (!leadLimiter.allow(clientIp(request))) {
+  // Only visitors with a trusted forwarded address get a per-visitor limit; everyone else relies on the
+  // honeypot and the API's site-wide limit rather than sharing one bucket.
+  const ip = clientIp(request);
+  if (ip !== undefined && leadLimiter.isLimited(ip)) {
     return data<ContactActionData>(
       { values: read.values, formError: 'rate_limited' },
       { status: 429, headers: NO_STORE },
@@ -63,7 +67,12 @@ export async function action({ request, params }: { request: Request; params: { 
       { status: result.kind === 'rate_limited' ? 429 : 502, headers: NO_STORE },
     );
   }
-  return redirect(landingPath(locale, 'thanks'), { headers: NO_STORE });
+  if (ip !== undefined) {
+    leadLimiter.record(ip);
+  }
+  return redirect(landingPath(locale, 'thanks'), {
+    headers: { ...NO_STORE, 'Set-Cookie': leadSubmittedCookie() },
+  });
 }
 
 export function headers({ actionHeaders }: { actionHeaders: Headers }) {

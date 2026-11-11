@@ -44,6 +44,8 @@ const envSchema = z.object({
   S3_PUBLIC_BASE_URL: optionalUrl,
   UNSPLASH_ACCESS_KEY: z.preprocess(emptyStringToUndefined, z.string().optional()),
   PIXABAY_API_KEY: z.preprocess(emptyStringToUndefined, z.string().optional()),
+  /** Chat webhook (Slack, Discord, Mattermost or any relay) told about each new marketing lead. */
+  LEADS_NOTIFY_WEBHOOK_URL: optionalUrl,
   WEB_APP_URL: z.preprocess(emptyStringToUndefined, z.url().default('http://localhost:5173')),
   PADDLE_ENV: z.enum(['sandbox', 'production']).default('sandbox'),
   PADDLE_API_KEY: z.preprocess(emptyStringToUndefined, z.string().min(1).optional()),

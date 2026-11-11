@@ -9,11 +9,13 @@ import { Tile } from './Tile.js';
 export type ThanksPageProps = {
   locale: LandingLocale;
   tracking: TrackingIds;
+  /** True only right after a real form submit. */
+  leadSubmitted: boolean;
 };
 
 /** Conversion page: the only place the lead event fires (after consent). Kept out of search results. */
-export function ThanksPage({ locale, tracking }: ThanksPageProps) {
-  const vm = useThanksPage(locale, tracking);
+export function ThanksPage({ locale, tracking, leadSubmitted }: ThanksPageProps) {
+  const vm = useThanksPage(locale, tracking, leadSubmitted);
   return (
     <SiteShell shell={vm.shell}>
       <Tile as="section" tone="brand" className="md:min-h-[420px]">

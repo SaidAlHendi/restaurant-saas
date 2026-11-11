@@ -28,6 +28,7 @@ HTML responses already send `Cache-Control: public, max-age=0, s-maxage=3600, st
 
 - [ ] Cache Rule: **cache** every page except the two below (`/ar`, `/en`, and `/ar|en/plans`, `/faq`, `/contact`, `/privacy`, `/terms`) and respect the origin TTL.
 - [ ] Rate-limit rule: `POST` to `/ar/contact` and `/en/contact` (for example 10 per minute per IP). The site limits each visitor to 3 requests per 10 minutes inside one process, and the API only sees the site server's address, so the CDN rule is the shared backstop. Forward the visitor's address (`CF-Connecting-IP`), which the form action uses for its limit.
+- [ ] **Lock the origin to Cloudflare.** The form action trusts `CF-Connecting-IP` / `X-Forwarded-For` for its per-visitor limit, so the site server must accept traffic only from Cloudflare (firewall allow-list of Cloudflare's IP ranges, or authenticated origin pulls). Otherwise a bot that sends its own header value gets a fresh limit on every request and can use up the API's site-wide limit. Visitors with no forwarded address get no per-visitor limit (the honeypot and the API's site-wide limit still apply).
 - [ ] Cache Rule: **bypass** `/` (the redirect depends on `Accept-Language`; Cloudflare does not vary on it, so a cached redirect would send everyone to one language) and `/*/thanks` (sends `no-store`).
 - [ ] `/assets/*` (hashed by Vite): cache for a year, immutable.
 - [ ] `/fonts/*`, `/landing/*` (not hashed): edge TTL 1 day, browser 1 week, and **purge the cache on each deploy** that changes them.
@@ -55,7 +56,7 @@ HTML responses already send `Cache-Control: public, max-age=0, s-maxage=3600, st
 - [ ] Open `/ar` in a clean profile. **Before** clicking anything, the Network tab shows no request to `googletagmanager.com`, `google-analytics.com` or `connect.facebook.net`.
 - [ ] Click "No, thanks": still no such requests, and the banner does not return on reload.
 - [ ] Clear the `sahtain_consent` cookie, click "Accept": GA4 `page_view` and the Meta `PageView` fire.
-- [ ] With consent given, open `/ar/thanks`: GA4 DebugView shows `generate_lead` and Meta Pixel Helper shows `Lead`. Opening any other page fires neither.
+- [ ] With consent given, open `/ar/thanks` right after sending the form: GA4 DebugView shows `generate_lead` and Meta Pixel Helper shows `Lead`. Opening any other page, or `/ar/thanks` directly, fires neither (the conversion needs the one-shot `sahtain_lead` cookie the form sets).
 - [ ] With consent rejected, `/ar/thanks` fires nothing.
 - [ ] Open `/ar?utm_source=google&utm_medium=cpc&gclid=test`, check `sessionStorage['sahtain_attribution']` holds the values, then send the form on `/ar/contact`: the lead row has `utm_source`, `utm_medium` and `gclid` filled in.
 
@@ -85,4 +86,4 @@ HTML responses already send `Cache-Control: public, max-age=0, s-maxage=3600, st
 - [ ] Replace the placeholder wordmark and icons when the logo exists (`public/icon-*.png`, `public/favicon.svg`, `public/landing/og-*.jpg`).
 - [ ] Record an English-UI cut of the POS and kitchen videos (the page currently reuses the Arabic recording on `/en`).
 - [ ] Set the real `PUBLIC_WHATSAPP_NUMBER` (the placeholder reaches nobody).
-- [ ] Decide who is told about a new lead. Leads are stored only: nothing emails or messages anyone yet, so check the table (or add a notification) before ad traffic starts.
+- [ ] Set `LEADS_NOTIFY_WEBHOOK_URL` on the API (a Slack, Discord or Mattermost incoming webhook) so each new lead posts a message with the restaurant, contact details and source. Without it, leads are stored only, so check the table before ad traffic starts. Send a test lead and confirm the message arrives.
