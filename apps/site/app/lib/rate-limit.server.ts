@@ -1,6 +1,8 @@
 export type RateLimiter = {
-  /** True if the key may act now; records the attempt. */
-  allow: (key: string, now?: number) => boolean;
+  /** True if the key has used up its attempts inside the window. Records nothing. */
+  isLimited: (key: string, now?: number) => boolean;
+  /** Count one attempt for the key. */
+  record: (key: string, now?: number) => void;
 };
 
 const MAX_TRACKED_KEYS = 5000;
@@ -11,15 +13,15 @@ const MAX_TRACKED_KEYS = 5000;
  */
 export function createRateLimiter(options: { limit: number; windowMs: number }): RateLimiter {
   const hits = new Map<string, number[]>();
+  const recent = (key: string, now: number): number[] =>
+    (hits.get(key) ?? []).filter((time) => now - time < options.windowMs);
+
   return {
-    allow(key, now = Date.now()) {
-      const recent = (hits.get(key) ?? []).filter((time) => now - time < options.windowMs);
-      if (recent.length >= options.limit) {
-        hits.set(key, recent);
-        return false;
-      }
-      recent.push(now);
-      hits.set(key, recent);
+    isLimited(key, now = Date.now()) {
+      return recent(key, now).length >= options.limit;
+    },
+    record(key, now = Date.now()) {
+      hits.set(key, [...recent(key, now), now]);
       if (hits.size > MAX_TRACKED_KEYS) {
         for (const [k, times] of hits) {
           if (times.every((time) => now - time >= options.windowMs)) {
@@ -27,17 +29,20 @@ export function createRateLimiter(options: { limit: number; windowMs: number }):
           }
         }
       }
-      return true;
     },
   };
 }
 
-/** The visitor's address as forwarded by the CDN or proxy; `unknown` when nothing is forwarded. */
-export function clientIp(request: Request): string {
-  const cf = request.headers.get('cf-connecting-ip');
+/**
+ * The visitor's address as forwarded by the CDN, or undefined when none is forwarded. These headers
+ * are only trustworthy when the site server accepts traffic from the CDN alone (see the launch
+ * checklist); callers must not invent a shared key for visitors without one.
+ */
+export function clientIp(request: Request): string | undefined {
+  const cf = request.headers.get('cf-connecting-ip')?.trim();
   if (cf) {
-    return cf.trim();
+    return cf;
   }
   const forwarded = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
-  return forwarded && forwarded !== '' ? forwarded : 'unknown';
+  return forwarded ? forwarded : undefined;
 }

@@ -3,24 +3,31 @@ import { describe, expect, it } from 'vitest';
 import { clientIp, createRateLimiter } from './rate-limit.server.js';
 
 describe('createRateLimiter', () => {
-  it('allows up to the limit inside the window, then blocks', () => {
+  it('limits a key once it has recorded the allowed attempts inside the window', () => {
     const limiter = createRateLimiter({ limit: 2, windowMs: 1000 });
-    expect(limiter.allow('a', 0)).toBe(true);
-    expect(limiter.allow('a', 100)).toBe(true);
-    expect(limiter.allow('a', 200)).toBe(false);
+    expect(limiter.isLimited('a', 0)).toBe(false);
+    limiter.record('a', 0);
+    limiter.record('a', 100);
+    expect(limiter.isLimited('a', 200)).toBe(true);
+  });
+
+  it('does not count a check that was never recorded', () => {
+    const limiter = createRateLimiter({ limit: 1, windowMs: 1000 });
+    expect(limiter.isLimited('a', 0)).toBe(false);
+    expect(limiter.isLimited('a', 1)).toBe(false);
   });
 
   it('lets the key act again once old attempts leave the window', () => {
     const limiter = createRateLimiter({ limit: 1, windowMs: 1000 });
-    expect(limiter.allow('a', 0)).toBe(true);
-    expect(limiter.allow('a', 999)).toBe(false);
-    expect(limiter.allow('a', 1000)).toBe(true);
+    limiter.record('a', 0);
+    expect(limiter.isLimited('a', 999)).toBe(true);
+    expect(limiter.isLimited('a', 1000)).toBe(false);
   });
 
   it('counts each visitor separately', () => {
     const limiter = createRateLimiter({ limit: 1, windowMs: 1000 });
-    expect(limiter.allow('a', 0)).toBe(true);
-    expect(limiter.allow('b', 0)).toBe(true);
+    limiter.record('a', 0);
+    expect(limiter.isLimited('b', 0)).toBe(false);
   });
 });
 
@@ -33,7 +40,7 @@ describe('clientIp', () => {
     expect(clientIp(req({ 'x-forwarded-for': '5.6.7.8, 9.9.9.9' }))).toBe('5.6.7.8');
   });
 
-  it('falls back to unknown', () => {
-    expect(clientIp(req({}))).toBe('unknown');
+  it('returns undefined when no address is forwarded, never a shared key', () => {
+    expect(clientIp(req({}))).toBeUndefined();
   });
 });

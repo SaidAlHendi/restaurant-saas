@@ -121,7 +121,8 @@ describe('Billing 2b Paddle (e2e)', () => {
     } finally {
       await nestApp.close();
     }
-  });
+    // Signs up an org and runs the webhook flow; the 5 s default is too tight on a loaded CI runner.
+  }, 20_000);
 
   it('same event id twice: 200 both times, one billing_events row', async () => {
     const { nestApp, jwt } = await createAppWithFakePaddle();
