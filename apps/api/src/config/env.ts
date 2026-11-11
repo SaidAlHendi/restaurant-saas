@@ -46,6 +46,16 @@ const envSchema = z.object({
   PIXABAY_API_KEY: z.preprocess(emptyStringToUndefined, z.string().optional()),
   /** Chat webhook (Slack, Discord, Mattermost or any relay) told about each new marketing lead. */
   LEADS_NOTIFY_WEBHOOK_URL: optionalUrl,
+  /**
+   * Email for each new marketing lead, sent through Resend. Needs the key and at least one recipient
+   * (comma separated); the sender must be an address on a domain verified in Resend.
+   */
+  RESEND_API_KEY: z.preprocess(emptyStringToUndefined, z.string().optional()),
+  LEADS_NOTIFY_EMAIL_TO: z.preprocess(emptyStringToUndefined, z.string().optional()),
+  LEADS_NOTIFY_EMAIL_FROM: z.preprocess(
+    emptyStringToUndefined,
+    z.string().default('Sahtain <onboarding@resend.dev>'),
+  ),
   WEB_APP_URL: z.preprocess(emptyStringToUndefined, z.url().default('http://localhost:5173')),
   PADDLE_ENV: z.enum(['sandbox', 'production']).default('sandbox'),
   PADDLE_API_KEY: z.preprocess(emptyStringToUndefined, z.string().min(1).optional()),
