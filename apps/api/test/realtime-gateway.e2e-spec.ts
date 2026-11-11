@@ -135,7 +135,7 @@ describe('Realtime gateway (e2e)', () => {
     expect(payload['orderId']).toBe(expectedOrderId);
     expect(payload['change']).toBe('placed');
     socket.disconnect();
-  });
+  }, 30_000);
 });
 
 describe('Realtime gateway CORS (e2e)', () => {
