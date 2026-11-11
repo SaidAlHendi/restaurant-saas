@@ -4,11 +4,15 @@ import type { LeadCreateBody, LeadCreateResponse } from '@app/shared';
 
 import { newUuidV7 } from '../../lib/uuid';
 
+import { LeadNotifier } from './lead-notifier';
 import { LeadsRepository } from './leads.repository';
 
 @Injectable()
 export class LeadsService {
-  constructor(private readonly repository: LeadsRepository) {}
+  constructor(
+    private readonly repository: LeadsRepository,
+    private readonly notifier: LeadNotifier,
+  ) {}
 
   async create(body: LeadCreateBody): Promise<LeadCreateResponse> {
     // Honeypot: a person never sees this field. Answer exactly as for a real lead so bots learn nothing.
@@ -36,6 +40,8 @@ export class LeadsService {
       referrer: attribution.referrer ?? null,
       landingPath: attribution.landingPath ?? null,
     });
+    // The lead is saved; telling the team is best effort and must not slow down or fail the request.
+    void this.notifier.notify(body);
     return { ok: true };
   }
 }
