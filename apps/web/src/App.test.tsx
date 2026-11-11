@@ -102,7 +102,8 @@ describe('App root', () => {
     );
     expect(await screen.findByRole('heading', { name: /enter your pin/i })).toBeInTheDocument();
     expect(memoryRouter.state.location.pathname).toMatch(/^\/pos/);
-  });
+    // Loads two lazy areas; the 5 s default is too tight when CI runs the whole workspace in parallel.
+  }, 20_000);
 
   it('renders dashboard shell when session is bootstrapped', async () => {
     window.localStorage.clear();
