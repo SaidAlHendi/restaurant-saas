@@ -120,11 +120,17 @@ export { isValidIanaTimezone } from './branches/timezone.js';
 
 export {
   branchSchema,
+  branchDisplayLinkSchema,
   createBranchBodySchema,
   patchBranchBodySchema,
   branchListResponseSchema,
 } from './branches/branch.js';
-export type { Branch, CreateBranchBody, PatchBranchBody } from './branches/branch.js';
+export type {
+  Branch,
+  BranchDisplayLink,
+  CreateBranchBody,
+  PatchBranchBody,
+} from './branches/branch.js';
 
 export {
   membershipListItemSchema,
@@ -478,6 +484,7 @@ export { CATALOG_UPDATED_EVENT, catalogRealtimePayloadSchema } from './catalog/r
 export type { CatalogRealtimePayload } from './catalog/realtime-payload.js';
 
 export {
+  publicDisplayTokenSchema,
   publicDisplayOrderSchema,
   publicDisplayPayloadSchema,
   type PublicDisplayOrder,

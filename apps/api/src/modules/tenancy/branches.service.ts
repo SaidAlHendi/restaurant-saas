@@ -1,3 +1,5 @@
+import { randomBytes } from 'node:crypto';
+
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
 
 import { BusinessRuleError, NotFoundError } from '../../core/errors/app-errors';
@@ -10,7 +12,13 @@ import { newUuidV7 } from '../../lib/uuid';
 import { BillingService } from '../billing/billing.service';
 import { EntitlementsService } from '../billing/entitlements.service';
 import { slugifyBase, slugWithSuffix } from '../../lib/slug';
-import type { Branch, CreateBranchBody, PatchBranchBody, SystemRoleKey } from '@app/shared';
+import type {
+  Branch,
+  BranchDisplayLink,
+  CreateBranchBody,
+  PatchBranchBody,
+  SystemRoleKey,
+} from '@app/shared';
 
 import { OUTBOX_BRANCH_SETTINGS_UPDATED } from './tenancy.constants';
 import { TenancyRepository } from './tenancy.repository';
@@ -72,6 +80,33 @@ export class BranchesService {
       return {
         items: rows.map((b) => mapBranchRow(b)),
       };
+    });
+  }
+
+  getDisplayLink(ctx: RequestContext, branchId: string): Promise<BranchDisplayLink> {
+    return withOrg(this.db, ctx.orgId, async (tx) => {
+      const branch = await this.repo.findBranchById(tx, branchId);
+      if (!branch || branch.orgId !== ctx.orgId) {
+        throw new NotFoundError();
+      }
+      return { token: branch.displayToken };
+    });
+  }
+
+  /** Creates the secret Ready-screen address, or replaces it (the old address stops working). */
+  rotateDisplayLink(ctx: RequestContext, branchId: string): Promise<BranchDisplayLink> {
+    return withOrg(this.db, ctx.orgId, async (tx) => {
+      const branch = await this.repo.findBranchById(tx, branchId);
+      if (!branch || branch.orgId !== ctx.orgId) {
+        throw new NotFoundError();
+      }
+      await this.entitlements.assertFeature(ctx.orgId, 'ordering.pager', tx);
+      const token = randomBytes(24).toString('base64url');
+      const updated = await this.repo.updateBranch(tx, branchId, { displayToken: token });
+      if (!updated) {
+        throw new NotFoundError();
+      }
+      return { token };
     });
   }
 

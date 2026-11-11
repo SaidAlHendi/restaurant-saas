@@ -35,7 +35,7 @@ export function BranchSettingsPageView(props: BranchSettingsPageViewModel) {
     pagerEnabled,
     onPagerEnabledChange,
     pagerPlanAvailable,
-    pagerDisplayUrl,
+    displayLink,
     taxInclusive,
     onTaxInclusiveChange,
     dayStartHour,
@@ -189,19 +189,38 @@ export function BranchSettingsPageView(props: BranchSettingsPageViewModel) {
             />
           }
         />
-        {pagerDisplayUrl !== null ? (
-          <p className="text-muted-foreground text-sm">
-            {labels.pagerDisplayLink}:{' '}
-            <a
-              className="text-foreground font-medium underline"
-              href={pagerDisplayUrl}
-              target="_blank"
-              rel="noreferrer"
-              dir="ltr"
-            >
-              {pagerDisplayUrl}
-            </a>
-          </p>
+        {displayLink.visible ? (
+          <div className="flex flex-col gap-2 rounded-lg border p-3">
+            <p className="text-sm font-medium">{labels.pagerDisplayLink}</p>
+            <p className="text-muted-foreground text-sm">{labels.pagerLinkHint}</p>
+            {displayLink.url !== null ? (
+              <>
+                <Input readOnly dir="ltr" value={displayLink.url} aria-label={labels.pagerDisplayLink} />
+                <div className="flex flex-wrap gap-2">
+                  <Button type="button" variant="outline" onClick={displayLink.onCopy}>
+                    {labels.pagerLinkCopy}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={displayLink.busy}
+                    onClick={displayLink.onRegenerate}
+                  >
+                    {labels.pagerLinkRegenerate}
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <Button
+                type="button"
+                className="self-start"
+                disabled={displayLink.busy}
+                onClick={displayLink.onCreate}
+              >
+                {labels.pagerLinkCreate}
+              </Button>
+            )}
+          </div>
         ) : null}
       </SettingsSection>
       <details className="group xl:col-span-2 rounded-xl border bg-card">

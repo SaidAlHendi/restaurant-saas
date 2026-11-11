@@ -64,6 +64,7 @@ export const branches = pgTable(
     payBeforeSend: boolean('pay_before_send').notNull().default(false),
     acceptsCard: boolean('accepts_card').notNull().default(false),
     pagerEnabled: boolean('pager_enabled').notNull().default(false),
+    displayToken: text('display_token'),
     isActive: boolean('is_active').notNull().default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

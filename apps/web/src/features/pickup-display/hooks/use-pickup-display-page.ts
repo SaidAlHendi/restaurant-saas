@@ -12,10 +12,10 @@ const POLL_MS = 4000;
 
 export function usePickupDisplayPage() {
   const { t } = useTranslation();
-  const { orgSlug = '', branchSlug = '' } = useParams();
+  const { token = '' } = useParams();
   const { data, isLoading, isError, error } = useGetPickupDisplayQuery(
-    { orgSlug, branchSlug },
-    { pollingInterval: POLL_MS, skip: orgSlug === '' || branchSlug === '' },
+    token,
+    { pollingInterval: POLL_MS, skip: token === '' },
   );
 
   const chime = useMemo(() => createChimePlayer(), []);

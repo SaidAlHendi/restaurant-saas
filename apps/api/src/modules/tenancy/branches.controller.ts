@@ -31,6 +31,18 @@ export class BranchesController {
   }
 
   @RequirePermission('branches.manage')
+  @Get(':branchId/display-link')
+  getDisplayLink(@Ctx() ctx: RequestContext, @Param('branchId') branchId: string) {
+    return this.branches.getDisplayLink(ctx, branchId);
+  }
+
+  @RequirePermission('branches.manage')
+  @Post(':branchId/display-link/rotate')
+  rotateDisplayLink(@Ctx() ctx: RequestContext, @Param('branchId') branchId: string) {
+    return this.branches.rotateDisplayLink(ctx, branchId);
+  }
+
+  @RequirePermission('branches.manage')
   @Patch(':branchId')
   patch(
     @Ctx() ctx: RequestContext,

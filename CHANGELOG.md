@@ -3,7 +3,7 @@
 ## 2026-11-11 - Display currency
 
 ### Added
-- A restaurant can keep prices in its base currency (`organizations.default_currency`) and show another currency to staff and guests: `display_currency`, `exchange_rate`, `exchange_rate_updated_at`, `display_item_step`, `display_total_step` on `organizations` (migration 0019). The owner types the rate by hand in Settings, Restaurant, Currency.
+- A restaurant can keep prices in its base currency (`organizations.default_currency`) and show another currency to staff and guests: `display_currency`, `exchange_rate`, `exchange_rate_updated_at`, `display_item_step`, `display_total_step` on `organizations` (migration 0020). The owner types the rate by hand in Settings, Restaurant, Currency.
 - Each order freezes the display currency, rate and rounding it was created with (`orders.display_currency`, `exchange_rate`, `display_item_step`, `display_total_step`), so a later rate change never changes past orders. Cash payments store the exact display-currency cash and change (`payments.display_tendered_minor`, `display_change_minor`).
 - `display` (currency, rate, itemStep, totalStep, or null) on order responses, the POS menu and the public menu org; `displayRateUpdatedAt` on the POS menu; `displayTenderedMinor` on the payment body.
 - One convert-and-round helper in `@app/shared` (`money/display-currency.ts`): prices round to the item step, totals to the total step, half up, integer math only.

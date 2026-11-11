@@ -3,9 +3,8 @@ import type { Agent } from 'supertest';
 
 import { newUuidV7 } from '../src/lib/uuid';
 
-import { asDemoOwner } from './catalog-helpers';
+import { asDemoCashier, asDemoOwner } from './catalog-helpers';
 import { createTestApp } from './create-test-app';
-import { SEED_ORG } from './factories';
 import { apiAgent } from './http';
 import { createIsolatedBranch, postOrder, seedCatalogProduct } from './ordering-helpers';
 
@@ -26,8 +25,7 @@ describe('Pager numbers (e2e)', () => {
     const { branchId } = await createIsolatedBranch(owner);
     const patched = await owner.patch(`/v1/branches/${branchId}`).send({ pagerEnabled: enable });
     expect(patched.status).toBe(200);
-    const slug = (patched.body as { slug: string }).slug;
-    return { branchId, slug };
+    return { branchId };
   }
 
   function order(owner: Agent, branchId: string, productId: string, pagerNumber?: number) {
@@ -90,9 +88,16 @@ describe('Pager numbers (e2e)', () => {
     expect((await order(owner, branchId, productId, 10000)).status).toBe(400);
   });
 
+  async function displayToken(owner: Agent, branchId: string): Promise<string> {
+    const res = await owner.post(`/v1/branches/${branchId}/display-link/rotate`);
+    expect(res.status).toBe(201);
+    return (res.body as { token: string }).token;
+  }
+
   it('public display lists only ready orders, without login', async () => {
     const owner = await asDemoOwner(apiAgent(app));
-    const { branchId, slug } = await pagerBranch(owner, true);
+    const { branchId } = await pagerBranch(owner, true);
+    const token = await displayToken(owner, branchId);
     const { productId } = await seedCatalogProduct(agent);
     const placed = await order(owner, branchId, productId, 7);
     const ready = await order(owner, branchId, productId, 8);
@@ -112,16 +117,49 @@ describe('Pager numbers (e2e)', () => {
     expect(done.status).toBe(201);
     expect((placed.body as { status: string }).status).toBe('placed');
 
-    const res = await apiAgent(app).get(`/v1/public/display/${SEED_ORG.demo.slug}/${slug}`);
+    const res = await apiAgent(app).get(`/v1/public/display/${token}`);
     expect(res.status).toBe(200);
     const body = res.body as { ready: Array<{ orderNumber: number; pagerNumber: number | null }> };
     expect(body.ready).toEqual([{ orderNumber: readyBody.orderNumber, pagerNumber: 8 }]);
   });
 
-  it('public display is 404 when the branch has pagers off', async () => {
+  it('shows the current display link to a manager and starts empty', async () => {
     const owner = await asDemoOwner(apiAgent(app));
-    const { slug } = await pagerBranch(owner, false);
-    const res = await apiAgent(app).get(`/v1/public/display/${SEED_ORG.demo.slug}/${slug}`);
-    expect(res.status).toBe(404);
+    const { branchId } = await pagerBranch(owner, true);
+    const before = await owner.get(`/v1/branches/${branchId}/display-link`);
+    expect(before.status).toBe(200);
+    expect((before.body as { token: string | null }).token).toBeNull();
+    const token = await displayToken(owner, branchId);
+    const after = await owner.get(`/v1/branches/${branchId}/display-link`);
+    expect((after.body as { token: string | null }).token).toBe(token);
+  });
+
+  it('regenerating the link makes the old address stop working', async () => {
+    const owner = await asDemoOwner(apiAgent(app));
+    const { branchId } = await pagerBranch(owner, true);
+    const oldToken = await displayToken(owner, branchId);
+    const newToken = await displayToken(owner, branchId);
+    expect(newToken).not.toBe(oldToken);
+    expect((await apiAgent(app).get(`/v1/public/display/${oldToken}`)).status).toBe(404);
+    expect((await apiAgent(app).get(`/v1/public/display/${newToken}`)).status).toBe(200);
+  });
+
+  it('public display is 404 for unknown tokens and when the branch has pagers off', async () => {
+    const owner = await asDemoOwner(apiAgent(app));
+    expect((await apiAgent(app).get('/v1/public/display/not-a-real-token-value-0000')).status).toBe(
+      404,
+    );
+    const { branchId } = await pagerBranch(owner, true);
+    const token = await displayToken(owner, branchId);
+    await owner.patch(`/v1/branches/${branchId}`).send({ pagerEnabled: false });
+    expect((await apiAgent(app).get(`/v1/public/display/${token}`)).status).toBe(404);
+  });
+
+  it('keeps the display link away from cashiers', async () => {
+    const owner = await asDemoOwner(apiAgent(app));
+    const { branchId } = await pagerBranch(owner, true);
+    const cashier = await asDemoCashier(apiAgent(app));
+    expect((await cashier.get(`/v1/branches/${branchId}/display-link`)).status).toBe(403);
+    expect((await cashier.post(`/v1/branches/${branchId}/display-link/rotate`)).status).toBe(403);
   });
 });
