@@ -27,6 +27,7 @@ type PixabayResponse = { hits: PixabayHit[] };
 class RateLimitedError extends Error {}
 
 const REQUEST_GAP_MS = 700;
+const REQUEST_TIMEOUT_MS = 15_000;
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => {
@@ -49,7 +50,9 @@ async function searchPixabay(
   if (foodOnly) {
     params.set('category', 'food');
   }
-  const res = await fetch(`https://pixabay.com/api/?${params.toString()}`);
+  const res = await fetch(`https://pixabay.com/api/?${params.toString()}`, {
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+  });
   if (res.status === 429) {
     throw new RateLimitedError('Pixabay rate limit reached (429)');
   }
@@ -117,6 +120,7 @@ async function main(): Promise<void> {
         process.stdout.write(
           `[seed-images:pixabay] ${err.message}. Resolved ${String(resolved)} this run, ${String(pending.length - resolved - noResults)} still need a photo. Run again in a minute.\n`,
         );
+        process.exitCode = 2;
         return;
       }
       throw err;
@@ -129,7 +133,7 @@ async function main(): Promise<void> {
         photoId: `pixabay-${String(hit.id)}`,
         rawUrl: hit.largeImageURL,
         authorName: hit.user,
-        authorUrl: `https://pixabay.com/users/${hit.user}-${String(hit.user_id)}/`,
+        authorUrl: `https://pixabay.com/users/${encodeURIComponent(hit.user)}-${String(hit.user_id)}/`,
         photoUrl: hit.pageURL,
       });
       resolved += 1;

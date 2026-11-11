@@ -46,6 +46,9 @@ Translatable text = `jsonb` like `{"ar":"…","en":"…"}`. Tax in basis points 
 - **subscriptions**: id, org_id (unique, RLS), plan_id, status (`trialing`|`active`|`past_due`|`canceled`), branch_quantity, provider (`paddle`|null), provider_customer_id, provider_subscription_id, trial_ends_at, current_period_end, canceled_at, scheduled_change jsonb, provider_event_at, updated_at
 - **billing_events**: id, provider, provider_event_id (unique), type, occurred_at, payload jsonb, processed_at, error — webhook idempotency (global, no RLS)
 
+## Marketing (migration 0017)
+- **leads**: id (UUIDv7), created_at, status (`new`|`contacted`|`won`|`lost`), name, restaurant_name, phone, email, country (ISO alpha-2, `ZZ` = other), branches, locale (`ar`|`en`), message null, utm_source/medium/campaign/term/content null, gclid null, fbclid null, referrer null, landing_path null — written by the public contact form. Platform-level (no `org_id`, no RLS); `app_user` has INSERT only (no SELECT), so request handlers cannot read leads back. Not seeded (runtime data).
+
 ## Reporting
 - **MVP dashboards (roadmap 8):** computed live from `orders`, `payments`, and `order_items` per branch and
   `business_date` (no writes to aggregate tables yet).

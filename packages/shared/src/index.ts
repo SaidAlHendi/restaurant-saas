@@ -467,3 +467,14 @@ export {
   type PublicDisplayOrder,
   type PublicDisplayPayload,
 } from './public-menu/public-display.js';
+
+export {
+  leadAttributionSchema,
+  leadCountrySchema,
+  leadCreateBodySchema,
+  leadCreateResponseSchema,
+  leadLocaleSchema,
+  leadPhoneSchema,
+  normalizeDigits,
+} from './leads/lead-schemas.js';
+export type { LeadAttribution, LeadCreateBody, LeadCreateResponse } from './leads/lead-schemas.js';

@@ -13,6 +13,7 @@ export const SEED_COVERAGE: Record<string, SeedCoverageEntry> = {
   admin_users: { skipped: 'platform admins are created only via pnpm admin:create, never seeded' },
   admin_sessions: { skipped: 'runtime only (admin login creates rows)' },
   audit_logs: { skipped: 'runtime only (admin actions write rows)' },
+  leads: { skipped: 'runtime only (the public contact form writes rows; platform data, not tenant data)' },
   categories: 'seeded',
   products: 'seeded',
   modifier_groups: 'seeded',
