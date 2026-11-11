@@ -4,9 +4,8 @@ import { baseApi } from '../../app/api/base-api.js';
 
 export const pickupDisplayApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getPickupDisplay: builder.query<PublicDisplayPayload, { orgSlug: string; branchSlug: string }>({
-      query: ({ orgSlug, branchSlug }) =>
-        `/v1/public/display/${encodeURIComponent(orgSlug)}/${encodeURIComponent(branchSlug)}`,
+    getPickupDisplay: builder.query<PublicDisplayPayload, string>({
+      query: (token) => `/v1/public/display/${encodeURIComponent(token)}`,
       transformResponse: (response: unknown) => publicDisplayPayloadSchema.parse(response),
     }),
   }),

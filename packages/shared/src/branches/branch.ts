@@ -66,6 +66,13 @@ export const patchBranchBodySchema = z.object({
   isActive: z.boolean().optional(),
 });
 
+/** Secret address token of a branch's customer "Ready" screen; null until the owner creates it. */
+export const branchDisplayLinkSchema = z.object({
+  token: z.string().min(20).nullable(),
+});
+
+export type BranchDisplayLink = z.infer<typeof branchDisplayLinkSchema>;
+
 export type PatchBranchBody = z.infer<typeof patchBranchBodySchema>;
 
 export const branchListResponseSchema = z.object({
