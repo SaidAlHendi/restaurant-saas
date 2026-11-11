@@ -285,5 +285,7 @@ export const landingEn: LandingContent = {
     terms: 'Terms',
     contact: 'Contact us',
     cookieSettings: 'Cookie settings',
+    instagram: 'Instagram',
+    facebook: 'Facebook',
   },
 };

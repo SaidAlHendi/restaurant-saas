@@ -30,6 +30,7 @@ export function SiteShell({ shell, children }: SiteShellProps) {
         <LandingFooter
           footer={content.footer}
           links={shell.links}
+          social={shell.social}
           onCookieSettings={shell.consent.reopen}
         />
       </div>

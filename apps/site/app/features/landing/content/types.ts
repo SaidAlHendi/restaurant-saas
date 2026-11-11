@@ -102,6 +102,8 @@ export type LandingContent = {
     terms: string;
     contact: string;
     cookieSettings: string;
+    instagram: string;
+    facebook: string;
   };
 };
 

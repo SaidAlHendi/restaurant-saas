@@ -9,6 +9,7 @@ Companion to `15-sahtain-landing-page.md`. The site lives in `apps/site`: the ho
 | `PUBLIC_SITE_URL` | `https://getsahtain.com` | Used for canonicals, hreflang, sitemap, Open Graph and JSON-LD. |
 | `PUBLIC_API_URL` | the public API origin | Needed by the menu pages and the sitemap. |
 | `PUBLIC_WHATSAPP_NUMBER` | digits with country code, e.g. `966501234567` | The chat button shown on every page. **Unset = a fictional placeholder number that reaches nobody.** |
+| `PUBLIC_INSTAGRAM_URL`, `PUBLIC_FACEBOOK_URL` | full `https://` profile links | Footer icons. **Unset = placeholder links to the planned `@sahtain` profiles; set the real ones before launch.** |
 | `PUBLIC_GA4_ID` | `G-XXXXXXXXXX` | Optional. Empty = GA4 never loads. |
 | `PUBLIC_GOOGLE_ADS_ID` | `AW-XXXXXXXXXX` | Optional. Empty = no Ads tag. |
 | `PUBLIC_META_PIXEL_ID` | numeric pixel id | Optional. Empty = no pixel. |

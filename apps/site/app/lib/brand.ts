@@ -6,6 +6,13 @@ export const SITE_APP_TITLE = {
 export const SITE_CONTACT_EMAIL = 'hello@getsahtain.com';
 
 /**
+ * PLACEHOLDER social profiles (the @sahtain handles we plan to claim). Set `PUBLIC_INSTAGRAM_URL` and
+ * `PUBLIC_FACEBOOK_URL` to the real profile links.
+ */
+export const INSTAGRAM_PLACEHOLDER_URL = 'https://www.instagram.com/sahtain';
+export const FACEBOOK_PLACEHOLDER_URL = 'https://www.facebook.com/sahtain';
+
+/**
  * PLACEHOLDER WhatsApp number: it uses the reserved fictional 555-01xx range, so it reaches nobody.
  * Set `PUBLIC_WHATSAPP_NUMBER` (digits with country code, no +) to the real business number.
  */

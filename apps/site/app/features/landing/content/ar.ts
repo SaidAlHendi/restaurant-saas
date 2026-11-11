@@ -284,5 +284,7 @@ export const landingAr: LandingContent = {
     terms: 'الشروط',
     contact: 'تواصل معنا',
     cookieSettings: 'إعدادات ملفات الارتباط',
+    instagram: 'إنستغرام',
+    facebook: 'فيسبوك',
   },
 };

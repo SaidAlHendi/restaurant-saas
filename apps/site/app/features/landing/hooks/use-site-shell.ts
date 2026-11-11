@@ -1,7 +1,12 @@
 import { useMemo } from 'react';
 import { useRouteLoaderData } from 'react-router';
 
-import { SITE_CONTACT_EMAIL, WHATSAPP_PLACEHOLDER_NUMBER } from '../../../lib/brand.js';
+import {
+  FACEBOOK_PLACEHOLDER_URL,
+  INSTAGRAM_PLACEHOLDER_URL,
+  SITE_CONTACT_EMAIL,
+  WHATSAPP_PLACEHOLDER_NUMBER,
+} from '../../../lib/brand.js';
 import { landingPath, otherLocale, type LandingLocale } from '../../../lib/locale.js';
 import type { RootLoaderData } from '../../../lib/root-data.js';
 import { whatsappHref } from '../../../lib/whatsapp.js';
@@ -26,6 +31,10 @@ export function useSiteShell(locale: LandingLocale, tracking: TrackingIds, curre
   useAttributionCapture();
   const root = useRouteLoaderData<RootLoaderData>('root');
   const whatsappNumber = root?.whatsappNumber ?? WHATSAPP_PLACEHOLDER_NUMBER;
+  const social = root?.social ?? {
+    instagram: INSTAGRAM_PLACEHOLDER_URL,
+    facebook: FACEBOOK_PLACEHOLDER_URL,
+  };
 
   const navLinks = useMemo(
     () =>
@@ -43,6 +52,7 @@ export function useSiteShell(locale: LandingLocale, tracking: TrackingIds, curre
     nav,
     navLinks,
     consent,
+    social,
     consentContent: getConsentContent(locale),
     whatsapp: {
       href: whatsappHref(whatsappNumber, content.whatsapp.message),
