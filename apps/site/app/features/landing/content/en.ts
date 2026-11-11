@@ -284,5 +284,6 @@ export const landingEn: LandingContent = {
     privacy: 'Privacy',
     terms: 'Terms',
     contact: 'Contact us',
+    cookieSettings: 'Cookie settings',
   },
 };

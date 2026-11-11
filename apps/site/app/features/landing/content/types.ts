@@ -96,7 +96,13 @@ export type LandingContent = {
   /** Search title and description of the pages that have their own URL. */
   pages: Record<NavPageId, { title: string; description: string }>;
   closing: { title: string; body: string; cta: string; ctaSubject: string };
-  footer: { rights: string; privacy: string; terms: string; contact: string };
+  footer: {
+    rights: string;
+    privacy: string;
+    terms: string;
+    contact: string;
+    cookieSettings: string;
+  };
 };
 
 export type LegalSection = { heading: string; paragraphs: string[] };
