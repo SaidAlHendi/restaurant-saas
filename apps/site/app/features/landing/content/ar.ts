@@ -283,5 +283,8 @@ export const landingAr: LandingContent = {
     privacy: 'الخصوصية',
     terms: 'الشروط',
     contact: 'تواصل معنا',
+    cookieSettings: 'إعدادات ملفات الارتباط',
+    instagram: 'إنستغرام',
+    facebook: 'فيسبوك',
   },
 };

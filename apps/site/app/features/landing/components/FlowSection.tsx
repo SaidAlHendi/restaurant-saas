@@ -2,7 +2,7 @@ import { cn } from '@app/ui';
 
 import type { FlowMedia, LandingContent } from '../content/types.js';
 import type { useLandingPage } from '../hooks/use-landing-page.js';
-import { imageUrl } from '../landing.utils.js';
+import { imageUrl, videoUrl } from '../landing.utils.js';
 import { Picture } from './Picture.js';
 import { Tile } from './Tile.js';
 
@@ -35,7 +35,8 @@ function FlowMediaView({ media }: { media: FlowMedia }) {
       aria-label={media.label}
       className="block aspect-[8/5] h-auto w-full rounded-[11px] bg-accent object-cover"
     >
-      <source src={`/landing/video/${media.video}-ar.webm`} type="video/webm" />
+      <source src={videoUrl(media.video, 'webm')} type="video/webm" />
+      <source src={videoUrl(media.video, 'mp4')} type="video/mp4" />
     </video>
   );
 }

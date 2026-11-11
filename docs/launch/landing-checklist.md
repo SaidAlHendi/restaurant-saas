@@ -9,6 +9,7 @@ Companion to `15-sahtain-landing-page.md`. The site lives in `apps/site`: the ho
 | `PUBLIC_SITE_URL` | `https://getsahtain.com` | Used for canonicals, hreflang, sitemap, Open Graph and JSON-LD. |
 | `PUBLIC_API_URL` | the public API origin | Needed by the menu pages and the sitemap. |
 | `PUBLIC_WHATSAPP_NUMBER` | digits with country code, e.g. `966501234567` | The chat button shown on every page. **Unset = a fictional placeholder number that reaches nobody.** |
+| `PUBLIC_INSTAGRAM_URL`, `PUBLIC_FACEBOOK_URL` | full `https://` profile links | Footer icons. **Unset = placeholder links to the planned `@sahtain` profiles; set the real ones before launch.** |
 | `PUBLIC_GA4_ID` | `G-XXXXXXXXXX` | Optional. Empty = GA4 never loads. |
 | `PUBLIC_GOOGLE_ADS_ID` | `AW-XXXXXXXXXX` | Optional. Empty = no Ads tag. |
 | `PUBLIC_META_PIXEL_ID` | numeric pixel id | Optional. Empty = no pixel. |
@@ -86,4 +87,4 @@ HTML responses already send `Cache-Control: public, max-age=0, s-maxage=3600, st
 - [ ] Replace the placeholder wordmark and icons when the logo exists (`public/icon-*.png`, `public/favicon.svg`, `public/landing/og-*.jpg`).
 - [ ] Record an English-UI cut of the POS and kitchen videos (the page currently reuses the Arabic recording on `/en`).
 - [ ] Set the real `PUBLIC_WHATSAPP_NUMBER` (the placeholder reaches nobody).
-- [ ] Set `LEADS_NOTIFY_WEBHOOK_URL` on the API (a Slack, Discord or Mattermost incoming webhook) so each new lead posts a message with the restaurant, contact details and source. Without it, leads are stored only, so check the table before ad traffic starts. Send a test lead and confirm the message arrives.
+- [ ] Email for each new lead: verify `getsahtain.com` in Resend (add the SPF/DKIM records it shows), then set `RESEND_API_KEY`, `LEADS_NOTIFY_EMAIL_TO` (e.g. `hello@getsahtain.com`; make sure that mailbox or a forward exists) and `LEADS_NOTIFY_EMAIL_FROM` (e.g. `Sahtain <leads@getsahtain.com>`) on the API. Send a test lead and check the inbox and spam folder. Optional: also set `LEADS_NOTIFY_WEBHOOK_URL` (Slack, Discord or Mattermost) for an instant chat message. With neither set, leads are only stored, so check the table before ad traffic starts.

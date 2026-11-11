@@ -20,6 +20,14 @@ export function imageFallbackSrc(name: LandingImageName): string {
   return imageUrl(name, largest, 'jpg');
 }
 
+/** The product recordings show the Arabic interface, so both language versions of the page use them. */
+const VIDEO_UI_LOCALE = 'ar';
+
+/** Path of a product video in one of the formats we ship (WebM is smaller, MP4 covers older Safari). */
+export function videoUrl(name: 'pos' | 'kds', format: 'webm' | 'mp4'): string {
+  return `/landing/video/${name}-${VIDEO_UI_LOCALE}.${format}`;
+}
+
 const CURRENCY_MARK: Record<string, string> = { USD: '$' };
 
 /**

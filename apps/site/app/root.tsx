@@ -12,7 +12,7 @@ import {
   useRouteLoaderData,
 } from 'react-router';
 
-import { getWhatsappNumber } from './lib/env.server.js';
+import { getSocialLinks, getWhatsappNumber } from './lib/env.server.js';
 import type { RootLoaderData } from './lib/root-data.js';
 
 export const links = () => [
@@ -29,6 +29,7 @@ export function loader({ request }: { request: Request }) {
     locale,
     dir: locale === 'ar' ? 'rtl' : 'ltr',
     whatsappNumber: getWhatsappNumber(),
+    social: getSocialLinks(),
   } satisfies RootLoaderData;
 }
 

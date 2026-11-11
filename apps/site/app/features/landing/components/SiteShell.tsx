@@ -27,7 +27,12 @@ export function SiteShell({ shell, children }: SiteShellProps) {
         <main id="content" className="contents">
           {children}
         </main>
-        <LandingFooter footer={content.footer} links={shell.links} />
+        <LandingFooter
+          footer={content.footer}
+          links={shell.links}
+          social={shell.social}
+          onCookieSettings={shell.consent.reopen}
+        />
       </div>
       <WhatsappButton
         href={shell.whatsapp.href}

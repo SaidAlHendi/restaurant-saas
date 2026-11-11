@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { parseSocialLinks, type SocialLinks } from './social.js';
 import { parseWhatsappNumber } from './whatsapp.js';
 
 const optionalId = z.preprocess(
@@ -39,6 +40,14 @@ export function getSiteEnv(): SiteEnv {
  */
 export function getWhatsappNumber(): string {
   return parseWhatsappNumber(process.env['PUBLIC_WHATSAPP_NUMBER']);
+}
+
+/** Instagram and Facebook profile links. Like the WhatsApp number, a missing value never breaks a page. */
+export function getSocialLinks(): SocialLinks {
+  return parseSocialLinks({
+    instagram: process.env['PUBLIC_INSTAGRAM_URL'],
+    facebook: process.env['PUBLIC_FACEBOOK_URL'],
+  });
 }
 
 /** Test-only reset. */

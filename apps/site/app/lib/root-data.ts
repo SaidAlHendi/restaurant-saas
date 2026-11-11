@@ -4,4 +4,6 @@ export type RootLoaderData = {
   dir: 'rtl' | 'ltr';
   /** Business WhatsApp number, digits with country code (a placeholder until configured). */
   whatsappNumber: string;
+  /** Instagram and Facebook profile links (placeholders until configured). */
+  social: { instagram: string; facebook: string };
 };
