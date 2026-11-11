@@ -40,7 +40,7 @@ export const appRoutes: RouteObject[] = [
           { path: 'invite/:token', element: <AcceptInvitePage /> },
         ],
       },
-      { path: 'display/:orgSlug/:branchSlug', element: <DisplayPage /> },
+      { path: 'display/:token', element: <DisplayPage /> },
       { path: 'auth/*', element: <Navigate to="/login" replace /> },
       {
         element: (

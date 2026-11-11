@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 
 import type { PublicDisplayPayload, PublicMenuPayload, PublicMenuQuery, PublicSitemapResponse, PublicTablePayload } from '@app/shared';
-import { publicMenuLocaleSchema } from '@app/shared';
+import { publicDisplayTokenSchema, publicMenuLocaleSchema } from '@app/shared';
 
 import { GoneError, NotFoundError } from '../../core/errors/app-errors';
 import { DRIZZLE, type DrizzleDb } from '../../core/db/db.module';
@@ -35,12 +35,15 @@ export class PublicMenuService {
     return this.buildMenu(orgSlug, query, branchSlug);
   }
 
-  async getReadyDisplay(orgSlug: string, branchSlug: string): Promise<PublicDisplayPayload> {
-    const resolved = await this.repo.resolveOrg(orgSlug);
+  async getReadyDisplay(token: string): Promise<PublicDisplayPayload> {
+    if (!publicDisplayTokenSchema.safeParse(token).success) {
+      throw new NotFoundError();
+    }
+    const resolved = await this.repo.resolveDisplay(token);
     if (!resolved) {
       throw new NotFoundError();
     }
-    if (resolved.status === 'cancelled' || resolved.status === 'suspended') {
+    if (resolved.org_status === 'cancelled' || resolved.org_status === 'suspended') {
       throw new GoneError();
     }
     const orgId = resolved.org_id;
@@ -48,15 +51,15 @@ export class PublicMenuService {
       throw new NotFoundError();
     }
     return withOrg(this.db, orgId, async (tx) => {
-      const branch = await this.repo.findActiveBranchBySlug(tx, orgId, branchSlug);
-      if (!branch?.pagerEnabled) {
+      const branch = await this.repo.findBranchForDisplay(tx, orgId, resolved.branch_id);
+      if (!branch?.isActive || !branch.pagerEnabled) {
         throw new NotFoundError();
       }
       const orgRow = await this.repo.findOrganization(tx, orgId);
       if (!orgRow) {
         throw new NotFoundError();
       }
-      const ready = await this.repo.listReadyOrders(tx, branch.id);
+      const ready = await this.repo.listReadyOrders(tx, resolved.branch_id);
       return { branchName: branch.name, orgName: orgRow.name, ready };
     });
   }

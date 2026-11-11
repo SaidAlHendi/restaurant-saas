@@ -28,6 +28,12 @@ export type PublicResolveTableRow = {
   label: string;
 };
 
+export type PublicResolveDisplayRow = {
+  org_id: string;
+  branch_id: string;
+  org_status: string;
+};
+
 export type PublicSitemapRow = {
   slug: string;
   default_locale: string;
@@ -97,7 +103,6 @@ export class PublicMenuRepository {
         name: branches.name,
         slug: branches.slug,
         address: branches.address,
-        pagerEnabled: branches.pagerEnabled,
       })
       .from(branches)
       .where(
@@ -107,6 +112,26 @@ export class PublicMenuRepository {
           eq(branches.isActive, true),
         ),
       )
+      .limit(1);
+    return rows[0];
+  }
+
+  async resolveDisplay(token: string): Promise<PublicResolveDisplayRow | undefined> {
+    const result = await this.db.execute(
+      sql`SELECT org_id, branch_id, org_status FROM public.public_resolve_display(${token})`,
+    );
+    return result.rows[0] as PublicResolveDisplayRow | undefined;
+  }
+
+  async findBranchForDisplay(tx: DrizzleTx, orgId: string, branchId: string) {
+    const rows = await tx
+      .select({
+        name: branches.name,
+        isActive: branches.isActive,
+        pagerEnabled: branches.pagerEnabled,
+      })
+      .from(branches)
+      .where(and(eq(branches.orgId, orgId), eq(branches.id, branchId)))
       .limit(1);
     return rows[0];
   }

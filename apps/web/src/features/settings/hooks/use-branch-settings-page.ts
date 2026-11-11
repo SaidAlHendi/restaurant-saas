@@ -6,7 +6,12 @@ import { toast } from '@app/ui';
 
 import { useAppSelector } from '../../../app/hooks.js';
 import { formatMoney, intlLocaleForUi } from '../../../lib/money.js';
-import { useListBranchesQuery, usePatchBranchMutation } from '../../branches/branches.api.js';
+import {
+  useGetBranchDisplayLinkQuery,
+  useListBranchesQuery,
+  usePatchBranchMutation,
+  useRotateBranchDisplayLinkMutation,
+} from '../../branches/branches.api.js';
 import { showApiError } from '../../../lib/show-api-error.js';
 import { selectHasFeature, selectSessionOrg } from '../../session/session.selectors.js';
 import { useSettingsPageAccess } from './use-settings-page-access.js';
@@ -22,9 +27,13 @@ export function useBranchSettingsPage() {
   const uiLocale = intlLocaleForUi(i18n.language);
   const { data, isLoading, isError } = useListBranchesQuery(undefined, { skip: !allowed });
   const pagerPlanAvailable = useAppSelector(selectHasFeature('ordering.pager'));
+  const [rotateLink, rotateState] = useRotateBranchDisplayLinkMutation();
   const [patchBranch, patchState] = usePatchBranchMutation();
 
   const branch = useMemo(() => data?.items.find((b) => b.id === branchId), [branchId, data?.items]);
+  const displayLinkQuery = useGetBranchDisplayLinkQuery(branchId ?? '', {
+    skip: !allowed || branchId === null || branch?.pagerEnabled !== true,
+  });
 
   const [name, setName] = useState('');
   const [isActive, setIsActive] = useState(true);
@@ -146,6 +155,16 @@ export function useBranchSettingsPage() {
     org?.name,
   ]);
 
+  const onRotateLink = useCallback(async () => {
+    if (!branchId) {
+      return;
+    }
+    const result = await rotateLink(branchId);
+    if ('error' in result) {
+      showApiError(result.error, t);
+    }
+  }, [branchId, rotateLink, t]);
+
   const onSave = useCallback(async () => {
     if (!branchId) {
       return;
@@ -222,10 +241,32 @@ export function useBranchSettingsPage() {
     pagerEnabled,
     onPagerEnabledChange: setPagerEnabled,
     pagerPlanAvailable,
-    pagerDisplayUrl:
-      pagerEnabled && org !== null && branch !== undefined
-        ? `${window.location.origin}/display/${org.slug}/${branch.slug}`
+    displayLink: {
+      /** Only a saved-on branch can have a link; the switch above is saved with the form. */
+      visible: pagerPlanAvailable && branch?.pagerEnabled === true,
+      url: displayLinkQuery.data?.token
+        ? `${window.location.origin}/display/${displayLinkQuery.data.token}`
         : null,
+      busy: rotateState.isLoading,
+      onCreate: () => {
+        void onRotateLink();
+      },
+      onRegenerate: () => {
+        if (window.confirm(t('settings.branch.pagerLinkRegenerateConfirm'))) {
+          void onRotateLink();
+        }
+      },
+      onCopy: () => {
+        const url = displayLinkQuery.data?.token
+          ? `${window.location.origin}/display/${displayLinkQuery.data.token}`
+          : null;
+        if (url !== null) {
+          void navigator.clipboard.writeText(url).then(() => {
+            toast.success(t('settings.branch.pagerLinkCopied'));
+          });
+        }
+      },
+    },
     taxInclusive,
     onTaxInclusiveChange: setTaxInclusive,
     dayStartHour,
@@ -272,6 +313,10 @@ export function useBranchSettingsPage() {
       pagerHint: t('settings.branch.pagerHint'),
       pagerPlanHint: t('settings.branch.pagerPlanHint'),
       pagerDisplayLink: t('settings.branch.pagerDisplayLink'),
+      pagerLinkHint: t('settings.branch.pagerLinkHint'),
+      pagerLinkCreate: t('settings.branch.pagerLinkCreate'),
+      pagerLinkCopy: t('settings.branch.pagerLinkCopy'),
+      pagerLinkRegenerate: t('settings.branch.pagerLinkRegenerate'),
       taxPercent: t('settings.branch.taxPercent'),
       taxPercentHint: t('settings.branch.taxPercentHint'),
       taxInclusive: t('settings.branch.taxInclusive'),

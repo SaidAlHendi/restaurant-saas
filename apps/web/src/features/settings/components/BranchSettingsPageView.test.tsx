@@ -25,7 +25,7 @@ function minimalBranchVm(
     pagerEnabled: false,
     onPagerEnabledChange: () => {},
     pagerPlanAvailable: true,
-    pagerDisplayUrl: null,
+    displayLink: { visible: false, url: null, busy: false, onCreate: () => {}, onRegenerate: () => {}, onCopy: () => {} },
     taxInclusive: false,
     onTaxInclusiveChange: () => {},
     dayStartHour: '4',
@@ -77,6 +77,10 @@ function minimalBranchVm(
       pagerHint: 'Hint',
       pagerPlanHint: 'Plan',
       pagerDisplayLink: 'Link',
+      pagerLinkHint: 'Hint',
+      pagerLinkCreate: 'Create link',
+      pagerLinkCopy: 'Copy link',
+      pagerLinkRegenerate: 'New link',
       taxPercent: 'Tax',
       taxPercentHint: 'Hint',
       taxInclusive: 'Inclusive',
@@ -127,5 +131,33 @@ describe('BranchSettingsPageView', () => {
       </MemoryRouter>,
     );
     expect(screen.getByText('Unsaved changes')).toBeInTheDocument();
+  });
+  it('offers to create the ready-screen link when none exists', () => {
+    const vm = minimalBranchVm();
+    render(
+      <MemoryRouter>
+        <BranchSettingsPageView
+          {...vm}
+          displayLink={{ ...vm.displayLink, visible: true, url: null }}
+        />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole('button', { name: 'Create link' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Copy link' })).toBeNull();
+  });
+
+  it('shows the secret link with copy and regenerate when it exists', () => {
+    const vm = minimalBranchVm();
+    render(
+      <MemoryRouter>
+        <BranchSettingsPageView
+          {...vm}
+          displayLink={{ ...vm.displayLink, visible: true, url: 'https://x/display/TOKEN' }}
+        />
+      </MemoryRouter>,
+    );
+    expect(screen.getByDisplayValue('https://x/display/TOKEN')).toHaveAttribute('readonly');
+    expect(screen.getByRole('button', { name: 'Copy link' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'New link' })).toBeInTheDocument();
   });
 });
