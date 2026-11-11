@@ -9,6 +9,7 @@ import type { ObjectStorage } from '../../core/storage/object-storage';
 import { OBJECT_STORAGE } from '../../core/storage/storage.tokens';
 import type { RequestContext } from '../../core/context/request-context';
 import { EntitlementsService } from '../billing/entitlements.service';
+import { moneyDisplayForOrg } from '../tenancy/org-settings.service';
 import { TenancyRepository } from '../tenancy/tenancy.repository';
 
 import { assemblePosMenuCategories } from './pos-menu.assemble';
@@ -70,6 +71,8 @@ export class PosMenuService {
         storage: this.storage,
       });
 
+      const display = moneyDisplayForOrg(org);
+
       return {
         branch: {
           id: branch.id,
@@ -90,6 +93,9 @@ export class PosMenuService {
           logoUrl: logoUrlFromKey(this.storage, org.logoKey),
         },
         categories,
+        display,
+        displayRateUpdatedAt:
+          display !== null ? (org.exchangeRateUpdatedAt?.toISOString() ?? null) : null,
       };
     });
   }

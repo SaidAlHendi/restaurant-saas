@@ -8,6 +8,7 @@ import { DRIZZLE, type DrizzleDb } from '../../core/db/db.module';
 import { withOrg } from '../../core/db/with-org';
 import { NotFoundError } from '../../core/errors/app-errors';
 import { computeBusinessDate } from '../../lib/business-date';
+import { OrgSettingsService } from '../tenancy/org-settings.service';
 import { TenancyRepository } from '../tenancy/tenancy.repository';
 
 import {
@@ -16,7 +17,7 @@ import {
   fillByType,
   unpaidMinor,
 } from './daily-report.utils';
-import { ReportingRepository } from './reporting.repository';
+import { ReportingRepository, type ReportConversion } from './reporting.repository';
 
 @Injectable()
 export class ReportingService {
@@ -25,6 +26,7 @@ export class ReportingService {
     @Inject(CLOCK) private readonly clock: Clock,
     private readonly repo: ReportingRepository,
     private readonly tenancyRepo: TenancyRepository,
+    private readonly orgSettings: OrgSettingsService,
   ) {}
 
   async getDailyReport(
@@ -45,11 +47,23 @@ export class ReportingService {
           dayStartHour: branch.dayStartHour,
         });
 
-      const rollup = await this.repo.loadOrderDayRollup(tx, branchId, businessDate);
-      const byTypeRows = await this.repo.loadSalesByType(tx, branchId, businessDate);
-      const paidMinor = await this.repo.loadPaidMinorOnCountedOrders(tx, branchId, businessDate);
-      const byMethodRows = await this.repo.loadPaymentsByMethod(tx, branchId, businessDate);
-      const topItems = await this.repo.loadTopItems(tx, branchId, businessDate);
+      // With a display currency the owner collects (and so reads) that currency.
+      const { display } = await this.orgSettings.getCatalogSettings(tx, ctx.orgId);
+      const conversion: ReportConversion =
+        display !== null && display.currency !== branch.currency
+          ? { baseCurrency: branch.currency, display }
+          : null;
+
+      const rollup = await this.repo.loadOrderDayRollup(tx, branchId, businessDate, conversion);
+      const byTypeRows = await this.repo.loadSalesByType(tx, branchId, businessDate, conversion);
+      const paidMinor = await this.repo.loadPaidMinorOnCountedOrders(
+        tx,
+        branchId,
+        businessDate,
+        conversion,
+      );
+      const byMethodRows = await this.repo.loadPaymentsByMethod(tx, branchId, businessDate, conversion);
+      const topItems = await this.repo.loadTopItems(tx, branchId, businessDate, conversion);
 
       const salesMinor = rollup.salesMinor;
       const ordersCount = rollup.ordersCount;
@@ -57,7 +71,8 @@ export class ReportingService {
       return {
         businessDate,
         timezone: branch.timezone,
-        currency: branch.currency,
+        currency: conversion?.display.currency ?? branch.currency,
+        display: conversion?.display ?? null,
         salesMinor,
         taxMinor: rollup.taxMinor,
         ordersCount,

@@ -1,6 +1,5 @@
 import type { OrderStatus as BadgeStatus } from '@app/ui';
 import type { OrderStatus } from '@app/shared';
-import { formatMoney } from '@app/shared';
 
 export function orderStatusBadgeTone(status: OrderStatus): BadgeStatus {
   switch (status) {
@@ -18,6 +17,3 @@ export function orderStatusBadgeTone(status: OrderStatus): BadgeStatus {
   }
 }
 
-export function formatOrderMoney(minor: number, currency: string, locale: string): string {
-  return formatMoney(minor, currency, locale);
-}

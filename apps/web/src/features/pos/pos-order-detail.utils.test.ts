@@ -64,6 +64,8 @@ describe('pos order detail actions', () => {
               amountMinor: 100,
               tenderedMinor: 100,
               changeMinor: 0,
+              displayTenderedMinor: null,
+              displayChangeMinor: null,
               createdAt: '2026-04-01T10:00:00.000Z',
             },
           ],

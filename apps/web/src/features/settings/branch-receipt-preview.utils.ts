@@ -43,6 +43,8 @@ export function branchReceiptPreviewHtml(input: {
     },
     org: { name: input.orgName, logoUrl: input.orgLogoUrl },
     categories: [],
+    display: null,
+    displayRateUpdatedAt: null,
   };
 
   const order: OrderDetail = {
@@ -66,6 +68,7 @@ export function branchReceiptPreviewHtml(input: {
     taxMinor: 150,
     totalMinor: 1150,
     currency: input.currency,
+    display: null,
     version: 1,
     placedAt: '2026-04-01T10:00:00.000Z',
     completedAt: null,
@@ -99,6 +102,7 @@ export function branchReceiptPreviewHtml(input: {
     locale: input.locale,
     fallbackLocale: 'en',
     formatMinor: input.formatMinor,
+    cashLabels: () => ({ tendered: null, change: null }),
     printedAt: new Date('2026-04-01T10:05:00.000Z'),
     labels: input.labels,
   });

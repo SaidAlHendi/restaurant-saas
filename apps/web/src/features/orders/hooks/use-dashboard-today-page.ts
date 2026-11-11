@@ -1,11 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { businessDateSchema, pickLocalizedText } from '@app/shared';
+import {
+  businessDateSchema,
+  formatDisplayMinor,
+  formatMoney,
+  pickLocalizedText,
+  type MoneyKind,
+} from '@app/shared';
 
 import { baseApi } from '../../../app/api/base-api.js';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks.js';
-import { intlLocaleForUi } from '../../../lib/money.js';
+import { intlLocaleForUi, orderMoneyFormatter } from '../../../lib/money.js';
 import type { RealtimeEvent } from '../../../lib/realtime.js';
 import { useGetDailyReportQuery } from '../../reports/reports.api.js';
 import { useNavigate } from 'react-router-dom';
@@ -15,7 +21,7 @@ import { addCalendarDays } from '../dashboard-orders-filters.utils.js';
 import { barWidthPercent } from '../report-bars.utils.js';
 import { orderTypeTableLabel } from '../order-type-table-label.utils.js';
 import { liveCounts, oldestOpenMinutes, percentDelta } from '../dashboard-overview.utils.js';
-import { formatOrderMoney, orderStatusBadgeTone } from '../orders-display.utils.js';
+import { orderStatusBadgeTone } from '../orders-display.utils.js';
 import { useListOrdersQuery } from '../orders.api.js';
 import { useOrgSwitcher } from './use-org-switcher.js';
 import { useBranchBusinessDate } from './use-branch-business-date.js';
@@ -94,9 +100,14 @@ export function useDashboardTodayPage() {
   const currency = data?.currency ?? branchContext.currency ?? 'SAR';
   const timezone = data?.timezone ?? branchContext.timezone ?? 'UTC';
 
+  // Report amounts arrive already converted when the restaurant has a display currency.
+  const reportDisplay = data?.display ?? null;
   const formatMinor = useCallback(
-    (minor: number) => formatOrderMoney(minor, currency, uiLocale),
-    [currency, uiLocale],
+    (minor: number, kind: MoneyKind = 'total') =>
+      reportDisplay
+        ? formatDisplayMinor(minor, reportDisplay, uiLocale, kind)
+        : formatMoney(minor, currency, uiLocale),
+    [currency, reportDisplay, uiLocale],
   );
 
   const paymentTotal = useMemo(
@@ -171,7 +182,7 @@ export function useDashboardTodayPage() {
       id: row.productId,
       name: pickLocalizedText(row.nameSnapshot, contentLocale, defaultLocale),
       quantity: String(row.quantity),
-      revenue: formatMinor(row.revenueMinor),
+      revenue: formatMinor(row.revenueMinor, 'item'),
     })),
     deltas: data
       ? {
@@ -209,7 +220,7 @@ export function useDashboardTodayPage() {
         takeawayLabel: t('dashboard.today.orderType.takeaway'),
       }),
       items: t('dashboard.overview.items', { count: order.itemCount }),
-      total: formatMinor(order.totalMinor),
+      total: orderMoneyFormatter(order, uiLocale)(order.totalMinor, 'total'),
       status: orderStatusBadgeTone(order.status),
       statusLabel: t(`dashboard.orders.status.${order.status}`),
       onOpen: () => {

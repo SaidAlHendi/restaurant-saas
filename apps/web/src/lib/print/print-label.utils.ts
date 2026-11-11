@@ -1,5 +1,7 @@
 import type { OrderDetail, OrderItem } from '@app/shared';
 
+import type { MoneyFormatter } from '../money.js';
+
 import { escapeHtml } from './escape-html.js';
 
 export function localizedPrintName(
@@ -56,7 +58,7 @@ export function renderReceiptItemLinesHtml(
   items: OrderItem[],
   locale: string,
   fallbackLocale: string,
-  formatMinor: (minor: number) => string,
+  formatMinor: MoneyFormatter,
 ): string {
   return items
     .map((item) => {

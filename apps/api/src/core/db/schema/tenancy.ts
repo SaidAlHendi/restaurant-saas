@@ -2,6 +2,7 @@ import {
   boolean,
   foreignKey,
   integer,
+  numeric,
   pgEnum,
   pgTable,
   primaryKey,
@@ -32,6 +33,13 @@ export const organizations = pgTable('organizations', {
   defaultLocale: text('default_locale').notNull(),
   locales: text('locales').array().notNull(),
   logoKey: text('logo_key'),
+  /** Currency shown to staff and guests; null = show `defaultCurrency`. */
+  displayCurrency: text('display_currency'),
+  /** Display-currency units for 1 `defaultCurrency` unit. */
+  exchangeRate: numeric('exchange_rate', { precision: 18, scale: 6, mode: 'number' }),
+  exchangeRateUpdatedAt: timestamp('exchange_rate_updated_at', { withTimezone: true }),
+  displayItemStep: integer('display_item_step').notNull().default(100),
+  displayTotalStep: integer('display_total_step').notNull().default(500),
   status: orgStatusEnum('status').notNull().default('active'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });

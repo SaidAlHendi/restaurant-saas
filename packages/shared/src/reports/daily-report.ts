@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { businessDateSchema } from '../dates/business-date.js';
 import { moneyMinorSchema } from '../i18n/localized-text.js';
+import { moneyDisplaySchema } from '../money/display-currency.js';
 import { orderTypeSchema } from '../orders/enums.js';
 import { paymentMethodSchema } from '../orders/payment.js';
 
@@ -33,7 +34,13 @@ export const dailyReportTopItemSchema = z.object({
 export const dailyReportSchema = z.object({
   businessDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   timezone: z.string(),
+  /** Currency of every amount below: the display currency when `display` is set, else the branch currency. */
   currency: z.string().length(3),
+  /**
+   * Set when the amounts were converted to the display currency (each order at its own frozen
+   * rate). They are already converted: format them, do not convert again.
+   */
+  display: moneyDisplaySchema.nullable(),
   salesMinor: moneyMinorSchema,
   taxMinor: moneyMinorSchema,
   ordersCount: z.number().int().min(0),

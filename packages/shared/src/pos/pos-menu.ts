@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { moneyMinorSchema } from '../i18n/localized-text.js';
+import { moneyDisplaySchema } from '../money/display-currency.js';
 
 const localizedTextSchema = z.record(z.string(), z.string());
 
@@ -62,6 +63,10 @@ export const posMenuPayloadSchema = z.object({
   branch: posMenuBranchSchema,
   org: posMenuOrgSchema,
   categories: z.array(posMenuCategorySchema),
+  /** Set when the restaurant shows prices in another currency; prices above stay in `branch.currency`. */
+  display: moneyDisplaySchema.nullable(),
+  /** When the owner last set the exchange rate; `null` without a display currency. */
+  displayRateUpdatedAt: z.iso.datetime().nullable(),
 });
 
 export type PosMenuPayload = z.infer<typeof posMenuPayloadSchema>;

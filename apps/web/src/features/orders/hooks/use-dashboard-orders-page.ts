@@ -6,10 +6,10 @@ import type { OrderListItem } from '@app/shared';
 
 import { baseApi } from '../../../app/api/base-api.js';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks.js';
-import { intlLocaleForUi } from '../../../lib/money.js';
+import { intlLocaleForUi, orderMoneyFormatter } from '../../../lib/money.js';
 import type { RealtimeEvent } from '../../../lib/realtime.js';
 import { useBranchRealtime } from '../../realtime/use-branch-realtime.js';
-import { selectCurrentBranchId, selectSessionOrg } from '../../session/session.selectors.js';
+import { selectCurrentBranchId } from '../../session/session.selectors.js';
 import {
   dashboardOrdersFiltersToSearchParams,
   parseDashboardOrdersFilters,
@@ -18,7 +18,7 @@ import {
   type DashboardOrdersPeriod,
 } from '../dashboard-orders-filters.utils.js';
 import { orderTypeTableLabel } from '../order-type-table-label.utils.js';
-import { formatOrderMoney, orderStatusBadgeTone } from '../orders-display.utils.js';
+import { orderStatusBadgeTone } from '../orders-display.utils.js';
 import { useListOrdersQuery } from '../orders.api.js';
 import { useBranchBusinessDate } from './use-branch-business-date.js';
 import { useOrgSwitcher } from './use-org-switcher.js';
@@ -31,7 +31,6 @@ export function useDashboardOrdersPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const branchId = useAppSelector(selectCurrentBranchId);
-  const org = useAppSelector(selectSessionOrg);
   const orgSwitcher = useOrgSwitcher();
   const branchContext = useBranchBusinessDate(branchId);
 
@@ -136,13 +135,7 @@ export function useDashboardOrdersPage() {
   });
 
   const uiLocale = intlLocaleForUi(i18n.language);
-  const currency = data?.items[0]?.currency ?? org?.defaultCurrency ?? 'SAR';
   const timezone = branchContext.timezone ?? 'UTC';
-
-  const formatMinor = useCallback(
-    (minor: number) => formatOrderMoney(minor, currency, uiLocale),
-    [currency, uiLocale],
-  );
 
   const updateFilters = useCallback(
     (patch: Partial<DashboardOrdersFilters>) => {
@@ -177,7 +170,7 @@ export function useDashboardOrdersPage() {
         takeawayLabel,
       }),
       itemCount: String(order.itemCount),
-      totalLabel: formatMinor(order.totalMinor),
+      totalLabel: orderMoneyFormatter(order, uiLocale)(order.totalMinor, 'total'),
       statusTone: orderStatusBadgeTone(order.status),
       statusLabel: t(`dashboard.orders.status.${order.status}`),
       paymentLabel: t(`dashboard.orders.paymentStatus.${order.paymentStatus}`),
@@ -193,7 +186,7 @@ export function useDashboardOrdersPage() {
         );
       },
     }));
-  }, [accumulated, formatMinor, navigate, searchParams, t, timezone, uiLocale]);
+  }, [accumulated, navigate, searchParams, t, timezone, uiLocale]);
 
   const setPeriod = (period: DashboardOrdersPeriod) => {
     updateFilters({ period });

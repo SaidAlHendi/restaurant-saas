@@ -12,6 +12,7 @@ import { EntitlementsService } from '../billing/entitlements.service';
 
 import { assemblePublicMenuCategories } from './public-menu.assemble';
 import { logoUrlFromKey } from './public-menu.mapper';
+import { moneyDisplayForOrg } from '../tenancy/org-settings.service';
 import { PublicMenuRepository } from './public-menu.repository';
 
 @Injectable()
@@ -183,6 +184,7 @@ export class PublicMenuService {
           defaultLocale: orgRow.defaultLocale,
           locales: localesForPayload,
           currency: orgRow.defaultCurrency,
+          display: moneyDisplayForOrg(orgRow),
           logoUrl: logoUrlFromKey(this.storage, orgRow.logoKey),
         },
         branches: branchRows.map((b) => ({
