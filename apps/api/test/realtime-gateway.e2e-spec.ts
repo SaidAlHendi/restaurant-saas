@@ -1,12 +1,14 @@
 import type { Server } from 'node:http';
 
 import { type INestApplication } from '@nestjs/common';
+import { sql } from 'drizzle-orm';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { io, type Socket } from 'socket.io-client';
 
 import { ConfigModule } from '../src/config/config.module';
 import { resetEnvCacheForTests } from '../src/config/env';
 import { DbModule } from '../src/core/db/db.module';
+import { WORKER_DRIZZLE, type WorkerDrizzleDb } from '../src/core/db/worker-db.module';
 import { OutboxPublisherModule } from '../src/core/outbox/outbox-publisher.module';
 import { OutboxPublisherService } from '../src/core/outbox/outbox-publisher.service';
 import { newUuidV7 } from '../src/lib/uuid';
@@ -51,6 +53,7 @@ describe('Realtime gateway (e2e)', () => {
   let app: INestApplication;
   let publisherModule: TestingModule;
   let publisher: OutboxPublisherService;
+  let workerDb: WorkerDrizzleDb;
   let port = 0;
   let branchId = '';
   let productId = '';
@@ -64,6 +67,7 @@ describe('Realtime gateway (e2e)', () => {
       imports: [ConfigModule, DbModule, OutboxPublisherModule],
     }).compile();
     publisher = publisherModule.get(OutboxPublisherService);
+    workerDb = publisherModule.get(WORKER_DRIZZLE);
 
     const owner = await asDemoOwner(apiAgent(app));
     const me = await owner.get('/v1/me');
@@ -95,6 +99,9 @@ describe('Realtime gateway (e2e)', () => {
     const agent = apiAgent(app);
     const { accessToken } = await loginSeedUser(agent, 'kitchen', 'demo');
     const socket = await connectSocket(port, { token: accessToken, branchId });
+
+    // Earlier suites leave unpublished rows behind; drain only this test's event.
+    await workerDb.execute(sql`UPDATE outbox_events SET published_at = now() WHERE published_at IS NULL`);
 
     const owner = await asDemoOwner(agent);
     const clientOrderId = newUuidV7();
