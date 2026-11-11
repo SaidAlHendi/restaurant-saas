@@ -33,7 +33,7 @@ export function LandingNav({ content, nav, navLinks, links }: LandingNavProps) {
             <a
               key={link.key}
               href={link.href}
-              aria-current={link.active ? 'page' : undefined}
+              aria-current={link.current}
               className={cn(
                 'rounded-lg px-4 py-3 text-foreground/75 transition-colors hover:bg-accent hover:text-foreground',
                 link.active && 'bg-foreground text-background hover:bg-foreground hover:text-background',
@@ -83,7 +83,7 @@ export function LandingNav({ content, nav, navLinks, links }: LandingNavProps) {
             key={link.key}
             href={link.href}
             onClick={nav.closeMenu}
-            aria-current={link.active ? 'page' : undefined}
+            aria-current={link.current}
             className={cn(
               'rounded-lg px-3.5 py-4 text-[19px] font-medium hover:bg-accent',
               link.active && 'bg-accent',

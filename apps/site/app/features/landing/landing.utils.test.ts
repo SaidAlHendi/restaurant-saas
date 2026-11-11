@@ -12,6 +12,7 @@ import {
   isSectionKey,
   navHref,
   switchLocalePath,
+  videoUrl,
 } from './landing.utils.js';
 import { getLandingContent } from './content/index.js';
 
@@ -97,5 +98,12 @@ describe('buildPlanViews', () => {
   it('adds a formatted price to every plan', () => {
     const views = buildPlanViews(getLandingContent('en').plans.items, 'en');
     expect(views.map((p) => p.price)).toEqual(['$0', '$12', '$39', '$79']);
+  });
+});
+
+describe('videoUrl', () => {
+  it('points at both shipped formats of a product video', () => {
+    expect(videoUrl('pos', 'webm')).toBe('/landing/video/pos-ar.webm');
+    expect(videoUrl('kds', 'mp4')).toBe('/landing/video/kds-ar.mp4');
   });
 });
