@@ -8,7 +8,7 @@ import { useAppSelector } from '../../../app/hooks.js';
 import { formatMoney, intlLocaleForUi } from '../../../lib/money.js';
 import { useListBranchesQuery, usePatchBranchMutation } from '../../branches/branches.api.js';
 import { showApiError } from '../../../lib/show-api-error.js';
-import { selectSessionOrg } from '../../session/session.selectors.js';
+import { selectHasFeature, selectSessionOrg } from '../../session/session.selectors.js';
 import { useSettingsPageAccess } from './use-settings-page-access.js';
 import { branchReceiptPreviewHtml } from '../branch-receipt-preview.utils.js';
 import { filterTimezoneOptions } from '../branch-timezone.utils.js';
@@ -21,6 +21,7 @@ export function useBranchSettingsPage() {
   const org = useAppSelector(selectSessionOrg);
   const uiLocale = intlLocaleForUi(i18n.language);
   const { data, isLoading, isError } = useListBranchesQuery(undefined, { skip: !allowed });
+  const pagerPlanAvailable = useAppSelector(selectHasFeature('ordering.pager'));
   const [patchBranch, patchState] = usePatchBranchMutation();
 
   const branch = useMemo(() => data?.items.find((b) => b.id === branchId), [branchId, data?.items]);
@@ -29,6 +30,7 @@ export function useBranchSettingsPage() {
   const [isActive, setIsActive] = useState(true);
   const [payBeforeSend, setPayBeforeSend] = useState(false);
   const [acceptsCard, setAcceptsCard] = useState(false);
+  const [pagerEnabled, setPagerEnabled] = useState(false);
   const [taxInclusive, setTaxInclusive] = useState(false);
   const [dayStartHour, setDayStartHour] = useState('4');
   const [timezone, setTimezone] = useState('Asia/Riyadh');
@@ -45,6 +47,7 @@ export function useBranchSettingsPage() {
       setIsActive(branch.isActive);
       setPayBeforeSend(branch.payBeforeSend);
       setAcceptsCard(branch.acceptsCard);
+      setPagerEnabled(branch.pagerEnabled);
       setTaxInclusive(branch.taxInclusive);
       setDayStartHour(String(branch.dayStartHour));
       setTimezone(branch.timezone);
@@ -70,6 +73,7 @@ export function useBranchSettingsPage() {
       isActive !== branch.isActive ||
       payBeforeSend !== branch.payBeforeSend ||
       acceptsCard !== branch.acceptsCard ||
+      pagerEnabled !== branch.pagerEnabled ||
       taxInclusive !== branch.taxInclusive ||
       timezone !== branch.timezone ||
       taxBp !== branch.taxRateBp ||
@@ -85,6 +89,7 @@ export function useBranchSettingsPage() {
     dayStartHour,
     isActive,
     name,
+    pagerEnabled,
     payBeforeSend,
     receiptFooter,
     receiptHeader,
@@ -167,6 +172,7 @@ export function useBranchSettingsPage() {
         isActive,
         payBeforeSend,
         acceptsCard,
+        pagerEnabled,
         taxInclusive,
         taxRateBp: parsedTax.bp,
         dayStartHour: hour,
@@ -188,6 +194,7 @@ export function useBranchSettingsPage() {
     dayStartHour,
     isActive,
     name,
+    pagerEnabled,
     patchBranch,
     payBeforeSend,
     receiptFooter,
@@ -212,6 +219,13 @@ export function useBranchSettingsPage() {
     onPayBeforeSendChange: setPayBeforeSend,
     acceptsCard,
     onAcceptsCardChange: setAcceptsCard,
+    pagerEnabled,
+    onPagerEnabledChange: setPagerEnabled,
+    pagerPlanAvailable,
+    pagerDisplayUrl:
+      pagerEnabled && org !== null && branch !== undefined
+        ? `${window.location.origin}/display/${org.slug}/${branch.slug}`
+        : null,
     taxInclusive,
     onTaxInclusiveChange: setTaxInclusive,
     dayStartHour,
@@ -254,6 +268,10 @@ export function useBranchSettingsPage() {
       payBeforeSendHint: t('settings.branch.payBeforeSendHint'),
       acceptsCard: t('settings.branch.acceptsCard'),
       acceptsCardHint: t('settings.branch.acceptsCardHint'),
+      pager: t('settings.branch.pager'),
+      pagerHint: t('settings.branch.pagerHint'),
+      pagerPlanHint: t('settings.branch.pagerPlanHint'),
+      pagerDisplayLink: t('settings.branch.pagerDisplayLink'),
       taxPercent: t('settings.branch.taxPercent'),
       taxPercentHint: t('settings.branch.taxPercentHint'),
       taxInclusive: t('settings.branch.taxInclusive'),

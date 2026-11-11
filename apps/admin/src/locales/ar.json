@@ -246,6 +246,7 @@
       "branches_multi": "فروع متعددة",
       "roles_custom": "أدوار مخصصة",
       "ordering_table_qr": "الطلب من الطاولة",
+      "ordering_pager": "أرقام الاستلام وشاشة «جاهز»",
       "api_access": "الوصول إلى API",
       "limit_products": "حد المنتجات",
       "limit_users_per_branch": "الموظفون لكل فرع",

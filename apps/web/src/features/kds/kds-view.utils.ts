@@ -14,6 +14,7 @@ export type KdsCardLabels = {
   orderNumber: (n: number) => string;
   type: (type: KitchenBoardOrder['type']) => string;
   table: (label: string) => string;
+  pager?: (n: number) => string;
   added: string;
   voided: string;
   start: string;
@@ -78,6 +79,10 @@ export function buildKdsCard(order: KitchenBoardOrder, input: BuildCardInput): K
     subtitle = labels.table(order.tableLabel);
   } else if (order.customerName) {
     subtitle = order.customerName;
+  }
+  if (order.pagerNumber !== null && labels.pager) {
+    const pagerText = labels.pager(order.pagerNumber);
+    subtitle = subtitle === null ? pagerText : `${subtitle} · ${pagerText}`;
   }
 
   return {

@@ -20,6 +20,7 @@ export const createOrderBodySchema = z
     type: orderTypeSchema,
     tableId: z.uuid().optional(),
     customerName: z.string().trim().min(1).max(200).optional(),
+    pagerNumber: z.number().int().min(1).max(9999).optional(),
     notes: z.string().trim().max(1000).optional(),
     items: z.array(orderLineInputSchema).min(1).max(100),
   })
@@ -93,6 +94,7 @@ export const orderSchema = orderMoneySchema.extend({
   dueMinor: moneyMinorSchema,
   tableId: z.uuid().nullable(),
   customerName: z.string().nullable(),
+  pagerNumber: z.number().int().nullable(),
   notes: z.string().nullable(),
   version: z.number().int().min(1),
   placedAt: z.iso.datetime().nullable(),

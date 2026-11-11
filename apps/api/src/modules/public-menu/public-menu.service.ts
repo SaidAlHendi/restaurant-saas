@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 
-import type { PublicMenuPayload, PublicMenuQuery, PublicSitemapResponse, PublicTablePayload } from '@app/shared';
+import type { PublicDisplayPayload, PublicMenuPayload, PublicMenuQuery, PublicSitemapResponse, PublicTablePayload } from '@app/shared';
 import { publicMenuLocaleSchema } from '@app/shared';
 
 import { GoneError, NotFoundError } from '../../core/errors/app-errors';
@@ -33,6 +33,32 @@ export class PublicMenuService {
     query: PublicMenuQuery,
   ): Promise<PublicMenuPayload> {
     return this.buildMenu(orgSlug, query, branchSlug);
+  }
+
+  async getReadyDisplay(orgSlug: string, branchSlug: string): Promise<PublicDisplayPayload> {
+    const resolved = await this.repo.resolveOrg(orgSlug);
+    if (!resolved) {
+      throw new NotFoundError();
+    }
+    if (resolved.status === 'cancelled' || resolved.status === 'suspended') {
+      throw new GoneError();
+    }
+    const orgId = resolved.org_id;
+    if (!(await this.entitlements.can(orgId, 'ordering.pager'))) {
+      throw new NotFoundError();
+    }
+    return withOrg(this.db, orgId, async (tx) => {
+      const branch = await this.repo.findActiveBranchBySlug(tx, orgId, branchSlug);
+      if (!branch?.pagerEnabled) {
+        throw new NotFoundError();
+      }
+      const orgRow = await this.repo.findOrganization(tx, orgId);
+      if (!orgRow) {
+        throw new NotFoundError();
+      }
+      const ready = await this.repo.listReadyOrders(tx, branch.id);
+      return { branchName: branch.name, orgName: orgRow.name, ready };
+    });
   }
 
   async resolveTable(token: string): Promise<PublicTablePayload> {

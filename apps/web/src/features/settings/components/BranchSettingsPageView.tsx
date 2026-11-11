@@ -32,6 +32,10 @@ export function BranchSettingsPageView(props: BranchSettingsPageViewModel) {
     onPayBeforeSendChange,
     acceptsCard,
     onAcceptsCardChange,
+    pagerEnabled,
+    onPagerEnabledChange,
+    pagerPlanAvailable,
+    pagerDisplayUrl,
     taxInclusive,
     onTaxInclusiveChange,
     dayStartHour,
@@ -172,6 +176,33 @@ export function BranchSettingsPageView(props: BranchSettingsPageViewModel) {
             <Switch id="accepts-card" checked={acceptsCard} onCheckedChange={onAcceptsCardChange} />
           }
         />
+        <SettingsToggleRow
+          id="pager-enabled"
+          label={labels.pager}
+          hint={pagerPlanAvailable ? labels.pagerHint : labels.pagerPlanHint}
+          control={
+            <Switch
+              id="pager-enabled"
+              checked={pagerEnabled}
+              disabled={!pagerPlanAvailable && !pagerEnabled}
+              onCheckedChange={onPagerEnabledChange}
+            />
+          }
+        />
+        {pagerDisplayUrl !== null ? (
+          <p className="text-muted-foreground text-sm">
+            {labels.pagerDisplayLink}:{' '}
+            <a
+              className="text-foreground font-medium underline"
+              href={pagerDisplayUrl}
+              target="_blank"
+              rel="noreferrer"
+              dir="ltr"
+            >
+              {pagerDisplayUrl}
+            </a>
+          </p>
+        ) : null}
       </SettingsSection>
       <details className="group xl:col-span-2 rounded-xl border bg-card">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4">

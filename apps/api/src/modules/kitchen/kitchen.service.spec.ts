@@ -23,6 +23,7 @@ describe('OrderingService kitchen board', () => {
         status: 'placed' as const,
         version: 1,
         customerName: null,
+        pagerNumber: null,
         notes: null,
         paymentStatus: 'unpaid' as const,
       }));
@@ -109,6 +110,7 @@ describe('OrderingService kitchen board', () => {
           status: 'placed' as const,
           version: 1,
           customerName: null,
+          pagerNumber: null,
           notes: null,
           paymentStatus: 'unpaid' as const,
         },

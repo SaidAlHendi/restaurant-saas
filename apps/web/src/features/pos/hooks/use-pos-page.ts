@@ -421,7 +421,7 @@ export function usePosPage() {
       return;
     }
     setSendError(false);
-    const body = buildCreateOrderBody(cart);
+    const body = buildCreateOrderBody(cart, menu.branch.pagerEnabled);
     if (!body) {
       return;
     }
@@ -569,7 +569,7 @@ export function usePosPage() {
 
   const sending = createState.isLoading;
   const showOfflineBanner = !isOnline || sendError;
-  const canSend = buildCreateOrderBody(cart) !== null && unavailableIds.size === 0;
+  const canSend = buildCreateOrderBody(cart, menu?.branch.pagerEnabled ?? false) !== null && unavailableIds.size === 0;
 
   return {
     branchName,
@@ -606,6 +606,11 @@ export function usePosPage() {
     tableId: cart.tableId,
     onTableChange: (id: string | null) => {
       dispatch(cartActions.setTableId(id));
+    },
+    pagerEnabled: menu?.branch.pagerEnabled ?? false,
+    pagerNumber: cart.pagerNumber,
+    onPagerNumberChange: (value: string) => {
+      dispatch(cartActions.setPagerNumber(value));
     },
     customerName: cart.customerName,
     onCustomerNameChange: (value: string) => {
@@ -727,6 +732,8 @@ export function usePosPage() {
       orderTypeTakeaway: t('pos.orderType.takeaway'),
       table: t('pos.table'),
       customer: t('pos.customer'),
+      pagerNumber: t('pos.pagerNumber'),
+      pagerNumberHint: t('pos.pagerNumberHint'),
       orderNote: t('pos.orderNote'),
       subtotal: t('pos.totals.subtotal'),
       tax: menu?.branch.taxInclusive ? t('pos.totals.taxIncl') : t('pos.totals.tax'),

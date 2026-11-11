@@ -105,6 +105,7 @@ export const orders = pgTable(
     paymentStatus: paymentStatusEnum('payment_status').notNull().default('unpaid'),
     tableId: uuid('table_id'),
     customerName: text('customer_name'),
+    pagerNumber: integer('pager_number'),
     notes: text('notes'),
     subtotalMinor: bigint('subtotal_minor', { mode: 'number' }).notNull(),
     discountMinor: bigint('discount_minor', { mode: 'number' }).notNull().default(0),

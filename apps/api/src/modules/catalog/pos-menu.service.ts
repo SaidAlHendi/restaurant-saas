@@ -8,6 +8,7 @@ import { NotFoundError } from '../../core/errors/app-errors';
 import type { ObjectStorage } from '../../core/storage/object-storage';
 import { OBJECT_STORAGE } from '../../core/storage/storage.tokens';
 import type { RequestContext } from '../../core/context/request-context';
+import { EntitlementsService } from '../billing/entitlements.service';
 import { TenancyRepository } from '../tenancy/tenancy.repository';
 
 import { assemblePosMenuCategories } from './pos-menu.assemble';
@@ -20,6 +21,7 @@ export class PosMenuService {
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly catalogRepo: CatalogRepository,
     private readonly tenancyRepo: TenancyRepository,
+    private readonly entitlements: EntitlementsService,
     @Inject(OBJECT_STORAGE) private readonly storage: ObjectStorage,
   ) {}
 
@@ -34,6 +36,8 @@ export class PosMenuService {
       if (!org) {
         throw new NotFoundError();
       }
+
+      const pagerPlanOk = await this.entitlements.can(ctx.orgId, 'ordering.pager', tx);
 
       const categoryRows = await this.catalogRepo.listActiveCategoriesForPosMenu(
         tx,
@@ -79,6 +83,7 @@ export class PosMenuService {
           address: branch.address,
           payBeforeSend: branch.payBeforeSend,
           acceptsCard: branch.acceptsCard,
+          pagerEnabled: branch.pagerEnabled && pagerPlanOk,
         },
         org: {
           name: org.name,

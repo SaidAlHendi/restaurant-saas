@@ -16,6 +16,7 @@ export function boardOrder(overrides: Partial<KitchenBoardOrder> = {}): KitchenB
     placedAt: '2026-10-11T12:00:00.000Z',
     tableLabel: null,
     customerName: null,
+    pagerNumber: null,
     notes: null,
     paymentStatus: 'unpaid',
     items: [],

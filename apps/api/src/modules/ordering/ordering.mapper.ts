@@ -88,6 +88,7 @@ export function mapOrder(row: OrderRow, paidMinor: number): Order {
     dueMinor,
     tableId: row.tableId,
     customerName: row.customerName,
+    pagerNumber: row.pagerNumber,
     notes: row.notes,
     subtotalMinor: row.subtotalMinor,
     discountMinor: row.discountMinor,
@@ -210,6 +211,7 @@ export function mapKitchenBoardResponse(input: {
         placedAt: placedAt.toISOString(),
         tableLabel,
         customerName: row.customerName,
+        pagerNumber: row.pagerNumber,
         notes: row.notes,
         paymentStatus: row.paymentStatus,
         items: items.map((item) => ({

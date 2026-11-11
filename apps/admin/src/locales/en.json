@@ -238,6 +238,7 @@
       "branches_multi": "Multiple branches",
       "roles_custom": "Custom roles",
       "ordering_table_qr": "Order from table",
+      "ordering_pager": "Pickup numbers and Ready screen",
       "api_access": "API access",
       "limit_products": "Products limit",
       "limit_users_per_branch": "Staff per branch",

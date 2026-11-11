@@ -8,6 +8,7 @@ import { withOrg, type DrizzleTx } from '../../core/db/with-org';
 import type { RequestContext } from '../../core/context/request-context';
 import { newUuidV7 } from '../../lib/uuid';
 import { BillingService } from '../billing/billing.service';
+import { EntitlementsService } from '../billing/entitlements.service';
 import { slugifyBase, slugWithSuffix } from '../../lib/slug';
 import type { Branch, CreateBranchBody, PatchBranchBody, SystemRoleKey } from '@app/shared';
 
@@ -30,6 +31,7 @@ function mapBranchRow(b: {
   receiptFooter: string | null;
   payBeforeSend: boolean;
   acceptsCard: boolean;
+  pagerEnabled: boolean;
   isActive: boolean;
 }): Branch {
   return {
@@ -47,6 +49,7 @@ function mapBranchRow(b: {
     receiptFooter: b.receiptFooter,
     payBeforeSend: b.payBeforeSend,
     acceptsCard: b.acceptsCard,
+    pagerEnabled: b.pagerEnabled,
     isActive: b.isActive,
   };
 }
@@ -60,6 +63,7 @@ export class BranchesService {
     private readonly outbox: OutboxService,
     private readonly realtimeKick: RealtimeKickService,
     @Inject(forwardRef(() => BillingService)) private readonly billing: BillingService,
+    private readonly entitlements: EntitlementsService,
   ) {}
 
   list(ctx: RequestContext) {
@@ -125,6 +129,9 @@ export class BranchesService {
       if (body.currency !== undefined) {
         await this.assertBranchCurrencyMatchesOrg(tx, ctx.orgId, body.currency);
       }
+      if (body.pagerEnabled === true && !existing.pagerEnabled) {
+        await this.entitlements.assertFeature(ctx.orgId, 'ordering.pager', tx);
+      }
       if (body.isActive === true && !existing.isActive) {
         await this.billing.assertCanActivateBranch(tx, ctx.orgId);
       }
@@ -140,6 +147,7 @@ export class BranchesService {
         receiptFooter: body.receiptFooter,
         payBeforeSend: body.payBeforeSend,
         acceptsCard: body.acceptsCard,
+        pagerEnabled: body.pagerEnabled,
         isActive: body.isActive,
       });
       if (!updated) {

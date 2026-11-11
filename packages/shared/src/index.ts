@@ -462,6 +462,13 @@ export { CATALOG_UPDATED_EVENT, catalogRealtimePayloadSchema } from './catalog/r
 export type { CatalogRealtimePayload } from './catalog/realtime-payload.js';
 
 export {
+  publicDisplayOrderSchema,
+  publicDisplayPayloadSchema,
+  type PublicDisplayOrder,
+  type PublicDisplayPayload,
+} from './public-menu/public-display.js';
+
+export {
   leadAttributionSchema,
   leadCountrySchema,
   leadCreateBodySchema,

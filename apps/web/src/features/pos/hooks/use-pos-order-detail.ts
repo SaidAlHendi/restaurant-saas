@@ -244,6 +244,7 @@ export function usePosOrderDetail(input: {
         orderNumber: t('pos.result.orderNumber', { number: order.orderNumber }),
         dineIn: t('pos.orderType.dineIn'),
         takeaway: t('pos.orderType.takeaway'),
+        pager: t('pos.print.pager'),
         paymentMethodCash: t('pos.payment.methodCash'),
         paymentMethodCard: t('pos.payment.methodCard'),
         paymentMethodOther: t('pos.payment.methodOther'),
@@ -276,6 +277,7 @@ export function usePosOrderDetail(input: {
         labels: {
           dineIn: t('pos.orderType.dineIn'),
           takeaway: t('pos.orderType.takeaway'),
+          pager: t('pos.print.pager'),
           additionHeader: t('pos.print.kitchenAdditionTitle'),
         },
       });
