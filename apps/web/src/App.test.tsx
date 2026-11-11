@@ -102,7 +102,8 @@ describe('App root', () => {
     );
     expect(await screen.findByRole('heading', { name: /enter your pin/i })).toBeInTheDocument();
     expect(memoryRouter.state.location.pathname).toMatch(/^\/pos/);
-  });
+    // Cold dynamic import of the whole POS area; slow CI runners need more than the 5 s default.
+  }, 20_000);
 
   it('renders dashboard shell when session is bootstrapped', async () => {
     window.localStorage.clear();
