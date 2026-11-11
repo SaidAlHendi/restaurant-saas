@@ -8,7 +8,7 @@ import { baseApi } from '../../../app/api/base-api.js';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks.js';
 import type { RealtimeEvent } from '../../../lib/realtime.js';
 import { localizedName } from '../../../lib/localized-name.js';
-import { formatMoney, intlLocaleForUi } from '../../../lib/money.js';
+import { intlLocaleForUi, moneyFormatter, orderMoneyFormatter } from '../../../lib/money.js';
 import { randomUuid } from '../../../lib/uuid.js';
 import { cartActions, cartHasUnsavedLines } from '../../cart/cart.slice.js';
 import type { CartLine, CartLineInput, CartOrderType } from '../../cart/cart.types.js';
@@ -37,6 +37,7 @@ import { posOrderTagsForEvent } from '../pos-realtime.utils.js';
 import { useGetPosMenuQuery } from '../pos.api.js';
 import type { PosMenuProduct } from './use-pos-modifier-sheet.js';
 import { usePosModifierSheet } from './use-pos-modifier-sheet.js';
+import { isExchangeRateStale } from '../../settings/currency-settings-form.utils.js';
 import { usePosOrderDetail } from './use-pos-order-detail.js';
 import { shouldShowSentToKitchenToast } from '../pos-payment-toast.utils.js';
 import { usePosPaymentDialog } from './use-pos-payment-dialog.js';
@@ -239,9 +240,9 @@ export function usePosPage() {
     });
   }, [cart.lines, menu]);
 
-  const formatMinor = useCallback(
-    (minor: number) => formatMoney(minor, currency, uiLocale),
-    [currency, uiLocale],
+  const formatMinor = useMemo(
+    () => moneyFormatter(currency, uiLocale, menu?.display),
+    [currency, menu?.display, uiLocale],
   );
 
   const onProductPress = useCallback(
@@ -337,7 +338,7 @@ export function usePosPage() {
     tableLabelById,
     locale,
     defaultLocale,
-    formatMinor,
+    uiLocale,
     additionLines,
     clearAdditionLines,
     isAddingItems,
@@ -411,8 +412,6 @@ export function usePosPage() {
         }
       });
     },
-    formatMinor,
-    currency,
     uiLocale,
   });
 
@@ -638,7 +637,7 @@ export function usePosPage() {
             tableLabel !== undefined
               ? t('pos.result.orderNumber', { number: order.orderNumber })
               : (order.customerName ?? t('pos.result.orderNumber', { number: order.orderNumber })),
-          detail: `${t('pos.catalog.items', { count: order.itemCount })} · ${formatMinor(order.totalMinor)}`,
+          detail: `${t('pos.catalog.items', { count: order.itemCount })} · ${orderMoneyFormatter(order, uiLocale)(order.totalMinor, 'total')}`,
           status: orderStatusBadgeTone(order.status),
           statusLabel:
             order.status === 'draft'
@@ -675,6 +674,10 @@ export function usePosPage() {
     onSendToKitchen,
     sending,
     sendDisabled: sending || !canSend,
+    rateStaleMessage:
+      menu?.display && isExchangeRateStale(menu.displayRateUpdatedAt, new Date())
+        ? t('pos.rateStale')
+        : null,
     showOfflineBanner,
     offlineMessage: !isOnline ? t('pos.offline') : t('pos.sendFailed'),
     onRetrySend,

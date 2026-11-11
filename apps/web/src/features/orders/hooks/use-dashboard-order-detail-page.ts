@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useParams } from 'react-router-dom';
 
@@ -12,7 +12,8 @@ import {
   sortEventsChronological,
 } from '../order-event-timeline.utils.js';
 import { orderTypeTableLabel } from '../order-type-table-label.utils.js';
-import { formatOrderMoney, orderStatusBadgeTone } from '../orders-display.utils.js';
+import { moneyFormatter } from '../../../lib/money.js';
+import { orderStatusBadgeTone } from '../orders-display.utils.js';
 import { isOrderNotFoundError } from '../orders-api-errors.js';
 import { useGetOrderQuery, useListOrderEventsQuery } from '../orders.api.js';
 import { useOrgSwitcher } from './use-org-switcher.js';
@@ -50,9 +51,10 @@ export function useDashboardOrderDetailPage() {
   const order = orderQuery.data;
   const currency = order?.currency ?? org?.defaultCurrency ?? 'SAR';
 
-  const formatMinor = useCallback(
-    (minor: number) => formatOrderMoney(minor, currency, uiLocale),
-    [currency, uiLocale],
+  // The display currency frozen on this order, so old orders keep the amounts they were sold at.
+  const formatMinor = useMemo(
+    () => moneyFormatter(currency, uiLocale, order?.display),
+    [currency, order?.display, uiLocale],
   );
 
   const timeline = useMemo(() => {
@@ -134,9 +136,9 @@ export function useDashboardOrderDetailPage() {
           totals: {
             subtotal: formatMinor(order.subtotalMinor),
             tax: formatMinor(order.taxMinor),
-            total: formatMinor(order.totalMinor),
-            paid: formatMinor(order.paidMinor),
-            due: formatMinor(order.dueMinor),
+            total: formatMinor(order.totalMinor, 'total'),
+            paid: formatMinor(order.paidMinor, 'total'),
+            due: formatMinor(order.dueMinor, 'total'),
           },
         }
       : null,
@@ -144,7 +146,7 @@ export function useDashboardOrderDetailPage() {
     payments: (order?.payments ?? []).map((p) => ({
       id: p.id,
       method: t(`dashboard.orders.paymentMethod.${p.method}`),
-      amount: formatMinor(p.amountMinor),
+      amount: formatMinor(p.amountMinor, 'total'),
       time: new Intl.DateTimeFormat(uiLocale, { dateStyle: 'medium', timeStyle: 'short' }).format(
         new Date(p.createdAt),
       ),

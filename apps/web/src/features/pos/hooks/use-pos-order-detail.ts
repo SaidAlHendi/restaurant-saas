@@ -10,6 +10,12 @@ import {
   markKitchenItemsPrinted,
 } from '../../../lib/print/kitchen-addition-diff.js';
 import { renderKitchenHtml } from '../../../lib/print/kitchen-html.js';
+import {
+  moneyFormatter,
+  orderMoneyFormatter,
+  paymentCashLabels,
+  type MoneyFormatter,
+} from '../../../lib/money.js';
 import { renderReceiptHtml } from '../../../lib/print/receipt-html.js';
 import type { CartLine } from '../../cart/cart.types.js';
 import {
@@ -42,7 +48,7 @@ export function usePosOrderDetail(input: {
   tableLabelById: Map<string, string>;
   locale: string;
   defaultLocale: string;
-  formatMinor: (minor: number) => string;
+  uiLocale: string;
   additionLines: CartLine[];
   clearAdditionLines: () => void;
   isAddingItems: boolean;
@@ -58,6 +64,15 @@ export function usePosOrderDetail(input: {
   const { data: order, refetch, isFetching } = useGetOrderQuery(
     { branchId: input.branchId ?? '', orderId: input.orderId ?? '' },
     { skip },
+  );
+
+  // The order's own (frozen) display currency, not the one the menu shows today.
+  const formatMinor = useMemo<MoneyFormatter>(
+    () =>
+      order
+        ? orderMoneyFormatter(order, input.uiLocale)
+        : moneyFormatter(input.menu?.branch.currency ?? 'USD', input.uiLocale, null),
+    [input.menu?.branch.currency, input.uiLocale, order],
   );
 
   const [changeStatus, changeState] = useChangeOrderStatusMutation();
@@ -234,7 +249,8 @@ export function usePosOrderDetail(input: {
       tableLabel,
       locale: input.locale,
       fallbackLocale: input.defaultLocale,
-      formatMinor: input.formatMinor,
+      formatMinor,
+      cashLabels: (payment) => paymentCashLabels(payment, order, input.uiLocale),
       printedAt: new Date(),
       labels: {
         subtotal: t('pos.totals.subtotal'),
@@ -253,7 +269,7 @@ export function usePosOrderDetail(input: {
       },
     });
     openPrintWindow(t('pos.print.receiptTitle'), html, printLocaleFromUi(input.locale));
-  }, [input, order, t, tableLabel]);
+  }, [formatMinor, input, order, t, tableLabel]);
 
   const printKitchen = useCallback(
     (additionsOnly: boolean) => {
@@ -295,7 +311,7 @@ export function usePosOrderDetail(input: {
       id: item.id,
       name: posLocalizedName(item.productNameSnapshot, input.locale, input.defaultLocale),
       quantity: item.quantity,
-      lineTotalLabel: input.formatMinor(item.lineTotalMinor),
+      lineTotalLabel: formatMinor(item.lineTotalMinor),
       voided: item.status === 'voided',
       isAddition: item.isAddition,
       onVoid: canVoidOrderItem(order, item.status === 'voided')
@@ -305,7 +321,7 @@ export function usePosOrderDetail(input: {
         : undefined,
       voidLabel: t('pos.orderDetail.voidItem'),
     }));
-  }, [input, order, t]);
+  }, [formatMinor, input, order, t]);
 
   const canAddItems =
     order !== undefined &&
@@ -383,7 +399,7 @@ export function usePosOrderDetail(input: {
     },
     refetchOrder: () => refetch(),
     statusChanging: changeState.isLoading,
-    formatMinor: input.formatMinor,
+    formatMinor,
     labels: {
       title: t('pos.orderDetail.title'),
       orderNumber: order

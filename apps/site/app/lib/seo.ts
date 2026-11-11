@@ -1,4 +1,10 @@
-import { currencyDigits, type PublicMenuPayload } from '@app/shared';
+import {
+  convertMinorToDisplay,
+  currencyDigits,
+  isDisplayConversionActive,
+  type MoneyDisplay,
+  type PublicMenuPayload,
+} from '@app/shared';
 
 import { buildPageMeta } from './page-meta.js';
 
@@ -8,6 +14,24 @@ export function minorUnitsToMajorString(minor: number, currency: string): string
   const digits = currencyDigits(currency);
   const major = minor / 10 ** digits;
   return major.toFixed(digits);
+}
+
+/** Price and currency as guests see them: converted when the menu has a display currency. */
+function shownOffer(
+  priceMinor: number,
+  currency: string,
+  display: MoneyDisplay | null,
+): { price: string; priceCurrency: string } {
+  if (!isDisplayConversionActive(currency, display)) {
+    return { price: minorUnitsToMajorString(priceMinor, currency), priceCurrency: currency };
+  }
+  return {
+    price: minorUnitsToMajorString(
+      convertMinorToDisplay(priceMinor, currency, display, 'item'),
+      display.currency,
+    ),
+    priceCurrency: display.currency,
+  };
 }
 
 export function buildMenuPageMeta(input: {
@@ -81,8 +105,7 @@ export function buildMenuJsonLd(input: {
           description: item.description ?? undefined,
           offers: {
             '@type': 'Offer',
-            price: minorUnitsToMajorString(item.priceMinor, item.currency),
-            priceCurrency: item.currency,
+            ...shownOffer(item.priceMinor, item.currency, menu.org.display),
           },
         })),
       })),

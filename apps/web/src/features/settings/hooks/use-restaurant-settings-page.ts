@@ -5,6 +5,7 @@ import { ORG_LOCALE_CODES, type OrgLocaleCode } from '@app/shared';
 import { toast } from '@app/ui';
 
 import { showApiError } from '../../../lib/show-api-error.js';
+import { useCurrencySettingsForm } from './use-currency-settings-form.js';
 import { useSettingsPageAccess } from './use-settings-page-access.js';
 import { validateOrgLocalesForm } from '../org-locales-form.utils.js';
 import {
@@ -28,6 +29,7 @@ export function useRestaurantSettingsPage() {
   const [locales, setLocales] = useState<OrgLocaleCode[]>(['en']);
   const [defaultLocale, setDefaultLocale] = useState<OrgLocaleCode>('en');
   const [localeErrorKey, setLocaleErrorKey] = useState<string | null>(null);
+  const currencyForm = useCurrencySettingsForm(data);
 
   useEffect(() => {
     if (data) {
@@ -38,7 +40,7 @@ export function useRestaurantSettingsPage() {
     }
   }, [data]);
 
-  const dirty = useMemo(() => {
+  const detailsDirty = useMemo(() => {
     if (!data) {
       return false;
     }
@@ -55,6 +57,7 @@ export function useRestaurantSettingsPage() {
     }
     return defaultLocale !== data.defaultLocale;
   }, [data, defaultLocale, locales, name]);
+  const dirty = detailsDirty || currencyForm.dirty;
 
   const onToggleLocale = useCallback(
     (code: OrgLocaleCode, checked: boolean) => {
@@ -86,17 +89,23 @@ export function useRestaurantSettingsPage() {
       return;
     }
     setLocaleErrorKey(null);
+    // Only sent when edited, so saving the name does not restamp the exchange rate.
+    const currencyPatch = currencyForm.dirty ? currencyForm.validate() : {};
+    if (currencyPatch === null) {
+      return;
+    }
     const result = await patchSettings({
       name: name.trim(),
       locales: validation.patch.locales,
       defaultLocale: validation.patch.defaultLocale,
+      ...currencyPatch,
     });
     if ('error' in result) {
       showApiError(result.error, t);
       return;
     }
     toast.success(t('settings.restaurant.saved'));
-  }, [data, defaultLocale, locales, name, patchSettings, t]);
+  }, [currencyForm, data, defaultLocale, locales, name, patchSettings, t]);
 
   const onLogoSelect = useCallback(
     (file: File) => {
@@ -134,7 +143,7 @@ export function useRestaurantSettingsPage() {
     name,
     onNameChange: setName,
     slug: data?.slug ?? '',
-    currency: data?.defaultCurrency ?? '',
+    currencySection: currencyForm.view,
     logoUrl: data?.logoUrl ?? null,
     localeOptions,
     onToggleLocale,
@@ -157,7 +166,6 @@ export function useRestaurantSettingsPage() {
       description: t('settings.restaurant.description'),
       name: t('settings.restaurant.name'),
       slug: t('settings.restaurant.slug'),
-      currency: t('settings.restaurant.currency'),
       locales: t('settings.restaurant.locales'),
       defaultLocale: t('settings.restaurant.defaultLocale'),
       logo: t('settings.restaurant.logo'),

@@ -5,6 +5,8 @@ import {
   computeLineTotalMinor,
   computeOrderTotals,
   computePaymentStatus,
+  convertDisplayToBaseMinor,
+  convertMinorToDisplay,
   sortPaymentMethods,
 } from '@app/shared';
 import type {
@@ -14,6 +16,7 @@ import type {
   CreateOrderBody,
   CreatePaymentBody,
   KitchenBoardResponse,
+  MoneyDisplay,
   OrderListQuery,
   OrderItemStatus,
   OrderStatus,
@@ -54,6 +57,7 @@ import {
   mapOrderEvent,
   mapOrderListItem,
   mapPayment,
+  moneyDisplayForOrder,
 } from './ordering.mapper';
 import { OrderingRepository } from './ordering.repository';
 import {
@@ -202,6 +206,11 @@ export class OrderingService {
         taxMinor: totals.taxMinor,
         totalMinor: totals.totalMinor,
         currency: branch.currency,
+        // Frozen here: later rate or rounding changes never touch this order.
+        displayCurrency: org.display?.currency ?? null,
+        exchangeRate: org.display?.rate ?? null,
+        displayItemStep: org.display?.itemStep ?? null,
+        displayTotalStep: org.display?.totalStep ?? null,
         version: 1,
         placedAt,
         createdBy: ctx.membershipId,
@@ -825,16 +834,8 @@ export class OrderingService {
         );
       }
 
-      if (body.method === 'cash') {
-        const tendered = body.tenderedMinor ?? 0;
-        if (tendered < body.amountMinor) {
-          throw new BusinessRuleError(
-            'PAYMENT_TENDERED_INSUFFICIENT',
-            'Tendered amount is less than payment amount',
-            { tenderedMinor: tendered, amountMinor: body.amountMinor },
-          );
-        }
-      }
+      const cash =
+        body.method === 'cash' ? resolveCashAmounts(body, current.currency, moneyDisplayForOrder(current)) : null;
 
       if (current.version !== body.expectedVersion) {
         throw new ConflictError(
@@ -844,11 +845,6 @@ export class OrderingService {
         );
       }
 
-      const tenderedMinor = body.method === 'cash' ? body.tenderedMinor ?? null : null;
-      const changeMinor =
-        body.method === 'cash' && tenderedMinor !== null
-          ? tenderedMinor - body.amountMinor
-          : null;
 
       const inserted = await this.repo.insertPayment(tx, {
         id: newUuidV7(),
@@ -857,8 +853,10 @@ export class OrderingService {
         clientPaymentId: body.clientPaymentId,
         method: body.method,
         amountMinor: body.amountMinor,
-        tenderedMinor,
-        changeMinor,
+        tenderedMinor: cash?.tenderedMinor ?? null,
+        changeMinor: cash?.changeMinor ?? null,
+        displayTenderedMinor: cash?.displayTenderedMinor ?? null,
+        displayChangeMinor: cash?.displayChangeMinor ?? null,
         status: 'captured',
         createdBy: ctx.membershipId,
       });
@@ -1126,4 +1124,61 @@ export class OrderingService {
       payload,
     });
   }
+}
+
+type CashAmounts = {
+  tenderedMinor: number;
+  changeMinor: number;
+  displayTenderedMinor: number | null;
+  displayChangeMinor: number | null;
+};
+
+/**
+ * Cash handed over and change, in the order currency and (when the order has one) in its display
+ * currency. With a display currency the cashier counts display-currency cash, so that side is
+ * exact and the order-currency side is derived from it.
+ */
+function resolveCashAmounts(
+  body: CreatePaymentBody,
+  orderCurrency: string,
+  display: MoneyDisplay | null,
+): CashAmounts {
+  if (display === null || body.displayTenderedMinor === undefined) {
+    if (body.tenderedMinor === undefined) {
+      throw new ValidationError('tenderedMinor is required for cash');
+    }
+    if (body.tenderedMinor < body.amountMinor) {
+      throw new BusinessRuleError(
+        'PAYMENT_TENDERED_INSUFFICIENT',
+        'Tendered amount is less than payment amount',
+        { tenderedMinor: body.tenderedMinor, amountMinor: body.amountMinor },
+      );
+    }
+    return {
+      tenderedMinor: body.tenderedMinor,
+      changeMinor: body.tenderedMinor - body.amountMinor,
+      displayTenderedMinor: null,
+      displayChangeMinor: null,
+    };
+  }
+
+  const displayAmountMinor = convertMinorToDisplay(body.amountMinor, orderCurrency, display, 'total');
+  if (body.displayTenderedMinor < displayAmountMinor) {
+    throw new BusinessRuleError(
+      'PAYMENT_TENDERED_INSUFFICIENT',
+      'Tendered amount is less than payment amount',
+      { displayTenderedMinor: body.displayTenderedMinor, displayAmountMinor },
+    );
+  }
+  // Rounding the total down can leave the converted cash a hair under the amount: never below it.
+  const tenderedMinor = Math.max(
+    body.amountMinor,
+    convertDisplayToBaseMinor(body.displayTenderedMinor, orderCurrency, display),
+  );
+  return {
+    tenderedMinor,
+    changeMinor: tenderedMinor - body.amountMinor,
+    displayTenderedMinor: body.displayTenderedMinor,
+    displayChangeMinor: body.displayTenderedMinor - displayAmountMinor,
+  };
 }

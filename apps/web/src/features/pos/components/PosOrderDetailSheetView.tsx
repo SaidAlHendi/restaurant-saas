@@ -63,13 +63,13 @@ export function PosOrderDetailSheetView(props: PosOrderDetailSheetViewProps) {
                 <dl className="grid grid-cols-2 gap-2 text-sm">
                   <dt className="text-muted-foreground">{labels.total}</dt>
                   <dd className="text-end font-semibold tabular-nums">
-                    {formatMinor(order.totalMinor)}
+                    {formatMinor(order.totalMinor, 'total')}
                   </dd>
                   {order.dueMinor > 0 ? (
                     <>
                       <dt className="text-muted-foreground">{labels.due}</dt>
                       <dd className="text-end font-semibold tabular-nums">
-                        {formatMinor(order.dueMinor)}
+                        {formatMinor(order.dueMinor, 'total')}
                       </dd>
                     </>
                   ) : null}

@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { businessDateSchema, inclusiveBusinessDaySpan } from '../dates/business-date.js';
 import { moneyMinorSchema } from '../i18n/localized-text.js';
+import { moneyDisplaySchema } from '../money/display-currency.js';
 import { cursorListQuerySchema, cursorListResponseSchema } from '../catalog/pagination.js';
 
 import {
@@ -73,6 +74,12 @@ export const orderMoneySchema = z.object({
   taxMinor: moneyMinorSchema,
   totalMinor: moneyMinorSchema,
   currency: z.string().length(3),
+  /**
+   * Display currency frozen when the order was created (rate and rounding never change afterwards).
+   * `null` = the order is shown in `currency`. Amounts on the order stay in `currency`.
+   * Defaults to null so payloads from before this field still parse.
+   */
+  display: moneyDisplaySchema.nullable().default(null),
 });
 
 export const orderPaymentSummarySchema = z.object({

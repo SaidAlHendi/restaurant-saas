@@ -1,6 +1,7 @@
 import { computeDueMinor } from '@app/shared';
 import type {
   DiningTable,
+  MoneyDisplay,
   DiningTableWithToken,
   KitchenBoardResponse,
   Order,
@@ -61,6 +62,21 @@ function businessDateString(d: string | Date): string {
   return d.toISOString().slice(0, 10);
 }
 
+/** The display currency frozen on the order, or null when it is shown in its own currency. */
+export function moneyDisplayForOrder(
+  row: Pick<OrderRow, 'displayCurrency' | 'exchangeRate' | 'displayItemStep' | 'displayTotalStep'>,
+): MoneyDisplay | null {
+  if (row.displayCurrency === null || row.exchangeRate === null) {
+    return null;
+  }
+  return {
+    currency: row.displayCurrency,
+    rate: row.exchangeRate,
+    itemStep: row.displayItemStep ?? 0,
+    totalStep: row.displayTotalStep ?? 0,
+  };
+}
+
 export function mapPayment(row: PaymentRow): Payment {
   return {
     id: row.id,
@@ -68,6 +84,8 @@ export function mapPayment(row: PaymentRow): Payment {
     amountMinor: row.amountMinor,
     tenderedMinor: row.tenderedMinor,
     changeMinor: row.changeMinor,
+    displayTenderedMinor: row.displayTenderedMinor,
+    displayChangeMinor: row.displayChangeMinor,
     createdAt: row.createdAt.toISOString(),
   };
 }
@@ -95,6 +113,7 @@ export function mapOrder(row: OrderRow, paidMinor: number): Order {
     taxMinor: row.taxMinor,
     totalMinor: row.totalMinor,
     currency: row.currency,
+    display: moneyDisplayForOrder(row),
     version: row.version,
     placedAt: iso(row.placedAt),
     completedAt: iso(row.completedAt),

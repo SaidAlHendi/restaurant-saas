@@ -40,7 +40,7 @@ export function StatCard({
     <div
       data-slot="stat-card"
       className={cn(
-        'flex flex-col gap-2 rounded-lg border p-4 shadow-xs',
+        '@container flex flex-col gap-2 rounded-lg border p-4 shadow-xs',
         emphasis
           ? 'border-transparent bg-primary text-primary-foreground'
           : 'bg-card text-card-foreground',
@@ -69,7 +69,10 @@ export function StatCard({
           </span>
         ) : null}
       </div>
-      <div className="text-2xl font-bold tracking-tight whitespace-nowrap tabular-nums">{value}</div>
+      {/* Scales down in narrow cards so long amounts (large-number currencies) are not clipped. */}
+      <div className="text-[clamp(1rem,10.5cqi,1.5rem)] leading-8 font-bold tracking-tight whitespace-nowrap tabular-nums">
+        {value}
+      </div>
       {delta ? (
         <div className="flex flex-wrap items-center gap-1.5 text-xs">
           <span

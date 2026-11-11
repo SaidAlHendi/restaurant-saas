@@ -72,6 +72,7 @@ export type {
 } from './auth/invite.js';
 
 export {
+  currencyCodeSchema,
   orgSettingsResponseSchema,
   patchOrgSettingsBodySchema,
   orgLogoUploadResponseSchema,
@@ -153,6 +154,21 @@ export type { OrgLocaleCode } from './i18n/org-locales.js';
 
 export { currencyDigits, currencySymbol, formatMinor } from './money/currency.js';
 export { formatMoney, intlLocaleForUi } from './money/format-money.js';
+export {
+  DEFAULT_DISPLAY_ITEM_STEP,
+  DEFAULT_DISPLAY_TOTAL_STEP,
+  DISPLAY_ROUNDING_STEPS,
+  convertDisplayToBaseMinor,
+  convertMinorToDisplay,
+  displayFractionDigits,
+  displayRoundingStepSchema,
+  exchangeRateSchema,
+  formatDisplayMinor,
+  formatMoneyForDisplay,
+  isDisplayConversionActive,
+  moneyDisplaySchema,
+} from './money/display-currency.js';
+export type { MoneyDisplay, MoneyKind } from './money/display-currency.js';
 export { computeLineTotalMinor, computeOrderTotals } from './money/order-totals.js';
 export type { OrderLineForTotals, OrderTotals, OrderTotalsInput } from './money/order-totals.js';
 export { computeDueMinor, computePaymentStatus } from './money/payment-status.js';

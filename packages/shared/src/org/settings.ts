@@ -1,6 +1,20 @@
 import { z } from 'zod';
 
 import { orgLocaleCodeSchema } from '../i18n/org-locales.js';
+import { displayRoundingStepSchema, exchangeRateSchema } from '../money/display-currency.js';
+
+function isKnownCurrencyCode(code: string): boolean {
+  try {
+    return Intl.supportedValuesOf('currency').includes(code);
+  } catch {
+    return /^[A-Z]{3}$/.test(code);
+  }
+}
+
+export const currencyCodeSchema = z
+  .string()
+  .regex(/^[A-Z]{3}$/)
+  .refine(isKnownCurrencyCode, 'Unknown currency code');
 
 export const orgSettingsResponseSchema = z.object({
   name: z.string(),
@@ -9,6 +23,14 @@ export const orgSettingsResponseSchema = z.object({
   defaultLocale: orgLocaleCodeSchema,
   locales: z.array(orgLocaleCodeSchema).min(1),
   logoUrl: z.url().nullable(),
+  /** Currency shown to staff and guests; `null` = show the base currency (`defaultCurrency`). */
+  displayCurrency: z.string().length(3).nullable(),
+  /** Display-currency units for 1 base-currency unit; `null` until the owner sets it. */
+  exchangeRate: exchangeRateSchema.nullable(),
+  exchangeRateUpdatedAt: z.iso.datetime().nullable(),
+  /** Rounding steps in whole display-currency units (0 = no rounding). */
+  displayItemStep: displayRoundingStepSchema,
+  displayTotalStep: displayRoundingStepSchema,
 });
 
 export type OrgSettingsResponse = z.infer<typeof orgSettingsResponseSchema>;
@@ -18,6 +40,11 @@ export const patchOrgSettingsBodySchema = z
     name: z.string().trim().min(1).max(120).optional(),
     locales: z.array(orgLocaleCodeSchema).min(1).optional(),
     defaultLocale: orgLocaleCodeSchema.optional(),
+    /** `null` turns the display currency off. */
+    displayCurrency: currencyCodeSchema.nullable().optional(),
+    exchangeRate: exchangeRateSchema.optional(),
+    displayItemStep: displayRoundingStepSchema.optional(),
+    displayTotalStep: displayRoundingStepSchema.optional(),
   })
   .strict()
   .superRefine((body, ctx) => {

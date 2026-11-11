@@ -141,6 +141,13 @@
       "when": 1759672000000,
       "tag": "0019_display_token",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1759673000000,
+      "tag": "0020_display_currency",
+      "breakpoints": true
     }
   ]
 }

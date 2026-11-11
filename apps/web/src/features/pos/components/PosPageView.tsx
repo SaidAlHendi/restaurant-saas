@@ -58,6 +58,7 @@ export function PosPageView(props: PosPageViewModel) {
     onSendToKitchen,
     sending,
     sendDisabled,
+    rateStaleMessage,
     showOfflineBanner,
     offlineMessage,
     onRetrySend,
@@ -108,6 +109,12 @@ export function PosPageView(props: PosPageViewModel) {
         <p className="bg-secondary text-secondary-foreground shrink-0 px-4 py-2 text-sm font-medium">
           {addingItemsHint}
         </p>
+      ) : null}
+
+      {rateStaleMessage ? (
+        <Alert variant="warning" role="status" className="mx-4 mt-3 w-auto shrink-0">
+          {rateStaleMessage}
+        </Alert>
       ) : null}
 
       {showOfflineBanner ? (
@@ -263,7 +270,7 @@ export function PosPageView(props: PosPageViewModel) {
                 </div>
                 <div className="flex justify-between border-t pt-2 text-base font-bold">
                   <dt>{labels.total}</dt>
-                  <dd className="tabular-nums">{formatMinor(totals.totalMinor)}</dd>
+                  <dd className="tabular-nums">{formatMinor(totals.totalMinor, 'total')}</dd>
                 </div>
               </dl>
             ) : null}

@@ -1,5 +1,7 @@
 import type { OrderDetail, Payment, PosMenuPayload } from '@app/shared';
 
+import type { CashLabels, MoneyFormatter } from '../money.js';
+
 import { escapeHtml } from './escape-html.js';
 import { formatPrintDateTime } from './print-document.js';
 import { activeOrderItems } from './kitchen-addition-diff.js';
@@ -27,7 +29,9 @@ export type ReceiptPrintContext = {
   tableLabel: string | null;
   locale: string;
   fallbackLocale: string;
-  formatMinor: (minor: number) => string;
+  formatMinor: MoneyFormatter;
+  /** Cash handed over and change for a payment, already formatted. */
+  cashLabels: (payment: Payment) => CashLabels;
   printedAt: Date;
   labels: ReceiptPrintLabels;
 };
@@ -45,7 +49,8 @@ function paymentMethodLabel(payment: Payment, labels: ReceiptPrintLabels): strin
 function renderPaymentsHtml(
   payments: Payment[],
   labels: ReceiptPrintLabels,
-  formatMinor: (minor: number) => string,
+  formatMinor: MoneyFormatter,
+  cashLabels: (payment: Payment) => CashLabels,
 ): string {
   if (payments.length === 0) {
     return '';
@@ -53,16 +58,17 @@ function renderPaymentsHtml(
   return payments
     .map((payment) => {
       const method = escapeHtml(paymentMethodLabel(payment, labels));
-      const amount = escapeHtml(formatMinor(payment.amountMinor));
+      const amount = escapeHtml(formatMinor(payment.amountMinor, 'total'));
       const lines = [`<div class="line"><span>${method}</span><span>${amount}</span></div>`];
-      if (payment.method === 'cash' && payment.tenderedMinor !== null) {
+      const cash = cashLabels(payment);
+      if (cash.tendered !== null) {
         lines.push(
-          `<div class="line"><span>${escapeHtml(labels.tendered)}</span><span>${escapeHtml(formatMinor(payment.tenderedMinor))}</span></div>`,
+          `<div class="line"><span>${escapeHtml(labels.tendered)}</span><span>${escapeHtml(cash.tendered)}</span></div>`,
         );
       }
-      if (payment.method === 'cash' && payment.changeMinor !== null && payment.changeMinor > 0) {
+      if (cash.change !== null) {
         lines.push(
-          `<div class="line"><span>${escapeHtml(labels.change)}</span><span>${escapeHtml(formatMinor(payment.changeMinor))}</span></div>`,
+          `<div class="line"><span>${escapeHtml(labels.change)}</span><span>${escapeHtml(cash.change)}</span></div>`,
         );
       }
       return lines.join('');
@@ -71,7 +77,8 @@ function renderPaymentsHtml(
 }
 
 export function renderReceiptHtml(ctx: ReceiptPrintContext): string {
-  const { order, menu, tableLabel, locale, fallbackLocale, formatMinor, printedAt, labels } = ctx;
+  const { order, menu, tableLabel, locale, fallbackLocale, formatMinor, cashLabels, printedAt, labels } =
+    ctx;
   const orgName = escapeHtml(menu.org.name);
   const branchName = escapeHtml(menu.branch.name);
   const address =
@@ -116,8 +123,8 @@ ${itemHtml}
 <hr />
 <div class="line"><span>${escapeHtml(labels.subtotal)}</span><span>${escapeHtml(formatMinor(order.subtotalMinor))}</span></div>
 <div class="line"><span>${escapeHtml(taxLabel)}</span><span>${escapeHtml(formatMinor(order.taxMinor))}</span></div>
-<div class="line bold"><span>${escapeHtml(labels.total)}</span><span>${escapeHtml(formatMinor(order.totalMinor))}</span></div>
-${renderPaymentsHtml(order.payments, labels, formatMinor)}
+<div class="line bold"><span>${escapeHtml(labels.total)}</span><span>${escapeHtml(formatMinor(order.totalMinor, 'total'))}</span></div>
+${renderPaymentsHtml(order.payments, labels, formatMinor, cashLabels)}
 ${footer}
 `;
 }

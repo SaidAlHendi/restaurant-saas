@@ -12,6 +12,7 @@ import {
   Switch,
 } from '@app/ui';
 
+import { CurrencySettingsSectionView } from './CurrencySettingsSectionView.js';
 import { SettingsSection, UnsavedChangesAlert } from './SettingsSection.js';
 import type { RestaurantSettingsPageViewModel } from '../hooks/use-restaurant-settings-page.js';
 
@@ -22,7 +23,7 @@ export function RestaurantSettingsPageView(props: RestaurantSettingsPageViewMode
     name,
     onNameChange,
     slug,
-    currency,
+    currencySection,
     logoUrl,
     localeOptions,
     onToggleLocale,
@@ -65,15 +66,9 @@ export function RestaurantSettingsPageView(props: RestaurantSettingsPageViewMode
             }}
           />
         </div>
-        <div className="bg-muted/50 grid gap-4 rounded-md p-3 sm:grid-cols-2">
-          <div className="space-y-1">
-            <Label>{labels.slug}</Label>
-            <p className="text-muted-foreground text-sm">{slug}</p>
-          </div>
-          <div className="space-y-1">
-            <Label>{labels.currency}</Label>
-            <p className="text-muted-foreground text-sm">{currency}</p>
-          </div>
+        <div className="bg-muted/50 space-y-1 rounded-md p-3">
+          <Label>{labels.slug}</Label>
+          <p className="text-muted-foreground text-sm">{slug}</p>
         </div>
         <div className="space-y-2">
           <Label>{labels.logo}</Label>
@@ -130,6 +125,7 @@ export function RestaurantSettingsPageView(props: RestaurantSettingsPageViewMode
           </Select>
         </div>
       </SettingsSection>
+      <CurrencySettingsSectionView {...currencySection} />
       <div className="flex justify-end xl:col-span-2">
         <Button type="button" size="touch" disabled={!dirty || saving} onClick={onSave}>
           {labels.save}

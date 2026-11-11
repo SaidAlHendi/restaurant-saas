@@ -76,6 +76,10 @@ export class PublicMenuRepository {
         defaultLocale: organizations.defaultLocale,
         locales: organizations.locales,
         defaultCurrency: organizations.defaultCurrency,
+        displayCurrency: organizations.displayCurrency,
+        exchangeRate: organizations.exchangeRate,
+        displayItemStep: organizations.displayItemStep,
+        displayTotalStep: organizations.displayTotalStep,
         logoKey: organizations.logoKey,
       })
       .from(organizations)

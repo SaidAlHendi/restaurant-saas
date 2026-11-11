@@ -7,7 +7,7 @@ import type { OrderListItem, OrderStatus } from '@app/shared';
 
 import { baseApi } from '../../../app/api/base-api.js';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks.js';
-import { intlLocaleForUi } from '../../../lib/money.js';
+import { intlLocaleForUi, orderMoneyFormatter } from '../../../lib/money.js';
 import type { RealtimeEvent } from '../../../lib/realtime.js';
 import { useListOrdersQuery } from '../../orders/orders.api.js';
 import { useBranchRealtime } from '../../realtime/use-branch-realtime.js';
@@ -125,19 +125,6 @@ export function usePosOrdersPage() {
     return map;
   }, [tablesData?.items]);
 
-  const formatMinor = useCallback(
-    (minor: number) =>
-      new Intl.NumberFormat(uiLocale, {
-        style: 'currency',
-        currency: menu?.branch.currency ?? 'SAR',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 2,
-      }).format(minor / 100),
-    [menu?.branch.currency, uiLocale],
-  );
-
-  const currency = menu?.branch.currency ?? 'SAR';
-
   const orderDetail = usePosOrderDetail({
     branchId,
     orderId: selectedOrderId,
@@ -148,7 +135,7 @@ export function usePosOrdersPage() {
     tableLabelById,
     locale,
     defaultLocale,
-    formatMinor,
+    uiLocale,
     additionLines: [],
     clearAdditionLines: () => {},
     isAddingItems: false,
@@ -171,8 +158,6 @@ export function usePosOrdersPage() {
         }
       });
     },
-    formatMinor,
-    currency,
     uiLocale,
   });
 
@@ -201,7 +186,7 @@ export function usePosOrdersPage() {
         takeawayLabel,
       }),
       itemCount: order.itemCount,
-      totalLabel: formatMinor(order.totalMinor),
+      totalLabel: orderMoneyFormatter(order, uiLocale)(order.totalMinor, 'total'),
       statusTone: orderStatusBadgeTone(order.status),
       statusLabel:
         order.status === 'draft'
@@ -212,7 +197,7 @@ export function usePosOrdersPage() {
         setSelectedOrderId(order.id);
       },
     }));
-  }, [accumulated, formatMinor, menu?.branch.timezone, t, tableLabelById, uiLocale]);
+  }, [accumulated, menu?.branch.timezone, t, tableLabelById, uiLocale]);
 
   return {
     tab,

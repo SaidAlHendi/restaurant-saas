@@ -1,4 +1,4 @@
-import { formatMoney } from '@app/shared';
+import { formatMoneyForDisplay } from '@app/shared';
 import { Badge, Card, CardContent, CardHeader, CardTitle } from '@app/ui';
 
 import { menuPath } from '../../lib/menu-path.js';
@@ -120,7 +120,12 @@ export function MenuPageView({
                         <div className="min-w-0 flex-1">
                           <CardTitle className="text-lg">{product.name}</CardTitle>
                           <p className="text-base font-medium text-foreground">
-                            {formatMoney(product.priceMinor, product.currency, locale)}
+                            {formatMoneyForDisplay(
+                              product.priceMinor,
+                              product.currency,
+                              locale,
+                              menu.org.display,
+                            )}
                           </p>
                           {product.description ? (
                             <p className="mt-1 text-sm text-muted-foreground">{product.description}</p>
@@ -150,7 +155,7 @@ export function MenuPageView({
                                     <li key={`${product.id}-m-${mod.name}-${String(mod.sortOrder)}`}>
                                       {mod.name}
                                       {mod.priceDeltaMinor > 0
-                                        ? ` (+${formatMoney(mod.priceDeltaMinor, product.currency, locale)})`
+                                        ? ` (+${formatMoneyForDisplay(mod.priceDeltaMinor, product.currency, locale, menu.org.display)})`
                                         : null}
                                     </li>
                                   ))}

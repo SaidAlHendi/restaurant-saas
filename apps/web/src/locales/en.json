@@ -266,7 +266,6 @@
       "description": "Name, logo and languages shown on menus and receipts.",
       "name": "Restaurant name",
       "slug": "Public slug",
-      "currency": "Default currency",
       "locales": "Menu languages",
       "localeEn": "English",
       "localeAr": "Arabic",
@@ -431,6 +430,26 @@
         "not_digits": "PIN must contain digits only.",
         "mismatch": "PINs do not match."
       }
+    },
+    "currency": {
+      "title": "Currency",
+      "description": "Keep prices in one currency and show another to staff and guests.",
+      "baseCurrency": "Base currency",
+      "baseCurrencyHint": "Prices are saved in this currency. It is set when the restaurant is created.",
+      "displayCurrency": "Display currency",
+      "displayCurrencyHint": "Shown on the cashier screen, receipts, the public menu and reports.",
+      "sameAsBase": "Same as base currency ({{currency}})",
+      "rate": "Exchange rate: 1 {{base}} in {{display}}",
+      "rateHint": "Type today's rate. Orders already made keep the rate they were made with.",
+      "rateInvalid": "Enter the exchange rate as a number greater than 0.",
+      "rateUpdated": "Last updated {{date}}",
+      "rateStale": "The exchange rate has not been updated for more than 7 days. Check that it is still correct.",
+      "itemStep": "Round prices to",
+      "itemStepHint": "Used for menu prices and order lines.",
+      "totalStep": "Round totals to",
+      "totalStepHint": "Used for the amount the customer pays.",
+      "noRounding": "No rounding",
+      "preview": "Example: an item saved at {{base}} shows as {{price}}. An order total of {{base}} is charged as {{total}}."
     }
   },
   "pos": {
@@ -611,7 +630,8 @@
       "searchPlaceholder": "Search products",
       "searchClear": "Clear search",
       "noResults": "No products match your search."
-    }
+    },
+    "rateStale": "The exchange rate has not been updated for more than 7 days. Ask the owner to check it."
   },
   "orders": {
     "errors": {
