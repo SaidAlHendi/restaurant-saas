@@ -96,7 +96,7 @@ export class AuthService implements OnModuleInit {
     const result = await this.db.transaction(async (tx) => {
       const existing = await this.identityRepo.findUserByEmail(tx, email);
       if (existing) {
-        throw new ValidationError('Email already registered');
+        throw new ValidationError('Email already registered', {}, 'EMAIL_TAKEN');
       }
 
       await this.identityRepo.insertUser(tx, {

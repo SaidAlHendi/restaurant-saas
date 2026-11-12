@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { signupBodySchema, type SignupBody } from '@app/shared';
 
 import { useAppDispatch } from '../../app/hooks.js';
+import { authErrorMessage } from './auth-error-message.js';
 import { authApi, useSignupMutation } from '../../features/auth/auth.api.js';
 import { hydrateFromMe, setAccessToken } from '../../features/session/session.slice.js';
 
@@ -42,17 +43,7 @@ export function useSignupPage() {
     void navigate('/dashboard', { replace: true });
   });
 
-  const errorMessage =
-    error &&
-    'data' in error &&
-    error.data &&
-    typeof error.data === 'object' &&
-    'error' in error.data
-      ? ((error.data as { error?: { message?: string } }).error?.message ??
-        t('auth.errors.generic'))
-      : error
-        ? t('auth.errors.generic')
-        : null;
+  const errorMessage = authErrorMessage(error, t);
 
   return { form, onSubmit, isLoading, errorMessage, t };
 }

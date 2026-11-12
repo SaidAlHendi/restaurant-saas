@@ -52,7 +52,9 @@
       "ar": "Arabic"
     },
     "errors": {
-      "generic": "Something went wrong. Please try again."
+      "generic": "Something went wrong. Please try again.",
+      "invalidCredentials": "Invalid email or password.",
+      "emailTaken": "This email is already registered. Try signing in instead."
     },
     "validation": {
       "nameRequired": "Enter your name."

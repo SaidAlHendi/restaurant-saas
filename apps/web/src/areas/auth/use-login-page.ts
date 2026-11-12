@@ -10,6 +10,8 @@ import { useLoginMutation, authApi } from '../../features/auth/auth.api.js';
 import { landingPathForPermissions } from '../../features/session/landing-path.js';
 import { hydrateFromMe, setAccessToken } from '../../features/session/session.slice.js';
 
+import { authErrorMessage } from './auth-error-message.js';
+
 export function useLoginPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -31,17 +33,7 @@ export function useLoginPage() {
     void navigate(landingPathForPermissions(me.permissions), { replace: true });
   });
 
-  const errorMessage =
-    error &&
-    'data' in error &&
-    error.data &&
-    typeof error.data === 'object' &&
-    'error' in error.data
-      ? ((error.data as { error?: { message?: string } }).error?.message ??
-        t('auth.errors.generic'))
-      : error
-        ? t('auth.errors.generic')
-        : null;
+  const errorMessage = authErrorMessage(error, t);
 
   return { form, onSubmit, isLoading, errorMessage, t };
 }
