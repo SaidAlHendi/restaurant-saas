@@ -1,0 +1,12 @@
+{
+  // Cloudflare Workers static assets: serves the built single-page app from ./dist.
+  // Deploy (Workers Builds, repository root): npx wrangler deploy --config apps/web/wrangler.jsonc
+  // The Worker name must match the Cloudflare project name.
+  "name": "sahtain-web-staging",
+  "compatibility_date": "2025-11-01",
+  "assets": {
+    "directory": "./dist",
+    // Unknown paths (for example /invite/:token) fall back to index.html.
+    "not_found_handling": "single-page-application"
+  }
+}
