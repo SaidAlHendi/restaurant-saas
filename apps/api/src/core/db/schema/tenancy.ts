@@ -128,6 +128,23 @@ export const membershipBranches = pgTable(
   (t) => [primaryKey({ columns: [t.membershipId, t.branchId] })],
 );
 
+/** Per-employee permission exceptions on top of the role: `grant` adds a key, `deny` removes it. */
+export const membershipPermissionOverrides = pgTable(
+  'membership_permission_overrides',
+  {
+    membershipId: uuid('membership_id')
+      .notNull()
+      .references(() => memberships.id),
+    permissionKey: text('permission_key').notNull(),
+    effect: text('effect', { enum: ['grant', 'deny'] }).notNull(),
+    orgId: uuid('org_id')
+      .notNull()
+      .references(() => organizations.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.membershipId, t.permissionKey] })],
+);
+
 /** A cashier device linked to one branch. Staff sign in on it with a PIN; the device key never leaves the browser. */
 export const posDevices = pgTable(
   'pos_devices',

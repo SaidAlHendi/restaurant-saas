@@ -134,6 +134,13 @@
       "when": 1759671000000,
       "tag": "0018_pager_numbers",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1759672000000,
+      "tag": "0019_membership_permission_overrides",
+      "breakpoints": true
     }
   ]
 }

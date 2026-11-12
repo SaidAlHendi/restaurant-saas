@@ -26,6 +26,7 @@ import {
   Switch,
 } from '@app/ui';
 
+import { StaffPermissionsDialog } from './StaffPermissionsDialog.js';
 import type {
   StaffRoleOption,
   StaffSettingsPageViewModel,
@@ -151,6 +152,8 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
     onSubmitPinOnly,
     editOpen,
     onEditOpenChange,
+    permissionsMember,
+    onPermissionsClose,
     editRole,
     onEditRoleChange,
     editScope,
@@ -258,6 +261,7 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
         rowActions={(row) => {
           const hasMenu =
             row.onEdit ??
+            row.onPermissions ??
             row.onSetPin ??
             row.onRemovePin ??
             row.onDisable ??
@@ -282,6 +286,15 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
                     }}
                   >
                     {labels.edit}
+                  </DropdownMenuItem>
+                ) : null}
+                {row.onPermissions ? (
+                  <DropdownMenuItem
+                    onClick={() => {
+                      row.onPermissions?.();
+                    }}
+                  >
+                    {labels.permissions}
                   </DropdownMenuItem>
                 ) : null}
                 {row.onSetPin ? (
@@ -343,6 +356,14 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
           );
         }}
       />
+
+      {permissionsMember ? (
+        <StaffPermissionsDialog
+          key={permissionsMember.id}
+          member={permissionsMember}
+          onClose={onPermissionsClose}
+        />
+      ) : null}
 
       <Dialog open={inviteOpen} onOpenChange={onInviteOpenChange}>
         <DialogContent closeLabel={labels.close}>

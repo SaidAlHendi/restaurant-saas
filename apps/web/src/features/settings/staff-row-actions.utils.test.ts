@@ -23,6 +23,7 @@ const ownerActor = {
   actorMembershipId: 'actor-owner',
   actorRoleKey: 'owner' as const,
   hasStaffManage: true,
+  hasOrgManage: true,
   activeOwnerCount: 2,
 };
 
@@ -30,6 +31,7 @@ const managerActor = {
   actorMembershipId: 'actor-mgr',
   actorRoleKey: 'manager' as const,
   hasStaffManage: true,
+  hasOrgManage: false,
   activeOwnerCount: 2,
 };
 
@@ -105,6 +107,7 @@ describe('staffRowActions', () => {
       actorMembershipId: 'c1',
       actorRoleKey: 'cashier',
       hasStaffManage: false,
+      hasOrgManage: false,
       activeOwnerCount: 2,
       target: target({ id: 't1', roleKey: 'kitchen', status: 'active' }),
     });
@@ -119,5 +122,24 @@ describe('staffRowActions', () => {
       target: target({ id: 'o1', roleKey: 'owner', status: 'active' }),
     });
     expect(row.canDisable).toBe(false);
+  });
+});
+
+describe('staffRowActions permissions', () => {
+  it('lets only owners edit permissions of non-owner, non-invited members', () => {
+    const base = { ...ownerActor, activeOwnerCount: 2 };
+    const manager = target({ id: 'm', roleKey: 'manager', status: 'active' });
+    expect(staffRowActions({ ...base, target: manager }).canEditPermissions).toBe(true);
+    expect(
+      staffRowActions({ ...base, hasOrgManage: false, target: manager }).canEditPermissions,
+    ).toBe(false);
+    expect(
+      staffRowActions({ ...base, target: target({ id: 'o', roleKey: 'owner', status: 'active' }) })
+        .canEditPermissions,
+    ).toBe(false);
+    expect(
+      staffRowActions({ ...base, target: target({ id: 'i', roleKey: 'cashier', status: 'invited' }) })
+        .canEditPermissions,
+    ).toBe(false);
   });
 });

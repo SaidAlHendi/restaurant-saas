@@ -106,6 +106,19 @@ export type {
   PutStaffPinBody,
 } from './staff/staff.js';
 
+export {
+  OVERRIDABLE_PERMISSION_KEYS,
+  computeEffectivePermissions,
+  overridablePermissionKeySchema,
+  permissionKeySchema,
+  putStaffPermissionOverridesBodySchema,
+  staffPermissionOverridesResponseSchema,
+} from './staff/permission-overrides.js';
+export type {
+  PutStaffPermissionOverridesBody,
+  StaffPermissionOverridesResponse,
+} from './staff/permission-overrides.js';
+
 export { pinUserListItemSchema, pinUserListResponseSchema } from './staff/pin-users.js';
 export type { PinUserListItem, PinUserListResponse } from './staff/pin-users.js';
 

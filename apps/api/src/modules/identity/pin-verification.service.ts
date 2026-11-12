@@ -95,7 +95,11 @@ export class PinVerificationService implements OnModuleInit {
       if (row.membership.status !== 'active') {
         throw new NotFoundError();
       }
-      const permissions = await this.tenancyRepo.loadRolePermissions(tx, row.role.id);
+      const permissions = await this.tenancyRepo.loadEffectivePermissions(
+        tx,
+        row.membership.id,
+        row.role.id,
+      );
       if (!permissions.includes(requiredPermission)) {
         throw new ForbiddenError('Approver lacks permission');
       }

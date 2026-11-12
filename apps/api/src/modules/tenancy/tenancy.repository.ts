@@ -1,6 +1,8 @@
 import { and, asc, desc, eq, gt, sql } from 'drizzle-orm';
 import { Injectable } from '@nestjs/common';
 
+import { computeEffectivePermissions } from '@app/shared';
+
 import { users } from '../../core/db/schema/identity';
 import {
   branches,
@@ -8,6 +10,7 @@ import {
   memberships,
   organizations,
   posDevices,
+  membershipPermissionOverrides,
   rolePermissions,
   roles,
 } from '../../core/db/schema/tenancy';
@@ -82,6 +85,48 @@ export class TenancyRepository {
       .from(rolePermissions)
       .where(eq(rolePermissions.roleId, roleId));
     return rows.map((r) => r.key);
+  }
+
+  async listPermissionOverrides(tx: DrizzleTx, membershipId: string) {
+    const rows = await tx
+      .select({
+        key: membershipPermissionOverrides.permissionKey,
+        effect: membershipPermissionOverrides.effect,
+      })
+      .from(membershipPermissionOverrides)
+      .where(eq(membershipPermissionOverrides.membershipId, membershipId));
+    return {
+      grant: rows.filter((r) => r.effect === 'grant').map((r) => r.key),
+      deny: rows.filter((r) => r.effect === 'deny').map((r) => r.key),
+    };
+  }
+
+  /** Role permissions plus the employee's grants, minus their denies. */
+  async loadEffectivePermissions(tx: DrizzleTx, membershipId: string, roleId: string): Promise<string[]> {
+    const [rolePerms, overrides] = await Promise.all([
+      this.loadRolePermissions(tx, roleId),
+      this.listPermissionOverrides(tx, membershipId),
+    ]);
+    return computeEffectivePermissions(rolePerms, overrides.grant, overrides.deny);
+  }
+
+  async replacePermissionOverrides(
+    tx: DrizzleTx,
+    orgId: string,
+    membershipId: string,
+    grant: readonly string[],
+    deny: readonly string[],
+  ) {
+    await tx
+      .delete(membershipPermissionOverrides)
+      .where(eq(membershipPermissionOverrides.membershipId, membershipId));
+    const values = [
+      ...grant.map((permissionKey) => ({ membershipId, orgId, permissionKey, effect: 'grant' as const })),
+      ...deny.map((permissionKey) => ({ membershipId, orgId, permissionKey, effect: 'deny' as const })),
+    ];
+    if (values.length > 0) {
+      await tx.insert(membershipPermissionOverrides).values(values);
+    }
   }
 
   async findRoleById(tx: DrizzleTx, roleId: string) {

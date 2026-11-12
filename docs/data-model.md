@@ -13,6 +13,7 @@ Translatable text = `jsonb` like `{"ar":"…","en":"…"}`. Tax in basis points 
 - **roles**: id, org_id (null = system role), key (`owner`|`manager`|`cashier`|`kitchen`|custom), name, is_system
 - **role_permissions**: role_id, permission_key, **org_id** (nullable; mirrors `roles.org_id`, set by `BEFORE INSERT/UPDATE` trigger `sync_role_permissions_org_id`) — PK(role_id, permission_key)
 - **memberships**: id, org_id, user_id, role_id, pin_hash, pin_failed_attempts, pin_locked_until, invite_token_hash, invite_expires_at, invited_by_membership_id, all_branches bool, status (`active`|`invited`|`disabled`) — UNIQUE(org_id, user_id); partial unique on invite_token_hash when not null
+- **membership_permission_overrides**: membership_id, permission_key, effect (`grant`|`deny`), org_id — PK(membership_id, permission_key). Effective permissions = role permissions + grants − denies; owner-managed, never applies to owners
 - **membership_branches**: membership_id, branch_id, org_id — PK(membership_id, branch_id)
 - **devices**: id, org_id, branch_id, type (`pos`|`kds`), name, token_hash, paired_at, last_seen_at, revoked_at
 - **device_pairing_codes**: code (6 digits), org_id, branch_id, type, expires_at, used_at

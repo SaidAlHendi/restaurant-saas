@@ -9,6 +9,7 @@
   `approval: { membershipId, pin }` when the actor lacks `orders.cancel`. Wrong PIN → 401 `PIN_INVALID`; approver
   without permission → 403; missing approval → 403 `MANAGER_APPROVAL_REQUIRED`. Stale `expectedVersion` → 409
   `ORDER_VERSION_CONFLICT` before PIN is checked. Five failed PIN attempts lock the target membership for 5 minutes (`PIN_LOCKED`).
+- `GET|PUT /v1/staff/:membershipId/permissions` — per-employee permission overrides `{ grant[], deny[] }` (GET also returns `rolePermissions` and `effective`); `org.manage` (Owner) only, owner memberships and `org.manage`/`billing.manage` keys are rejected. Table QR rotation needs `tables.rotate_qr`.
 - `GET /v1/branches/:branchId/pin-users` — staff with a PIN and access to that branch (`orders.read`).
 - Request context resolved by middleware: `{ userId?, membershipId?, orgId, branchIds, deviceId?, permissions }`.
   Handlers never read org from body/params. Branch ids in the path are checked against `branchIds`.
