@@ -8,6 +8,7 @@ export const SEED_COVERAGE: Record<string, SeedCoverageEntry> = {
   role_permissions: { skipped: 'system roles only (migration 0003)' },
   memberships: 'seeded',
   membership_branches: 'seeded',
+  membership_permission_overrides: { skipped: 'owner-configured exceptions; none in demo data' },
   users: 'seeded',
   auth_sessions: { skipped: 'runtime only (login creates rows)' },
   admin_users: { skipped: 'platform admins are created only via pnpm admin:create, never seeded' },

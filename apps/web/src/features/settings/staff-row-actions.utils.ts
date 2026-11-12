@@ -12,12 +12,15 @@ export type StaffRowActions = {
   canRevokeInvite: boolean;
   canSetPin: boolean;
   canRemovePin: boolean;
+  canEditPermissions: boolean;
 };
 
 export type StaffRowActionsInput = {
   actorMembershipId: string;
   actorRoleKey: SystemRoleKey | null;
   hasStaffManage: boolean;
+  /** Owner-only: per-employee permission overrides. */
+  hasOrgManage: boolean;
   activeOwnerCount: number;
   target: Pick<
     StaffListItem,
@@ -55,6 +58,7 @@ export function staffRowActions(input: StaffRowActionsInput): StaffRowActions {
       canRevokeInvite: false,
       canSetPin: false,
       canRemovePin: false,
+      canEditPermissions: false,
     };
   }
 
@@ -88,5 +92,7 @@ export function staffRowActions(input: StaffRowActionsInput): StaffRowActions {
     canRevokeInvite: inviteManage,
     canSetPin: pinManage,
     canRemovePin: pinManage && target.hasPin,
+    canEditPermissions:
+      input.hasOrgManage && target.roleKey !== 'owner' && target.status !== 'invited',
   };
 }

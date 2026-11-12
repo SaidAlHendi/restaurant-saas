@@ -429,6 +429,29 @@
         "too_long": "PIN must be at most 6 digits.",
         "not_digits": "PIN must contain digits only.",
         "mismatch": "PINs do not match."
+      },
+      "permissions": {
+        "action": "Permissions",
+        "title": "Permissions for {{name}}",
+        "description": "Turn permissions on or off for this person only. Other staff with the same role are not affected.",
+        "overridden": "Custom",
+        "reset": "Reset to role",
+        "saved": "Permissions updated.",
+        "loadError": "Could not load permissions.",
+        "keys": {
+          "branches.read": "View branches",
+          "branches.manage": "Manage branches and tables",
+          "tables.rotate_qr": "Regenerate table QR codes",
+          "staff.read": "View staff",
+          "staff.manage": "Manage staff",
+          "orders.create": "Create orders",
+          "orders.read": "View orders",
+          "orders.update_status": "Update order status",
+          "orders.cancel": "Cancel orders",
+          "menu.read": "View menu",
+          "menu.manage": "Manage menu",
+          "reports.read": "View reports"
+        }
       }
     },
     "currency": {

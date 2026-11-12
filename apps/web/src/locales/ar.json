@@ -437,6 +437,29 @@
         "too_long": "PIN يجب ألا يزيد عن 6 أرقام.",
         "not_digits": "PIN أرقام فقط.",
         "mismatch": "PIN غير متطابق."
+      },
+      "permissions": {
+        "action": "الصلاحيات",
+        "title": "صلاحيات {{name}}",
+        "description": "فعّل الصلاحيات أو عطّلها لهذا الشخص فقط. لا يتأثر باقي الموظفين الذين لديهم الدور نفسه.",
+        "overridden": "مخصّصة",
+        "reset": "إعادة إلى صلاحيات الدور",
+        "saved": "تم تحديث الصلاحيات.",
+        "loadError": "تعذّر تحميل الصلاحيات.",
+        "keys": {
+          "branches.read": "عرض الفروع",
+          "branches.manage": "إدارة الفروع والطاولات",
+          "tables.rotate_qr": "إعادة إنشاء رموز QR للطاولات",
+          "staff.read": "عرض الموظفين",
+          "staff.manage": "إدارة الموظفين",
+          "orders.create": "إنشاء الطلبات",
+          "orders.read": "عرض الطلبات",
+          "orders.update_status": "تحديث حالة الطلب",
+          "orders.cancel": "إلغاء الطلبات",
+          "menu.read": "عرض القائمة",
+          "menu.manage": "إدارة القائمة",
+          "reports.read": "عرض التقارير"
+        }
       }
     },
     "currency": {

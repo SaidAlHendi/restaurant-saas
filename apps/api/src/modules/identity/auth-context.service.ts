@@ -53,7 +53,11 @@ export class AuthContextService {
       if (!membership || membership.status !== 'active') {
         throw new UnauthorizedError('MEMBERSHIP_DISABLED', 'Membership is not active');
       }
-      const permissions = await this.tenancyRepo.loadRolePermissions(tx, membership.roleId);
+      const permissions = await this.tenancyRepo.loadEffectivePermissions(
+        tx,
+        membership.id,
+        membership.roleId,
+      );
       const branchRows = await this.tenancyRepo.listBranches(tx, payload.org);
       const activeBranchIds = branchRows.filter((b) => b.isActive).map((b) => b.id);
       let branchIds: string[] = activeBranchIds;
