@@ -114,6 +114,11 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
     isLoading,
     isError,
     rows,
+    searchQuery,
+    onSearchQueryChange,
+    roleFilter,
+    onRoleFilterChange,
+    roleFilterOptions,
     canAddStaff,
     branchOptions,
     inviteRoleOptions,
@@ -242,6 +247,31 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
           </DropdownMenu>
         ) : null}
       </div>
+      <div className="flex flex-wrap items-center gap-3">
+        <Input
+          className="max-w-xs"
+          type="search"
+          aria-label={labels.searchPlaceholder}
+          placeholder={labels.searchPlaceholder}
+          value={searchQuery}
+          onChange={(e) => {
+            onSearchQueryChange(e.target.value);
+          }}
+        />
+        <Select value={roleFilter} onValueChange={onRoleFilterChange}>
+          <SelectTrigger className="w-48" aria-label={labels.filterRole}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{labels.allRoles}</SelectItem>
+            {roleFilterOptions.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
       <DataTable
         columns={[
           { id: 'name', header: labels.columnName, cell: (row) => row.name },
@@ -252,6 +282,7 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
             header: labels.columnStatus,
             cell: (row) => <Badge variant={row.statusTone}>{row.statusLabel}</Badge>,
           },
+          { id: 'branches', header: labels.columnBranches, cell: (row) => row.branchLabel },
           { id: 'pin', header: labels.columnPin, cell: (row) => row.pinLabel },
         ]}
         data={rows}

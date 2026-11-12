@@ -42,6 +42,7 @@ import {
   branchesForNewMember,
 } from './staff-seat-enforcement';
 import { TenancyRepository } from './tenancy.repository';
+import { filterStaffByActorBranches } from './staff-visibility';
 
 /**
  * The invite link lets its holder set the password of a password-less account. That is only
@@ -94,7 +95,14 @@ export class StaffService {
           };
         }),
       );
-      return { items };
+      const actorRole = await this.actorRoleKey(tx, ctx);
+      // Owners (and anyone with access to all branches) see every member.
+      // Other actors (managers) only see members who share at least one of
+      // their branches, plus themselves.
+      if (actorRole === 'owner' || ctx.allBranches) {
+        return { items };
+      }
+      return { items: filterStaffByActorBranches(items, ctx.branchIds) };
     });
   }
 

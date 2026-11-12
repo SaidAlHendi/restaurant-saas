@@ -40,9 +40,6 @@ import {
   useRevokeStaffInviteMutation,
 } from '../settings.api.js';
 
-/** Keeps pending invites honest: an accepted invite turns "active" without a manual refresh. */
-const STAFF_POLL_INTERVAL_MS = 30_000;
-
 export type StaffRoleOption = {
   value: SystemRoleKey;
   label: string;
@@ -62,6 +59,7 @@ export type StaffTableRow = {
   statusLabel: string;
   statusTone: 'default' | 'secondary' | 'destructive' | 'outline';
   pinLabel: string;
+  branchLabel: string;
   actions: ReturnType<typeof staffRowActions>;
   onEdit: (() => void) | null;
   onPermissions: (() => void) | null;
@@ -96,7 +94,6 @@ export function useStaffSettingsPage() {
   const [permissionsMember, setPermissionsMember] = useState<StaffPermissionsMember | null>(null);
   const { data, isLoading, isError } = useListStaffQuery(undefined, {
     skip: !allowed,
-    pollingInterval: STAFF_POLL_INTERVAL_MS,
     refetchOnFocus: true,
   });
 
@@ -263,8 +260,34 @@ export function useStaffSettingsPage() {
     [sessionBranches],
   );
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const [roleFilter, setRoleFilter] = useState<'all' | SystemRoleKey>('all');
+
+  const branchNameById = useMemo(
+    () => new Map(sessionBranches.map((b) => [b.id, b.name])),
+    [sessionBranches],
+  );
+
+  const roleFilterOptions = useMemo(() => {
+    const keys = Array.from(new Set((data?.items ?? []).map((m) => m.roleKey)));
+    return keys.map((key) => ({ value: key, label: roleLabel(key) }));
+  }, [data?.items, roleLabel]);
+
   const rows: StaffTableRow[] = useMemo(() => {
-    return (data?.items ?? []).map((member) => {
+    const query = searchQuery.trim().toLowerCase();
+    const items = (data?.items ?? []).filter((member) => {
+      if (roleFilter !== 'all' && member.roleKey !== roleFilter) {
+        return false;
+      }
+      if (query === '') {
+        return true;
+      }
+      return (
+        member.name.toLowerCase().includes(query) ||
+        (member.email ?? '').toLowerCase().includes(query)
+      );
+    });
+    return items.map((member) => {
       const actions = staffRowActions({
         actorMembershipId,
         actorRoleKey,
@@ -287,6 +310,11 @@ export function useStaffSettingsPage() {
         statusLabel: meta.label,
         statusTone: meta.tone,
         pinLabel: member.hasPin ? t('settings.staff.pinSet') : t('settings.staff.pinNone'),
+        branchLabel: member.allBranches
+          ? t('settings.staff.allBranchesLabel')
+          : member.branchIds.length > 2
+            ? t('settings.staff.branchCount', { n: member.branchIds.length })
+            : member.branchIds.map((id) => branchNameById.get(id) ?? '—').join(', ') || '—',
         actions,
         onEdit: actions.canEditMembership
           ? () => {
@@ -351,6 +379,9 @@ export function useStaffSettingsPage() {
     activeOwnerCount,
     actorMembershipId,
     actorRoleKey,
+    branchNameById,
+    roleFilter,
+    searchQuery,
     data?.items,
     hasOrgManage,
     hasStaffManage,
@@ -539,6 +570,13 @@ export function useStaffSettingsPage() {
     onPermissionsClose: () => {
       setPermissionsMember(null);
     },
+    searchQuery,
+    onSearchQueryChange: setSearchQuery,
+    roleFilter,
+    onRoleFilterChange: (value: string) => {
+      setRoleFilter(value === 'all' ? 'all' : parseSystemRoleKey(value) ?? 'all');
+    },
+    roleFilterOptions,
     canAddStaff,
     branchOptions,
     inviteRoleOptions,
@@ -697,6 +735,10 @@ export function useStaffSettingsPage() {
       columnRole: t('settings.staff.columnRole'),
       columnStatus: t('settings.staff.columnStatus'),
       columnPin: t('settings.staff.columnPin'),
+      columnBranches: t('settings.staff.columnBranches'),
+      searchPlaceholder: t('settings.staff.searchPlaceholder'),
+      allRoles: t('settings.staff.allRoles'),
+      filterRole: t('settings.staff.filterRole'),
       actions: t('settings.staff.actions'),
       edit: t('settings.staff.edit'),
       permissions: t('settings.staff.permissions.action'),
