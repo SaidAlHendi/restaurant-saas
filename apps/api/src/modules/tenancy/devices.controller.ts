@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Post , ParseUUIDPipe } from '@nestjs/common';
 
 import { Ctx } from '../../core/context/context.decorator';
 import type { RequestContext } from '../../core/context/request-context';
@@ -26,7 +26,7 @@ export class DevicesController {
   @RequirePermission('staff.manage')
   @HttpCode(204)
   @Delete(':deviceId')
-  async revoke(@Ctx() ctx: RequestContext, @Param('deviceId') deviceId: string) {
+  async revoke(@Ctx() ctx: RequestContext, @Param('deviceId', ParseUUIDPipe) deviceId: string) {
     await this.devices.revoke(ctx, deviceId);
   }
 }

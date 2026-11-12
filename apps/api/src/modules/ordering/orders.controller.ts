@@ -4,6 +4,7 @@ import {
   Get,
   Headers,
   Param,
+  ParseUUIDPipe,
   Post,
   Query,
   Res,
@@ -40,7 +41,7 @@ export class OrdersController {
   @Post()
   async create(
     @Ctx() ctx: RequestContext,
-    @Param('branchId') branchId: string,
+    @Param('branchId', ParseUUIDPipe) branchId: string,
     @Headers('idempotency-key') idempotencyKey: string | undefined,
     @Body() body: CreateOrderBodyDto,
     @Res({ passthrough: true }) res: Response,
@@ -57,7 +58,7 @@ export class OrdersController {
   @Get()
   list(
     @Ctx() ctx: RequestContext,
-    @Param('branchId') branchId: string,
+    @Param('branchId', ParseUUIDPipe) branchId: string,
     @Query() query: OrderListQueryDto,
   ) {
     return this.ordering.listOrders(ctx, branchId, query);
@@ -67,7 +68,7 @@ export class OrdersController {
   @Get(':orderId/events')
   listEvents(
     @Ctx() ctx: RequestContext,
-    @Param('branchId') branchId: string,
+    @Param('branchId', ParseUUIDPipe) branchId: string,
     @Param('orderId', OrderingPathIdPipe) orderId: string,
   ) {
     return this.ordering.listEvents(ctx, branchId, orderId);
@@ -77,7 +78,7 @@ export class OrdersController {
   @Get(':orderId')
   get(
     @Ctx() ctx: RequestContext,
-    @Param('branchId') branchId: string,
+    @Param('branchId', ParseUUIDPipe) branchId: string,
     @Param('orderId', OrderingPathIdPipe) orderId: string,
   ) {
     return this.ordering.getOrder(ctx, branchId, orderId);
@@ -90,7 +91,7 @@ export class OrdersController {
   @Post(':orderId/status')
   changeStatus(
     @Ctx() ctx: RequestContext,
-    @Param('branchId') branchId: string,
+    @Param('branchId', ParseUUIDPipe) branchId: string,
     @Param('orderId', OrderingPathIdPipe) orderId: string,
     @Body() body: ChangeOrderStatusBodyDto,
   ) {
@@ -102,7 +103,7 @@ export class OrdersController {
   @Post(':orderId/items')
   addItems(
     @Ctx() ctx: RequestContext,
-    @Param('branchId') branchId: string,
+    @Param('branchId', ParseUUIDPipe) branchId: string,
     @Param('orderId', OrderingPathIdPipe) orderId: string,
     @Body() body: AddOrderItemsBodyDto,
   ) {
@@ -114,7 +115,7 @@ export class OrdersController {
   @Post(':orderId/payments')
   async capturePayment(
     @Ctx() ctx: RequestContext,
-    @Param('branchId') branchId: string,
+    @Param('branchId', ParseUUIDPipe) branchId: string,
     @Param('orderId', OrderingPathIdPipe) orderId: string,
     @Headers('idempotency-key') idempotencyKey: string | undefined,
     @Body() body: CreatePaymentBodyDto,
@@ -132,7 +133,7 @@ export class OrdersController {
   @Post(':orderId/items/:itemId/void')
   voidItem(
     @Ctx() ctx: RequestContext,
-    @Param('branchId') branchId: string,
+    @Param('branchId', ParseUUIDPipe) branchId: string,
     @Param('orderId', OrderingPathIdPipe) orderId: string,
     @Param('itemId', OrderingPathIdPipe) itemId: string,
     @Body() body: VoidOrderItemBodyDto,

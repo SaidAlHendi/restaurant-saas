@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post , ParseUUIDPipe } from '@nestjs/common';
 
 import { RequireFeature } from '../../core/permissions/require-feature.decorator';
 
@@ -18,7 +18,7 @@ export class TablesController {
 
   @RequirePermission('branches.read')
   @Get()
-  list(@Ctx() ctx: RequestContext, @Param('branchId') branchId: string) {
+  list(@Ctx() ctx: RequestContext, @Param('branchId', ParseUUIDPipe) branchId: string) {
     const wantsQrToken = ctx.permissions.includes('branches.manage');
     return this.tables.list(ctx, branchId, wantsQrToken);
   }
@@ -28,7 +28,7 @@ export class TablesController {
   @Post(':tableId/rotate-qr')
   rotateQr(
     @Ctx() ctx: RequestContext,
-    @Param('branchId') branchId: string,
+    @Param('branchId', ParseUUIDPipe) branchId: string,
     @Param('tableId', OrderingPathIdPipe) tableId: string,
   ) {
     return this.tables.rotateQr(ctx, branchId, tableId);
@@ -38,7 +38,7 @@ export class TablesController {
   @Post()
   create(
     @Ctx() ctx: RequestContext,
-    @Param('branchId') branchId: string,
+    @Param('branchId', ParseUUIDPipe) branchId: string,
     @Body() body: CreateDiningTableBodyDto,
   ) {
     return this.tables.create(ctx, branchId, body);
@@ -48,7 +48,7 @@ export class TablesController {
   @Patch(':tableId')
   patch(
     @Ctx() ctx: RequestContext,
-    @Param('branchId') branchId: string,
+    @Param('branchId', ParseUUIDPipe) branchId: string,
     @Param('tableId', OrderingPathIdPipe) tableId: string,
     @Body() body: PatchDiningTableBodyDto,
   ) {

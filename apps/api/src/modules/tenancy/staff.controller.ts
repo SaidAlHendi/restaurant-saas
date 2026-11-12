@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put , ParseUUIDPipe } from '@nestjs/common';
 
 import { Authenticated } from '../../core/auth/authenticated.decorator';
 import { RequirePermission } from '../../core/permissions/require-permission.decorator';
@@ -37,13 +37,13 @@ export class StaffController {
 
   @RequirePermission('staff.manage')
   @Post(':membershipId/invite/regenerate')
-  regenerateInvite(@Ctx() ctx: RequestContext, @Param('membershipId') membershipId: string) {
+  regenerateInvite(@Ctx() ctx: RequestContext, @Param('membershipId', ParseUUIDPipe) membershipId: string) {
     return this.staff.regenerateInvite(ctx, membershipId);
   }
 
   @RequirePermission('staff.manage')
   @Delete(':membershipId/invite')
-  revokeInvite(@Ctx() ctx: RequestContext, @Param('membershipId') membershipId: string) {
+  revokeInvite(@Ctx() ctx: RequestContext, @Param('membershipId', ParseUUIDPipe) membershipId: string) {
     return this.staff.revokeInvite(ctx, membershipId);
   }
 
@@ -51,7 +51,7 @@ export class StaffController {
   @Patch(':membershipId')
   patchMembership(
     @Ctx() ctx: RequestContext,
-    @Param('membershipId') membershipId: string,
+    @Param('membershipId', ParseUUIDPipe) membershipId: string,
     @Body() body: PatchStaffMembershipBodyDto,
   ) {
     return this.staff.patchMembership(ctx, membershipId, body);
@@ -61,7 +61,7 @@ export class StaffController {
   @Put(':membershipId/pin')
   putPin(
     @Ctx() ctx: RequestContext,
-    @Param('membershipId') membershipId: string,
+    @Param('membershipId', ParseUUIDPipe) membershipId: string,
     @Body() body: PutStaffPinBodyDto,
   ) {
     return this.staff.putPin(ctx, membershipId, body);
@@ -69,7 +69,7 @@ export class StaffController {
 
   @Authenticated()
   @Delete(':membershipId/pin')
-  deletePin(@Ctx() ctx: RequestContext, @Param('membershipId') membershipId: string) {
+  deletePin(@Ctx() ctx: RequestContext, @Param('membershipId', ParseUUIDPipe) membershipId: string) {
     return this.staff.deletePin(ctx, membershipId);
   }
 }
