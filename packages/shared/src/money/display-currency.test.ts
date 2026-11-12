@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   convertDisplayToBaseMinor,
   convertMinorToDisplay,
+  defaultDisplaySteps,
   formatDisplayMinor,
   formatMoneyForDisplay,
   isDisplayConversionActive,
@@ -81,5 +82,12 @@ describe('formatting', () => {
     expect(isDisplayConversionActive('USD', syp)).toBe(true);
     expect(isDisplayConversionActive('SYP', syp)).toBe(false);
     expect(isDisplayConversionActive('USD', null)).toBe(false);
+  });
+});
+
+describe('defaultDisplaySteps', () => {
+  it('rounds to notes only for large-number currencies', () => {
+    expect(defaultDisplaySteps('SYP')).toEqual({ itemStep: 100, totalStep: 500 });
+    expect(defaultDisplaySteps('USD')).toEqual({ itemStep: 0, totalStep: 0 });
   });
 });

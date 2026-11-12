@@ -50,11 +50,30 @@ export function CurrencySettingsSectionView(props: CurrencySettingsSectionViewMo
 
   return (
     <SettingsSection title={labels.title} description={labels.description}>
-      <div className="bg-muted/50 space-y-1 rounded-md p-3">
-        <Label>{labels.baseCurrency}</Label>
-        <p className="text-sm font-medium">{props.baseCurrency}</p>
-        <p className="text-muted-foreground text-xs">{labels.baseCurrencyHint}</p>
-      </div>
+      {props.baseCurrencyLocked ? (
+        <div className="bg-muted/50 space-y-1 rounded-md p-3">
+          <Label>{labels.baseCurrency}</Label>
+          <p className="text-sm font-medium">{props.baseCurrency}</p>
+          <p className="text-muted-foreground text-xs">{labels.baseCurrencyHint}</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <Label htmlFor="base-currency">{labels.baseCurrency}</Label>
+          <Select value={props.baseCurrency} onValueChange={props.onBaseCurrencyChange}>
+            <SelectTrigger id="base-currency" className="w-full sm:w-64">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {props.baseCurrencyOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-muted-foreground text-xs">{labels.baseCurrencyHint}</p>
+        </div>
+      )}
       <div className="space-y-2">
         <Label htmlFor="display-currency">{labels.displayCurrency}</Label>
         <Select value={props.displayCurrency} onValueChange={props.onDisplayCurrencyChange}>

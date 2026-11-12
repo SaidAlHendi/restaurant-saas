@@ -16,10 +16,13 @@ import {
   currencyFormResult,
   isCurrencyFormDirty,
   isExchangeRateStale,
+  withBaseCurrency,
+  withDisplayCurrency,
   type CurrencySettingsForm,
 } from '../currency-settings-form.utils.js';
 
 const EMPTY_FORM: CurrencySettingsForm = {
+  baseCurrency: '',
   displayCurrency: '',
   rateText: '',
   itemStep: 0,
@@ -40,9 +43,20 @@ export function useCurrencySettingsForm(data: OrgSettingsResponse | undefined) {
     }
   }, [data]);
 
-  const baseCurrency = data?.defaultCurrency ?? '';
+  const savedBaseCurrency = data?.defaultCurrency ?? '';
+  const baseCurrency = form.baseCurrency;
+  const baseCurrencyLocked = data?.baseCurrencyLocked ?? true;
   const converting = data !== undefined && form.displayCurrency !== baseCurrency;
-  const result = useMemo(() => currencyFormResult(form, baseCurrency), [baseCurrency, form]);
+  const result = useMemo(
+    () => currencyFormResult(form, savedBaseCurrency),
+    [form, savedBaseCurrency],
+  );
+
+  const baseCurrencyOptions = useMemo(() => {
+    const codes = new Set<string>([savedBaseCurrency, ...DISPLAY_CURRENCY_CHOICES]);
+    codes.delete('');
+    return [...codes].map((code) => ({ value: code, label: code }));
+  }, [savedBaseCurrency]);
 
   const currencyOptions = useMemo(() => {
     const codes = new Set<string>([baseCurrency, ...DISPLAY_CURRENCY_CHOICES]);
@@ -93,17 +107,17 @@ export function useCurrencySettingsForm(data: OrgSettingsResponse | undefined) {
     },
     view: {
       baseCurrency,
+      baseCurrencyLocked,
+      baseCurrencyOptions,
+      onBaseCurrencyChange: (value: string) => {
+        setForm((prev) => withBaseCurrency(prev, value));
+        setErrorKey(null);
+      },
       displayCurrency: form.displayCurrency,
       onDisplayCurrencyChange: (value: string) => {
-        // A rate belongs to one currency pair, so a new currency starts with an empty rate.
-        setForm((prev) => ({
-          ...prev,
-          displayCurrency: value,
-          rateText:
-            data && value === (data.displayCurrency ?? '') && data.exchangeRate !== null
-              ? String(data.exchangeRate)
-              : '',
-        }));
+        if (data) {
+          setForm((prev) => withDisplayCurrency(prev, value, data));
+        }
         setErrorKey(null);
       },
       currencyOptions,
@@ -137,7 +151,9 @@ export function useCurrencySettingsForm(data: OrgSettingsResponse | undefined) {
         title: t('settings.currency.title'),
         description: t('settings.currency.description'),
         baseCurrency: t('settings.currency.baseCurrency'),
-        baseCurrencyHint: t('settings.currency.baseCurrencyHint'),
+        baseCurrencyHint: baseCurrencyLocked
+          ? t('settings.currency.baseCurrencyLockedHint')
+          : t('settings.currency.baseCurrencyHint'),
         displayCurrency: t('settings.currency.displayCurrency'),
         displayCurrencyHint: t('settings.currency.displayCurrencyHint'),
         rate: t('settings.currency.rate', {

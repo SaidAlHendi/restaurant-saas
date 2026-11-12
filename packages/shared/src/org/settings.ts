@@ -20,6 +20,8 @@ export const orgSettingsResponseSchema = z.object({
   name: z.string(),
   slug: z.string(),
   defaultCurrency: z.string().length(3),
+  /** True once the restaurant has an order: the base currency can no longer be changed. */
+  baseCurrencyLocked: z.boolean().default(true),
   defaultLocale: orgLocaleCodeSchema,
   locales: z.array(orgLocaleCodeSchema).min(1),
   logoUrl: z.url().nullable(),
@@ -40,6 +42,8 @@ export const patchOrgSettingsBodySchema = z
     name: z.string().trim().min(1).max(120).optional(),
     locales: z.array(orgLocaleCodeSchema).min(1).optional(),
     defaultLocale: orgLocaleCodeSchema.optional(),
+    /** Base currency. Only accepted while the restaurant has no orders; price numbers stay as typed. */
+    defaultCurrency: currencyCodeSchema.optional(),
     /** `null` turns the display currency off. */
     displayCurrency: currencyCodeSchema.nullable().optional(),
     exchangeRate: exchangeRateSchema.optional(),

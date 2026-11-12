@@ -41,7 +41,14 @@ export const settingsApi = baseApi.injectEndpoints({
         body: patchOrgSettingsBodySchema.parse(body),
       }),
       transformResponse: (response: unknown) => orgSettingsResponseSchema.parse(response),
-      invalidatesTags: [{ type: 'OrgSettings', id: 'CURRENT' }, 'Me'],
+      // The base and display currency reach branches, the POS menu, orders and reports.
+      invalidatesTags: (_result, _error, body) => [
+        { type: 'OrgSettings', id: 'CURRENT' },
+        'Me',
+        ...(body.defaultCurrency !== undefined || body.displayCurrency !== undefined
+          ? (['Branch', 'PosMenu', 'Order', 'DailyReport'] as const)
+          : []),
+      ],
     }),
     uploadOrgLogo: builder.mutation<OrgLogoUploadResponse, File>({
       query: (file: File) => {

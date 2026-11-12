@@ -4,6 +4,7 @@ import { Injectable } from '@nestjs/common';
 import { computeEffectivePermissions } from '@app/shared';
 
 import { users } from '../../core/db/schema/identity';
+import { orders } from '../../core/db/schema/ordering';
 import {
   branches,
   membershipBranches,
@@ -156,6 +157,16 @@ export class TenancyRepository {
       .where(eq(organizations.id, orgId))
       .returning();
     return updated[0];
+  }
+
+  /** True when the org has any order row (drafts and cancelled ones count: they carry a currency). */
+  async orgHasOrders(tx: DrizzleTx, orgId: string): Promise<boolean> {
+    const rows = await tx.select({ id: orders.id }).from(orders).where(eq(orders.orgId, orgId)).limit(1);
+    return rows.length > 0;
+  }
+
+  async setBranchesCurrency(tx: DrizzleTx, orgId: string, currency: string): Promise<void> {
+    await tx.update(branches).set({ currency }).where(eq(branches.orgId, orgId));
   }
 
   async findMembershipById(tx: DrizzleTx, membershipId: string) {

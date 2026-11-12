@@ -6,6 +6,8 @@ import {
   isCurrencyFormDirty,
   isExchangeRateStale,
   parseExchangeRate,
+  withBaseCurrency,
+  withDisplayCurrency,
 } from './currency-settings-form.utils.js';
 
 const off = {
@@ -54,6 +56,49 @@ describe('currencyFormResult', () => {
     expect(result.ok && result.patch).toEqual({
       displayCurrency: 'SYP',
       exchangeRate: 13000,
+      displayItemStep: 100,
+      displayTotalStep: 500,
+    });
+  });
+});
+
+describe('withDisplayCurrency', () => {
+  it('starts a small-number currency without rounding and an empty rate', () => {
+    const form = withDisplayCurrency(currencyFormFromSettings(off), 'EUR', off);
+    expect(form).toMatchObject({ displayCurrency: 'EUR', rateText: '', itemStep: 0, totalStep: 0 });
+  });
+
+  it('starts a large-number currency with rounding to notes', () => {
+    const form = withDisplayCurrency(currencyFormFromSettings(off), 'SYP', off);
+    expect(form).toMatchObject({ itemStep: 100, totalStep: 500 });
+  });
+
+  it('brings back the saved rate and rounding for the saved currency', () => {
+    const saved = { ...on, displayItemStep: 1000, displayTotalStep: 5000 };
+    const away = withDisplayCurrency(currencyFormFromSettings(saved), 'EUR', saved);
+    expect(withDisplayCurrency(away, 'SYP', saved)).toEqual(currencyFormFromSettings(saved));
+  });
+});
+
+describe('withBaseCurrency', () => {
+  it('switches the display currency off and puts the new base in the patch', () => {
+    const form = withBaseCurrency(currencyFormFromSettings(on), 'EUR');
+    expect(isCurrencyFormDirty(form, on)).toBe(true);
+    expect(currencyFormResult(form, 'USD')).toEqual({
+      ok: true,
+      patch: { defaultCurrency: 'EUR', displayCurrency: null },
+      display: null,
+    });
+  });
+
+  it('sends the new base together with a new display currency and rate', () => {
+    const base = withBaseCurrency(currencyFormFromSettings(off), 'EUR');
+    const form = { ...withDisplayCurrency(base, 'SYP', off), rateText: '14000' };
+    const result = currencyFormResult(form, 'USD');
+    expect(result.ok && result.patch).toEqual({
+      defaultCurrency: 'EUR',
+      displayCurrency: 'SYP',
+      exchangeRate: 14000,
       displayItemStep: 100,
       displayTotalStep: 500,
     });
