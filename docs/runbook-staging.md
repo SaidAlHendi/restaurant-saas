@@ -86,21 +86,26 @@ ADMIN_PASSWORD='choose-a-long-password' docker compose --env-file staging.env ex
 
 (If your shell stores history, set the password with a space before the command or use `read -s ADMIN_PASSWORD`.)
 
-## 5. Web and admin on Cloudflare Pages
+## 5. Web and admin on Cloudflare (Workers static assets)
 
-Create two Pages projects from the GitHub repository, production branch `dev` for staging.
+Cloudflare now steers new projects to Workers, which also serves static single-page apps. Each app has a
+`wrangler.jsonc` that serves its `dist` folder and sends unknown paths (such as `/invite/:token`) to `index.html`.
+Create one project per app from the same GitHub repository: **Compute > Workers & Pages > Create application >
+Import a repository** (the Worker flow).
 
-| | `apps/web` project | `apps/admin` project |
+| | web | admin |
 |---|---|---|
-| Custom domain | `app-staging.getsahtain.com` | `admin-staging.getsahtain.com` |
-| Root directory | `/` | `/` |
+| Project name (must match `name` in the config) | `sahtain-web-staging` | `sahtain-admin-staging` |
 | Build command | `pnpm install --frozen-lockfile && pnpm exec turbo run build --filter=@app/web` | `... --filter=@app/admin` |
-| Output directory | `apps/web/dist` | `apps/admin/dist` |
-| Env: `VITE_API_URL` | `https://api-staging.getsahtain.com` | same |
-| Env: `VITE_PUBLIC_SITE_URL` | `https://menu-staging.getsahtain.com` | not needed |
-| Env: `NODE_VERSION` | `22` | `22` |
+| Deploy command | `npx wrangler deploy --config apps/web/wrangler.jsonc` | `npx wrangler deploy --config apps/admin/wrangler.jsonc` |
+| Root directory | `/` | `/` |
+| Build variable `VITE_API_URL` | `https://api-staging.getsahtain.com` | same |
+| Build variable `VITE_PUBLIC_SITE_URL` | `https://menu-staging.getsahtain.com` | not needed |
+| Custom domain (project > Settings > Domains & Routes) | `app-staging.getsahtain.com` | `admin-staging.getsahtain.com` |
 
-`public/_redirects` (already in both apps) makes deep links such as `/invite/:token` work.
+After creating each project, open **Settings > Build > Branch control** and set the production branch to `dev`
+(otherwise it builds `main`). `VITE_*` values are baked in at build time, so change them under **Settings > Build >
+Variables and secrets** and trigger a new build.
 
 ## 6. Survive restarts and power cuts
 
