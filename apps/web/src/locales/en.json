@@ -1,4 +1,9 @@
 {
+  "notFoundPage": {
+    "title": "We can't find that page",
+    "body": "The page you're looking for doesn't exist or has moved. Let's get you back to the kitchen.",
+    "home": "Back to home"
+  },
   "common": {
     "loading": "Loading",
     "cancel": "Cancel",
