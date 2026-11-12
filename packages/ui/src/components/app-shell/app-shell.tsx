@@ -48,6 +48,8 @@ export interface AppShellProps {
   banner?: ReactNode;
   brand: string;
   brandInitial: string;
+  /** Logo shown in place of the initial tile (the app supplies it). */
+  brandMark?: ReactNode;
   collapsed: boolean;
   onToggleCollapsed: () => void;
   mobileOpen: boolean;
@@ -78,6 +80,7 @@ export function AppShell({
   banner,
   brand,
   brandInitial,
+  brandMark,
   collapsed,
   onToggleCollapsed,
   mobileOpen,
@@ -104,12 +107,14 @@ export function AppShell({
         onMobileOpenChange={onMobileOpenChange}
       >
         <SidebarHeader className={collapsed ? 'justify-center px-0' : undefined}>
-          <span
-            aria-hidden
-            className="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary text-base font-bold text-primary-foreground"
-          >
-            {brandInitial}
-          </span>
+          {brandMark ?? (
+            <span
+              aria-hidden
+              className="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary text-base font-bold text-primary-foreground"
+            >
+              {brandInitial}
+            </span>
+          )}
           {collapsed ? null : (
             <span dir="auto" className="truncate text-base font-bold">
               {brand}

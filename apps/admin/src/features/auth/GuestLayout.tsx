@@ -8,7 +8,7 @@ import { useGuestLayout } from './use-guest-layout.js';
 export function GuestLayout() {
   const guest = useGuestLayout();
   return (
-    <AuthLayout {...guest}>
+    <AuthLayout {...guest} brandMark={<img src="/favicon.svg" alt="" className="size-11 shrink-0" />}>
       <Outlet />
     </AuthLayout>
   );

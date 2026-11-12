@@ -24,6 +24,7 @@ export function LandingNav({ content, nav, navLinks, links }: LandingNavProps) {
           aria-label={content.brandLabel}
           className="lp-display flex items-center gap-1 text-[34px] leading-none text-primary"
         >
+          <img src="/favicon.svg" alt="" width={36} height={36} className="me-1.5 size-9 shrink-0" />
           <span>{content.brand}</span>
           <span aria-hidden className="mt-3 size-[9px] rounded-full bg-warning" />
         </a>

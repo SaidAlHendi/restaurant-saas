@@ -7,6 +7,8 @@ import { ThemeToggle, type ThemeToggleProps } from '../theme-toggle/index.js';
 export interface AuthLayoutProps {
   children: ReactNode;
   brand: string;
+  /** Logo shown in place of the initial tile (the app supplies it). */
+  brandMark?: ReactNode;
   theme: ThemeToggleProps['theme'];
   onThemeChange: ThemeToggleProps['onThemeChange'];
   themeLabels: ThemeToggleProps['labels'];
@@ -18,6 +20,7 @@ export interface AuthLayoutProps {
 export function AuthLayout({
   children,
   brand,
+  brandMark,
   theme,
   onThemeChange,
   themeLabels,
@@ -35,12 +38,14 @@ export function AuthLayout({
       </header>
       <main className="flex flex-1 flex-col items-center px-4 pb-16 pt-6 sm:pt-12">
         <div className="mb-8 flex items-center gap-3">
-          <span
-            aria-hidden
-            className="flex size-11 items-center justify-center rounded-xl bg-primary text-xl font-bold text-primary-foreground"
-          >
-            {brand.charAt(0)}
-          </span>
+          {brandMark ?? (
+            <span
+              aria-hidden
+              className="flex size-11 items-center justify-center rounded-xl bg-primary text-xl font-bold text-primary-foreground"
+            >
+              {brand.charAt(0)}
+            </span>
+          )}
           <h1 className="text-2xl font-bold">{brand}</h1>
         </div>
         <div className="w-full max-w-md">{children}</div>

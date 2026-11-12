@@ -10,6 +10,7 @@ export function AdminShellLayout() {
   return (
     <AppShell
       {...shell}
+      brandMark={<img src="/favicon.svg" alt="" className="size-9 shrink-0" />}
       navGroups={navGroups.map((group) => ({
         ...group,
         items: group.items.map(({ icon: Icon, ...item }) => ({
