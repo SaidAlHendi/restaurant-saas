@@ -13,6 +13,7 @@ describe('Staff permission overrides (e2e)', () => {
   let app: INestApplication;
   let owner: Agent;
   let manager: Agent;
+  let otherOwner: Agent;
   let ownerMembershipId = '';
   let managerMembershipId = '';
 
@@ -23,6 +24,8 @@ describe('Staff permission overrides (e2e)', () => {
     const managerBase = apiAgent(app);
     owner = authAgent(ownerBase, (await loginSeedUser(ownerBase, 'owner', 'demo')).accessToken);
     manager = authAgent(managerBase, (await loginSeedUser(managerBase, 'manager', 'demo')).accessToken);
+    const otherBase = apiAgent(app);
+    otherOwner = authAgent(otherBase, (await loginSeedUser(otherBase, 'owner', 'other')).accessToken);
     const list = await owner.get('/v1/staff').expect(200);
     const items = (list.body as { items: StaffItem[] }).items;
     ownerMembershipId = items.find((i) => i.roleKey === 'owner')?.id ?? '';
@@ -89,5 +92,15 @@ describe('Staff permission overrides (e2e)', () => {
       .put(`/v1/staff/${ownerMembershipId}/permissions`)
       .send({ grant: [], deny: ['menu.manage'] })
       .expect(403);
+  });
+
+  it('hides memberships of other restaurants and rejects non-UUID ids', async () => {
+    await otherOwner.get(`/v1/staff/${managerMembershipId}/permissions`).expect(404);
+    await otherOwner
+      .put(`/v1/staff/${managerMembershipId}/permissions`)
+      .send({ grant: ['tables.rotate_qr'], deny: [] })
+      .expect(404);
+    expect(await managerPermissions()).not.toContain('tables.rotate_qr');
+    await owner.get('/v1/staff/not-a-uuid/permissions').expect(400);
   });
 });

@@ -23,6 +23,7 @@ export type TablesPageViewProps = {
   title: string;
   subtitle: string;
   canManage: boolean;
+  canRotateQr: boolean;
   isLoading: boolean;
   branchMissing: boolean;
   branchMissingTitle: string;
@@ -50,6 +51,7 @@ export function TablesPageView({
   title,
   subtitle,
   canManage,
+  canRotateQr,
   isLoading,
   branchMissing,
   branchMissingTitle,
@@ -102,7 +104,7 @@ export function TablesPageView({
             <TableRow>
               <TableHead>{tableLabelHeader}</TableHead>
               <TableHead>{statusHeader}</TableHead>
-              {canManage ? <TableHead className="w-0" /> : null}
+              {canRotateQr ? <TableHead className="w-0" /> : null}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -130,7 +132,7 @@ export function TablesPageView({
                     </Badge>
                   )}
                 </TableCell>
-                {canManage ? (
+                {canRotateQr ? (
                   <TableCell>
                     <Button
                       type="button"

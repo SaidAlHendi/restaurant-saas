@@ -60,7 +60,7 @@ export class StaffController {
 
   @RequirePermission('org.manage')
   @Get(':membershipId/permissions')
-  getPermissions(@Ctx() ctx: RequestContext, @Param('membershipId') membershipId: string) {
+  getPermissions(@Ctx() ctx: RequestContext, @Param('membershipId', ParseUUIDPipe) membershipId: string) {
     return this.staff.getPermissionOverrides(ctx, membershipId);
   }
 
@@ -68,7 +68,7 @@ export class StaffController {
   @Put(':membershipId/permissions')
   putPermissions(
     @Ctx() ctx: RequestContext,
-    @Param('membershipId') membershipId: string,
+    @Param('membershipId', ParseUUIDPipe) membershipId: string,
     @Body() body: PutStaffPermissionOverridesBodyDto,
   ) {
     return this.staff.putPermissionOverrides(ctx, membershipId, body);
