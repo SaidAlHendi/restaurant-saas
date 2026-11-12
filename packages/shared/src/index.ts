@@ -173,6 +173,7 @@ export {
   DISPLAY_ROUNDING_STEPS,
   convertDisplayToBaseMinor,
   convertMinorToDisplay,
+  defaultDisplaySteps,
   displayFractionDigits,
   displayRoundingStepSchema,
   exchangeRateSchema,

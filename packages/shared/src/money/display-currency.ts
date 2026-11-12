@@ -9,6 +9,25 @@ export const DISPLAY_ROUNDING_STEPS = [0, 1, 5, 10, 50, 100, 500, 1000, 5000] as
 export const DEFAULT_DISPLAY_ITEM_STEP = 100;
 export const DEFAULT_DISPLAY_TOTAL_STEP = 500;
 
+/** Currencies whose everyday prices run into the thousands, so rounding to notes makes sense. */
+const LARGE_NUMBER_CURRENCIES: ReadonlySet<string> = new Set([
+  'SYP',
+  'LBP',
+  'IQD',
+  'IRR',
+  'YER',
+  'SDG',
+  'IDR',
+  'VND',
+]);
+
+/** Rounding steps to start from when an owner picks `currency` as the display currency. */
+export function defaultDisplaySteps(currency: string): { itemStep: number; totalStep: number } {
+  return LARGE_NUMBER_CURRENCIES.has(currency)
+    ? { itemStep: DEFAULT_DISPLAY_ITEM_STEP, totalStep: DEFAULT_DISPLAY_TOTAL_STEP }
+    : { itemStep: 0, totalStep: 0 };
+}
+
 /** The exchange rate keeps 6 decimals (matches `numeric(18,6)` in the database). */
 const RATE_SCALE = 1_000_000;
 

@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-11-12 - Base currency changeable before the first order
+
+### Added
+- `PATCH /v1/org/settings` accepts `defaultCurrency` while the restaurant has no orders. Price numbers stay as typed, every branch's `currency` follows, and a saved display currency is switched off unless the same save sets a new one with a rate. Once any order exists the change is refused with `409 BASE_CURRENCY_LOCKED`.
+- `baseCurrencyLocked` on the org settings response; Settings shows a base currency picker until it is true.
+
+### Changed
+- A newly picked display currency starts with rounding that suits it (`defaultDisplaySteps` in `@app/shared`): 100 / 500 for large-number currencies such as SYP, LBP and IQD, no rounding for the others. An owner's own choice still wins.
+
 ## 2026-11-11 - Display currency
 
 ### Added

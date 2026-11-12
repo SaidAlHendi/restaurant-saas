@@ -5,6 +5,7 @@ import {
   CATALOG_UPDATED_EVENT,
   DEFAULT_DISPLAY_ITEM_STEP,
   DEFAULT_DISPLAY_TOTAL_STEP,
+  defaultDisplaySteps,
   type CatalogRealtimePayload,
   type MoneyDisplay,
   type OrgLocaleCode,
@@ -12,7 +13,7 @@ import {
 } from '@app/shared';
 
 import { MENU_CACHE_PURGER, type MenuCachePurger } from '../../core/cache/menu-cache-purger';
-import { NotFoundError, ValidationError } from '../../core/errors/app-errors';
+import { ConflictError, NotFoundError, ValidationError } from '../../core/errors/app-errors';
 import { CLOCK, type Clock } from '../../core/clock/clock.tokens';
 import { DRIZZLE, type DrizzleDb } from '../../core/db/db.module';
 import type { organizations } from '../../core/db/schema/tenancy';
@@ -105,19 +106,52 @@ export class OrgSettingsService {
         throw new ValidationError('defaultLocale must be included in locales', {}, 'VALIDATION_ERROR');
       }
 
-      const currencyPatch = this.resolveDisplayCurrencyPatch(org, body);
+      const baseChanged =
+        body.defaultCurrency !== undefined && body.defaultCurrency !== org.defaultCurrency;
+      if (baseChanged && (await this.tenancyRepo.orgHasOrders(tx, ctx.orgId))) {
+        throw new ConflictError(
+          'The base currency cannot be changed once the restaurant has orders',
+          {},
+          'BASE_CURRENCY_LOCKED',
+        );
+      }
+      // A rate belongs to one currency pair, so a new base currency drops the saved display currency.
+      const pricedOrg: OrgRow = baseChanged
+        ? {
+            ...org,
+            defaultCurrency: body.defaultCurrency ?? org.defaultCurrency,
+            displayCurrency: null,
+            exchangeRate: null,
+          }
+        : org;
+      const currencyPatch =
+        baseChanged && !displayCurrencyTouched(body)
+          ? DISPLAY_CURRENCY_OFF
+          : this.resolveDisplayCurrencyPatch(pricedOrg, body);
 
-      const updated = await this.tenancyRepo.updateOrganization(tx, ctx.orgId, {
+      const patch: Partial<typeof organizations.$inferInsert> = {
         name: body.name,
         locales: body.locales,
         defaultLocale: body.defaultLocale,
+        ...(baseChanged ? { defaultCurrency: pricedOrg.defaultCurrency } : {}),
         ...currencyPatch,
-      });
+      };
+      // Nothing to write, e.g. a save that only repeats the current base currency.
+      const hasChanges = Object.values(patch as Record<string, unknown>).some(
+        (value) => value !== undefined,
+      );
+      const updated = hasChanges
+        ? await this.tenancyRepo.updateOrganization(tx, ctx.orgId, patch)
+        : org;
       if (!updated) {
         throw new NotFoundError();
       }
+      if (baseChanged) {
+        // Branches always price in the org's base currency.
+        await this.tenancyRepo.setBranchesCurrency(tx, ctx.orgId, pricedOrg.defaultCurrency);
+      }
 
-      if (!sameMoneyDisplay(moneyDisplayForOrg(org), moneyDisplayForOrg(updated))) {
+      if (baseChanged || !sameMoneyDisplay(moneyDisplayForOrg(org), moneyDisplayForOrg(updated))) {
         await this.writeCatalogUpdated(tx, ctx.orgId);
       }
 
@@ -128,6 +162,7 @@ export class OrgSettingsService {
       body.name !== undefined ||
       body.locales !== undefined ||
       body.defaultLocale !== undefined ||
+      body.defaultCurrency !== undefined ||
       displayCurrencyTouched(body)
     ) {
       this.purgeMenuCache(ctx.orgId);
@@ -216,6 +251,7 @@ export class OrgSettingsService {
       name: org.name,
       slug: org.slug,
       defaultCurrency: org.defaultCurrency,
+      baseCurrencyLocked: await this.tenancyRepo.orgHasOrders(tx, orgId),
       defaultLocale: org.defaultLocale as OrgLocaleCode,
       locales: org.locales as OrgLocaleCode[],
       logoUrl: this.logoUrlForOrg(org.logoKey),
@@ -248,14 +284,7 @@ export class OrgSettingsService {
           'VALIDATION_ERROR',
         );
       }
-      // Switching off also forgets the rounding, so switching on later starts from the defaults.
-      return {
-        displayCurrency: null,
-        exchangeRate: null,
-        exchangeRateUpdatedAt: null,
-        displayItemStep: DEFAULT_DISPLAY_ITEM_STEP,
-        displayTotalStep: DEFAULT_DISPLAY_TOTAL_STEP,
-      };
+      return DISPLAY_CURRENCY_OFF;
     }
     // A rate belongs to one currency pair: switching the display currency needs a new rate.
     const currencyChanged = nextCurrency !== org.displayCurrency;
@@ -268,12 +297,14 @@ export class OrgSettingsService {
       );
     }
     const rateChanged = currencyChanged || nextRate !== org.exchangeRate;
+    // A newly picked currency starts from the rounding that suits it, unless the owner chose one.
+    const fallbackSteps = currencyChanged ? defaultDisplaySteps(nextCurrency) : undefined;
     return {
       displayCurrency: nextCurrency,
       exchangeRate: nextRate,
       ...(rateChanged ? { exchangeRateUpdatedAt: this.clock.now() } : {}),
-      displayItemStep: body.displayItemStep,
-      displayTotalStep: body.displayTotalStep,
+      displayItemStep: body.displayItemStep ?? fallbackSteps?.itemStep,
+      displayTotalStep: body.displayTotalStep ?? fallbackSteps?.totalStep,
     };
   }
 
@@ -303,6 +334,15 @@ export class OrgSettingsService {
     scheduleMenuCachePurge(this.db, this.tenancyRepo, this.menuCachePurger, orgId, this.logger);
   }
 }
+
+/** Switching off also forgets the rounding, so switching on later starts from the defaults. */
+const DISPLAY_CURRENCY_OFF = {
+  displayCurrency: null,
+  exchangeRate: null,
+  exchangeRateUpdatedAt: null,
+  displayItemStep: DEFAULT_DISPLAY_ITEM_STEP,
+  displayTotalStep: DEFAULT_DISPLAY_TOTAL_STEP,
+} satisfies Partial<typeof organizations.$inferInsert>;
 
 function displayCurrencyTouched(body: PatchOrgSettingsBody): boolean {
   return (

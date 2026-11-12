@@ -74,10 +74,6 @@ describe('Staff and settings (e2e)', () => {
       const strict = await fresh.ownerAgent.patch('/v1/org/settings').send({ slug: 'hacked' });
       expect(strict.status).toBe(400);
 
-      const currency = await fresh.ownerAgent
-        .patch('/v1/org/settings')
-        .send({ defaultCurrency: 'USD' });
-      expect(currency.status).toBe(400);
     });
 
     it('manager and cashier get 403 on org settings', async () => {
