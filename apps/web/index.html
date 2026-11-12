@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="en" data-theme="cupcake">
+<html lang="ar" dir="rtl" data-theme="cupcake">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>Sahtain</title>
     <script>
-      // Apply the saved theme (or the OS preference) before first paint. Same logic as
+      // Apply the saved theme (light by default) before first paint. Same logic as
       // packages/ui/src/hooks/use-theme.ts, key "app.theme".
       (function () {
         var theme;
@@ -14,7 +14,7 @@
           theme = localStorage.getItem('app.theme');
         } catch (e) {}
         if (theme !== 'cupcake' && theme !== 'forest') {
-          theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'forest' : 'cupcake';
+          theme = 'cupcake';
         }
         document.documentElement.dataset.theme = theme;
       })();

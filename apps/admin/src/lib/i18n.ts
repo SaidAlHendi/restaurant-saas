@@ -38,7 +38,7 @@ export async function initI18n(): Promise<void> {
       en: { translation: en },
       ar: { translation: ar },
     },
-    lng: readStoredLanguage() ?? 'en',
+    lng: readStoredLanguage() ?? 'ar',
     fallbackLng: 'en',
     interpolation: { escapeValue: false },
   });

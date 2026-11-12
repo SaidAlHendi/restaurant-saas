@@ -107,6 +107,7 @@ describe('App root', () => {
 
   it('renders dashboard shell when session is bootstrapped', async () => {
     window.localStorage.clear();
+    window.localStorage.setItem('app.lang', 'en');
     await initI18n();
     // DashboardArea is lazy and now pulls in the menu feature; load it before render so the
     // Suspense fallback does not outlast findByText's 1s window on a slow CI runner.

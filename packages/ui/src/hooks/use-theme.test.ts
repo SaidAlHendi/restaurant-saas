@@ -23,17 +23,17 @@ describe('useTheme', () => {
     vi.restoreAllMocks();
   });
 
-  it('defaults to cupcake when the OS is light', () => {
+  it('defaults to cupcake', () => {
     mockSystemDark(false);
     const { result } = renderHook(() => useTheme());
     expect(result.current.theme).toBe('cupcake');
     expect(document.documentElement.dataset.theme).toBe('cupcake');
   });
 
-  it('follows a dark OS on first visit', () => {
+  it('stays light on first visit even when the OS is dark', () => {
     mockSystemDark(true);
     const { result } = renderHook(() => useTheme());
-    expect(result.current.theme).toBe('forest');
+    expect(result.current.theme).toBe('cupcake');
   });
 
   it('prefers the saved choice over the OS', () => {
