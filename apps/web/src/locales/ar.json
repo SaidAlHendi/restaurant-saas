@@ -1166,5 +1166,28 @@
       "unlink": "فك ربط هذا الجهاز",
       "linkDevice": "ربط هذا الجهاز برمز"
     }
+  },
+  "validation": {
+    "required": "هذا الحقل مطلوب.",
+    "email": "أدخل بريدًا إلكترونيًا صحيحًا، مثل name@example.com.",
+    "tooShort_zero": "يجب ألا يقل عن {{count}} حرف.",
+    "tooShort_one": "يجب ألا يقل عن حرف واحد.",
+    "tooShort_two": "يجب ألا يقل عن حرفين.",
+    "tooShort_few": "يجب ألا يقل عن {{count}} أحرف.",
+    "tooShort_many": "يجب ألا يقل عن {{count}} حرفًا.",
+    "tooShort_other": "يجب ألا يقل عن {{count}} حرف.",
+    "tooLong_zero": "يجب ألا يزيد على {{count}} حرف.",
+    "tooLong_one": "يجب ألا يزيد على حرف واحد.",
+    "tooLong_two": "يجب ألا يزيد على حرفين.",
+    "tooLong_few": "يجب ألا يزيد على {{count}} أحرف.",
+    "tooLong_many": "يجب ألا يزيد على {{count}} حرفًا.",
+    "tooLong_other": "يجب ألا يزيد على {{count}} حرف.",
+    "tooFewItems_other": "اختر {{count}} عناصر على الأقل.",
+    "tooManyItems_other": "اختر {{count}} عناصر كحد أقصى.",
+    "tooSmall": "يجب ألا تقل القيمة عن {{min}}.",
+    "tooBig": "يجب ألا تزيد القيمة على {{max}}.",
+    "invalidType": "أدخل قيمة صحيحة.",
+    "invalidFormat": "صيغة هذه القيمة غير صحيحة.",
+    "invalidValue": "اختر أحد الخيارات المتاحة."
   }
 }

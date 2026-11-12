@@ -1,6 +1,8 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
+import { registerValidationMessages } from '@app/shared';
+
 import ar from '../locales/ar.json';
 import en from '../locales/en.json';
 
@@ -40,6 +42,7 @@ export async function initI18n(): Promise<void> {
     fallbackLng: 'en',
     interpolation: { escapeValue: false },
   });
+  registerValidationMessages((key, params) => i18n.t(key, params));
   applyDocumentLocale(i18n.language);
   if (!listening) {
     i18n.on('languageChanged', applyDocumentLocale);

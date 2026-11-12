@@ -1118,5 +1118,22 @@
       "unlink": "Unlink this device",
       "linkDevice": "Link this device with a code"
     }
+  },
+  "validation": {
+    "required": "This field is required.",
+    "email": "Enter a valid email address, like name@example.com.",
+    "tooShort_one": "Must be at least {{count}} character.",
+    "tooShort_other": "Must be at least {{count}} characters.",
+    "tooLong_one": "Must be at most {{count}} character.",
+    "tooLong_other": "Must be at most {{count}} characters.",
+    "tooFewItems_one": "Choose at least {{count}} item.",
+    "tooFewItems_other": "Choose at least {{count}} items.",
+    "tooManyItems_one": "Choose at most {{count}} item.",
+    "tooManyItems_other": "Choose at most {{count}} items.",
+    "tooSmall": "Must be at least {{min}}.",
+    "tooBig": "Must be at most {{max}}.",
+    "invalidType": "Enter a valid value.",
+    "invalidFormat": "This value is not in the expected format.",
+    "invalidValue": "Choose one of the available options."
   }
 }

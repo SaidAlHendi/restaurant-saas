@@ -515,3 +515,6 @@ export {
   normalizeDigits,
 } from './leads/lead-schemas.js';
 export type { LeadAttribution, LeadCreateBody, LeadCreateResponse } from './leads/lead-schemas.js';
+
+export { registerValidationMessages } from './validation/validation-messages.js';
+export type { ValidationTranslate } from './validation/validation-messages.js';
