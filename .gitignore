@@ -28,3 +28,6 @@ apps/site/.react-router/
 .agent-gate-run.exit
 .agent-gate-run.log
 dump.rdb
+
+# Staging secrets (real values; the template is infra/staging/staging.env.example)
+infra/staging/staging.env
