@@ -52,7 +52,7 @@ export function QrCard({
           )}
         </div>
         {caption ? <p className="text-center text-xs text-muted-foreground">{caption}</p> : null}
-        {href ? (
+        {href && /^https?:\/\//i.test(href) ? (
           <a href={href} className="max-w-full truncate text-xs text-primary underline" target="_blank" rel="noreferrer">
             {href}
           </a>

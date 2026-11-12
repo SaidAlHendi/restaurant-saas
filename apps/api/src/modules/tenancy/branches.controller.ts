@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post , ParseUUIDPipe } from '@nestjs/common';
 
 import { RequireBranchScope } from '../../core/permissions/require-branch-scope.decorator';
 import { RequirePermission } from '../../core/permissions/require-permission.decorator';
@@ -26,19 +26,19 @@ export class BranchesController {
   @RequirePermission('orders.read')
   @RequireBranchScope()
   @Get(':branchId/pin-users')
-  listPinUsers(@Ctx() ctx: RequestContext, @Param('branchId') branchId: string) {
+  listPinUsers(@Ctx() ctx: RequestContext, @Param('branchId', ParseUUIDPipe) branchId: string) {
     return this.branches.listPinUsers(ctx, branchId);
   }
 
   @RequirePermission('branches.manage')
   @Get(':branchId/display-link')
-  getDisplayLink(@Ctx() ctx: RequestContext, @Param('branchId') branchId: string) {
+  getDisplayLink(@Ctx() ctx: RequestContext, @Param('branchId', ParseUUIDPipe) branchId: string) {
     return this.branches.getDisplayLink(ctx, branchId);
   }
 
   @RequirePermission('branches.manage')
   @Post(':branchId/display-link/rotate')
-  rotateDisplayLink(@Ctx() ctx: RequestContext, @Param('branchId') branchId: string) {
+  rotateDisplayLink(@Ctx() ctx: RequestContext, @Param('branchId', ParseUUIDPipe) branchId: string) {
     return this.branches.rotateDisplayLink(ctx, branchId);
   }
 
@@ -46,7 +46,7 @@ export class BranchesController {
   @Patch(':branchId')
   patch(
     @Ctx() ctx: RequestContext,
-    @Param('branchId') branchId: string,
+    @Param('branchId', ParseUUIDPipe) branchId: string,
     @Body() body: PatchBranchBodyDto,
   ) {
     return this.branches.patch(ctx, branchId, body);

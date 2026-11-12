@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Post } from '@nestjs/common';
+import { Body, Controller, Param, Post , ParseUUIDPipe } from '@nestjs/common';
 
 import { Ctx } from '../../core/context/context.decorator';
 import type { RequestContext } from '../../core/context/request-context';
@@ -20,7 +20,7 @@ export class KitchenItemStatusController {
   @Post(':orderId/items/:itemId/status')
   changeItemStatus(
     @Ctx() ctx: RequestContext,
-    @Param('branchId') branchId: string,
+    @Param('branchId', ParseUUIDPipe) branchId: string,
     @Param('orderId', OrderingPathIdPipe) orderId: string,
     @Param('itemId', OrderingPathIdPipe) itemId: string,
     @Body() body: ChangeOrderItemStatusBodyDto,

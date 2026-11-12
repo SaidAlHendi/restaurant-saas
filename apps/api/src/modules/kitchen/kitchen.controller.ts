@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param , ParseUUIDPipe } from '@nestjs/common';
 
 import { Ctx } from '../../core/context/context.decorator';
 import type { RequestContext } from '../../core/context/request-context';
@@ -16,7 +16,7 @@ export class KitchenController {
   @RequirePermission('orders.read')
   @RequireFeature('kds.access')
   @Get('board')
-  getBoard(@Ctx() ctx: RequestContext, @Param('branchId') branchId: string) {
+  getBoard(@Ctx() ctx: RequestContext, @Param('branchId', ParseUUIDPipe) branchId: string) {
     return this.kitchen.getBoard(ctx, branchId);
   }
 }
