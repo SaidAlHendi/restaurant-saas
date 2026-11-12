@@ -2,6 +2,7 @@ export const PERMISSION_KEYS = [
   'org.manage',
   'branches.read',
   'branches.manage',
+  'tables.rotate_qr',
   'staff.read',
   'staff.manage',
   'orders.create',

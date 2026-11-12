@@ -27,6 +27,7 @@ import {
   toggleBranchInScope,
   type BranchScopeState,
 } from '../staff-scope-form.utils.js';
+import type { StaffPermissionsMember } from './use-staff-permissions-dialog.js';
 import { staffRowActions } from '../staff-row-actions.utils.js';
 import {
   useCreatePinOnlyStaffMutation,
@@ -61,6 +62,7 @@ export type StaffTableRow = {
   branchLabel: string;
   actions: ReturnType<typeof staffRowActions>;
   onEdit: (() => void) | null;
+  onPermissions: (() => void) | null;
   onSetPin: (() => void) | null;
   onRemovePin: (() => void) | null;
   onDisable: (() => void) | null;
@@ -88,6 +90,8 @@ export function useStaffSettingsPage() {
   const role = useAppSelector(selectSessionRole);
   const sessionBranches = useAppSelector(selectSessionBranches);
   const hasStaffManage = useAppSelector(selectCan('staff.manage'));
+  const hasOrgManage = useAppSelector(selectCan('org.manage'));
+  const [permissionsMember, setPermissionsMember] = useState<StaffPermissionsMember | null>(null);
   const { data, isLoading, isError } = useListStaffQuery(undefined, {
     skip: !allowed,
     refetchOnFocus: true,
@@ -288,6 +292,7 @@ export function useStaffSettingsPage() {
         actorMembershipId,
         actorRoleKey,
         hasStaffManage,
+        hasOrgManage,
         activeOwnerCount,
         target: member,
       });
@@ -314,6 +319,11 @@ export function useStaffSettingsPage() {
         onEdit: actions.canEditMembership
           ? () => {
               openEditForMember(member);
+            }
+          : null,
+        onPermissions: actions.canEditPermissions
+          ? () => {
+              setPermissionsMember({ id: member.id, name: member.name });
             }
           : null,
         onSetPin: actions.canSetPin
@@ -373,6 +383,7 @@ export function useStaffSettingsPage() {
     roleFilter,
     searchQuery,
     data?.items,
+    hasOrgManage,
     hasStaffManage,
     openEditForMember,
     openInviteLinkDialog,
@@ -555,6 +566,10 @@ export function useStaffSettingsPage() {
     isLoading,
     isError,
     rows,
+    permissionsMember,
+    onPermissionsClose: () => {
+      setPermissionsMember(null);
+    },
     searchQuery,
     onSearchQueryChange: setSearchQuery,
     roleFilter,
@@ -726,6 +741,7 @@ export function useStaffSettingsPage() {
       filterRole: t('settings.staff.filterRole'),
       actions: t('settings.staff.actions'),
       edit: t('settings.staff.edit'),
+      permissions: t('settings.staff.permissions.action'),
       setPin: t('settings.staff.setPin'),
       removePin: t('settings.staff.removePin'),
       disable: t('settings.staff.disable'),

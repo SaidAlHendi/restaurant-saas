@@ -19,11 +19,11 @@ export class TablesController {
   @RequirePermission('branches.read')
   @Get()
   list(@Ctx() ctx: RequestContext, @Param('branchId', ParseUUIDPipe) branchId: string) {
-    const wantsQrToken = ctx.permissions.includes('branches.manage');
+    const wantsQrToken = ctx.permissions.includes('tables.rotate_qr');
     return this.tables.list(ctx, branchId, wantsQrToken);
   }
 
-  @RequirePermission('branches.manage')
+  @RequirePermission('tables.rotate_qr')
   @RequireFeature('menu.table_qr')
   @Post(':tableId/rotate-qr')
   rotateQr(

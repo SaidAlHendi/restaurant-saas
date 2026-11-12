@@ -4,6 +4,9 @@ import * as argon2 from 'argon2';
 import {
   canInviteRole,
   canManageMember,
+  computeEffectivePermissions,
+  type PutStaffPermissionOverridesBody,
+  type StaffPermissionOverridesResponse,
   pinOnlyRoleKeySchema,
   type CreatePinOnlyStaffBody,
   type CreateStaffInviteBody,
@@ -329,6 +332,58 @@ export class StaffService {
 
       return { membershipId, userId };
     });
+  }
+
+  async getPermissionOverrides(
+    ctx: RequestContext,
+    membershipId: string,
+  ): Promise<StaffPermissionOverridesResponse> {
+    return withOrg(this.db, ctx.orgId, (tx) => this.loadPermissionOverrides(tx, ctx, membershipId));
+  }
+
+  async putPermissionOverrides(
+    ctx: RequestContext,
+    membershipId: string,
+    body: PutStaffPermissionOverridesBody,
+  ): Promise<StaffPermissionOverridesResponse> {
+    const response = await withOrg(this.db, ctx.orgId, async (tx) => {
+      const row = await this.tenancyRepo.findMembershipWithUserRole(tx, membershipId);
+      if (!row || row.membership.orgId !== ctx.orgId) {
+        throw new NotFoundError();
+      }
+      if (row.role.key === 'owner') {
+        throw new ForbiddenError('Owner permissions cannot be customised');
+      }
+      await this.tenancyRepo.replacePermissionOverrides(
+        tx,
+        ctx.orgId,
+        membershipId,
+        [...new Set(body.grant)],
+        [...new Set(body.deny)],
+      );
+      return this.loadPermissionOverrides(tx, ctx, membershipId);
+    });
+    // Permissions are loaded per request, so the change applies on the employee's next call.
+    return response;
+  }
+
+  private async loadPermissionOverrides(
+    tx: DrizzleTx,
+    ctx: RequestContext,
+    membershipId: string,
+  ): Promise<StaffPermissionOverridesResponse> {
+    const row = await this.tenancyRepo.findMembershipWithUserRole(tx, membershipId);
+    if (!row || row.membership.orgId !== ctx.orgId) {
+      throw new NotFoundError();
+    }
+    const rolePermissions = await this.tenancyRepo.loadRolePermissions(tx, row.role.id);
+    const { grant, deny } = await this.tenancyRepo.listPermissionOverrides(tx, membershipId);
+    return {
+      rolePermissions,
+      grant,
+      deny,
+      effective: computeEffectivePermissions(rolePermissions, grant, deny),
+    };
   }
 
   async patchMembership(ctx: RequestContext, membershipId: string, body: PatchStaffMembershipBody) {

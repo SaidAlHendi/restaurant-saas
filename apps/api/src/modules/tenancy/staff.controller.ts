@@ -9,6 +9,7 @@ import {
   CreatePinOnlyStaffBodyDto,
   CreateStaffInviteBodyDto,
   PatchStaffMembershipBodyDto,
+  PutStaffPermissionOverridesBodyDto,
   PutStaffPinBodyDto,
 } from './dto/staff.dto';
 import { StaffService } from './staff.service';
@@ -55,6 +56,22 @@ export class StaffController {
     @Body() body: PatchStaffMembershipBodyDto,
   ) {
     return this.staff.patchMembership(ctx, membershipId, body);
+  }
+
+  @RequirePermission('org.manage')
+  @Get(':membershipId/permissions')
+  getPermissions(@Ctx() ctx: RequestContext, @Param('membershipId', ParseUUIDPipe) membershipId: string) {
+    return this.staff.getPermissionOverrides(ctx, membershipId);
+  }
+
+  @RequirePermission('org.manage')
+  @Put(':membershipId/permissions')
+  putPermissions(
+    @Ctx() ctx: RequestContext,
+    @Param('membershipId', ParseUUIDPipe) membershipId: string,
+    @Body() body: PutStaffPermissionOverridesBodyDto,
+  ) {
+    return this.staff.putPermissionOverrides(ctx, membershipId, body);
   }
 
   @Authenticated()
