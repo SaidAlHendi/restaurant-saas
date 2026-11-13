@@ -41,7 +41,62 @@
   "auth": {
     "aside": {
       "title": "Welcome back to the kitchen",
-      "body": "Orders, kitchen and cashier, all in one place."
+      "body": "Orders, kitchen and cashier, all in one place.",
+      "live": {
+        "default": "Your restaurant",
+        "lines": [
+          "New account",
+          "Ready for service"
+        ],
+        "status": "Ready",
+        "meta": "now"
+      },
+      "tickets": [
+        {
+          "title": "Table 4",
+          "meta": "12:40",
+          "lines": [
+            "2 × Chicken shawarma",
+            "1 × Fattoush"
+          ],
+          "status": "Ready"
+        },
+        {
+          "title": "Takeaway 17",
+          "meta": "12:43",
+          "lines": [
+            "1 × Mixed grill",
+            "3 × Pita"
+          ],
+          "status": "Preparing"
+        },
+        {
+          "title": "Table 9",
+          "meta": "12:46",
+          "lines": [
+            "4 × Lentil soup",
+            "2 × Hummus"
+          ],
+          "status": "New"
+        },
+        {
+          "title": "Table 2",
+          "meta": "12:51",
+          "lines": [
+            "1 × Kabsa",
+            "1 × Lemon mint"
+          ],
+          "status": "Preparing"
+        },
+        {
+          "title": "Delivery 31",
+          "meta": "12:55",
+          "lines": [
+            "2 × Falafel wrap"
+          ],
+          "status": "New"
+        }
+      ]
     },
     "login": {
       "title": "Sign in",

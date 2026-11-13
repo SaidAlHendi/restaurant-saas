@@ -52,6 +52,7 @@ export * from './components/app-topbar/index.js';
 export * from './components/segmented-control/index.js';
 export * from './components/app-shell/index.js';
 export * from './components/auth-layout/index.js';
+export * from './components/ticket-rail/index.js';
 export * from './components/banner-alert/index.js';
 export * from './components/calendar/index.js';
 export * from './components/date-picker/index.js';

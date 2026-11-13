@@ -1,6 +1,5 @@
 import {
   Button,
-  Card,
   Form,
   FormControl,
   FormField,
@@ -18,11 +17,11 @@ export default function LoginPage() {
 
   return (
     <GuestOnly>
-      <Card className="mx-auto max-w-md p-6">
-        <h2 className="mb-1 text-xl font-semibold">{t('auth.login.title')}</h2>
-        <p className="mb-4 text-sm text-muted-foreground">{t('auth.login.subtitle')}</p>
+      <div className="mx-auto w-full">
+        <h2 className="auth-display mb-1 text-4xl leading-tight">{t('auth.login.title')}</h2>
+        <p className="mb-5 text-sm text-muted-foreground">{t('auth.login.subtitle')}</p>
         <Form {...form}>
-          <form onSubmit={(e) => void onSubmit(e)} className="flex flex-col gap-4">
+          <form onSubmit={(e) => void onSubmit(e)} className="flex flex-col gap-3">
             <FormField
               control={form.control}
               name="email"
@@ -30,7 +29,7 @@ export default function LoginPage() {
                 <FormItem>
                   <FormLabel>{t('auth.fields.email')}</FormLabel>
                   <FormControl>
-                    <Input type="email" autoComplete="username" {...field} />
+                    <Input className="h-11" type="email" autoComplete="username" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -43,7 +42,7 @@ export default function LoginPage() {
                 <FormItem>
                   <FormLabel>{t('auth.fields.password')}</FormLabel>
                   <FormControl>
-                    <Input type="password" autoComplete="current-password" {...field} />
+                    <Input className="h-11" type="password" autoComplete="current-password" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -54,12 +53,12 @@ export default function LoginPage() {
                 {errorMessage}
               </p>
             ) : null}
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" size="touch" className="mt-1 w-full" disabled={isLoading}>
               {t('auth.login.submit')}
             </Button>
           </form>
         </Form>
-      </Card>
+      </div>
     </GuestOnly>
   );
 }

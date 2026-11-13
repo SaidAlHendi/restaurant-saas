@@ -26,3 +26,13 @@ html[dir='rtl'] {
     @apply bg-background text-foreground;
   }
 }
+
+/* TicketRail: one full list scrolled past, then the loop restarts on the identical second copy. */
+@keyframes ticket-rail {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-50%);
+  }
+}
