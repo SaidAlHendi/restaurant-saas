@@ -1,7 +1,15 @@
 {
   "notFoundPage": {
-    "title": "We can't find that page",
-    "body": "The page you're looking for doesn't exist or has moved. Let's get you back to the kitchen.",
+    "table": "TABLE 404",
+    "order": "Order #404",
+    "line1": "1× The page you asked for",
+    "line2": "1× A little patience",
+    "line3": "1× Way back home",
+    "served": "served",
+    "onUs": "on us",
+    "stamp": "86'd",
+    "title": "Sorry, we ran out of this page",
+    "body": "The kitchen is out of what you ordered. It may have moved, or it was never on the menu.",
     "home": "Back to home"
   },
   "common": {
