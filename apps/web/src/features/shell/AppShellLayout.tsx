@@ -13,6 +13,7 @@ export function AppShellLayout() {
   return (
     <AppShell
       {...shell}
+      brandMark={<img src="/favicon.svg" alt="" className="size-9 shrink-0" />}
       banner={banner ? <BannerAlert {...banner} /> : null}
       moduleSwitch={
         moduleSwitch
