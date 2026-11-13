@@ -1,6 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { and, asc, count, desc, eq, ilike, inArray, or, type SQL } from 'drizzle-orm';
 import type {
+  AdminOrgActivateInput,
+  AdminOrgActivateResult,
   AdminOrgDetail,
   AdminOrgStatus,
   AdminOrgStatusChange,
@@ -9,7 +11,11 @@ import type {
   AdminOrgListResponse,
 } from '@app/shared';
 
-import { ADMIN_DRIZZLE, type AdminDrizzleDb, type AdminDrizzleTx } from '../../../core/db/admin-db.tokens';
+import {
+  ADMIN_DRIZZLE,
+  type AdminDrizzleDb,
+  type AdminDrizzleTx,
+} from '../../../core/db/admin-db.tokens';
 import { plans, subscriptions } from '../../../core/db/schema/billing';
 import { branches, memberships, organizations, roles } from '../../../core/db/schema/tenancy';
 import { users } from '../../../core/db/schema/identity';
@@ -126,6 +132,70 @@ export class AdminOrgsService {
   }
 
   /**
+   * Manual activation for restaurants that pay outside Paddle (bank transfer, cash): puts the
+   * subscription on the chosen plan as `active` with no provider until `until`. After that date the
+   * effective plan falls back to free. Subscriptions managed by Paddle are left alone.
+   */
+  activate(
+    id: string,
+    input: AdminOrgActivateInput,
+    actor: AdminContext,
+  ): Promise<AdminOrgActivateResult> {
+    const until = new Date(input.until);
+    if (until.getTime() <= Date.now()) {
+      throw new ConflictError('The end date must be in the future', {}, 'ACTIVATION_DATE_INVALID');
+    }
+    return this.withAdmin.withAdmin(
+      actor,
+      {
+        action: 'org.activate',
+        targetType: 'organization',
+        targetId: id,
+        orgId: id,
+        payload: { planKey: input.planKey, until: until.toISOString() },
+      },
+      async (tx) => {
+        const [org] = await tx
+          .select({ status: organizations.status })
+          .from(organizations)
+          .where(eq(organizations.id, id))
+          .limit(1);
+        if (!org) throw new NotFoundError('Restaurant not found');
+        const [plan] = await tx
+          .select({ id: plans.id })
+          .from(plans)
+          .where(eq(plans.key, input.planKey))
+          .limit(1);
+        if (!plan) throw new NotFoundError('Plan not found');
+        const [sub] = await tx
+          .select({ provider: subscriptions.provider })
+          .from(subscriptions)
+          .where(eq(subscriptions.orgId, id))
+          .limit(1);
+        if (!sub) throw new NotFoundError('Restaurant has no subscription');
+        if (sub.provider !== null) {
+          throw new ConflictError(
+            'This restaurant is billed through Paddle and cannot be activated by hand',
+            {},
+            'SUBSCRIPTION_MANAGED_BY_PROVIDER',
+          );
+        }
+        await tx
+          .update(subscriptions)
+          .set({
+            planId: plan.id,
+            status: 'active',
+            trialEndsAt: null,
+            currentPeriodEnd: until,
+            updatedAt: new Date(),
+          })
+          .where(eq(subscriptions.orgId, id));
+        return { id, planKey: input.planKey, currentPeriodEnd: until.toISOString() };
+      },
+    );
+  }
+
+  /**
    * The conditional UPDATE makes the transition atomic: a concurrent change leaves zero rows and the
    * transaction rolls back, so no audit row is written for a change that did not happen.
    */
@@ -160,7 +230,11 @@ export class AdminOrgsService {
           .where(and(eq(organizations.id, id), eq(organizations.status, current.status)))
           .returning({ id: organizations.id });
         if (updated.length === 0) {
-          throw new ConflictError('Restaurant status changed, reload and try again', {}, 'ORG_STATUS_CONFLICT');
+          throw new ConflictError(
+            'Restaurant status changed, reload and try again',
+            {},
+            'ORG_STATUS_CONFLICT',
+          );
         }
         return { id, status };
       },

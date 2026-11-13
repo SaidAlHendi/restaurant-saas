@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
+import { ADMIN_GRANT_PLAN_KEYS } from '@app/shared';
+
 import {
   Alert,
   AlertDescription,
@@ -13,6 +15,20 @@ import {
   CardHeader,
   CardTitle,
   ConfirmDialog,
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Input,
+  Label,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
   EmptyState,
   PageHeader,
   Skeleton,
@@ -91,18 +107,86 @@ export default function RestaurantDetailPage() {
         breadcrumbs={[backLink, restaurant.name]}
         breadcrumbLabel={t('restaurants.breadcrumb')}
         actions={
-          <Button
-            variant={vm.isSuspended ? 'default' : 'outline'}
-            disabled={!vm.canManageStatus || !vm.canChangeStatus}
-            title={vm.canManageStatus ? undefined : t('restaurants.superOnly')}
-            onClick={() => {
-              vm.setConfirmOpen(true);
-            }}
-          >
-            {vm.isSuspended ? t('restaurants.reactivate') : t('restaurants.suspend')}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="default"
+              disabled={!vm.canActivate || vm.isSuspended}
+              title={vm.canActivate ? undefined : t('restaurants.billingOnly')}
+              onClick={vm.openActivate}
+            >
+              {t('restaurants.activate')}
+            </Button>
+            <Button
+              variant={vm.isSuspended ? 'default' : 'outline'}
+              disabled={!vm.canManageStatus || !vm.canChangeStatus}
+              title={vm.canManageStatus ? undefined : t('restaurants.superOnly')}
+              onClick={() => {
+                vm.setConfirmOpen(true);
+              }}
+            >
+              {vm.isSuspended ? t('restaurants.reactivate') : t('restaurants.suspend')}
+            </Button>
+          </div>
         }
       />
+
+      <Dialog open={vm.activateOpen} onOpenChange={vm.setActivateOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('restaurants.activateTitle', { name: restaurant.name })}</DialogTitle>
+            <DialogDescription>{t('restaurants.activateBody')}</DialogDescription>
+          </DialogHeader>
+          <DialogBody className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
+              <Label>{t('restaurants.activatePlan')}</Label>
+              <Select
+                value={vm.activatePlan}
+                onValueChange={(value) => {
+                  vm.setActivatePlan(value as (typeof ADMIN_GRANT_PLAN_KEYS)[number]);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ADMIN_GRANT_PLAN_KEYS.map((key) => (
+                    <SelectItem key={key} value={key}>
+                      {key}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="activate-until">{t('restaurants.activateUntil')}</Label>
+              <Input
+                id="activate-until"
+                type="date"
+                value={vm.activateUntil}
+                onChange={(event) => {
+                  vm.setActivateUntil(event.target.value);
+                }}
+              />
+            </div>
+          </DialogBody>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                vm.setActivateOpen(false);
+              }}
+            >
+              {t('common.cancel')}
+            </Button>
+            <Button
+              disabled={vm.isActivating || vm.activateUntil === ''}
+              onClick={vm.confirmActivate}
+            >
+              {t('restaurants.activate')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <ConfirmDialog
         open={vm.confirmOpen}

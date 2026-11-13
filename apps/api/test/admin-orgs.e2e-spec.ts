@@ -9,6 +9,7 @@ import pg from 'pg';
 import { loadEnv, resetEnvCacheForTests } from '../src/config/env';
 import { ADMIN_DRIZZLE, type AdminDrizzleDb } from '../src/core/db/admin-db.tokens';
 import { adminUsers, auditLogs } from '../src/core/db/schema/admin';
+import { subscriptions } from '../src/core/db/schema/billing';
 import { organizations } from '../src/core/db/schema/tenancy';
 import { newUuidV7 } from '../src/lib/uuid';
 import { AppModule } from '../src/app.module';
@@ -236,6 +237,59 @@ describe('Admin restaurants list and detail (e2e)', () => {
         .where(eq(organizations.id, orgB.id));
       expect((await superAdmin().post(`/v1/admin/orgs/${orgB.id}/suspend`)).status).toBe(409);
       expect((await superAdmin().post(`/v1/admin/orgs/${orgB.id}/reactivate`)).status).toBe(409);
+    });
+  });
+
+  describe('activate', () => {
+    const billingAdmin = () => withBearer(apiAgent(app), adminToken);
+    const until = () => new Date(Date.now() + 30 * 86_400_000).toISOString();
+
+    it('rejects support admins, bad dates and unknown restaurants', async () => {
+      const body = { planKey: 'restaurant', until: until() };
+      expect(
+        (await apiAgent(app).post(`/v1/admin/orgs/${orgA.id}/activate`).send(body)).status,
+      ).toBe(401);
+      expect(
+        (await billingAdmin().post(`/v1/admin/orgs/${orgA.id}/activate`).send(body)).status,
+      ).toBe(403);
+      const superAdmin = withBearer(apiAgent(app), superToken);
+      expect(
+        (
+          await superAdmin
+            .post(`/v1/admin/orgs/${orgA.id}/activate`)
+            .send({ planKey: 'restaurant', until: new Date(Date.now() - 1000).toISOString() })
+        ).status,
+      ).toBe(409);
+      expect(
+        (
+          await superAdmin
+            .post(`/v1/admin/orgs/${orgA.id}/activate`)
+            .send({ planKey: 'free', until: until() })
+        ).status,
+      ).toBe(400);
+      expect(
+        (await superAdmin.post(`/v1/admin/orgs/${newUuidV7()}/activate`).send(body)).status,
+      ).toBe(404);
+    });
+
+    it('activates the plan until the date and writes an audit row', async () => {
+      const end = until();
+      const res = await withBearer(apiAgent(app), superToken)
+        .post(`/v1/admin/orgs/${orgA.id}/activate`)
+        .send({ planKey: 'business', until: end });
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({ id: orgA.id, planKey: 'business', currentPeriodEnd: end });
+
+      const [sub] = await adminDb
+        .select({ status: subscriptions.status, provider: subscriptions.provider })
+        .from(subscriptions)
+        .where(eq(subscriptions.orgId, orgA.id));
+      expect(sub).toEqual({ status: 'active', provider: null });
+      const audits = await adminDb
+        .select({ id: auditLogs.id })
+        .from(auditLogs)
+        .where(and(eq(auditLogs.action, 'org.activate'), eq(auditLogs.orgId, orgA.id)));
+      expect(audits).toHaveLength(1);
     });
   });
 });

@@ -417,6 +417,9 @@ export {
   adminOrgDetailSchema,
   adminOrgIdParamSchema,
   adminOrgStatusChangeSchema,
+  adminOrgActivateSchema,
+  adminOrgActivateResultSchema,
+  ADMIN_GRANT_PLAN_KEYS,
   ADMIN_ORG_PAGE_SIZE_MAX,
   ADMIN_ORG_STATUSES,
 } from './admin/orgs.js';
@@ -427,6 +430,8 @@ export type {
   AdminOrgListResponse,
   AdminOrgDetail,
   AdminOrgStatusChange,
+  AdminOrgActivateInput,
+  AdminOrgActivateResult,
 } from './admin/orgs.js';
 
 export {

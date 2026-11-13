@@ -1,7 +1,10 @@
 import {
+  adminOrgActivateResultSchema,
   adminOrgDetailSchema,
   adminOrgListResponseSchema,
   adminOrgStatusChangeSchema,
+  type AdminOrgActivateInput,
+  type AdminOrgActivateResult,
   type AdminOrgDetail,
   type AdminOrgListQuery,
   type AdminOrgListResponse,
@@ -46,6 +49,21 @@ export const restaurantsApi = baseApi.injectEndpoints({
         { type: 'Restaurant', id: 'LIST' },
       ],
     }),
+    activateRestaurant: builder.mutation<
+      AdminOrgActivateResult,
+      { id: string } & AdminOrgActivateInput
+    >({
+      query: ({ id, ...body }) => ({
+        url: `/v1/admin/orgs/${encodeURIComponent(id)}/activate`,
+        method: 'POST',
+        body,
+      }),
+      transformResponse: (response: unknown) => adminOrgActivateResultSchema.parse(response),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'Restaurant', id },
+        { type: 'Restaurant', id: 'LIST' },
+      ],
+    }),
   }),
 });
 
@@ -54,4 +72,5 @@ export const {
   useGetRestaurantQuery,
   useSuspendRestaurantMutation,
   useReactivateRestaurantMutation,
+  useActivateRestaurantMutation,
 } = restaurantsApi;

@@ -173,7 +173,15 @@
       "next": "Next",
       "page": "Page {{page}}",
       "more": "More pages"
-    }
+    },
+    "activate": "Activate plan",
+    "activateTitle": "Activate {{name}}",
+    "activateBody": "Use this when the restaurant paid outside Paddle. The plan stays active until the chosen date, then the restaurant falls back to the free plan.",
+    "activatePlan": "Plan",
+    "activateUntil": "Active until",
+    "activated": "Plan activated",
+    "activateError": "Could not activate the plan. Check the date, or the restaurant may be billed through Paddle.",
+    "billingOnly": "Only billing or super admins can activate a plan"
   },
   "users": {
     "title": "Users",

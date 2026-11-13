@@ -78,3 +78,20 @@ export const adminOrgStatusChangeSchema = z.object({
   status: adminOrgStatusSchema,
 });
 export type AdminOrgStatusChange = z.infer<typeof adminOrgStatusChangeSchema>;
+
+/** Paid plans an admin can grant by hand (the free plan needs no grant). */
+export const ADMIN_GRANT_PLAN_KEYS = ['menu', 'restaurant', 'business'] as const;
+
+/** Manual activation: the plan stays active until `until`, then the restaurant falls back to free. */
+export const adminOrgActivateSchema = z.object({
+  planKey: z.enum(ADMIN_GRANT_PLAN_KEYS),
+  until: z.iso.datetime(),
+});
+export type AdminOrgActivateInput = z.infer<typeof adminOrgActivateSchema>;
+
+export const adminOrgActivateResultSchema = z.object({
+  id: z.uuid(),
+  planKey: z.enum(ADMIN_GRANT_PLAN_KEYS),
+  currentPeriodEnd: z.iso.datetime(),
+});
+export type AdminOrgActivateResult = z.infer<typeof adminOrgActivateResultSchema>;

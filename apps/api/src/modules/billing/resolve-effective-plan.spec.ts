@@ -1,9 +1,6 @@
 import type { PlanKey } from '@app/shared';
 
-import {
-  resolveEffectivePlan,
-  type SubscriptionForPlanResolve,
-} from './resolve-effective-plan';
+import { resolveEffectivePlan, type SubscriptionForPlanResolve } from './resolve-effective-plan';
 
 const NOW = new Date('2026-06-15T12:00:00.000Z');
 const FUTURE = new Date('2026-07-01T00:00:00.000Z');
@@ -28,21 +25,24 @@ describe('resolveEffectivePlan', () => {
 
   describe('trialing', () => {
     it('uses plan when trial not expired', () => {
-      expect(
-        resolveEffectivePlan(sub({ status: 'trialing', trialEndsAt: FUTURE }), NOW),
-      ).toEqual({ planKey: 'restaurant', reason: 'trial' });
+      expect(resolveEffectivePlan(sub({ status: 'trialing', trialEndsAt: FUTURE }), NOW)).toEqual({
+        planKey: 'restaurant',
+        reason: 'trial',
+      });
     });
 
     it('free trial_expired when trialEndsAt in the past', () => {
-      expect(
-        resolveEffectivePlan(sub({ status: 'trialing', trialEndsAt: PAST }), NOW),
-      ).toEqual({ planKey: 'free', reason: 'trial_expired' });
+      expect(resolveEffectivePlan(sub({ status: 'trialing', trialEndsAt: PAST }), NOW)).toEqual({
+        planKey: 'free',
+        reason: 'trial_expired',
+      });
     });
 
     it('free trial_expired when trialEndsAt is null', () => {
-      expect(
-        resolveEffectivePlan(sub({ status: 'trialing', trialEndsAt: null }), NOW),
-      ).toEqual({ planKey: 'free', reason: 'trial_expired' });
+      expect(resolveEffectivePlan(sub({ status: 'trialing', trialEndsAt: null }), NOW)).toEqual({
+        planKey: 'free',
+        reason: 'trial_expired',
+      });
     });
   });
 
@@ -54,10 +54,29 @@ describe('resolveEffectivePlan', () => {
       });
     });
 
-    it('paid when paddle provider', () => {
+    it('comp with a future end date keeps the plan', () => {
       expect(
-        resolveEffectivePlan(sub({ status: 'active', provider: 'paddle' }), NOW),
-      ).toEqual({ planKey: 'restaurant', reason: 'paid' });
+        resolveEffectivePlan(
+          sub({ status: 'active', provider: null, currentPeriodEnd: FUTURE }),
+          NOW,
+        ),
+      ).toEqual({ planKey: 'restaurant', reason: 'comp' });
+    });
+
+    it('comp with an elapsed end date falls back to free', () => {
+      expect(
+        resolveEffectivePlan(
+          sub({ status: 'active', provider: null, currentPeriodEnd: PAST }),
+          NOW,
+        ),
+      ).toEqual({ planKey: 'free', reason: 'canceled' });
+    });
+
+    it('paid when paddle provider', () => {
+      expect(resolveEffectivePlan(sub({ status: 'active', provider: 'paddle' }), NOW)).toEqual({
+        planKey: 'restaurant',
+        reason: 'paid',
+      });
     });
   });
 
@@ -88,18 +107,19 @@ describe('resolveEffectivePlan', () => {
     });
 
     it('free canceled when currentPeriodEnd null', () => {
-      expect(
-        resolveEffectivePlan(sub({ status: 'canceled', provider: 'paddle' }), NOW),
-      ).toEqual({ planKey: 'free', reason: 'canceled' });
+      expect(resolveEffectivePlan(sub({ status: 'canceled', provider: 'paddle' }), NOW)).toEqual({
+        planKey: 'free',
+        reason: 'canceled',
+      });
     });
   });
 
   it.each(['free', 'menu', 'restaurant', 'business'] satisfies PlanKey[])(
     'preserves plan key for active comp plan %s',
     (planKey) => {
-      expect(
-        resolveEffectivePlan(sub({ status: 'active', planKey, provider: null }), NOW),
-      ).toEqual({ planKey, reason: 'comp' });
+      expect(resolveEffectivePlan(sub({ status: 'active', planKey, provider: null }), NOW)).toEqual(
+        { planKey, reason: 'comp' },
+      );
     },
   );
 });
