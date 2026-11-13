@@ -13,6 +13,7 @@ import {
   useRouteLoaderData,
 } from 'react-router';
 
+import { NotFoundPage } from './features/landing/components/NotFoundPage.js';
 import { getSocialLinks, getWhatsappNumber } from './lib/env.server.js';
 import type { RootLoaderData } from './lib/root-data.js';
 
@@ -64,31 +65,7 @@ export function ErrorBoundary({ error }: { error: unknown }) {
   const { pathname } = useLocation();
   if (isRouteErrorResponse(error) && error.status === 404) {
     const ar = pathname.split('/').filter(Boolean)[0] === 'ar';
-    return (
-      <main
-        dir={ar ? 'rtl' : 'ltr'}
-        className="flex min-h-screen flex-col items-center justify-center gap-4 p-6 text-center"
-      >
-        <img
-          src="/404-empty-plate.png"
-          alt=""
-          width={400}
-          height={301}
-          className="h-auto w-full max-w-sm rounded-lg"
-        />
-        <h1 className="text-2xl font-semibold">
-          {ar ? 'لم نجد هذه الصفحة' : "We can't find that page"}
-        </h1>
-        <p className="max-w-md text-muted-foreground">
-          {ar
-            ? 'الصفحة غير موجودة أو تم نقلها.'
-            : "The page you're looking for doesn't exist or has moved."}
-        </p>
-        <a href={ar ? '/ar' : '/en'} className="font-medium underline">
-          {ar ? 'العودة للرئيسية' : 'Back to home'}
-        </a>
-      </main>
-    );
+    return <NotFoundPage locale={ar ? 'ar' : 'en'} />;
   }
   let message = 'Unexpected error';
   if (isRouteErrorResponse(error)) {
