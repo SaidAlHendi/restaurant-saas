@@ -15,6 +15,7 @@ import {
   CardHeader,
   CardTitle,
   ConfirmDialog,
+  DatePicker,
   Dialog,
   DialogBody,
   DialogContent,
@@ -22,7 +23,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  Input,
   Label,
   Select,
   SelectContent,
@@ -159,13 +159,12 @@ export default function RestaurantDetailPage() {
             </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="activate-until">{t('restaurants.activateUntil')}</Label>
-              <Input
+              <DatePicker
                 id="activate-until"
-                type="date"
                 value={vm.activateUntil}
-                onChange={(event) => {
-                  vm.setActivateUntil(event.target.value);
-                }}
+                onChange={vm.setActivateUntil}
+                placeholder={t('restaurants.activateUntil')}
+                locale={vm.dateLocale}
               />
             </div>
           </DialogBody>

@@ -86,6 +86,7 @@ export function useRestaurantDetailPage() {
 
   return {
     t,
+    dateLocale: i18n.language,
     restaurant: data,
     isLoading,
     isError: isError && !notFound,
