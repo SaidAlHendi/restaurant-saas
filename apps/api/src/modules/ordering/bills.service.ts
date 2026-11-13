@@ -74,13 +74,26 @@ export class BillsService {
       return bill.id;
     }
 
-    const open = await tx
-      .select({ id: bills.id })
+    const candidates = await tx
+      .select({ id: bills.id, version: bills.version })
       .from(bills)
       .where(
         and(eq(bills.branchId, branchId), eq(bills.tableId, tableId), eq(bills.status, 'open')),
       )
       .orderBy(asc(bills.openedAt), asc(bills.id));
+    // A bill whose orders are all completed and paid is a finished visit: close it so the next
+    // guests at this table start fresh (orders paid one by one never close a bill by hand).
+    const open: { id: string }[] = [];
+    for (const candidate of candidates) {
+      if (await this.isSettled(tx, candidate.id)) {
+        await tx
+          .update(bills)
+          .set({ status: 'closed', closedAt: this.clock.now(), version: candidate.version + 1 })
+          .where(eq(bills.id, candidate.id));
+      } else {
+        open.push(candidate);
+      }
+    }
 
     if (!opts.newBill) {
       if (open.length === 1 && open[0]) return open[0].id;
@@ -105,6 +118,16 @@ export class BillsService {
       openedAt: this.clock.now(),
     });
     return id;
+  }
+
+  private async isSettled(tx: DrizzleTx, billId: string): Promise<boolean> {
+    const ledgers = (await this.loadLedgers(tx, billId, false)).filter(
+      (l) => l.order.status !== 'cancelled',
+    );
+    return ledgers.every(
+      (l) =>
+        l.order.status === 'completed' && computeDueMinor(l.order.totalMinor, l.paidMinor) === 0,
+    );
   }
 
   async listBills(ctx: RequestContext, branchId: string, query: BillListQuery): Promise<Bill[]> {

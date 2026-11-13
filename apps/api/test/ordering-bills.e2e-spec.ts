@@ -123,7 +123,9 @@ describe('Table bills (e2e)', () => {
     expect((chosen.body as { billId: string }).billId).toBe(secondBill);
 
     const open = await owner.get(`/v1/branches/${branchId}/bills`).query({ tableId: table });
-    expect((open.body as BillBody[]).map((x) => x.id).sort()).toEqual([firstBill, secondBill].sort());
+    expect((open.body as BillBody[]).map((x) => x.id).sort()).toEqual(
+      [firstBill, secondBill].sort(),
+    );
   });
 
   it('pays per guest, never twice, and closes once everything is done', async () => {
@@ -152,8 +154,14 @@ describe('Table bills (e2e)', () => {
     expect((await pay(billId, { itemIds: guest1.map((i) => i.id) })).status).toBe(422);
     const replayId = newUuidV7();
     const guest2 = items.filter((i) => i.seat === 'Guest 2');
-    const first = await pay(billId, { clientPaymentId: replayId, itemIds: guest2.map((i) => i.id) });
-    const replay = await pay(billId, { clientPaymentId: replayId, itemIds: guest2.map((i) => i.id) });
+    const first = await pay(billId, {
+      clientPaymentId: replayId,
+      itemIds: guest2.map((i) => i.id),
+    });
+    const replay = await pay(billId, {
+      clientPaymentId: replayId,
+      itemIds: guest2.map((i) => i.id),
+    });
     expect(first.status).toBe(201);
     expect(replay.status).toBe(200);
     expect((await bill(billId)).dueMinor).toBe(0);
@@ -197,5 +205,32 @@ describe('Table bills (e2e)', () => {
     const after = await bill(billId);
     expect(after.orders[0]?.dueMinor).toBe(0);
     expect(after.orders[1]?.dueMinor).toBe((b.orders[1]?.totalMinor ?? 0) - 100);
+  });
+
+  it('starts a fresh bill when the previous visit was paid per order and completed', async () => {
+    const table = await insertDiningTable(db, orgId, branchId, `L-${newUuidV7().slice(-6)}`);
+    const first = await order(table, [{ quantity: 1 }]);
+    const body = first.body as { id: string; billId: string; version: number; totalMinor: number };
+    const clientPaymentId = newUuidV7();
+    const paid = await owner
+      .post(`/v1/branches/${branchId}/orders/${body.id}/payments`)
+      .set('Idempotency-Key', clientPaymentId)
+      .send({
+        clientPaymentId,
+        expectedVersion: body.version,
+        method: 'card',
+        amountMinor: body.totalMinor,
+      });
+    expect(paid.status).toBe(201);
+    for (const status of ['preparing', 'ready', 'completed']) {
+      const cur = await owner.get(`/v1/branches/${branchId}/orders/${body.id}`);
+      const res = await owner
+        .post(`/v1/branches/${branchId}/orders/${body.id}/status`)
+        .send({ to: status, expectedVersion: (cur.body as { version: number }).version });
+      expect(res.status).toBeLessThan(300);
+    }
+    const next = await order(table, [{ quantity: 1 }]);
+    expect((next.body as { billId: string }).billId).not.toBe(body.billId);
+    expect((await bill(body.billId)).status).toBe('closed');
   });
 });
