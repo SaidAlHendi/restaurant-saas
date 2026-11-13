@@ -31,7 +31,6 @@ export function ClosingSection({ closing, wordmark, trialHref, photo }: ClosingS
       <PhotoTile
         image="tiramisu"
         alt={photo.alt}
-        caption={photo.caption}
         sizes="(min-width: 768px) 33vw, 100vw"
         className="md:col-span-4 md:min-h-[560px]"
       />

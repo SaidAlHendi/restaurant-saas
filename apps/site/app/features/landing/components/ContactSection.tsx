@@ -43,7 +43,6 @@ export function ContactSection({
       <PhotoTile
         image="room"
         alt={photo.alt}
-        caption={photo.caption}
         sizes="100vw"
         className="md:min-h-[320px]"
         focus="center 62%"

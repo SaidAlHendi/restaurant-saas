@@ -6,7 +6,6 @@ import { Picture } from './Picture.js';
 export type PhotoTileProps = {
   image: LandingImageName;
   alt: string;
-  caption: string;
   sizes: string;
   /** Grid placement and height. */
   className?: string;
@@ -15,8 +14,8 @@ export type PhotoTileProps = {
   focus?: string;
 };
 
-/** A full-bleed photo tile with a small caption chip. The crop is set with object-position. */
-export function PhotoTile({ image, alt, caption, sizes, className, priority, focus }: PhotoTileProps) {
+/** A full-bleed photo tile . The crop is set with object-position. */
+export function PhotoTile({ image, alt, sizes, className, priority, focus }: PhotoTileProps) {
   return (
     <div
       className={cn(
@@ -32,9 +31,6 @@ export function PhotoTile({ image, alt, caption, sizes, className, priority, foc
         className="absolute inset-0 size-full object-cover"
         objectPosition={focus}
       />
-      <span className="absolute bottom-3.5 start-3.5 rounded-md bg-foreground px-3 py-1.5 text-sm font-medium text-background">
-        {caption}
-      </span>
     </div>
   );
 }

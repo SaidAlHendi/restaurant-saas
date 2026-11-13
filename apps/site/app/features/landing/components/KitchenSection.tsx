@@ -35,7 +35,6 @@ export function KitchenSection({ kitchen, photo }: KitchenSectionProps) {
       <PhotoTile
         image="pass"
         alt={photo.alt}
-        caption={photo.caption}
         sizes="(min-width: 768px) 33vw, 100vw"
         className="md:col-span-4 md:min-h-[560px]"
         focus="38% center"

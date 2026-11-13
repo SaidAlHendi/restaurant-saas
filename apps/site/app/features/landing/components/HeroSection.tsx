@@ -32,7 +32,6 @@ export function HeroSection({ hero, photos, ctaHref }: HeroSectionProps) {
       <PhotoTile
         image="tablet"
         alt={photos.tablet.alt}
-        caption={photos.tablet.caption}
         sizes={TABLET_IMAGE_SIZES}
         className="md:col-span-7 md:min-h-0 md:aspect-[2336/1744]"
         priority
@@ -45,7 +44,6 @@ export function HeroSection({ hero, photos, ctaHref }: HeroSectionProps) {
       <PhotoTile
         image="room"
         alt={photos.room.alt}
-        caption={photos.room.caption}
         sizes="(min-width: 768px) 66vw, 100vw"
         className="md:col-span-8 md:min-h-[420px]"
         focus="center 62%"
@@ -53,7 +51,6 @@ export function HeroSection({ hero, photos, ctaHref }: HeroSectionProps) {
       <PhotoTile
         image="pasta"
         alt={photos.pasta.alt}
-        caption={photos.pasta.caption}
         sizes="(min-width: 768px) 33vw, 100vw"
         className="md:col-span-4 md:min-h-[420px]"
         focus="55% center"
