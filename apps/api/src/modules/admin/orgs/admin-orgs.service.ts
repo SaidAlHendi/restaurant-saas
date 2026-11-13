@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { and, asc, count, desc, eq, ilike, inArray, or, type SQL } from 'drizzle-orm';
+import { ADMIN_GRANT_PLAN_KEYS } from '@app/shared';
 import type {
   AdminOrgActivateInput,
   AdminOrgActivateResult,
@@ -75,6 +76,13 @@ export class AdminOrgsService {
       .from(subscriptions)
       .where(eq(subscriptions.orgId, id))
       .limit(1);
+    const grantablePlans = (
+      await this.db
+        .select({ key: plans.key, currency: plans.currency })
+        .from(plans)
+        .where(inArray(plans.key, [...ADMIN_GRANT_PLAN_KEYS]))
+        .orderBy(plans.sortOrder)
+    ).map((p) => ({ key: p.key as (typeof ADMIN_GRANT_PLAN_KEYS)[number], currency: p.currency }));
     const orgBranches = await this.db
       .select({
         id: branches.id,
@@ -103,8 +111,12 @@ export class AdminOrgsService {
             trialEndsAt: subscription.trialEndsAt?.toISOString() ?? null,
             currentPeriodEnd: subscription.currentPeriodEnd?.toISOString() ?? null,
             canceledAt: subscription.canceledAt?.toISOString() ?? null,
+            manualPaid: subscription.manualPaid,
+            manualAmountMinor: subscription.manualAmountMinor,
+            manualNote: subscription.manualNote,
           }
         : null,
+      grantablePlans,
       branches: orgBranches,
     };
   }
@@ -152,7 +164,13 @@ export class AdminOrgsService {
         targetType: 'organization',
         targetId: id,
         orgId: id,
-        payload: { planKey: input.planKey, until: until.toISOString() },
+        payload: {
+          planKey: input.planKey,
+          until: until.toISOString(),
+          paid: input.paid,
+          amountMinor: input.paid ? (input.amountMinor ?? 0) : 0,
+          note: input.note ?? null,
+        },
       },
       async (tx) => {
         const [org] = await tx
@@ -187,6 +205,9 @@ export class AdminOrgsService {
             status: 'active',
             trialEndsAt: null,
             currentPeriodEnd: until,
+            manualPaid: input.paid,
+            manualAmountMinor: input.paid ? (input.amountMinor ?? 0) : 0,
+            manualNote: input.note ? input.note : null,
             updatedAt: new Date(),
           })
           .where(eq(subscriptions.orgId, id));

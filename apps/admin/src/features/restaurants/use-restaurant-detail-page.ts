@@ -14,6 +14,17 @@ import {
   useSuspendRestaurantMutation,
 } from './restaurants.api.js';
 
+/** Minor units to a currency string; falls back to "CODE amount" for unknown codes. */
+function formatMoney(locale: string, amountMinor: number, currency: string): string {
+  try {
+    const formatter = new Intl.NumberFormat(locale, { style: 'currency', currency });
+    const digits = formatter.resolvedOptions().maximumFractionDigits ?? 2;
+    return formatter.format(amountMinor / 10 ** digits);
+  } catch {
+    return `${currency} ${String(amountMinor / 100)}`;
+  }
+}
+
 /** View model for one restaurant, including the confirm-then-suspend/reactivate action. */
 export function useRestaurantDetailPage() {
   const { t, i18n } = useTranslation();
@@ -32,23 +43,34 @@ export function useRestaurantDetailPage() {
   const [activatePlan, setActivatePlan] =
     useState<(typeof ADMIN_GRANT_PLAN_KEYS)[number]>('restaurant');
   const [activateUntil, setActivateUntil] = useState('');
+  const [activatePaid, setActivatePaid] = useState(false);
+  const [activateAmount, setActivateAmount] = useState<number | null>(null);
+  const [activateNote, setActivateNote] = useState('');
+  const activateCurrency =
+    data?.grantablePlans.find((plan) => plan.key === activatePlan)?.currency ?? 'USD';
 
   const openActivate = () => {
     // Default: one month from today, the common bank-transfer cycle.
     const next = new Date();
     next.setMonth(next.getMonth() + 1);
     setActivateUntil(next.toISOString().slice(0, 10));
+    setActivatePaid(false);
+    setActivateAmount(null);
+    setActivateNote('');
     setActivateOpen(true);
   };
 
   const confirmActivate = async () => {
-    if (!data || activateUntil === '') return;
+    if (!data || activateUntil === '' || (activatePaid && activateAmount === null)) return;
     try {
       // End of the chosen day (UTC) so "until 30 Nov" includes the 30th.
       await activate({
         id: data.id,
         planKey: activatePlan,
         until: new Date(`${activateUntil}T23:59:59.000Z`).toISOString(),
+        paid: activatePaid,
+        ...(activatePaid && activateAmount !== null ? { amountMinor: activateAmount } : {}),
+        ...(activateNote.trim() !== '' ? { note: activateNote.trim() } : {}),
       }).unwrap();
       setActivateOpen(false);
       toast.success(t('restaurants.activated'));
@@ -104,6 +126,31 @@ export function useRestaurantDetailPage() {
     setActivatePlan,
     activateUntil,
     setActivateUntil,
+    activatePaid,
+    setActivatePaid,
+    activateAmount,
+    setActivateAmount,
+    activateNote,
+    setActivateNote,
+    activateCurrency,
+    canConfirmActivate: activateUntil !== '' && (!activatePaid || activateAmount !== null),
+    /** What was recorded for a manual activation, ready to show; null when nothing was recorded. */
+    manualPayment:
+      data?.subscription?.manualPaid == null
+        ? null
+        : {
+            paid: data.subscription.manualPaid,
+            amount:
+              data.subscription.manualPaid && data.subscription.manualAmountMinor !== null
+                ? formatMoney(
+                    i18n.language,
+                    data.subscription.manualAmountMinor,
+                    data.grantablePlans.find((plan) => plan.key === data.planKey)?.currency ??
+                      data.defaultCurrency,
+                  )
+                : null,
+            note: data.subscription.manualNote,
+          },
     isActivating: activateState.isLoading,
     confirmActivate: () => void confirmActivate(),
     confirmOpen,

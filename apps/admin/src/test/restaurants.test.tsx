@@ -42,7 +42,15 @@ const detail = {
     trialEndsAt: null,
     currentPeriodEnd: '2026-12-01T00:00:00.000Z',
     canceledAt: null,
+    manualPaid: true,
+    manualAmountMinor: 3900,
+    manualNote: 'Bank transfer',
   },
+  grantablePlans: [
+    { key: 'menu', currency: 'USD' },
+    { key: 'restaurant', currency: 'USD' },
+    { key: 'business', currency: 'USD' },
+  ],
   branches: [
     { id: '0198f1a2-0000-7000-8000-000000000002', name: 'Main', slug: 'main', isActive: true },
   ],
@@ -132,6 +140,9 @@ describe('restaurants pages', () => {
     expect(await screen.findByRole('heading', { name: /Olive Cafe/ })).toBeInTheDocument();
     expect(screen.getAllByText('lina@example.com').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Pro').length).toBeGreaterThan(0);
+    // The recorded manual payment shows on the plan card.
+    expect(screen.getByText('Paid')).toBeInTheDocument();
+    expect(screen.getByText('Bank transfer')).toBeInTheDocument();
   });
 
   it('confirms, then reactivates a suspended restaurant and shows the new status', async () => {

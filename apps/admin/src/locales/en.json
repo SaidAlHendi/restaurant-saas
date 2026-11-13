@@ -24,10 +24,7 @@
       "body": "Restaurants, plans and support in one place.",
       "live": {
         "default": "Sahtain platform",
-        "lines": [
-          "Staff sign-in",
-          "Sessions are logged"
-        ],
+        "lines": ["Staff sign-in", "Sessions are logged"],
         "status": "Secure",
         "meta": "now"
       },
@@ -35,46 +32,31 @@
         {
           "title": "New restaurant",
           "meta": "09:12",
-          "lines": [
-            "Al Noor Grill",
-            "Riyadh"
-          ],
+          "lines": ["Al Noor Grill", "Riyadh"],
           "status": "Pending"
         },
         {
           "title": "Plan activated",
           "meta": "09:30",
-          "lines": [
-            "Golden Spoon",
-            "Monthly plan"
-          ],
+          "lines": ["Golden Spoon", "Monthly plan"],
           "status": "Done"
         },
         {
           "title": "Support request",
           "meta": "10:05",
-          "lines": [
-            "Printer not pairing",
-            "Branch: Olaya"
-          ],
+          "lines": ["Printer not pairing", "Branch: Olaya"],
           "status": "Open"
         },
         {
           "title": "New restaurant",
           "meta": "10:41",
-          "lines": [
-            "Cedar House",
-            "Jeddah"
-          ],
+          "lines": ["Cedar House", "Jeddah"],
           "status": "Pending"
         },
         {
           "title": "Plan expiring",
           "meta": "11:00",
-          "lines": [
-            "Tasty Corner",
-            "2 days left"
-          ],
+          "lines": ["Tasty Corner", "2 days left"],
           "status": "Notify"
         }
       ]
@@ -221,7 +203,10 @@
       "ownerEmail": "Email",
       "subscription": "Subscription",
       "trialEnds": "Trial ends",
-      "periodEnd": "Current period ends"
+      "periodEnd": "Current period ends",
+      "manualPaid": "Manual payment",
+      "manualAmount": "Amount received",
+      "manualNote": "Payment note"
     },
     "pagination": {
       "navigation": "Pagination",
@@ -237,7 +222,12 @@
     "activateUntil": "Active until",
     "activated": "Plan activated",
     "activateError": "Could not activate the plan. Check the date, or the restaurant may be billed through Paddle.",
-    "billingOnly": "Only billing or super admins can activate a plan"
+    "billingOnly": "Only billing or super admins can activate a plan",
+    "activatePaid": "Payment received",
+    "activateAmount": "Amount received",
+    "activateNote": "Note (optional)",
+    "paidYes": "Paid",
+    "paidNo": "Not paid"
   },
   "users": {
     "title": "Users",
