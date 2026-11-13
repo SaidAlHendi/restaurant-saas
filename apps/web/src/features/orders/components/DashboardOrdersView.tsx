@@ -5,7 +5,7 @@ import {
   Card,
   DataTable,
   EmptyState,
-  Input,
+  DatePicker,
   PageHeader,
   SearchInput,
   Select,
@@ -36,6 +36,7 @@ export function DashboardOrdersView(props: DashboardOrdersViewProps) {
     typeOptions,
     paymentMethodOptions,
     period,
+    dateLocale,
     rows,
     showEmptyState,
     isLoading,
@@ -104,7 +105,9 @@ export function DashboardOrdersView(props: DashboardOrdersViewProps) {
       header: labels.colPayment,
       cell: (row: (typeof rows)[number]) => (
         <span className="inline-flex items-center gap-2">
-          <Badge variant="outline" className="w-fit">{row.paymentLabel}</Badge>
+          <Badge variant="outline" className="w-fit">
+            {row.paymentLabel}
+          </Badge>
           {row.paymentMethodsLabel.length > 0 ? (
             <span className="text-muted-foreground text-xs">{row.paymentMethodsLabel}</span>
           ) : null}
@@ -182,26 +185,24 @@ export function DashboardOrdersView(props: DashboardOrdersViewProps) {
                 <label className="text-sm font-medium" htmlFor="orders-from">
                   {labels.from}
                 </label>
-                <Input
+                <DatePicker
                   id="orders-from"
-                  type="date"
                   value={period.customFrom}
-                  onChange={(e) => {
-                    period.onCustomFromChange(e.target.value);
-                  }}
+                  onChange={period.onCustomFromChange}
+                  placeholder={labels.from}
+                  locale={dateLocale}
                 />
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-medium" htmlFor="orders-to">
                   {labels.to}
                 </label>
-                <Input
+                <DatePicker
                   id="orders-to"
-                  type="date"
                   value={period.customTo}
-                  onChange={(e) => {
-                    period.onCustomToChange(e.target.value);
-                  }}
+                  onChange={period.onCustomToChange}
+                  placeholder={labels.to}
+                  locale={dateLocale}
                 />
               </div>
             </div>

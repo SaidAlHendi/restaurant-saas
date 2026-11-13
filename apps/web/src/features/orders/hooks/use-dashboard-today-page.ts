@@ -71,10 +71,7 @@ export function useDashboardTodayPage() {
   const onRealtimeEvent = useCallback(
     (_event: RealtimeEvent) => {
       dispatch(baseApi.util.invalidateTags([{ type: 'Order', id: 'LIST' }]));
-      if (
-        branchContext.businessDate !== null &&
-        activeDate === branchContext.businessDate
-      ) {
+      if (branchContext.businessDate !== null && activeDate === branchContext.businessDate) {
         dispatch(
           baseApi.util.invalidateTags([
             { type: 'DailyReport', id: `${branchId ?? ''}:default` },
@@ -132,6 +129,7 @@ export function useDashboardTodayPage() {
       void refetch();
       void branchContext.refetch();
     },
+    dateLocale: i18n.language,
     selectedDate: activeDate ?? lastValidDateRef.current ?? '',
     onSelectToday: () => {
       if (referenceToday) {
