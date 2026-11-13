@@ -20,6 +20,11 @@ export const createOrderBodySchema = z
     clientOrderId: z.uuid(),
     type: orderTypeSchema,
     tableId: z.uuid().optional(),
+    /** Dine-in only: join this open bill of the table instead of the default one. */
+    billId: z.uuid().optional(),
+    /** Dine-in only: open a separate bill for this table (two groups at one table). */
+    newBill: z.boolean().optional(),
+    billLabel: z.string().trim().min(1).max(60).optional(),
     customerName: z.string().trim().min(1).max(200).optional(),
     pagerNumber: z.number().int().min(1).max(9999).optional(),
     notes: z.string().trim().max(1000).optional(),
@@ -31,6 +36,20 @@ export const createOrderBodySchema = z
         code: 'custom',
         message: 'tableId is required for dine_in',
         path: ['tableId'],
+      });
+    }
+    if (body.type === 'takeaway' && (body.billId !== undefined || body.newBill === true)) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'bills are only for dine_in',
+        path: ['billId'],
+      });
+    }
+    if (body.billId !== undefined && body.newBill === true) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'billId and newBill cannot be combined',
+        path: ['newBill'],
       });
     }
     if (body.type === 'takeaway' && body.tableId !== undefined) {
@@ -61,6 +80,7 @@ export const orderItemSchema = z.object({
   notes: z.string().nullable(),
   status: orderItemStatusSchema,
   isAddition: z.boolean(),
+  seat: z.string().nullable().default(null),
   voidedAt: z.iso.datetime().nullable(),
   voidReason: z.string().nullable(),
   modifiers: z.array(orderItemModifierSchema),
@@ -100,6 +120,7 @@ export const orderSchema = orderMoneySchema.extend({
   paidMinor: moneyMinorSchema,
   dueMinor: moneyMinorSchema,
   tableId: z.uuid().nullable(),
+  billId: z.uuid().nullable().default(null),
   customerName: z.string().nullable(),
   pagerNumber: z.number().int().nullable(),
   notes: z.string().nullable(),

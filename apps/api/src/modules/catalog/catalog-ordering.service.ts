@@ -19,6 +19,7 @@ export type OrderLineSnapshot = {
   unitPriceMinor: number;
   quantity: number;
   notes: string | undefined;
+  seat: string | undefined;
   modifiers: OrderLineModifierSnapshot[];
 };
 
@@ -132,6 +133,7 @@ export class CatalogOrderingService {
       unitPriceMinor: product.priceMinor + modifierTotal,
       quantity: item.quantity,
       notes: item.notes,
+      seat: item.seat,
       modifiers,
     };
   }

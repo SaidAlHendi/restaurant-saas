@@ -2,6 +2,8 @@ import { createZodDto } from 'nestjs-zod';
 
 import {
   addOrderItemsBodySchema,
+  billListQuerySchema,
+  createBillPaymentBodySchema,
   changeOrderStatusBodySchema,
   createDiningTableBodySchema,
   createOrderBodySchema,
@@ -20,3 +22,5 @@ export class VoidOrderItemBodyDto extends createZodDto(voidOrderItemBodySchema) 
 
 export class CreateDiningTableBodyDto extends createZodDto(createDiningTableBodySchema) {}
 export class PatchDiningTableBodyDto extends createZodDto(patchDiningTableBodySchema) {}
+export class BillListQueryDto extends createZodDto(billListQuerySchema) {}
+export class CreateBillPaymentBodyDto extends createZodDto(createBillPaymentBodySchema) {}

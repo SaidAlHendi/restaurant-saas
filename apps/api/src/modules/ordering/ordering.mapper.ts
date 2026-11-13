@@ -105,6 +105,7 @@ export function mapOrder(row: OrderRow, paidMinor: number): Order {
     paidMinor,
     dueMinor,
     tableId: row.tableId,
+    billId: row.billId,
     customerName: row.customerName,
     pagerNumber: row.pagerNumber,
     notes: row.notes,
@@ -135,6 +136,7 @@ export function mapOrderItem(row: ItemRow, modifiers: ModifierRow[]) {
     notes: row.notes,
     status: row.status,
     isAddition: row.isAddition,
+    seat: row.seat,
     voidedAt: iso(row.voidedAt),
     voidReason: row.voidReason,
     modifiers: modifiers.map((m) => ({
@@ -251,4 +253,3 @@ export function mapKitchenBoardResponse(input: {
     }),
   };
 }
-

@@ -311,6 +311,23 @@ export type {
 export { changeOrderItemStatusBodySchema } from './kitchen/change-item-status.js';
 export type { ChangeOrderItemStatusBody } from './kitchen/change-item-status.js';
 
+export { computeItemShares } from './orders/item-shares.js';
+export {
+  billSchema,
+  billStatusSchema,
+  billListQuerySchema,
+  createBillPaymentBodySchema,
+  billPaymentResultSchema,
+} from './orders/bill.js';
+export type {
+  Bill,
+  BillItem,
+  BillOrder,
+  BillStatus,
+  BillListQuery,
+  CreateBillPaymentBody,
+  BillPaymentResult,
+} from './orders/bill.js';
 export { orderLineInputSchema } from './orders/order-line.js';
 export type { OrderLineInput } from './orders/order-line.js';
 
