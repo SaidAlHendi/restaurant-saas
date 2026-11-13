@@ -1,0 +1,1931 @@
+{
+  "info": {
+    "name": "Sahtain API",
+    "description": "Generated from NestJS controllers under apps/api/src. Tenant routes use AuthGuard (global APP_GUARD); admin routes use AdminAuthGuard. Set token/orgId/branchId after login.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "token", "value": "" },
+    { "key": "orgId", "value": "" },
+    { "key": "branchId", "value": "" },
+    { "key": "inviteToken", "value": "" },
+    { "key": "membershipId", "value": "" },
+    { "key": "categoryId", "value": "" },
+    { "key": "productId", "value": "" },
+    { "key": "groupId", "value": "" },
+    { "key": "modifierId", "value": "" },
+    { "key": "orderId", "value": "" },
+    { "key": "itemId", "value": "" },
+    { "key": "tableId", "value": "" },
+    { "key": "deviceId", "value": "" },
+    { "key": "clientOrderId", "value": "" },
+    { "key": "clientPaymentId", "value": "" },
+    { "key": "orgSlug", "value": "" },
+    { "key": "branchSlug", "value": "" },
+    { "key": "displayToken", "value": "" },
+    { "key": "tableToken", "value": "" },
+    { "key": "mediaPath", "value": "" },
+    { "key": "id", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Sign up",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"email\": \"\",\n  \"password\": \"\",\n  \"restaurantName\": \"\",\n  \"country\": \"SA\",\n  \"timezone\": \"Asia/Riyadh\",\n  \"currency\": \"SAR\",\n  \"defaultLocale\": \"ar\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/signup",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "auth", "signup"]
+            },
+            "description": "Public. Creates owner account + org + first branch."
+          }
+        },
+        {
+          "name": "Preview invite",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/invites/{{inviteToken}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "auth", "invites", "{{inviteToken}}"]
+            },
+            "description": "Public. Path variable :token → {{inviteToken}}."
+          }
+        },
+        {
+          "name": "Accept invite",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"\",\n  \"name\": \"\",\n  \"password\": \"\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/accept-invite",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "auth", "accept-invite"]
+            },
+            "description": "Public."
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"\",\n  \"password\": \"\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "auth", "login"]
+            },
+            "description": "Public. Sets refresh cookie; returns accessToken."
+          }
+        },
+        {
+          "name": "Refresh",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "auth", "refresh"]
+            },
+            "description": "Public. Uses refresh cookie (no body)."
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "auth", "logout"]
+            },
+            "description": "Public. Clears refresh cookie."
+          }
+        },
+        {
+          "name": "Pair POS device",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/device/pair",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "auth", "device", "pair"]
+            },
+            "description": "Public."
+          }
+        },
+        {
+          "name": "Device PIN users",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"deviceKey\": \"\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/device/pin-users",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "auth", "device", "pin-users"]
+            },
+            "description": "Public. Lists PIN users for a paired device."
+          }
+        },
+        {
+          "name": "Device PIN login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"membershipId\": \"\",\n  \"pin\": \"\",\n  \"deviceKey\": \"\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/device/pin-login",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "auth", "device", "pin-login"]
+            },
+            "description": "Public."
+          }
+        },
+        {
+          "name": "PIN login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"membershipId\": \"\",\n  \"pin\": \"\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/pin-login",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "auth", "pin-login"]
+            },
+            "description": "Guards: AuthGuard (global), Authenticated."
+          }
+        },
+        {
+          "name": "Switch org",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orgId\": \"{{orgId}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/switch-org",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "auth", "switch-org"]
+            },
+            "description": "Guards: AuthGuard (global), Authenticated."
+          }
+        },
+        {
+          "name": "Get me",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "me"]
+            },
+            "description": "Guards: AuthGuard (global), Authenticated."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Orgs",
+      "item": [
+        {
+          "name": "Get org settings",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/org/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "org", "settings"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('org.manage')."
+          }
+        },
+        {
+          "name": "Patch org settings",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"locales\": [\"ar\", \"en\"],\n  \"defaultLocale\": \"ar\",\n  \"defaultCurrency\": \"SAR\",\n  \"displayCurrency\": null,\n  \"exchangeRate\": null,\n  \"displayItemStep\": 0,\n  \"displayTotalStep\": 0\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/org/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "org", "settings"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('org.manage')."
+          }
+        },
+        {
+          "name": "Upload org logo",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": [],
+                  "description": "Image file (max 5MB)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/org/logo",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "org", "logo"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('org.manage'). Multipart field: file."
+          }
+        },
+        {
+          "name": "Delete org logo",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/org/logo",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "org", "logo"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('org.manage')."
+          }
+        },
+        {
+          "name": "List branches",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/branches",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "branches"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('branches.read')."
+          }
+        },
+        {
+          "name": "Create branch",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"slug\": \"\",\n  \"timezone\": \"Asia/Riyadh\",\n  \"currency\": \"SAR\",\n  \"taxRateBp\": 0,\n  \"taxInclusive\": false,\n  \"dayStartHour\": 4\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/branches",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "branches"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('branches.manage')."
+          }
+        },
+        {
+          "name": "List branch PIN users",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/branches/{{branchId}}/pin-users",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "branches", "{{branchId}}", "pin-users"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('orders.read'), BranchScopeGuard — RequireBranchScope."
+          }
+        },
+        {
+          "name": "Get display link",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/branches/{{branchId}}/display-link",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "branches", "{{branchId}}", "display-link"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('branches.manage')."
+          }
+        },
+        {
+          "name": "Rotate display link",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/branches/{{branchId}}/display-link/rotate",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "branches", "{{branchId}}", "display-link", "rotate"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('branches.manage')."
+          }
+        },
+        {
+          "name": "Patch branch",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"timezone\": \"Asia/Riyadh\",\n  \"currency\": \"SAR\",\n  \"taxRateBp\": 0,\n  \"taxInclusive\": false,\n  \"dayStartHour\": 4,\n  \"address\": \"\",\n  \"receiptHeader\": \"\",\n  \"receiptFooter\": \"\",\n  \"payBeforeSend\": false,\n  \"acceptsCard\": true,\n  \"pagerEnabled\": false,\n  \"isActive\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/branches/{{branchId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "branches", "{{branchId}}"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('branches.manage')."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Catalog",
+      "item": [
+        {
+          "name": "List categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "categories"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('menu.read')."
+          }
+        },
+        {
+          "name": "Reorder categories",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderedIds\": [\"\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/categories/reorder",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "categories", "reorder"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('menu.manage')."
+          }
+        },
+        {
+          "name": "Create category",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": { \"ar\": \"\", \"en\": \"\" },\n  \"isActive\": true,\n  \"availableInAllBranches\": true,\n  \"branchIds\": []\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "categories"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('menu.manage')."
+          }
+        },
+        {
+          "name": "Patch category",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": { \"ar\": \"\", \"en\": \"\" },\n  \"isActive\": true,\n  \"availableInAllBranches\": true,\n  \"branchIds\": []\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/categories/{{categoryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "categories", "{{categoryId}}"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('menu.manage')."
+          }
+        },
+        {
+          "name": "Delete category",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/categories/{{categoryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "categories", "{{categoryId}}"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('menu.manage'). Soft delete."
+          }
+        },
+        {
+          "name": "List products",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "products"],
+              "query": [
+                { "key": "categoryId", "value": "", "disabled": true },
+                { "key": "isActive", "value": "true", "disabled": true },
+                { "key": "search", "value": "", "disabled": true },
+                { "key": "branchId", "value": "{{branchId}}", "disabled": true },
+                { "key": "limit", "value": "20", "disabled": true },
+                { "key": "cursor", "value": "", "disabled": true }
+              ]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('menu.read'). Query: categoryId, isActive, search, branchId, cursor, limit."
+          }
+        },
+        {
+          "name": "Reorder products",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": \"\",\n  \"orderedIds\": [\"\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/products/reorder",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "products", "reorder"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('menu.manage')."
+          }
+        },
+        {
+          "name": "Get product",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/products/{{productId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "products", "{{productId}}"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('menu.read')."
+          }
+        },
+        {
+          "name": "Create product",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": \"\",\n  \"name\": { \"ar\": \"\", \"en\": \"\" },\n  \"description\": { \"ar\": \"\", \"en\": \"\" },\n  \"priceMinor\": 0,\n  \"isActive\": true,\n  \"availableInAllBranches\": true,\n  \"branchIds\": []\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "products"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('menu.manage')."
+          }
+        },
+        {
+          "name": "Patch product",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": \"\",\n  \"name\": { \"ar\": \"\", \"en\": \"\" },\n  \"description\": { \"ar\": \"\", \"en\": \"\" },\n  \"priceMinor\": 0,\n  \"isActive\": true,\n  \"availableInAllBranches\": true,\n  \"branchIds\": []\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/products/{{productId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "products", "{{productId}}"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('menu.manage')."
+          }
+        },
+        {
+          "name": "Delete product",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/products/{{productId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "products", "{{productId}}"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('menu.manage'). Soft delete."
+          }
+        },
+        {
+          "name": "Upload product image",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": [],
+                  "description": "Image file (max 5MB)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/products/{{productId}}/image",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "products", "{{productId}}", "image"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('menu.manage'). Multipart field: file."
+          }
+        },
+        {
+          "name": "Delete product image",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/products/{{productId}}/image",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "products", "{{productId}}", "image"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('menu.manage')."
+          }
+        },
+        {
+          "name": "Set product modifier groups",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"groupIds\": [\"\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/products/{{productId}}/modifier-groups",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "products", "{{productId}}", "modifier-groups"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('menu.manage')."
+          }
+        },
+        {
+          "name": "List modifier groups",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/modifier-groups",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "modifier-groups"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('menu.read')."
+          }
+        },
+        {
+          "name": "Get modifier group",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/modifier-groups/{{groupId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "modifier-groups", "{{groupId}}"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('menu.read')."
+          }
+        },
+        {
+          "name": "Create modifier group",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": { \"ar\": \"\", \"en\": \"\" },\n  \"minSelect\": 0,\n  \"maxSelect\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/modifier-groups",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "modifier-groups"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('menu.manage')."
+          }
+        },
+        {
+          "name": "Patch modifier group",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": { \"ar\": \"\", \"en\": \"\" },\n  \"minSelect\": 0,\n  \"maxSelect\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/modifier-groups/{{groupId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "modifier-groups", "{{groupId}}"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('menu.manage')."
+          }
+        },
+        {
+          "name": "Delete modifier group",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/modifier-groups/{{groupId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "modifier-groups", "{{groupId}}"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('menu.manage'). Soft delete."
+          }
+        },
+        {
+          "name": "Create modifier",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": { \"ar\": \"\", \"en\": \"\" },\n  \"priceDeltaMinor\": 0,\n  \"isActive\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/modifier-groups/{{groupId}}/modifiers",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "modifier-groups", "{{groupId}}", "modifiers"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('menu.manage')."
+          }
+        },
+        {
+          "name": "Reorder modifiers",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderedIds\": [\"\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/modifier-groups/{{groupId}}/modifiers/reorder",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "modifier-groups", "{{groupId}}", "modifiers", "reorder"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('menu.manage')."
+          }
+        },
+        {
+          "name": "Patch modifier",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": { \"ar\": \"\", \"en\": \"\" },\n  \"priceDeltaMinor\": 0,\n  \"isActive\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/modifier-groups/{{groupId}}/modifiers/{{modifierId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "modifier-groups", "{{groupId}}", "modifiers", "{{modifierId}}"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('menu.manage')."
+          }
+        },
+        {
+          "name": "Delete modifier",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/modifier-groups/{{groupId}}/modifiers/{{modifierId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "modifier-groups", "{{groupId}}", "modifiers", "{{modifierId}}"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('menu.manage'). Soft delete."
+          }
+        },
+        {
+          "name": "Get POS menu",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/branches/{{branchId}}/pos/menu",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "branches", "{{branchId}}", "pos", "menu"]
+            },
+            "description": "Guards: AuthGuard, BranchScopeGuard — RequireBranchScope, PermissionsGuard — RequirePermission('orders.create'), RequireFeature('pos.access')."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "Create order",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" },
+              { "key": "Idempotency-Key", "value": "{{clientOrderId}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientOrderId\": \"{{clientOrderId}}\",\n  \"type\": \"dine_in\",\n  \"tableId\": \"\",\n  \"customerName\": \"\",\n  \"pagerNumber\": 1,\n  \"notes\": \"\",\n  \"items\": [\n    {\n      \"productId\": \"\",\n      \"quantity\": 1,\n      \"notes\": \"\",\n      \"modifierIds\": []\n    }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/branches/{{branchId}}/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "branches", "{{branchId}}", "orders"]
+            },
+            "description": "Guards: AuthGuard, BranchScopeGuard — RequireBranchScope, PermissionsGuard — RequirePermission('orders.create'), RequireFeature('pos.access'). Header Idempotency-Key must equal clientOrderId."
+          }
+        },
+        {
+          "name": "List orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/branches/{{branchId}}/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "branches", "{{branchId}}", "orders"],
+              "query": [
+                { "key": "status", "value": "", "disabled": true },
+                { "key": "businessDate", "value": "", "disabled": true },
+                { "key": "dateFrom", "value": "", "disabled": true },
+                { "key": "dateTo", "value": "", "disabled": true },
+                { "key": "type", "value": "", "disabled": true },
+                { "key": "paymentMethod", "value": "", "disabled": true },
+                { "key": "activeOnly", "value": "true", "disabled": true },
+                { "key": "todayOnly", "value": "true", "disabled": true },
+                { "key": "q", "value": "", "disabled": true },
+                { "key": "limit", "value": "20", "disabled": true },
+                { "key": "cursor", "value": "", "disabled": true }
+              ]
+            },
+            "description": "Guards: AuthGuard, BranchScopeGuard — RequireBranchScope, PermissionsGuard — RequirePermission('orders.read')."
+          }
+        },
+        {
+          "name": "List order events",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/branches/{{branchId}}/orders/{{orderId}}/events",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "branches", "{{branchId}}", "orders", "{{orderId}}", "events"]
+            },
+            "description": "Guards: AuthGuard, BranchScopeGuard — RequireBranchScope, PermissionsGuard — RequirePermission('orders.read')."
+          }
+        },
+        {
+          "name": "Get order",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/branches/{{branchId}}/orders/{{orderId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "branches", "{{branchId}}", "orders", "{{orderId}}"]
+            },
+            "description": "Guards: AuthGuard, BranchScopeGuard — RequireBranchScope, PermissionsGuard — RequirePermission('orders.read')."
+          }
+        },
+        {
+          "name": "Change order status",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"preparing\",\n  \"expectedVersion\": 1,\n  \"reason\": \"\",\n  \"approval\": {\n    \"membershipId\": \"\",\n    \"pin\": \"\"\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/branches/{{branchId}}/orders/{{orderId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "branches", "{{branchId}}", "orders", "{{orderId}}", "status"]
+            },
+            "description": "Guards: AuthGuard, BranchScopeGuard — RequireBranchScope, Authenticated. Transition permissions checked in service."
+          }
+        },
+        {
+          "name": "Add order items",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expectedVersion\": 1,\n  \"items\": [\n    {\n      \"productId\": \"\",\n      \"quantity\": 1,\n      \"notes\": \"\",\n      \"modifierIds\": []\n    }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/branches/{{branchId}}/orders/{{orderId}}/items",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "branches", "{{branchId}}", "orders", "{{orderId}}", "items"]
+            },
+            "description": "Guards: AuthGuard, BranchScopeGuard — RequireBranchScope, PermissionsGuard — RequirePermission('orders.create'), RequireFeature('pos.access')."
+          }
+        },
+        {
+          "name": "Capture payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" },
+              { "key": "Idempotency-Key", "value": "{{clientPaymentId}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientPaymentId\": \"{{clientPaymentId}}\",\n  \"expectedVersion\": 1,\n  \"method\": \"cash\",\n  \"amountMinor\": 0,\n  \"tenderedMinor\": 0,\n  \"displayTenderedMinor\": 0\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/branches/{{branchId}}/orders/{{orderId}}/payments",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "branches", "{{branchId}}", "orders", "{{orderId}}", "payments"]
+            },
+            "description": "Guards: AuthGuard, BranchScopeGuard — RequireBranchScope, PermissionsGuard — RequirePermission('orders.create'), RequireFeature('pos.access'). Header Idempotency-Key must equal clientPaymentId."
+          }
+        },
+        {
+          "name": "Void order item",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expectedVersion\": 1,\n  \"reason\": \"\",\n  \"approval\": {\n    \"membershipId\": \"\",\n    \"pin\": \"\"\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/branches/{{branchId}}/orders/{{orderId}}/items/{{itemId}}/void",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "branches", "{{branchId}}", "orders", "{{orderId}}", "items", "{{itemId}}", "void"]
+            },
+            "description": "Guards: AuthGuard, BranchScopeGuard — RequireBranchScope, Authenticated."
+          }
+        },
+        {
+          "name": "Change order item status (KDS)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"ready\",\n  \"expectedVersion\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/branches/{{branchId}}/orders/{{orderId}}/items/{{itemId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "branches", "{{branchId}}", "orders", "{{orderId}}", "items", "{{itemId}}", "status"]
+            },
+            "description": "Guards: AuthGuard, BranchScopeGuard — RequireBranchScope, PermissionsGuard — RequirePermission('orders.update_status'), RequireFeature('kds.access')."
+          }
+        },
+        {
+          "name": "List tables",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/branches/{{branchId}}/tables",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "branches", "{{branchId}}", "tables"]
+            },
+            "description": "Guards: AuthGuard, BranchScopeGuard — RequireBranchScope, PermissionsGuard — RequirePermission('branches.read')."
+          }
+        },
+        {
+          "name": "Create table",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/branches/{{branchId}}/tables",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "branches", "{{branchId}}", "tables"]
+            },
+            "description": "Guards: AuthGuard, BranchScopeGuard — RequireBranchScope, PermissionsGuard — RequirePermission('branches.manage')."
+          }
+        },
+        {
+          "name": "Patch table",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"\",\n  \"isActive\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/branches/{{branchId}}/tables/{{tableId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "branches", "{{branchId}}", "tables", "{{tableId}}"]
+            },
+            "description": "Guards: AuthGuard, BranchScopeGuard — RequireBranchScope, PermissionsGuard — RequirePermission('branches.manage')."
+          }
+        },
+        {
+          "name": "Rotate table QR",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/branches/{{branchId}}/tables/{{tableId}}/rotate-qr",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "branches", "{{branchId}}", "tables", "{{tableId}}", "rotate-qr"]
+            },
+            "description": "Guards: AuthGuard, BranchScopeGuard — RequireBranchScope, PermissionsGuard — RequirePermission('tables.rotate_qr'), RequireFeature('menu.table_qr')."
+          }
+        },
+        {
+          "name": "Get kitchen board",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/branches/{{branchId}}/kitchen/board",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "branches", "{{branchId}}", "kitchen", "board"]
+            },
+            "description": "Guards: AuthGuard, BranchScopeGuard — RequireBranchScope, PermissionsGuard — RequirePermission('orders.read'), RequireFeature('kds.access')."
+          }
+        },
+        {
+          "name": "Daily report",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/branches/{{branchId}}/reports/daily",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "branches", "{{branchId}}", "reports", "daily"],
+              "query": [
+                { "key": "businessDate", "value": "", "disabled": true }
+              ]
+            },
+            "description": "Guards: AuthGuard, BranchScopeGuard — RequireBranchScope, PermissionsGuard — RequirePermission('reports.read'), RequireFeature('reports.basic')."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Staff",
+      "item": [
+        {
+          "name": "List staff",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/staff",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "staff"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('staff.read')."
+          }
+        },
+        {
+          "name": "Create staff invite",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"\",\n  \"name\": \"\",\n  \"roleKey\": \"cashier\",\n  \"allBranches\": false,\n  \"branchIds\": [\"{{branchId}}\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/staff/invites",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "staff", "invites"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('staff.manage')."
+          }
+        },
+        {
+          "name": "Create PIN-only staff",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"roleKey\": \"cashier\",\n  \"allBranches\": false,\n  \"branchIds\": [\"{{branchId}}\"],\n  \"pin\": \"1234\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/staff/pin-only",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "staff", "pin-only"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('staff.manage')."
+          }
+        },
+        {
+          "name": "Regenerate invite",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/staff/{{membershipId}}/invite/regenerate",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "staff", "{{membershipId}}", "invite", "regenerate"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('staff.manage')."
+          }
+        },
+        {
+          "name": "Revoke invite",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/staff/{{membershipId}}/invite",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "staff", "{{membershipId}}", "invite"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('staff.manage')."
+          }
+        },
+        {
+          "name": "Patch staff membership",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roleKey\": \"cashier\",\n  \"allBranches\": false,\n  \"branchIds\": [\"{{branchId}}\"],\n  \"status\": \"active\",\n  \"name\": \"\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/staff/{{membershipId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "staff", "{{membershipId}}"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('staff.manage')."
+          }
+        },
+        {
+          "name": "Get permission overrides",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/staff/{{membershipId}}/permissions",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "staff", "{{membershipId}}", "permissions"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('org.manage')."
+          }
+        },
+        {
+          "name": "Put permission overrides",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"grant\": [],\n  \"deny\": []\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/staff/{{membershipId}}/permissions",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "staff", "{{membershipId}}", "permissions"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('org.manage')."
+          }
+        },
+        {
+          "name": "Set staff PIN",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pin\": \"1234\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/staff/{{membershipId}}/pin",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "staff", "{{membershipId}}", "pin"]
+            },
+            "description": "Guards: AuthGuard, Authenticated."
+          }
+        },
+        {
+          "name": "Delete staff PIN",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/staff/{{membershipId}}/pin",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "staff", "{{membershipId}}", "pin"]
+            },
+            "description": "Guards: AuthGuard, Authenticated."
+          }
+        },
+        {
+          "name": "List memberships",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/memberships",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "memberships"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('staff.read')."
+          }
+        },
+        {
+          "name": "List POS devices",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/devices",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "devices"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('staff.manage')."
+          }
+        },
+        {
+          "name": "Create POS device",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"branchId\": \"{{branchId}}\",\n  \"name\": \"\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/devices",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "devices"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('staff.manage')."
+          }
+        },
+        {
+          "name": "Revoke POS device",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/devices/{{deviceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "devices", "{{deviceId}}"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('staff.manage'). Returns 204."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Billing",
+      "item": [
+        {
+          "name": "Get billing overview",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/billing",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "billing"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('billing.manage')."
+          }
+        },
+        {
+          "name": "Checkout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planKey\": \"restaurant\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/billing/checkout",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "billing", "checkout"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('billing.manage')."
+          }
+        },
+        {
+          "name": "Change plan",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planKey\": \"business\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/billing/change-plan",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "billing", "change-plan"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('billing.manage')."
+          }
+        },
+        {
+          "name": "Customer portal",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/billing/portal",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "billing", "portal"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('billing.manage'). No body."
+          }
+        },
+        {
+          "name": "Paddle webhook",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json", "type": "text" },
+              { "key": "Paddle-Signature", "value": "", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/billing/webhooks/paddle",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "billing", "webhooks", "paddle"]
+            },
+            "description": "Public. Verified via paddle-signature header + raw body. Not for manual use."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Admin login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"\",\n  \"password\": \"\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/admin/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "admin", "auth", "login"]
+            },
+            "description": "Public to tenant AuthGuard. No AdminAuthGuard. Returns admin accessToken."
+          }
+        },
+        {
+          "name": "Admin refresh",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/admin/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "admin", "auth", "refresh"]
+            },
+            "description": "Public to tenant AuthGuard. Uses admin refresh cookie."
+          }
+        },
+        {
+          "name": "Admin logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/admin/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "admin", "auth", "logout"]
+            },
+            "description": "Public to tenant AuthGuard. Clears admin refresh cookie."
+          }
+        },
+        {
+          "name": "Admin me",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/admin/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "admin", "me"]
+            },
+            "description": "Guards: AdminAuthGuard (class marked @Public for tenant AuthGuard)."
+          }
+        },
+        {
+          "name": "Admin me (alias)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/admin/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "admin", "auth", "me"]
+            },
+            "description": "Guards: AdminAuthGuard."
+          }
+        },
+        {
+          "name": "Admin overview",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/admin/overview",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "admin", "overview"]
+            },
+            "description": "Guards: AdminAuthGuard, RequireAdminRole('support')."
+          }
+        },
+        {
+          "name": "List admin orgs",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/admin/orgs",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "admin", "orgs"],
+              "query": [
+                { "key": "q", "value": "", "disabled": true },
+                { "key": "status", "value": "", "disabled": true },
+                { "key": "limit", "value": "20", "disabled": true },
+                { "key": "cursor", "value": "", "disabled": true }
+              ]
+            },
+            "description": "Guards: AdminAuthGuard."
+          }
+        },
+        {
+          "name": "Get admin org",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/admin/orgs/{{id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "admin", "orgs", "{{id}}"]
+            },
+            "description": "Guards: AdminAuthGuard."
+          }
+        },
+        {
+          "name": "Suspend org",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/admin/orgs/{{id}}/suspend",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "admin", "orgs", "{{id}}", "suspend"]
+            },
+            "description": "Guards: AdminAuthGuard, RequireAdminRole('super')."
+          }
+        },
+        {
+          "name": "Reactivate org",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/admin/orgs/{{id}}/reactivate",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "admin", "orgs", "{{id}}", "reactivate"]
+            },
+            "description": "Guards: AdminAuthGuard, RequireAdminRole('super')."
+          }
+        },
+        {
+          "name": "Activate org (manual grant)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planKey\": \"restaurant\",\n  \"until\": \"\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/admin/orgs/{{id}}/activate",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "admin", "orgs", "{{id}}", "activate"]
+            },
+            "description": "Guards: AdminAuthGuard, RequireAdminRole('billing')."
+          }
+        },
+        {
+          "name": "List admin users",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/admin/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "admin", "users"],
+              "query": [
+                { "key": "q", "value": "", "disabled": true },
+                { "key": "limit", "value": "20", "disabled": true },
+                { "key": "cursor", "value": "", "disabled": true }
+              ]
+            },
+            "description": "Guards: AdminAuthGuard, RequireAdminRole('support')."
+          }
+        },
+        {
+          "name": "List admin subscriptions",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/admin/subscriptions",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "admin", "subscriptions"],
+              "query": [
+                { "key": "q", "value": "", "disabled": true },
+                { "key": "limit", "value": "20", "disabled": true },
+                { "key": "cursor", "value": "", "disabled": true }
+              ]
+            },
+            "description": "Guards: AdminAuthGuard, RequireAdminRole('billing')."
+          }
+        },
+        {
+          "name": "List admin plans",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/admin/plans",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "admin", "plans"]
+            },
+            "description": "Guards: AdminAuthGuard, RequireAdminRole('billing')."
+          }
+        },
+        {
+          "name": "List admin audit",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/admin/audit",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "admin", "audit"],
+              "query": [
+                { "key": "limit", "value": "20", "disabled": true },
+                { "key": "cursor", "value": "", "disabled": true }
+              ]
+            },
+            "description": "Guards: AdminAuthGuard, RequireAdminRole('super')."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Public",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "health"]
+            },
+            "description": "Public. Process liveness (no DB/Redis)."
+          }
+        },
+        {
+          "name": "Ready",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/ready",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "ready"]
+            },
+            "description": "Public. Readiness (Postgres + Redis)."
+          }
+        },
+        {
+          "name": "Public menu by org slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/public/menus/{{orgSlug}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "public", "menus", "{{orgSlug}}"],
+              "query": [
+                { "key": "locale", "value": "ar", "disabled": true }
+              ]
+            },
+            "description": "Public (@Public on controller)."
+          }
+        },
+        {
+          "name": "Public menu by branch slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/public/menus/{{orgSlug}}/branches/{{branchSlug}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "public", "menus", "{{orgSlug}}", "branches", "{{branchSlug}}"],
+              "query": [
+                { "key": "locale", "value": "ar", "disabled": true }
+              ]
+            },
+            "description": "Public (@Public on controller)."
+          }
+        },
+        {
+          "name": "Ready display",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/public/display/{{displayToken}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "public", "display", "{{displayToken}}"]
+            },
+            "description": "Public. Customer-facing Ready screen."
+          }
+        },
+        {
+          "name": "Resolve table by QR token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/public/tables/{{tableToken}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "public", "tables", "{{tableToken}}"]
+            },
+            "description": "Public."
+          }
+        },
+        {
+          "name": "Sitemap",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/public/sitemap",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "public", "sitemap"]
+            },
+            "description": "Public."
+          }
+        },
+        {
+          "name": "Create lead",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"restaurantName\": \"\",\n  \"phone\": \"\",\n  \"email\": \"\",\n  \"country\": \"SA\",\n  \"branches\": 1,\n  \"locale\": \"ar\",\n  \"message\": \"\",\n  \"attribution\": {},\n  \"website\": \"\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/public/leads",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "public", "leads"]
+            },
+            "description": "Public. Contact form from apps/site."
+          }
+        },
+        {
+          "name": "Serve local media",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/media/{{mediaPath}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "media", "{{mediaPath}}"]
+            },
+            "description": "Public. Local storage only (dev). Wildcard path under /v1/media/*."
+          }
+        }
+      ]
+    }
+  ]
+}
