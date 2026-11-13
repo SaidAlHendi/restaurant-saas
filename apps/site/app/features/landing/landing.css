@@ -48,8 +48,9 @@ html[dir='rtl'] .lp-root {
 
 .lp-ghost {
   font-size: clamp(150px, 24vw, 360px);
-  line-height: 0.8;
-  margin-bottom: -0.14em;
+  line-height: 1.05;
+  margin-bottom: 0;
+  padding-bottom: 0.04em;
   text-align: center;
   color: color-mix(in oklch, var(--background) 10%, var(--foreground));
   user-select: none;
