@@ -146,7 +146,8 @@ export class AdminOrgsService {
   /**
    * Manual activation for restaurants that pay outside Paddle (bank transfer, cash): puts the
    * subscription on the chosen plan as `active` with no provider until `until`. After that date the
-   * effective plan falls back to free. Subscriptions managed by Paddle are left alone.
+   * effective plan falls back to free. Subscriptions managed by Paddle are left alone. Each call
+   * replaces the earlier payment record; the history stays in the audit log.
    */
   activate(
     id: string,

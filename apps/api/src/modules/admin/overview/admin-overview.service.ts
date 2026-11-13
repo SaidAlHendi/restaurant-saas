@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { and, count, countDistinct, eq, gte, inArray, sql } from 'drizzle-orm';
+import { and, count, countDistinct, eq, gt, gte, inArray, isNotNull, or, sql } from 'drizzle-orm';
 import { ADMIN_ORG_STATUSES, type AdminOrgStatus, type AdminOverview } from '@app/shared';
 
 import { ADMIN_DRIZZLE, type AdminDrizzleDb } from '../../../core/db/admin-db.tokens';
@@ -48,7 +48,16 @@ export class AdminOverviewService {
       })
       .from(subscriptions)
       .innerJoin(plans, eq(plans.id, subscriptions.planId))
-      .where(inArray(subscriptions.status, [...LIVE_STATUSES]))
+      .where(
+        and(
+          inArray(subscriptions.status, [...LIVE_STATUSES]),
+          // Manual grants count only while paid and unexpired, like their MRR.
+          or(
+            isNotNull(subscriptions.provider),
+            and(eq(subscriptions.manualPaid, true), gt(subscriptions.currentPeriodEnd, now)),
+          ),
+        ),
+      )
       .groupBy(plans.key, plans.name, plans.currency, plans.sortOrder)
       .orderBy(sql`count(*) desc`, plans.sortOrder);
 

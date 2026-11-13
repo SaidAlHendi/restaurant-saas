@@ -52,6 +52,7 @@ export const adminOrgBranchSchema = z.object({
   isActive: z.boolean(),
 });
 
+/** Paid plans an admin can grant by hand (the free plan needs no grant). */
 export const ADMIN_GRANT_PLAN_KEYS = ['menu', 'restaurant', 'business'] as const;
 
 export const adminOrgDetailSchema = adminOrgListItemSchema.extend({
@@ -87,7 +88,6 @@ export const adminOrgStatusChangeSchema = z.object({
 });
 export type AdminOrgStatusChange = z.infer<typeof adminOrgStatusChangeSchema>;
 
-/** Paid plans an admin can grant by hand (the free plan needs no grant). */
 /**
  * Manual activation: the plan stays active until `until`, then the restaurant falls back to free.
  * `paid` says whether money was received; `amountMinor` (plan currency, minor units) is required then

@@ -190,12 +190,17 @@ describe('Admin overview (e2e)', () => {
     const past = new Date(Date.now() - 86_400_000).toISOString();
 
     await grant(false, 0, future);
+    const subs = async () => (await get()).activeSubscriptions;
     const unpaid = await totalMrr();
+    const unpaidSubs = await subs();
     await grant(null, null, future);
     expect(await totalMrr()).toBe(unpaid);
+    expect(await subs()).toBe(unpaidSubs);
     await grant(true, 5000, past);
     expect(await totalMrr()).toBe(unpaid);
+    expect(await subs()).toBe(unpaidSubs);
     await grant(true, 5000, future);
     expect(await totalMrr()).toBe(unpaid + 5000);
+    expect(await subs()).toBe(unpaidSubs + 1);
   });
 });
