@@ -286,5 +286,13 @@ export const landingAr: LandingContent = {
     cookieSettings: 'إعدادات ملفات الارتباط',
     instagram: 'إنستغرام',
     facebook: 'فيسبوك',
+    tagline: 'الطلبات والمطبخ والكاشير في نظام واحد بسيط للمطاعم والمقاهي.',
+    exploreTitle: 'استكشف',
+    legalTitle: 'قانوني',
+    contactTitle: 'تواصل معنا',
+    whatsapp: 'واتساب',
+    email: 'البريد الإلكتروني',
+    language: 'اللغة',
+    madeFor: 'صُنع للمطاعم والمقاهي',
   },
 };

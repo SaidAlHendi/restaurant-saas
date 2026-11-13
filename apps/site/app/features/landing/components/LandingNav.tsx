@@ -44,7 +44,7 @@ export function LandingNav({ content, nav, navLinks, links }: LandingNavProps) {
               <span
                 aria-hidden
                 className={cn(
-                  'lp-display text-[13px] text-primary transition-transform group-hover:-translate-y-0.5',
+                  'text-[12px] font-semibold tabular-nums text-primary transition-transform group-hover:-translate-y-0.5',
                   link.active && 'text-warning',
                 )}
               >
@@ -99,7 +99,7 @@ export function LandingNav({ content, nav, navLinks, links }: LandingNavProps) {
                 link.active && 'bg-accent',
               )}
             >
-              <span aria-hidden className="lp-display text-[15px] text-primary">
+              <span aria-hidden className="text-[14px] font-semibold tabular-nums text-primary">
                 {String(index + 1).padStart(2, '0')}
               </span>
               {link.label}

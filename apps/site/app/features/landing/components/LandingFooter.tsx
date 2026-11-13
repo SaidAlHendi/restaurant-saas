@@ -1,11 +1,19 @@
+import { Button } from '@app/ui';
+
+import { SITE_CONTACT_EMAIL } from '../../../lib/brand.js';
 import type { SocialLinks } from '../../../lib/social.js';
 import type { LandingContent } from '../content/types.js';
 import type { SiteShellViewModel } from '../hooks/use-site-shell.js';
 
 export type LandingFooterProps = {
   footer: LandingContent['footer'];
+  navLinks: SiteShellViewModel['navLinks'];
   links: SiteShellViewModel['links'];
   social: SocialLinks;
+  whatsappHref: string;
+  switchName: string;
+  brand: string;
+  cta: string;
   onCookieSettings: () => void;
 };
 
@@ -26,44 +34,115 @@ function FacebookGlyph() {
   );
 }
 
-export function LandingFooter({ footer, links, social, onCookieSettings }: LandingFooterProps) {
+const COLUMN_TITLE = 'lp-display text-xl text-background';
+const LINK = 'text-lg text-accent-2 underline-offset-4 transition-colors hover:text-background hover:underline';
+
+export function LandingFooter({
+  footer,
+  navLinks,
+  links,
+  social,
+  whatsappHref,
+  switchName,
+  brand,
+  cta,
+  onCookieSettings,
+}: LandingFooterProps) {
   return (
-    <footer className="col-span-12 flex flex-wrap justify-between gap-2 px-3 py-2.5 text-sm text-accent-2">
-      <span>{footer.rights}</span>
-      <nav className="flex flex-wrap items-center gap-3">
-        <a className="underline-offset-4 hover:underline" href={links.privacy}>
-          {footer.privacy}
-        </a>
-        <a className="underline-offset-4 hover:underline" href={links.terms}>
-          {footer.terms}
-        </a>
-        <a className="underline-offset-4 hover:underline" href={links.contact}>
-          {footer.contact}
-        </a>
-        <a
-          className="grid size-8 place-items-center rounded-full hover:bg-card/10"
-          href={social.instagram}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label={footer.instagram}
-          title={footer.instagram}
-        >
-          <InstagramGlyph />
-        </a>
-        <a
-          className="grid size-8 place-items-center rounded-full hover:bg-card/10"
-          href={social.facebook}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label={footer.facebook}
-          title={footer.facebook}
-        >
-          <FacebookGlyph />
-        </a>
-        <button type="button" className="underline-offset-4 hover:underline" onClick={onCookieSettings}>
-          {footer.cookieSettings}
-        </button>
-      </nav>
+    <footer className="col-span-12 px-3 pt-8 pb-4 text-accent-2 md:px-6">
+      <div className="grid gap-10 md:grid-cols-12">
+        <div className="md:col-span-4">
+          <a href={links.home} className="lp-display text-5xl text-primary">
+            {brand}
+          </a>
+          <p className="mt-3 max-w-[22em] text-lg">{footer.tagline}</p>
+          <Button asChild size="lg" className="mt-5">
+            <a href={links.contact}>{cta}</a>
+          </Button>
+        </div>
+
+        <nav aria-label={footer.exploreTitle} className="md:col-span-2">
+          <h2 className={COLUMN_TITLE}>{footer.exploreTitle}</h2>
+          <ul className="mt-3 grid gap-2">
+            {navLinks.map((link) => (
+              <li key={link.key}>
+                <a className={LINK} href={link.href}>
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <nav aria-label={footer.legalTitle} className="md:col-span-2">
+          <h2 className={COLUMN_TITLE}>{footer.legalTitle}</h2>
+          <ul className="mt-3 grid gap-2">
+            <li>
+              <a className={LINK} href={links.privacy}>
+                {footer.privacy}
+              </a>
+            </li>
+            <li>
+              <a className={LINK} href={links.terms}>
+                {footer.terms}
+              </a>
+            </li>
+            <li>
+              <button type="button" className={LINK} onClick={onCookieSettings}>
+                {footer.cookieSettings}
+              </button>
+            </li>
+          </ul>
+        </nav>
+
+        <div className="md:col-span-4">
+          <h2 className={COLUMN_TITLE}>{footer.contactTitle}</h2>
+          <ul className="mt-3 grid gap-2">
+            <li>
+              <a className={LINK} href={links.mailto}>
+                {footer.email}: {SITE_CONTACT_EMAIL}
+              </a>
+            </li>
+            <li>
+              <a className={LINK} href={whatsappHref} target="_blank" rel="noopener noreferrer">
+                {footer.whatsapp}
+              </a>
+            </li>
+            <li>
+              <a className={LINK} href={links.switchHref} lang={links.switchLang} hrefLang={links.switchLang}>
+                {footer.language}: {switchName}
+              </a>
+            </li>
+          </ul>
+          <div className="mt-4 flex items-center gap-2">
+            <a
+              className="grid size-11 place-items-center rounded-full ring-1 ring-accent-2/40 ring-inset hover:bg-card/10 hover:text-background"
+              href={social.instagram}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={footer.instagram}
+              title={footer.instagram}
+            >
+              <InstagramGlyph />
+            </a>
+            <a
+              className="grid size-11 place-items-center rounded-full ring-1 ring-accent-2/40 ring-inset hover:bg-card/10 hover:text-background"
+              href={social.facebook}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={footer.facebook}
+              title={footer.facebook}
+            >
+              <FacebookGlyph />
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-10 flex flex-wrap justify-between gap-2 border-t border-accent-2/25 pt-4 text-base">
+        <span>{footer.rights}</span>
+        <span>{footer.madeFor}</span>
+      </div>
     </footer>
   );
 }

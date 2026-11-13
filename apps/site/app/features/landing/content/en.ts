@@ -287,5 +287,13 @@ export const landingEn: LandingContent = {
     cookieSettings: 'Cookie settings',
     instagram: 'Instagram',
     facebook: 'Facebook',
+    tagline: 'Orders, kitchen and cashier in one simple system for restaurants and cafes.',
+    exploreTitle: 'Explore',
+    legalTitle: 'Legal',
+    contactTitle: 'Get in touch',
+    whatsapp: 'WhatsApp',
+    email: 'Email',
+    language: 'Language',
+    madeFor: 'Made for restaurants and cafes',
   },
 };

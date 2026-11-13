@@ -104,6 +104,14 @@ export type LandingContent = {
     cookieSettings: string;
     instagram: string;
     facebook: string;
+    tagline: string;
+    exploreTitle: string;
+    legalTitle: string;
+    contactTitle: string;
+    whatsapp: string;
+    email: string;
+    language: string;
+    madeFor: string;
   };
 };
 
