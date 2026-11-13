@@ -39,6 +39,10 @@
     "admin": "Admin"
   },
   "auth": {
+    "aside": {
+      "title": "Welcome back to the kitchen",
+      "body": "Orders, kitchen and cashier, all in one place."
+    },
     "login": {
       "title": "Sign in",
       "submit": "Sign in",

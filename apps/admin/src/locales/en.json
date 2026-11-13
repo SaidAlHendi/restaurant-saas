@@ -19,6 +19,10 @@
     "billing": "Billing"
   },
   "auth": {
+    "aside": {
+      "title": "Platform control",
+      "body": "Restaurants, plans and support in one place."
+    },
     "logout": "Sign out",
     "fields": {
       "email": "Email",
