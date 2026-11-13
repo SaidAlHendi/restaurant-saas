@@ -32,6 +32,13 @@ export function resolveEffectivePlan(
 
   if (subscription.status === 'active') {
     if (subscription.provider === null) {
+      // A manual activation carries an end date; without one it is a permanent grant.
+      if (
+        subscription.currentPeriodEnd !== null &&
+        subscription.currentPeriodEnd.getTime() <= nowMs
+      ) {
+        return { planKey: 'free', reason: 'canceled' };
+      }
       return { planKey: subscription.planKey, reason: 'comp' };
     }
     return { planKey: subscription.planKey, reason: 'paid' };
@@ -41,10 +48,7 @@ export function resolveEffectivePlan(
     return { planKey: subscription.planKey, reason: 'past_due' };
   }
 
-  if (
-    subscription.currentPeriodEnd !== null &&
-    subscription.currentPeriodEnd.getTime() > nowMs
-  ) {
+  if (subscription.currentPeriodEnd !== null && subscription.currentPeriodEnd.getTime() > nowMs) {
     return { planKey: subscription.planKey, reason: 'canceled' };
   }
   return { planKey: 'free', reason: 'canceled' };

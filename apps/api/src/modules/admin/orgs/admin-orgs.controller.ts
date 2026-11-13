@@ -1,13 +1,16 @@
-import { Controller, Get, HttpCode, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, Post, Query, UseGuards } from '@nestjs/common';
 
 import { Public } from '../../../core/auth/public.decorator';
 import { AdminAuthGuard } from '../admin-auth.guard';
 import { AdminCtx, type AdminContext } from '../admin-context';
 import { RequireAdminRole } from '../require-admin-role.decorator';
-import { AdminOrgIdParamDto, AdminOrgListQueryDto } from './admin-orgs.dto';
+import { AdminOrgActivateDto, AdminOrgIdParamDto, AdminOrgListQueryDto } from './admin-orgs.dto';
 import { AdminOrgsService } from './admin-orgs.service';
 
-/** Reads are open to every admin role; suspend and reactivate need the `super` role and are audited. */
+/**
+ * Reads are open to every admin role; suspend and reactivate need the `super` role, manual
+ * activation the `billing` role. All writes are audited.
+ */
 @Public()
 @UseGuards(AdminAuthGuard)
 @Controller('v1/admin/orgs')
@@ -36,5 +39,16 @@ export class AdminOrgsController {
   @RequireAdminRole('super')
   reactivate(@Param() params: AdminOrgIdParamDto, @AdminCtx() admin: AdminContext) {
     return this.orgs.reactivate(params.id, admin);
+  }
+
+  @Post(':id/activate')
+  @HttpCode(200)
+  @RequireAdminRole('billing')
+  activate(
+    @Param() params: AdminOrgIdParamDto,
+    @Body() body: AdminOrgActivateDto,
+    @AdminCtx() admin: AdminContext,
+  ) {
+    return this.orgs.activate(params.id, body, admin);
   }
 }

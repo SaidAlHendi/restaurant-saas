@@ -2,11 +2,13 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
+import { ADMIN_GRANT_PLAN_KEYS } from '@app/shared';
 import { toast } from '@app/ui';
 
 import { useAppSelector } from '../../app/hooks.js';
 import { selectAdmin } from '../session/session.selectors.js';
 import {
+  useActivateRestaurantMutation,
   useGetRestaurantQuery,
   useReactivateRestaurantMutation,
   useSuspendRestaurantMutation,
@@ -24,6 +26,36 @@ export function useRestaurantDetailPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [suspend, suspendState] = useSuspendRestaurantMutation();
   const [reactivate, reactivateState] = useReactivateRestaurantMutation();
+
+  const [activate, activateState] = useActivateRestaurantMutation();
+  const [activateOpen, setActivateOpen] = useState(false);
+  const [activatePlan, setActivatePlan] =
+    useState<(typeof ADMIN_GRANT_PLAN_KEYS)[number]>('restaurant');
+  const [activateUntil, setActivateUntil] = useState('');
+
+  const openActivate = () => {
+    // Default: one month from today, the common bank-transfer cycle.
+    const next = new Date();
+    next.setMonth(next.getMonth() + 1);
+    setActivateUntil(next.toISOString().slice(0, 10));
+    setActivateOpen(true);
+  };
+
+  const confirmActivate = async () => {
+    if (!data || activateUntil === '') return;
+    try {
+      // End of the chosen day (UTC) so "until 30 Nov" includes the 30th.
+      await activate({
+        id: data.id,
+        planKey: activatePlan,
+        until: new Date(`${activateUntil}T23:59:59.000Z`).toISOString(),
+      }).unwrap();
+      setActivateOpen(false);
+      toast.success(t('restaurants.activated'));
+    } catch {
+      toast.error(t('restaurants.activateError'));
+    }
+  };
 
   const isSuspended = data?.status === 'suspended';
   // Only suspended restaurants can be reactivated; trial, active and past_due can be suspended.
@@ -63,6 +95,16 @@ export function useRestaurantDetailPage() {
     /** Suspend / reactivate is for the `super` role; support and billing see a disabled button. */
     canManageStatus: role === 'super',
     canChangeStatus,
+    canActivate: role === 'super' || role === 'billing',
+    activateOpen,
+    setActivateOpen,
+    openActivate,
+    activatePlan,
+    setActivatePlan,
+    activateUntil,
+    setActivateUntil,
+    isActivating: activateState.isLoading,
+    confirmActivate: () => void confirmActivate(),
     confirmOpen,
     setConfirmOpen,
     isChangingStatus: suspendState.isLoading || reactivateState.isLoading,
