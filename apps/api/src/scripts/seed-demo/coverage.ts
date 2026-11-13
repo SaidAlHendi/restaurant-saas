@@ -28,6 +28,8 @@ export const SEED_COVERAGE: Record<string, SeedCoverageEntry> = {
   order_items: 'seeded',
   order_item_modifiers: 'seeded',
   payments: 'seeded',
+  bills: { skipped: 'seeded orders are historical with no open table bills' },
+  payment_items: { skipped: 'only written when a bill payment covers chosen items' },
   pos_devices: { skipped: 'runtime only (an owner links a device with a pairing code)' },
   order_events: 'seeded',
   outbox_events: {
