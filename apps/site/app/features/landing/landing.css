@@ -215,11 +215,12 @@ html[lang='en'] .lp-ghost {
 .nf-ghost {
   position: absolute;
   inset-inline: 0;
-  bottom: -0.12em;
+  top: 50%;
   z-index: 0;
   text-align: center;
-  font-size: clamp(160px, min(34vw, 48dvh), 520px);
+  font-size: clamp(160px, min(40vw, 62dvh), 700px);
   line-height: 0.8;
+  transform: translateY(-46%);
   color: color-mix(in oklch, var(--primary) 82%, black);
   user-select: none;
   pointer-events: none;

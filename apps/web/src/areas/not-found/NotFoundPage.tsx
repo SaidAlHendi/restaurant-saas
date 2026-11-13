@@ -24,8 +24,8 @@ export default function NotFoundPage() {
         <div aria-hidden className="nf-ghost" style={displayStyle}>
           404
         </div>
-        <div className="relative z-10 max-w-[18em]">
-          <h1 className="text-[clamp(36px,4.6vw,76px)] leading-[1.08]" style={displayStyle}>
+        <div className="relative z-10 max-w-[26em]">
+          <h1 className="text-[clamp(28px,min(4.6vw,7dvh),76px)] leading-[1.1]" style={displayStyle}>
             {t('notFoundPage.title')}
           </h1>
           <p className="mt-3 max-w-[28em] text-lg">{t('notFoundPage.body')}</p>
@@ -33,7 +33,7 @@ export default function NotFoundPage() {
             <Link to="/">{t('notFoundPage.home')}</Link>
           </Button>
         </div>
-        <div className="relative z-10 flex flex-col items-center justify-center min-h-0 flex-1 gap-4 pb-2 md:flex-row md:justify-around md:gap-6 md:pb-4">
+        <div className="relative z-10 flex flex-col items-center justify-center min-h-0 flex-1 gap-4 pb-2 md:flex-row md:justify-between md:gap-6 md:pb-4">
           <div
             className="nf-ticket"
             role="img"
@@ -66,7 +66,7 @@ export default function NotFoundPage() {
             alt=""
             width={1168}
             height={880}
-            className="nf-plate h-auto max-h-[26dvh] w-auto md:max-h-[46dvh]"
+            className="nf-plate h-auto max-h-[26dvh] w-auto md:max-h-[40dvh]"
           />
         </div>
       </main>
