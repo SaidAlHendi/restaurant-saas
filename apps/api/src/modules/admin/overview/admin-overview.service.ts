@@ -30,6 +30,8 @@ export class AdminOverviewService {
       .where(eq(subscriptions.status, 'trialing'));
 
     // MRR = price × branches for per-branch plans, price for flat plans. Past-due still counts as live.
+    // Manually activated subscriptions (no provider) count only what was recorded as paid, and only
+    // until their period ends; an unpaid or expired grant adds 0.
     const mixRows = await this.db
       .select({
         planKey: plans.key,
@@ -37,7 +39,12 @@ export class AdminOverviewService {
         currency: plans.currency,
         sortOrder: plans.sortOrder,
         subscriptions: count(),
-        mrrMinor: sql<string>`coalesce(sum(${plans.priceMinor} * case when ${plans.perBranch} then ${subscriptions.branchQuantity} else 1 end), 0)`,
+        mrrMinor: sql<string>`coalesce(sum(case
+          when ${subscriptions.provider} is null then
+            case when ${subscriptions.manualPaid} is true and ${subscriptions.currentPeriodEnd} > ${now.toISOString()}::timestamptz
+              then coalesce(${subscriptions.manualAmountMinor}, 0) else 0 end
+          else ${plans.priceMinor} * case when ${plans.perBranch} then ${subscriptions.branchQuantity} else 1 end
+        end), 0)`,
       })
       .from(subscriptions)
       .innerJoin(plans, eq(plans.id, subscriptions.planId))

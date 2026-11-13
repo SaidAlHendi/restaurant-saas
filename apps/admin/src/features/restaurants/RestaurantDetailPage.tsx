@@ -24,11 +24,14 @@ import {
   DialogHeader,
   DialogTitle,
   Label,
+  MoneyInput,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Switch,
+  Textarea,
   EmptyState,
   PageHeader,
   Skeleton,
@@ -167,6 +170,38 @@ export default function RestaurantDetailPage() {
                 locale={vm.dateLocale}
               />
             </div>
+            <div className="flex items-center gap-2">
+              <Switch
+                id="activate-paid"
+                checked={vm.activatePaid}
+                onCheckedChange={vm.setActivatePaid}
+              />
+              <Label htmlFor="activate-paid">{t('restaurants.activatePaid')}</Label>
+            </div>
+            {vm.activatePaid ? (
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="activate-amount">{t('restaurants.activateAmount')}</Label>
+                <MoneyInput
+                  id="activate-amount"
+                  currency={vm.activateCurrency}
+                  locale={vm.dateLocale}
+                  value={vm.activateAmount}
+                  onValueChange={vm.setActivateAmount}
+                />
+              </div>
+            ) : null}
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="activate-note">{t('restaurants.activateNote')}</Label>
+              <Textarea
+                id="activate-note"
+                rows={2}
+                maxLength={200}
+                value={vm.activateNote}
+                onChange={(event) => {
+                  vm.setActivateNote(event.target.value);
+                }}
+              />
+            </div>
           </DialogBody>
           <DialogFooter>
             <Button
@@ -178,7 +213,7 @@ export default function RestaurantDetailPage() {
               {t('common.cancel')}
             </Button>
             <Button
-              disabled={vm.isActivating || vm.activateUntil === ''}
+              disabled={vm.isActivating || !vm.canConfirmActivate}
               onClick={vm.confirmActivate}
             >
               {t('restaurants.activate')}
@@ -256,6 +291,19 @@ export default function RestaurantDetailPage() {
               <Field label={t('restaurants.fields.periodEnd')}>
                 {vm.formatDate(subscription?.currentPeriodEnd ?? null)}
               </Field>
+              {vm.manualPayment ? (
+                <>
+                  <Field label={t('restaurants.fields.manualPaid')}>
+                    {vm.manualPayment.paid ? t('restaurants.paidYes') : t('restaurants.paidNo')}
+                  </Field>
+                  <Field label={t('restaurants.fields.manualAmount')}>
+                    {vm.manualPayment.amount ?? none}
+                  </Field>
+                  <Field label={t('restaurants.fields.manualNote')}>
+                    {vm.manualPayment.note ?? none}
+                  </Field>
+                </>
+              ) : null}
             </dl>
           </CardContent>
         </Card>

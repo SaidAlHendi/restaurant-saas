@@ -68,6 +68,10 @@ export const subscriptions = pgTable('subscriptions', {
   canceledAt: timestamp('canceled_at', { withTimezone: true }),
   scheduledChange: jsonb('scheduled_change'),
   providerEventAt: timestamp('provider_event_at', { withTimezone: true }),
+  /** Manual activation (provider null): was it paid, how much (minor units, plan currency) and a note. */
+  manualPaid: boolean('manual_paid'),
+  manualAmountMinor: integer('manual_amount_minor'),
+  manualNote: text('manual_note'),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 

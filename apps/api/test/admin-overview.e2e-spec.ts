@@ -124,7 +124,7 @@ describe('Admin overview (e2e)', () => {
       .set({ status: 'suspended' })
       .where(eq(organizations.id, orgId));
     await asOrg(
-      `UPDATE subscriptions SET status = 'active', branch_quantity = 3 WHERE org_id = $1::uuid`,
+      `UPDATE subscriptions SET status = 'active', provider = 'paddle', branch_quantity = 3 WHERE org_id = $1::uuid`,
       [orgId],
     );
     const [branch] = await adminDb
@@ -173,5 +173,29 @@ describe('Admin overview (e2e)', () => {
     );
     const old = await get();
     expect(old.churned30d).toBe(before.churned30d);
+  });
+
+  it('counts a manual grant at its recorded payment, and only while it lasts', async () => {
+    const grant = (paid: boolean | null, amountMinor: number | null, periodEnd: string) =>
+      asOrg(
+        `UPDATE subscriptions
+         SET plan_id = (SELECT id FROM plans WHERE key = 'restaurant'), status = 'active', provider = NULL,
+             canceled_at = NULL, branch_quantity = 2, manual_paid = $2, manual_amount_minor = $3,
+             current_period_end = $4::timestamptz
+         WHERE org_id = $1::uuid`,
+        [orgId, paid, amountMinor, periodEnd],
+      );
+    const totalMrr = async () => (await get()).planMix.reduce((s, r) => s + r.mrrMinor, 0);
+    const future = new Date(Date.now() + 30 * 86_400_000).toISOString();
+    const past = new Date(Date.now() - 86_400_000).toISOString();
+
+    await grant(false, 0, future);
+    const unpaid = await totalMrr();
+    await grant(null, null, future);
+    expect(await totalMrr()).toBe(unpaid);
+    await grant(true, 5000, past);
+    expect(await totalMrr()).toBe(unpaid);
+    await grant(true, 5000, future);
+    expect(await totalMrr()).toBe(unpaid + 5000);
   });
 });

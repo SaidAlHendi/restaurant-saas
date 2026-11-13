@@ -52,6 +52,8 @@ export const adminOrgBranchSchema = z.object({
   isActive: z.boolean(),
 });
 
+export const ADMIN_GRANT_PLAN_KEYS = ['menu', 'restaurant', 'business'] as const;
+
 export const adminOrgDetailSchema = adminOrgListItemSchema.extend({
   defaultCurrency: z.string(),
   defaultLocale: z.string(),
@@ -64,8 +66,14 @@ export const adminOrgDetailSchema = adminOrgListItemSchema.extend({
       trialEndsAt: z.iso.datetime().nullable(),
       currentPeriodEnd: z.iso.datetime().nullable(),
       canceledAt: z.iso.datetime().nullable(),
+      /** Manual activation only (provider null); null when the grant was never recorded. */
+      manualPaid: z.boolean().nullable(),
+      manualAmountMinor: z.number().int().nullable(),
+      manualNote: z.string().nullable(),
     })
     .nullable(),
+  /** Currency of each plan an admin can grant, so the payment amount is entered in the right one. */
+  grantablePlans: z.array(z.object({ key: z.enum(ADMIN_GRANT_PLAN_KEYS), currency: z.string() })),
   branches: z.array(adminOrgBranchSchema),
 });
 export type AdminOrgDetail = z.infer<typeof adminOrgDetailSchema>;
@@ -80,13 +88,35 @@ export const adminOrgStatusChangeSchema = z.object({
 export type AdminOrgStatusChange = z.infer<typeof adminOrgStatusChangeSchema>;
 
 /** Paid plans an admin can grant by hand (the free plan needs no grant). */
-export const ADMIN_GRANT_PLAN_KEYS = ['menu', 'restaurant', 'business'] as const;
-
-/** Manual activation: the plan stays active until `until`, then the restaurant falls back to free. */
-export const adminOrgActivateSchema = z.object({
-  planKey: z.enum(ADMIN_GRANT_PLAN_KEYS),
-  until: z.iso.datetime(),
-});
+/**
+ * Manual activation: the plan stays active until `until`, then the restaurant falls back to free.
+ * `paid` says whether money was received; `amountMinor` (plan currency, minor units) is required then
+ * and must be 0 or absent when nothing was paid.
+ */
+export const adminOrgActivateSchema = z
+  .object({
+    planKey: z.enum(ADMIN_GRANT_PLAN_KEYS),
+    until: z.iso.datetime(),
+    paid: z.boolean(),
+    amountMinor: z.number().int().min(0).optional(),
+    note: z.string().trim().max(200).optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.paid && value.amountMinor === undefined) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['amountMinor'],
+        message: 'Amount is required when paid',
+      });
+    }
+    if (!value.paid && value.amountMinor !== undefined && value.amountMinor !== 0) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['amountMinor'],
+        message: 'Amount must be 0 when not paid',
+      });
+    }
+  });
 export type AdminOrgActivateInput = z.infer<typeof adminOrgActivateSchema>;
 
 export const adminOrgActivateResultSchema = z.object({

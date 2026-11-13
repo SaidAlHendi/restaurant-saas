@@ -245,7 +245,7 @@ describe('Admin restaurants list and detail (e2e)', () => {
     const until = () => new Date(Date.now() + 30 * 86_400_000).toISOString();
 
     it('rejects support admins, bad dates and unknown restaurants', async () => {
-      const body = { planKey: 'restaurant', until: until() };
+      const body = { planKey: 'restaurant', until: until(), paid: false };
       expect(
         (await apiAgent(app).post(`/v1/admin/orgs/${orgA.id}/activate`).send(body)).status,
       ).toBe(401);
@@ -255,16 +255,18 @@ describe('Admin restaurants list and detail (e2e)', () => {
       const superAdmin = withBearer(apiAgent(app), superToken);
       expect(
         (
-          await superAdmin
-            .post(`/v1/admin/orgs/${orgA.id}/activate`)
-            .send({ planKey: 'restaurant', until: new Date(Date.now() - 1000).toISOString() })
+          await superAdmin.post(`/v1/admin/orgs/${orgA.id}/activate`).send({
+            planKey: 'restaurant',
+            until: new Date(Date.now() - 1000).toISOString(),
+            paid: false,
+          })
         ).status,
       ).toBe(409);
       expect(
         (
           await superAdmin
             .post(`/v1/admin/orgs/${orgA.id}/activate`)
-            .send({ planKey: 'free', until: until() })
+            .send({ planKey: 'free', until: until(), paid: false })
         ).status,
       ).toBe(400);
       expect(
@@ -272,24 +274,85 @@ describe('Admin restaurants list and detail (e2e)', () => {
       ).toBe(404);
     });
 
-    it('activates the plan until the date and writes an audit row', async () => {
+    it('rejects a payment record that does not add up', async () => {
+      const superAdmin = withBearer(apiAgent(app), superToken);
+      const post = (extra: Record<string, unknown>) =>
+        superAdmin
+          .post(`/v1/admin/orgs/${orgA.id}/activate`)
+          .send({ planKey: 'restaurant', until: until(), ...extra });
+      expect((await post({})).status).toBe(400);
+      expect((await post({ paid: true })).status).toBe(400);
+      expect((await post({ paid: true, amountMinor: -1 })).status).toBe(400);
+      expect((await post({ paid: false, amountMinor: 500 })).status).toBe(400);
+      expect((await post({ paid: false, note: 'x'.repeat(201) })).status).toBe(400);
+    });
+
+    it('activates the plan unpaid, without an amount', async () => {
       const end = until();
       const res = await withBearer(apiAgent(app), superToken)
         .post(`/v1/admin/orgs/${orgA.id}/activate`)
-        .send({ planKey: 'business', until: end });
+        .send({ planKey: 'business', until: end, paid: false });
       expect(res.status).toBe(200);
       expect(res.body).toEqual({ id: orgA.id, planKey: 'business', currentPeriodEnd: end });
 
       const [sub] = await adminDb
-        .select({ status: subscriptions.status, provider: subscriptions.provider })
+        .select({
+          status: subscriptions.status,
+          provider: subscriptions.provider,
+          manualPaid: subscriptions.manualPaid,
+          manualAmountMinor: subscriptions.manualAmountMinor,
+          manualNote: subscriptions.manualNote,
+        })
         .from(subscriptions)
         .where(eq(subscriptions.orgId, orgA.id));
-      expect(sub).toEqual({ status: 'active', provider: null });
+      expect(sub).toEqual({
+        status: 'active',
+        provider: null,
+        manualPaid: false,
+        manualAmountMinor: 0,
+        manualNote: null,
+      });
       const audits = await adminDb
-        .select({ id: auditLogs.id })
+        .select({ payload: auditLogs.payload })
         .from(auditLogs)
         .where(and(eq(auditLogs.action, 'org.activate'), eq(auditLogs.orgId, orgA.id)));
       expect(audits).toHaveLength(1);
+      expect(audits[0]?.payload).toMatchObject({ paid: false, amountMinor: 0, note: null });
+    });
+
+    it('records a payment with its amount and note, and shows it on the detail', async () => {
+      const end = until();
+      const res = await withBearer(apiAgent(app), superToken)
+        .post(`/v1/admin/orgs/${orgA.id}/activate`)
+        .send({
+          planKey: 'restaurant',
+          until: end,
+          paid: true,
+          amountMinor: 3900,
+          note: 'Bank transfer, ref 123',
+        });
+      expect(res.status).toBe(200);
+
+      const detail = await withBearer(apiAgent(app), superToken).get(`/v1/admin/orgs/${orgA.id}`);
+      expect(detail.status).toBe(200);
+      const body = detail.body as {
+        subscription: { manualPaid: boolean; manualAmountMinor: number; manualNote: string };
+        grantablePlans: { key: string; currency: string }[];
+      };
+      expect(body.subscription).toMatchObject({
+        manualPaid: true,
+        manualAmountMinor: 3900,
+        manualNote: 'Bank transfer, ref 123',
+      });
+      expect(body.grantablePlans.map((p) => p.key)).toEqual(['menu', 'restaurant', 'business']);
+
+      const audits = await adminDb
+        .select({ payload: auditLogs.payload })
+        .from(auditLogs)
+        .where(and(eq(auditLogs.action, 'org.activate'), eq(auditLogs.orgId, orgA.id)));
+      expect(audits.map((a) => a.payload)).toContainEqual(
+        expect.objectContaining({ paid: true, amountMinor: 3900, note: 'Bank transfer, ref 123' }),
+      );
     });
   });
 });
