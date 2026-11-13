@@ -575,6 +575,7 @@ export class BillsService {
           })),
         };
       });
+      const firstLive = mine.find((l) => l.order.status !== 'cancelled');
       const totalMinor = billOrders.reduce((s, o) => s + o.totalMinor, 0);
       const paidMinor = billOrders.reduce((s, o) => s + o.paidMinor, 0);
       return {
@@ -586,6 +587,7 @@ export class BillsService {
         status: bill.status,
         version: bill.version,
         currency: mine[0]?.order.currency ?? 'USD',
+        display: firstLive ? moneyDisplayForOrder(firstLive.order) : null,
         openedAt: bill.openedAt.toISOString(),
         closedAt: bill.closedAt ? bill.closedAt.toISOString() : null,
         totalMinor,

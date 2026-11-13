@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { moneyMinorSchema } from '../i18n/localized-text.js';
+import { moneyDisplaySchema } from '../money/display-currency.js';
 
 import { orderStatusSchema, orderItemStatusSchema } from './enums.js';
 import { paymentMethodSchema } from './payment.js';
@@ -45,6 +46,8 @@ export const billSchema = z.object({
   status: billStatusSchema,
   version: z.number().int(),
   currency: z.string().length(3),
+  /** Display currency of the bill's first order, used to show amounts and take cash. */
+  display: moneyDisplaySchema.nullable().default(null),
   openedAt: z.iso.datetime(),
   closedAt: z.iso.datetime().nullable(),
   totalMinor: moneyMinorSchema,

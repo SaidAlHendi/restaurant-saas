@@ -17,6 +17,7 @@ const item = (overrides: Partial<OrderItem> & Pick<OrderItem, 'id'>): OrderItem 
   notes: null,
   status: 'pending',
   isAddition: false,
+  seat: null,
   voidedAt: null,
   voidReason: null,
   modifiers: [],

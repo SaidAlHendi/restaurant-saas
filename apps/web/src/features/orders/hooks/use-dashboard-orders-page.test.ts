@@ -24,6 +24,7 @@ const sampleOrder = {
   currency: 'SAR',
   display: null,
   tableId: null,
+  billId: null,
   customerName: null,
   pagerNumber: null,
   notes: null,

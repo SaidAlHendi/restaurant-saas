@@ -25,11 +25,16 @@ export function buildCreateOrderBody(
     customerName,
     pagerNumber,
     notes: cart.orderNote.trim().length > 0 ? cart.orderNote.trim() : undefined,
+    ...(cart.orderType === 'dine_in' && cart.billChoice === 'new' ? { newBill: true } : {}),
+    ...(cart.orderType === 'dine_in' && cart.billChoice !== '' && cart.billChoice !== 'new'
+      ? { billId: cart.billChoice }
+      : {}),
     items: cart.lines.map((line) => ({
       productId: line.productId,
       quantity: line.quantity,
       modifierIds: line.modifierIds,
       notes: line.note.trim().length > 0 ? line.note.trim() : undefined,
+      ...(cart.orderType === 'dine_in' && line.seat ? { seat: line.seat } : {}),
     })),
   };
 }

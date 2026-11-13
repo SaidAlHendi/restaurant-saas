@@ -103,6 +103,7 @@ export const baseApi = createApi({
     'DiningTable',
     'PosMenu',
     'Order',
+    'Bill',
     'KitchenBoard',
     'Branch',
     'DailyReport',

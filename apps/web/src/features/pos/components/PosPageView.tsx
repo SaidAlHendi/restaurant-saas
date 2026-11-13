@@ -43,6 +43,13 @@ export function PosPageView(props: PosPageViewModel) {
     onOrderTypeChange,
     tableId,
     onTableChange,
+    seat,
+    seatOptions,
+    onSeatChange,
+    billOptions,
+    billChoice,
+    billNeedsChoice,
+    onBillChoiceChange,
     customerName,
     onCustomerNameChange,
     pagerEnabled,
@@ -180,8 +187,16 @@ export function PosPageView(props: PosPageViewModel) {
               value={orderType}
               onValueChange={onOrderTypeChange}
               options={[
-                { value: 'dine_in', label: labels.orderTypeDineIn, icon: <UtensilsIcon aria-hidden /> },
-                { value: 'takeaway', label: labels.orderTypeTakeaway, icon: <ShoppingBagIcon aria-hidden /> },
+                {
+                  value: 'dine_in',
+                  label: labels.orderTypeDineIn,
+                  icon: <UtensilsIcon aria-hidden />,
+                },
+                {
+                  value: 'takeaway',
+                  label: labels.orderTypeTakeaway,
+                  icon: <ShoppingBagIcon aria-hidden />,
+                },
               ]}
             />
             {orderType === 'dine_in' ? (
@@ -204,6 +219,60 @@ export function PosPageView(props: PosPageViewModel) {
                     ))}
                   </SelectContent>
                 </Select>
+                {tableId !== null && billOptions.length > 0 ? (
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="pos-bill">{labels.bill}</Label>
+                    <Select
+                      value={
+                        billChoice === ''
+                          ? billOptions.some((o) => o.value === '')
+                            ? 'table-bill'
+                            : undefined
+                          : billChoice
+                      }
+                      onValueChange={(value) => {
+                        onBillChoiceChange(value === 'table-bill' ? '' : value);
+                      }}
+                    >
+                      <SelectTrigger id="pos-bill" size="touch">
+                        <SelectValue placeholder={labels.billPlaceholder} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {billOptions.map((option) => (
+                          <SelectItem
+                            key={option.value || 'table-bill'}
+                            value={option.value || 'table-bill'}
+                          >
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {billNeedsChoice ? (
+                      <p className="text-warning text-sm">{labels.billNeedsChoice}</p>
+                    ) : null}
+                  </div>
+                ) : null}
+                {tableId !== null ? (
+                  <div className="flex flex-col gap-1.5">
+                    <Label>{labels.guest}</Label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {seatOptions.map((option) => (
+                        <Button
+                          key={option.value || 'none'}
+                          type="button"
+                          size="sm"
+                          variant={seat === option.value ? 'default' : 'outline'}
+                          onClick={() => {
+                            onSeatChange(option.value);
+                          }}
+                        >
+                          {option.value === '' ? option.label : option.label.replace(/\D+/g, '')}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
               </div>
             ) : (
               <div className="flex flex-col gap-1.5">
