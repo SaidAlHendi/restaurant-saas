@@ -29,7 +29,7 @@ export function NotFoundPage({ locale }: NotFoundPageProps) {
     >
       <main className="mx-auto grid max-w-[1600px] grid-cols-12 gap-2">
         <Tile as="section" tone="brand" className="md:col-span-7 md:min-h-[calc(100vh-1rem)]">
-          <div aria-hidden className="lp-display lp-word text-primary-foreground">
+          <div aria-hidden className="lp-display lp-word !text-primary-foreground">
             404
           </div>
           <div className="flex flex-col gap-4">
