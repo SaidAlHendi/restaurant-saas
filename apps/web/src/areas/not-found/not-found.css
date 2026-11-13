@@ -4,7 +4,7 @@
   position: relative;
   z-index: 1;
   width: min(100%, 380px);
-  padding: 30px 22px 26px;
+  padding: 26px 20px 22px;
   border-radius: 0 0 12px 12px;
   background: var(--card);
   color: var(--card-foreground);
@@ -50,7 +50,7 @@
   bottom: -0.12em;
   z-index: 0;
   text-align: center;
-  font-size: clamp(180px, 34vw, 520px);
+  font-size: clamp(160px, min(34vw, 48dvh), 520px);
   line-height: 0.8;
   color: color-mix(in oklch, var(--primary) 82%, black);
   user-select: none;
@@ -60,7 +60,7 @@
 .nf-plate {
   position: relative;
   z-index: 1;
-  width: min(100%, 520px);
+  max-width: min(100%, 520px);
   filter: drop-shadow(0 24px 30px color-mix(in oklch, black 30%, transparent));
 }
 

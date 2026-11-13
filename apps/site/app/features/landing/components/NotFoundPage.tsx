@@ -39,9 +39,9 @@ export function NotFoundPage({ locale }: NotFoundPageProps) {
   return (
     <div
       dir={locale === 'ar' ? 'rtl' : 'ltr'}
-      className="lp-root min-h-screen bg-foreground p-2 text-foreground"
+      className="lp-root h-[100dvh] overflow-hidden bg-foreground p-2 text-foreground"
     >
-      <main className="relative mx-auto flex min-h-[calc(100vh-1rem)] max-w-[1600px] flex-col justify-between gap-8 overflow-hidden rounded-[10px] bg-primary p-5 text-primary-foreground md:p-10">
+      <main className="relative mx-auto flex h-[calc(100dvh-1rem)] max-w-[1600px] flex-col justify-between gap-4 overflow-hidden rounded-[10px] bg-primary p-5 text-primary-foreground md:p-8">
         <div aria-hidden className="lp-display nf-ghost">
           404
         </div>
@@ -52,7 +52,7 @@ export function NotFoundPage({ locale }: NotFoundPageProps) {
             <a href={copy.home}>{copy.back}</a>
           </Button>
         </div>
-        <div className="relative z-10 flex flex-col items-center justify-center gap-6 pb-10 md:flex-row md:justify-around md:pb-24">
+        <div className="relative z-10 flex flex-col items-center justify-center min-h-0 flex-1 gap-4 pb-2 md:flex-row md:justify-around md:gap-6 md:pb-4">
           <div className="nf-ticket" role="img" aria-label={`${copy.order}: ${copy.stamp}`}>
             <div className="flex justify-between text-sm opacity-70">
               <span>SAHTAIN</span>
@@ -77,7 +77,7 @@ export function NotFoundPage({ locale }: NotFoundPageProps) {
             alt=""
             width={1168}
             height={880}
-            className="nf-plate h-auto"
+            className="nf-plate h-auto max-h-[26dvh] w-auto md:max-h-[46dvh]"
           />
         </div>
       </main>
