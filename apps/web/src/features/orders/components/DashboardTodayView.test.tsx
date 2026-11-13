@@ -6,7 +6,9 @@ afterEach(cleanup);
 import { DashboardTodayView } from './DashboardTodayView.js';
 import type { DashboardTodayPageViewModel } from '../hooks/use-dashboard-today-page.js';
 
-function minimalTodayVm(overrides: Partial<DashboardTodayPageViewModel> = {}): DashboardTodayPageViewModel {
+function minimalTodayVm(
+  overrides: Partial<DashboardTodayPageViewModel> = {},
+): DashboardTodayPageViewModel {
   return {
     orgSwitcher: {
       org: {
@@ -29,6 +31,7 @@ function minimalTodayVm(overrides: Partial<DashboardTodayPageViewModel> = {}): D
     isLoading: false,
     isError: false,
     onRetry: () => {},
+    dateLocale: 'en',
     selectedDate: '2026-03-15',
     onSelectToday: () => {},
     onSelectYesterday: () => {},

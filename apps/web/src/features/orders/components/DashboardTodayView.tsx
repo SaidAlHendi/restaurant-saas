@@ -14,7 +14,7 @@ import {
   Badge,
   Button,
   EmptyState,
-  Input,
+  DatePicker,
   OpsRow,
   Panel,
   PanelHeader,
@@ -66,6 +66,7 @@ export function DashboardTodayView(props: DashboardTodayViewProps) {
     isError,
     onRetry,
     selectedDate,
+    dateLocale,
     onSelectToday,
     onSelectYesterday,
     onDateInputChange,
@@ -93,15 +94,14 @@ export function DashboardTodayView(props: DashboardTodayViewProps) {
           <label className="sr-only" htmlFor="today-date">
             {labels.dateLabel}
           </label>
-          <Input
+          <DatePicker
             id="today-date"
-            type="date"
             aria-label={labels.dateLabel}
-            className="h-9 w-auto"
+            placeholder={labels.dateLabel}
+            className="w-auto"
+            locale={dateLocale}
             value={selectedDate}
-            onChange={(e) => {
-              onDateInputChange(e.target.value);
-            }}
+            onChange={onDateInputChange}
           />
         </div>
         <OrgActions orgSwitcher={orgSwitcher} />

@@ -53,6 +53,8 @@ export * from './components/segmented-control/index.js';
 export * from './components/app-shell/index.js';
 export * from './components/auth-layout/index.js';
 export * from './components/banner-alert/index.js';
+export * from './components/calendar/index.js';
+export * from './components/date-picker/index.js';
 
 // Hooks
 export * from './hooks/use-theme.js';

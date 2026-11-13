@@ -269,6 +269,7 @@ export function useDashboardOrdersPage() {
     statusOptions,
     typeOptions,
     paymentMethodOptions,
+    dateLocale: i18n.language,
     period: {
       value: filters?.period ?? 'today',
       onChange: setPeriod,

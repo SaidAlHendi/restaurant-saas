@@ -43,6 +43,7 @@ function minimalOrdersVm(
     statusOptions: [{ value: 'all', label: 'All' }],
     typeOptions: [{ value: 'all', label: 'All' }],
     paymentMethodOptions: [{ value: 'all', label: 'All' }],
+    dateLocale: 'en',
     period: {
       value: 'today',
       onChange: () => {},
