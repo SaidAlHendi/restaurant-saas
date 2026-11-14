@@ -8,6 +8,7 @@ import { OrgSettingsService } from '../tenancy/org-settings.service';
 import { TenancyRepository } from '../tenancy/tenancy.repository';
 import { IdentityService } from '../identity/identity.service';
 import { OrderingRepository } from '../ordering/ordering.repository';
+import { BillsService } from '../ordering/bills.service';
 import { OrderingService } from '../ordering/ordering.service';
 
 describe('OrderingService kitchen board', () => {
@@ -78,6 +79,7 @@ describe('OrderingService kitchen board', () => {
         { provide: TenancyRepository, useValue: { findBranchById } },
         { provide: CatalogOrderingService, useValue: {} },
         { provide: OrgSettingsService, useValue: {} },
+        { provide: BillsService, useValue: {} },
         { provide: OutboxService, useValue: { write: jest.fn() } },
         { provide: CLOCK, useValue: { now: () => new Date('2026-01-01T12:30:00.000Z') } },
         {

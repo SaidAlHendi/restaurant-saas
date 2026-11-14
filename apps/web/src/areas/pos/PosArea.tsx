@@ -11,6 +11,7 @@ import { usePosArea } from '../../features/pos/hooks/use-pos-area.js';
 
 const PosPage = lazy(() => import('./PosPage.js'));
 const PosOrdersPage = lazy(() => import('./PosOrdersPage.js'));
+const PosBillsPage = lazy(() => import('./PosBillsPage.js'));
 
 export default function PosArea() {
   const vm = usePosArea();
@@ -47,6 +48,7 @@ export default function PosArea() {
         <Routes>
           <Route index element={<PosPage />} />
           <Route path="orders" element={<PosOrdersPage />} />
+          <Route path="bills" element={<PosBillsPage />} />
           <Route path="*" element={<Navigate to="/pos" replace />} />
         </Routes>
       </Suspense>

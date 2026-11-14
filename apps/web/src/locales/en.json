@@ -573,7 +573,8 @@
     "nav": {
       "section": "Cashier",
       "newOrder": "New order",
-      "orders": "Orders"
+      "orders": "Orders",
+      "bills": "Bills"
     },
     "orders": {
       "title": "Orders",
@@ -735,7 +736,45 @@
       "searchClear": "Clear search",
       "noResults": "No products match your search."
     },
-    "rateStale": "The exchange rate has not been updated for more than 7 days. Ask the owner to check it."
+    "rateStale": "The exchange rate has not been updated for more than 7 days. Ask the owner to check it.",
+    "bills": {
+      "title": "Table bills",
+      "description": "Open tables. Pick items or a guest and take the payment.",
+      "loadError": "Could not load the bills.",
+      "empty": "No open bills",
+      "emptyHint": "A bill opens with the first order at a table.",
+      "table": "Table",
+      "open": "Open",
+      "settled": "Settled",
+      "rounds_one": "{{count}} round",
+      "rounds_other": "{{count}} rounds",
+      "round": "Round {{round}}",
+      "due": "Due",
+      "total": "Total",
+      "paidSoFar": "Paid",
+      "noSeat": "No guest",
+      "selectAll": "Select all",
+      "clear": "Clear",
+      "voided": "Voided",
+      "itemPaid": "Paid",
+      "paySelected": "Pay {{amount}}",
+      "selectToPay": "Select items to pay",
+      "payTitle": "Pay selected items",
+      "paid": "Payment recorded",
+      "payError": "Could not record the payment. The bill was refreshed.",
+      "closeTable": "Close table",
+      "closed": "Table closed",
+      "closeError": "Could not close the table.",
+      "dismiss": "Close",
+      "billLabel": "Bill",
+      "billPlaceholder": "Choose a bill",
+      "billNeedsChoice": "This table has several open bills. Choose one.",
+      "guestLabel": "Guest (to pay separately)",
+      "tableBill": "The table's bill",
+      "billNumber": "Bill {{number}}",
+      "newBill": "New separate bill",
+      "guest": "Guest {{number}}"
+    }
   },
   "orders": {
     "errors": {

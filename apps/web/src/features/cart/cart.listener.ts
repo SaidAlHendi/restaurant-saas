@@ -27,6 +27,8 @@ function persistCartIfReady(cart: CartState): void {
     customerName: cart.customerName,
     pagerNumber: cart.pagerNumber,
     orderNote: cart.orderNote,
+    seat: cart.seat,
+    billChoice: cart.billChoice,
     lines: cart.lines,
   });
 }

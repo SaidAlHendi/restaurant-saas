@@ -10,6 +10,7 @@ import type { RealtimeEvent } from '../../../lib/realtime.js';
 import { localizedName } from '../../../lib/localized-name.js';
 import { intlLocaleForUi, moneyFormatter, orderMoneyFormatter } from '../../../lib/money.js';
 import { randomUuid } from '../../../lib/uuid.js';
+import { useListBillsQuery } from '../../bills/bills.api.js';
 import { cartActions, cartHasUnsavedLines } from '../../cart/cart.slice.js';
 import type { CartLine, CartLineInput, CartOrderType } from '../../cart/cart.types.js';
 import { cartTotalsPreview, mergeCartLine } from '../../cart/cart.utils.js';
@@ -474,10 +475,13 @@ export function usePosPage() {
       unitPriceLabel: formatMinor(line.unitPriceMinor),
       lineTotalLabel: formatMinor(line.unitPriceMinor * line.quantity),
       quantity: line.quantity,
-      modifiers: line.modifierIds.map((id) => ({
-        id,
-        label: posLocalizedName(line.modifierNames[id] ?? { en: id }, locale, defaultLocale),
-      })),
+      modifiers: [
+        ...(line.seat ? [{ id: `seat-${line.localId}`, label: line.seat }] : []),
+        ...line.modifierIds.map((id) => ({
+          id,
+          label: posLocalizedName(line.modifierNames[id] ?? { en: id }, locale, defaultLocale),
+        })),
+      ],
       note: line.note,
       onIncrease: () => {
         dispatch(
@@ -568,7 +572,35 @@ export function usePosPage() {
 
   const sending = createState.isLoading;
   const showOfflineBanner = !isOnline || sendError;
-  const canSend = buildCreateOrderBody(cart, menu?.branch.pagerEnabled ?? false) !== null && unavailableIds.size === 0;
+  const { data: tableBills } = useListBillsQuery(
+    { branchId: branchId ?? '', tableId: cart.tableId ?? undefined },
+    { skip: !branchId || cart.orderType !== 'dine_in' || cart.tableId === null },
+  );
+  const openTableBills = cart.orderType === 'dine_in' ? (tableBills ?? []) : [];
+  // With two open bills at the table the cashier must say which one this order joins.
+  const billNeedsChoice = openTableBills.length > 1 && cart.billChoice === '';
+  const billOptions =
+    openTableBills.length === 0
+      ? []
+      : [
+          ...(openTableBills.length === 1 ? [{ value: '', label: t('pos.bills.tableBill') }] : []),
+          ...openTableBills.map((b, index) => ({
+            value: b.id,
+            label: `${b.label ?? t('pos.bills.billNumber', { number: index + 1 })} · ${formatMinor(b.dueMinor, 'total')}`,
+          })),
+          { value: 'new', label: t('pos.bills.newBill') },
+        ];
+  const seatOptions = [
+    { value: '', label: t('pos.bills.noSeat') },
+    ...Array.from({ length: 8 }, (_, index) => {
+      const label = t('pos.bills.guest', { number: index + 1 });
+      return { value: label, label };
+    }),
+  ];
+  const canSend =
+    buildCreateOrderBody(cart, menu?.branch.pagerEnabled ?? false) !== null &&
+    unavailableIds.size === 0 &&
+    !billNeedsChoice;
 
   return {
     branchName,
@@ -601,6 +633,17 @@ export function usePosPage() {
     orderType: cart.orderType,
     onOrderTypeChange: (type: CartOrderType) => {
       dispatch(cartActions.setOrderType(type));
+    },
+    seat: cart.seat,
+    seatOptions,
+    onSeatChange: (value: string) => {
+      dispatch(cartActions.setSeat(value));
+    },
+    billOptions,
+    billChoice: cart.billChoice,
+    billNeedsChoice,
+    onBillChoiceChange: (value: string) => {
+      dispatch(cartActions.setBillChoice(value));
     },
     tableId: cart.tableId,
     onTableChange: (id: string | null) => {
@@ -734,6 +777,10 @@ export function usePosPage() {
       orderTypeDineIn: t('pos.orderType.dineIn'),
       orderTypeTakeaway: t('pos.orderType.takeaway'),
       table: t('pos.table'),
+      bill: t('pos.bills.billLabel'),
+      billPlaceholder: t('pos.bills.billPlaceholder'),
+      billNeedsChoice: t('pos.bills.billNeedsChoice'),
+      guest: t('pos.bills.guestLabel'),
       customer: t('pos.customer'),
       pagerNumber: t('pos.pagerNumber'),
       pagerNumberHint: t('pos.pagerNumberHint'),

@@ -11,6 +11,8 @@ const baseCart = (): CartState => ({
   customerName: '',
   pagerNumber: '',
   orderNote: '',
+  seat: '',
+  billChoice: '',
   lines: [
     {
       localId: 'l1',
@@ -45,5 +47,28 @@ describe('buildCreateOrderBody', () => {
     expect(body?.clientOrderId).toBe(cart.clientOrderId);
     expect(body?.type).toBe('takeaway');
     expect(body?.items).toHaveLength(1);
+  });
+
+  it('sends guest labels and the bill choice for dine-in orders only', () => {
+    const cart = baseCart();
+    cart.orderType = 'dine_in';
+    cart.tableId = '01932a1a-7b3e-7000-8000-000000000050';
+    cart.billChoice = 'new';
+    const line = cart.lines[0];
+    if (line) line.seat = 'Guest 2';
+    const body = buildCreateOrderBody(cart);
+    expect(body?.newBill).toBe(true);
+    expect(body?.items[0]?.seat).toBe('Guest 2');
+
+    cart.billChoice = '01932a1a-7b3e-7000-8000-000000000051';
+    const picked = buildCreateOrderBody(cart);
+    expect(picked?.billId).toBe('01932a1a-7b3e-7000-8000-000000000051');
+    expect(picked?.newBill).toBeUndefined();
+
+    cart.orderType = 'takeaway';
+    cart.tableId = null;
+    const takeaway = buildCreateOrderBody(cart);
+    expect(takeaway?.newBill).toBeUndefined();
+    expect(takeaway?.items[0]?.seat).toBeUndefined();
   });
 });

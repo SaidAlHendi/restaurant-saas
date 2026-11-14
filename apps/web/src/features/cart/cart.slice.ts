@@ -17,6 +17,8 @@ function emptyCartForBranch(branchId: string): StoredCartState {
     customerName: '',
     pagerNumber: '',
     orderNote: '',
+    seat: '',
+    billChoice: '',
     lines: [],
   };
 }
@@ -33,6 +35,8 @@ const initialState: CartState = {
   customerName: '',
   pagerNumber: '',
   orderNote: '',
+  seat: '',
+  billChoice: '',
   lines: [],
 };
 
@@ -54,12 +58,21 @@ export const cartSlice = createSlice({
       state.orderType = action.payload;
       if (action.payload === 'takeaway') {
         state.tableId = null;
+        state.seat = '';
+        state.billChoice = '';
       } else {
         state.customerName = '';
       }
     },
     setTableId(state, action: PayloadAction<string | null>) {
       state.tableId = action.payload;
+      state.billChoice = '';
+    },
+    setSeat(state, action: PayloadAction<string>) {
+      state.seat = action.payload;
+    },
+    setBillChoice(state, action: PayloadAction<string>) {
+      state.billChoice = action.payload;
     },
     setCustomerName(state, action: PayloadAction<string>) {
       state.customerName = action.payload;
@@ -80,7 +93,8 @@ export const cartSlice = createSlice({
         };
       },
       reducer(state, action: PayloadAction<CartLine>) {
-        state.lines = mergeCartLine(state.lines, action.payload);
+        const seat = action.payload.seat ?? (state.seat.length > 0 ? state.seat : undefined);
+        state.lines = mergeCartLine(state.lines, { ...action.payload, seat });
       },
     },
     updateLineQuantity(state, action: PayloadAction<{ localId: string; quantity: number }>) {
@@ -99,7 +113,12 @@ export const cartSlice = createSlice({
       if (index === -1) {
         return;
       }
-      const replacement: CartLine = { ...action.payload.line, localId: action.payload.localId };
+      const previous = state.lines[index];
+      const replacement: CartLine = {
+        ...action.payload.line,
+        localId: action.payload.localId,
+        seat: action.payload.line.seat ?? previous?.seat,
+      };
       const without = state.lines.filter((row) => row.localId !== action.payload.localId);
       const twinIndex = without.findIndex(
         (row) => cartLineMergeKey(row) === cartLineMergeKey(replacement),
