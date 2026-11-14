@@ -1,5 +1,6 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 
 import { toast } from '@app/ui';
 import {
@@ -25,11 +26,14 @@ import {
 import {
   useListBillsQuery,
   useCloseBillMutation,
+  useMoveOrderTableMutation,
   usePayBillMutation,
 } from '../../bills/bills.api.js';
+import { useListDiningTablesQuery } from '../../tables/tables.api.js';
 import {
   dueItems,
   itemDueMinor,
+  movableOrders,
   seatSummaries,
   selectedDueMinor,
   statusesToComplete,
@@ -56,6 +60,8 @@ export function usePosBillsPage() {
   const [payBill, payState] = usePayBillMutation();
   const [closeBill, closeState] = useCloseBillMutation();
   const [changeStatus] = useChangeOrderStatusMutation();
+  const [moveOrder] = useMoveOrderTableMutation();
+  const { data: tablesData } = useListDiningTablesQuery(branchId ?? '', { skip: !branchId });
 
   useBranchRealtime({
     branchId,
@@ -74,6 +80,20 @@ export function usePosBillsPage() {
   const [tenderedMinor, setTenderedMinor] = useState<number | null>(null);
   const [clientPaymentId, setClientPaymentId] = useState<string | null>(null);
   const [closing, setClosing] = useState(false);
+
+  const [moveOrderIds, setMoveOrderIds] = useState<string[] | null>(null);
+  const [moveTarget, setMoveTarget] = useState('');
+  const [moving, setMoving] = useState(false);
+
+  // Coming from a table card: open that bill straight away.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const presetBillId = searchParams.get('bill');
+  useEffect(() => {
+    if (presetBillId === null) return;
+    setSelectedBillId(presetBillId);
+    setSelected(new Set());
+    setSearchParams({}, { replace: true });
+  }, [presetBillId, setSearchParams]);
 
   const bill: Bill | undefined = useMemo(
     () => bills?.find((b) => b.id === selectedBillId),
@@ -234,6 +254,60 @@ export function usePosBillsPage() {
     }
   }, [bill, branchId, changeStatus, closeBill, refetch, selectBill, t]);
 
+  const movable = useMemo(() => (bill ? movableOrders(bill) : []), [bill]);
+  const moveTargets = useMemo(
+    () =>
+      (tablesData?.items ?? [])
+        .filter((table) => table.isActive && table.id !== bill?.tableId)
+        .map((table) => ({ id: table.id, label: table.label })),
+    [tablesData?.items, bill?.tableId],
+  );
+
+  const openMove = useCallback((orderIds: string[]) => {
+    setMoveOrderIds(orderIds);
+    setMoveTarget('');
+  }, []);
+
+  /** Moves the chosen orders; the first one picks the target's bill and the rest follow onto it. */
+  const confirmMove = useCallback(async () => {
+    if (!branchId || !bill || moveOrderIds === null || moveTarget === '') return;
+    setMoving(true);
+    try {
+      let targetBillId: string | undefined;
+      for (const orderId of moveOrderIds) {
+        const order = bill.orders.find((o) => o.id === orderId);
+        if (!order) continue;
+        const res = await moveOrder({
+          branchId,
+          orderId,
+          body: {
+            expectedVersion: order.version,
+            tableId: moveTarget,
+            newBill: false,
+            ...(targetBillId !== undefined ? { billId: targetBillId } : {}),
+          },
+        });
+        if ('error' in res) {
+          const data = (res.error as { data?: { code?: string } }).data;
+          throw new Error(data?.code ?? 'move');
+        }
+        targetBillId = res.data.billId;
+      }
+      toast.success(t('pos.bills.moved'));
+      setMoveOrderIds(null);
+      selectBill(null);
+    } catch (error) {
+      toast.error(
+        error instanceof Error && error.message === 'BILL_AMBIGUOUS'
+          ? t('pos.bills.moveAmbiguous')
+          : t('pos.bills.moveError'),
+      );
+      void refetch();
+    } finally {
+      setMoving(false);
+    }
+  }, [bill, branchId, moveOrderIds, moveOrder, moveTarget, refetch, selectBill, t]);
+
   return {
     t,
     uiLocale,
@@ -274,5 +348,17 @@ export function usePosBillsPage() {
     canClose,
     closing: closing || closeState.isLoading,
     closeTable: () => void closeTable(),
+    movableIds: movable.map((o) => o.id),
+    moveOpen: moveOrderIds !== null,
+    moveCount: moveOrderIds?.length ?? 0,
+    openMove,
+    closeMove: () => {
+      setMoveOrderIds(null);
+    },
+    moveTargets,
+    moveTarget,
+    setMoveTarget,
+    moving,
+    confirmMove: () => void confirmMove(),
   };
 }

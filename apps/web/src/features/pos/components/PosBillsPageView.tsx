@@ -21,6 +21,11 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
   Spinner,
 } from '@app/ui';
 
@@ -138,9 +143,26 @@ export function PosBillsPageView(vm: PosBillsPageViewProps) {
 
                 {bill.orders.map((order) => (
                   <section key={order.id} className="flex flex-col gap-1">
-                    <h3 className="text-muted-foreground text-sm font-medium">
-                      {t('pos.bills.round', { round: order.round })} · #{order.orderNumber}
-                    </h3>
+                    <div className="flex items-center justify-between gap-2">
+                      <h3 className="text-muted-foreground text-sm font-medium">
+                        {t('pos.bills.round', { round: order.round })} · #{order.orderNumber}
+                        {order.pagerNumber !== null
+                          ? ` · ${t('pos.tables.pagerOne', { number: order.pagerNumber })}`
+                          : ''}
+                      </h3>
+                      {vm.canPay && bill.orders.length > 1 && vm.movableIds.includes(order.id) ? (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            vm.openMove([order.id]);
+                          }}
+                        >
+                          {t('pos.bills.moveRound')}
+                        </Button>
+                      ) : null}
+                    </div>
                     <ul className="divide-y">
                       {order.items.map((item) => {
                         const due = vm.itemDue(item);
@@ -218,11 +240,64 @@ export function PosBillsPageView(vm: PosBillsPageViewProps) {
                 >
                   {t('pos.bills.closeTable')}
                 </Button>
+                <Button
+                  type="button"
+                  size="touch"
+                  variant="ghost"
+                  disabled={!vm.canPay || vm.movableIds.length === 0}
+                  onClick={() => {
+                    vm.openMove(vm.movableIds);
+                  }}
+                >
+                  {t('pos.bills.moveTable')}
+                </Button>
               </SheetFooter>
             </>
           ) : null}
         </SheetContent>
       </Sheet>
+
+      <Dialog
+        open={vm.moveOpen}
+        onOpenChange={(open) => {
+          if (!open) vm.closeMove();
+        }}
+      >
+        <DialogContent size="sm">
+          <DialogHeader>
+            <DialogTitle>{t('pos.bills.moveTitle', { count: vm.moveCount })}</DialogTitle>
+          </DialogHeader>
+          <DialogBody className="flex flex-col gap-2">
+            <Label htmlFor="move-target">{t('pos.bills.moveTo')}</Label>
+            <Select value={vm.moveTarget} onValueChange={vm.setMoveTarget}>
+              <SelectTrigger id="move-target" size="touch">
+                <SelectValue placeholder={t('pos.table')} />
+              </SelectTrigger>
+              <SelectContent>
+                {vm.moveTargets.map((table) => (
+                  <SelectItem key={table.id} value={table.id}>
+                    {table.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-muted-foreground text-sm">{t('pos.bills.moveHint')}</p>
+          </DialogBody>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={vm.closeMove}>
+              {t('pos.bills.moveCancel')}
+            </Button>
+            <Button
+              type="button"
+              disabled={vm.moveTarget === ''}
+              isLoading={vm.moving}
+              onClick={vm.confirmMove}
+            >
+              {t('pos.bills.moveConfirm')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog
         open={vm.payOpen}

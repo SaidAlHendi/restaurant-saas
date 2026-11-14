@@ -8,6 +8,7 @@ export const ORDER_EVENT_TYPES = {
   itemsAdded: 'order.items_added',
   itemVoided: 'order.item_voided',
   itemStatusChanged: 'order.item_status_changed',
+  tableMoved: 'order.table_moved',
   cancelled: 'order.cancelled',
   paymentCaptured: 'payment.captured',
 } as const;

@@ -2,14 +2,20 @@ import { Inject, Injectable } from '@nestjs/common';
 import { and, asc, eq, inArray, sql } from 'drizzle-orm';
 
 import { computeDueMinor, computeItemShares, computePaymentStatus } from '@app/shared';
-import type { Bill, BillListQuery, BillPaymentResult, CreateBillPaymentBody } from '@app/shared';
+import type {
+  Bill,
+  BillListQuery,
+  BillPaymentResult,
+  CreateBillPaymentBody,
+  MoveOrderTableBody,
+} from '@app/shared';
 
 import { CLOCK, type Clock } from '../../core/clock/clock.tokens';
 import type { RequestContext } from '../../core/context/request-context';
 import { DRIZZLE, type DrizzleDb } from '../../core/db/db.module';
 import { bills, orderItems, orders, paymentItems, payments } from '../../core/db/schema/ordering';
 import { withOrg, type DrizzleTx } from '../../core/db/with-org';
-import { BusinessRuleError, NotFoundError } from '../../core/errors/app-errors';
+import { BusinessRuleError, ConflictError, NotFoundError } from '../../core/errors/app-errors';
 import { OutboxService } from '../../core/outbox/outbox.service';
 import { isPgUniqueViolation } from '../../lib/pg-errors';
 import { newUuidV7 } from '../../lib/uuid';
@@ -555,6 +561,7 @@ export class BillsService {
         return {
           id: ledger.order.id,
           orderNumber: ledger.order.orderNumber,
+          pagerNumber: ledger.order.pagerNumber,
           status: ledger.order.status,
           round: index + 1,
           version: ledger.order.version,
@@ -595,6 +602,107 @@ export class BillsService {
         dueMinor: computeDueMinor(totalMinor, paidMinor),
         orders: billOrders,
       };
+    });
+  }
+
+  /**
+   * Moves a whole order to another table (the cashier picked the wrong one). The order joins the
+   * target table's open bill (or a separate one). Orders that already took a payment stay put:
+   * their money belongs to the bill they were paid on.
+   */
+  async moveOrderToTable(
+    ctx: RequestContext,
+    branchId: string,
+    orderId: string,
+    body: MoveOrderTableBody,
+  ) {
+    return withOrg(this.db, ctx.orgId, async (tx) => {
+      const current = await this.repo.findOrderByIdForUpdate(tx, branchId, orderId);
+      if (!current) throw new NotFoundError();
+      if (current.type !== 'dine_in' || current.tableId === null) {
+        throw new BusinessRuleError('ORDER_NOT_DINE_IN', 'Only table orders can be moved', {});
+      }
+      if (current.status === 'cancelled' || current.status === 'refunded') {
+        throw new BusinessRuleError('ORDER_NOT_EDITABLE', 'Order cannot be edited in this status', {
+          status: current.status,
+        });
+      }
+      if (current.version !== body.expectedVersion) {
+        throw new ConflictError('Order version conflict', {}, 'ORDER_VERSION_CONFLICT');
+      }
+      if (current.tableId === body.tableId) {
+        throw new BusinessRuleError('ORDER_SAME_TABLE', 'The order is already on this table', {});
+      }
+      const paid = await this.repo.sumCapturedMinorForOrder(tx, orderId);
+      if (paid > 0) {
+        throw new BusinessRuleError(
+          'ORDER_HAS_PAYMENTS',
+          'An order that already has a payment cannot be moved',
+          {},
+        );
+      }
+      const target = await this.repo.findTableById(tx, branchId, body.tableId);
+      if (!target || !target.isActive) throw new NotFoundError();
+
+      const fromBillId = current.billId;
+      const toBillId = await this.resolveBillForNewOrder(tx, ctx, branchId, body.tableId, {
+        billId: body.billId,
+        newBill: body.newBill,
+        label: undefined,
+      });
+      const [updated] = await tx
+        .update(orders)
+        .set({
+          tableId: body.tableId,
+          billId: toBillId,
+          version: current.version + 1,
+          updatedAt: this.clock.now(),
+        })
+        .where(and(eq(orders.id, orderId), eq(orders.version, current.version)))
+        .returning();
+      if (!updated) {
+        throw new ConflictError('Order version conflict', {}, 'ORDER_VERSION_CONFLICT');
+      }
+
+      // The old bill is left without orders: close it so the table shows as free.
+      if (fromBillId !== null) {
+        const remaining = await tx
+          .select({ id: orders.id })
+          .from(orders)
+          .where(eq(orders.billId, fromBillId))
+          .limit(1);
+        if (remaining.length === 0) {
+          await tx
+            .update(bills)
+            .set({ status: 'closed', closedAt: this.clock.now() })
+            .where(and(eq(bills.id, fromBillId), eq(bills.status, 'open')));
+        }
+      }
+
+      await this.repo.insertOrderEvent(tx, {
+        id: newUuidV7(),
+        orgId: ctx.orgId,
+        orderId,
+        type: ORDER_EVENT_TYPES.tableMoved,
+        fromStatus: current.status,
+        toStatus: current.status,
+        payload: {
+          fromTableId: current.tableId,
+          toTableId: body.tableId,
+          fromBillId,
+          toBillId,
+        },
+        actorMembershipId: ctx.membershipId,
+      });
+      await this.writeOutbox(
+        tx,
+        ctx.orgId,
+        branchId,
+        orderId,
+        ORDER_EVENT_TYPES.tableMoved,
+        updated,
+      );
+      return { orderId, tableId: body.tableId, billId: toBillId, version: updated.version };
     });
   }
 

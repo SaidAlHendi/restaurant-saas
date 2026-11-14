@@ -213,7 +213,7 @@ export function PosPageView(props: PosPageViewModel) {
                   </SelectTrigger>
                   <SelectContent>
                     {tableOptions.map((table) => (
-                      <SelectItem key={table.id} value={table.id} disabled={table.disabled}>
+                      <SelectItem key={table.id} value={table.id}>
                         {table.label}
                       </SelectItem>
                     ))}

@@ -246,6 +246,7 @@ export function useAppShell() {
       canUsePos && location.pathname.startsWith('/pos')
         ? [
             { to: '/pos', label: t('pos.nav.newOrder'), end: true },
+            { to: '/pos/tables', label: t('pos.nav.tables'), end: true },
             { to: '/pos/orders', label: t('pos.nav.orders'), end: true },
             { to: '/pos/bills', label: t('pos.nav.bills'), end: true },
           ].map((item) => ({
