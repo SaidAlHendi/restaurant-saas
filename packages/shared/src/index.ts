@@ -340,6 +340,7 @@ export {
   orderListResponseSchema,
   changeOrderStatusBodySchema,
   addOrderItemsBodySchema,
+  moveOrderTableBodySchema,
   voidOrderItemBodySchema,
   orderEventSchema,
   orderEventListResponseSchema,
@@ -368,6 +369,7 @@ export type {
   OrderListQuery,
   ChangeOrderStatusBody,
   AddOrderItemsBody,
+  MoveOrderTableBody,
   VoidOrderItemBody,
   OrderEvent,
 } from './orders/order.js';

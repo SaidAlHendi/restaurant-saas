@@ -43,3 +43,33 @@ export function statusesToComplete(status: string): ('preparing' | 'ready' | 'co
   if (index < 0) return [];
   return chain.slice(index + 1) as ('preparing' | 'ready' | 'completed')[];
 }
+
+export interface TableCardInfo {
+  /** Open bills of the table; empty means the table is free. */
+  bills: Bill[];
+  dueMinor: number;
+  rounds: number;
+  pagers: number[];
+}
+
+/** What a table card shows: due amount, rounds and pager numbers over the table's open bills. */
+export function tableCardInfo(openBills: Bill[], tableId: string): TableCardInfo {
+  const bills = openBills.filter((b) => b.tableId === tableId);
+  const live = bills.flatMap((b) => b.orders.filter((o) => o.status !== 'cancelled'));
+  const pagers = [
+    ...new Set(live.flatMap((o) => (o.pagerNumber === null ? [] : [o.pagerNumber]))),
+  ].sort((a, b) => a - b);
+  return {
+    bills,
+    dueMinor: bills.reduce((sum, b) => sum + b.dueMinor, 0),
+    rounds: live.length,
+    pagers,
+  };
+}
+
+/** Orders that can still move to another table: live and without any payment. */
+export function movableOrders(bill: Bill): Bill['orders'] {
+  return bill.orders.filter(
+    (o) => o.status !== 'cancelled' && o.status !== 'refunded' && o.paidMinor === 0,
+  );
+}

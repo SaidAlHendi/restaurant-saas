@@ -8,6 +8,7 @@ import {
   createDiningTableBodySchema,
   createOrderBodySchema,
   createPaymentBodySchema,
+  moveOrderTableBodySchema,
   orderListQuerySchema,
   patchDiningTableBodySchema,
   voidOrderItemBodySchema,
@@ -18,6 +19,7 @@ export class CreatePaymentBodyDto extends createZodDto(createPaymentBodySchema) 
 export class OrderListQueryDto extends createZodDto(orderListQuerySchema) {}
 export class ChangeOrderStatusBodyDto extends createZodDto(changeOrderStatusBodySchema) {}
 export class AddOrderItemsBodyDto extends createZodDto(addOrderItemsBodySchema) {}
+export class MoveOrderTableBodyDto extends createZodDto(moveOrderTableBodySchema) {}
 export class VoidOrderItemBodyDto extends createZodDto(voidOrderItemBodySchema) {}
 
 export class CreateDiningTableBodyDto extends createZodDto(createDiningTableBodySchema) {}

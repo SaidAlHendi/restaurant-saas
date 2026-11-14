@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Headers,
+  HttpCode,
   Param,
   ParseUUIDPipe,
   Post,
@@ -25,16 +26,21 @@ import {
   ChangeOrderStatusBodyDto,
   CreateOrderBodyDto,
   CreatePaymentBodyDto,
+  MoveOrderTableBodyDto,
   OrderListQueryDto,
   VoidOrderItemBodyDto,
 } from './dto/ordering.dto';
 import { OrderingPathIdPipe } from './pipes/ordering-path-id.pipe';
+import { BillsService } from './bills.service';
 import { OrderingService } from './ordering.service';
 
 @RequireBranchScope()
 @Controller('v1/branches/:branchId/orders')
 export class OrdersController {
-  constructor(private readonly ordering: OrderingService) {}
+  constructor(
+    private readonly ordering: OrderingService,
+    private readonly bills: BillsService,
+  ) {}
 
   @RequirePermission('orders.create')
   @RequireFeature('pos.access')
@@ -108,6 +114,19 @@ export class OrdersController {
     @Body() body: AddOrderItemsBodyDto,
   ) {
     return this.ordering.addItems(ctx, branchId, orderId, body);
+  }
+
+  @RequirePermission('orders.create')
+  @RequireFeature('pos.access')
+  @HttpCode(200)
+  @Post(':orderId/move-table')
+  moveTable(
+    @Ctx() ctx: RequestContext,
+    @Param('branchId', ParseUUIDPipe) branchId: string,
+    @Param('orderId', OrderingPathIdPipe) orderId: string,
+    @Body() body: MoveOrderTableBodyDto,
+  ) {
+    return this.bills.moveOrderToTable(ctx, branchId, orderId, body);
   }
 
   @RequirePermission('orders.create')

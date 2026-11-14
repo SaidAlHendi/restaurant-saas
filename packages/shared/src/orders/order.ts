@@ -210,6 +210,18 @@ export const addOrderItemsBodySchema = z.object({
 
 export type AddOrderItemsBody = z.infer<typeof addOrderItemsBodySchema>;
 
+/** Moves a whole order (rounds included) to another table, e.g. when the cashier picked the wrong one. */
+export const moveOrderTableBodySchema = z.object({
+  expectedVersion: z.number().int().min(1),
+  tableId: z.uuid(),
+  /** Join this open bill of the target table (needed when it has several). */
+  billId: z.uuid().optional(),
+  /** Start a separate bill on the target table instead of joining its open bill. */
+  newBill: z.boolean().default(false),
+});
+
+export type MoveOrderTableBody = z.infer<typeof moveOrderTableBodySchema>;
+
 export const voidOrderItemBodySchema = z.object({
   expectedVersion: z.number().int().min(1),
   reason: z.string().trim().min(1).max(500),
