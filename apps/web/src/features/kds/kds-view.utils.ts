@@ -15,6 +15,7 @@ export type KdsCardLabels = {
   type: (type: KitchenBoardOrder['type']) => string;
   table: (label: string) => string;
   pager?: (n: number) => string;
+  round?: (n: number) => string;
   added: string;
   voided: string;
   start: string;
@@ -83,6 +84,12 @@ export function buildKdsCard(order: KitchenBoardOrder, input: BuildCardInput): K
   if (order.pagerNumber !== null && labels.pager) {
     const pagerText = labels.pager(order.pagerNumber);
     subtitle = subtitle === null ? pagerText : `${subtitle} · ${pagerText}`;
+  }
+
+  // A second or later round means the table ordered again; the kitchen should know it is not a new table.
+  if (order.round !== null && order.round > 1 && labels.round) {
+    const roundText = labels.round(order.round);
+    subtitle = subtitle === null ? roundText : `${subtitle} · ${roundText}`;
   }
 
   return {

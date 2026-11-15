@@ -38,6 +38,8 @@ export const kitchenBoardOrderSchema = z.object({
   tableLabel: z.string().nullable(),
   customerName: z.string().nullable(),
   pagerNumber: z.number().int().nullable(),
+  /** Position of this order on its table bill (2 = the table ordered again); null without a bill. */
+  round: z.number().int().min(1).nullable().default(null),
   notes: z.string().nullable(),
   paymentStatus: paymentStatusSchema,
   items: z.array(kitchenBoardItemSchema),

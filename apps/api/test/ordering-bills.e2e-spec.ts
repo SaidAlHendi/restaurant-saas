@@ -290,4 +290,28 @@ describe('Table bills (e2e)', () => {
       'ORDER_HAS_PAYMENTS',
     );
   });
+
+  it('tells the kitchen which round of a table an order is', async () => {
+    const table = await insertDiningTable(db, orgId, branchId, `K-${newUuidV7().slice(-6)}`);
+    const first = (await order(table, [{ quantity: 1 }])).body as { id: string };
+    const second = (await order(table, [{ quantity: 1 }])).body as { id: string };
+    const takeawayId = newUuidV7();
+    const takeaway = (
+      await owner
+        .post(`/v1/branches/${branchId}/orders`)
+        .set('Idempotency-Key', takeawayId)
+        .send({
+          clientOrderId: takeawayId,
+          type: 'takeaway',
+          items: [{ productId, quantity: 1, modifierIds: [] }],
+        })
+    ).body as { id: string };
+    const board = (await owner.get(`/v1/branches/${branchId}/kitchen/board`)).body as {
+      orders: { id: string; round: number | null }[];
+    };
+    const round = (id: string) => board.orders.find((o) => o.id === id)?.round;
+    expect(round(first.id)).toBe(1);
+    expect(round(second.id)).toBe(2);
+    expect(round(takeaway.id)).toBeNull();
+  });
 });

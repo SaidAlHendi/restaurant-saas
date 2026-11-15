@@ -131,6 +131,7 @@ export function useKdsPage() {
         type === 'dine_in' ? t('pos.orderType.dineIn') : t('pos.orderType.takeaway'),
       table: (label) => t('kds.card.table', { label }),
       pager: (n) => t('kds.card.pager', { number: n }),
+      round: (n) => t('kds.card.round', { number: n }),
       added: t('kds.card.added'),
       voided: t('kds.card.voided'),
       start: t('kds.card.start'),

@@ -538,6 +538,27 @@ export class OrderingRepository {
     );
   }
 
+  /** Round (1, 2, ...) of each order on its table bill, in the same order the bill shows them. */
+  async listBillRounds(tx: DrizzleTx, billIds: string[]): Promise<Map<string, number>> {
+    const rounds = new Map<string, number>();
+    if (billIds.length === 0) {
+      return rounds;
+    }
+    const rows = await tx
+      .select({ id: orders.id, billId: orders.billId })
+      .from(orders)
+      .where(inArray(orders.billId, billIds))
+      .orderBy(asc(orders.createdAt), asc(orders.id));
+    const counters = new Map<string, number>();
+    for (const row of rows) {
+      if (row.billId === null) continue;
+      const next = (counters.get(row.billId) ?? 0) + 1;
+      counters.set(row.billId, next);
+      rounds.set(row.id, next);
+    }
+    return rounds;
+  }
+
   async listOrderItemsForOrderIds(tx: DrizzleTx, orderIds: string[]) {
     if (orderIds.length === 0) {
       return [];
