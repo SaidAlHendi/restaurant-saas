@@ -26,6 +26,7 @@ export type BillItem = z.infer<typeof billItemSchema>;
 export const billOrderSchema = z.object({
   id: z.uuid(),
   orderNumber: z.number().int(),
+  pagerNumber: z.number().int().nullable().default(null),
   status: orderStatusSchema,
   round: z.number().int().min(1),
   version: z.number().int(),

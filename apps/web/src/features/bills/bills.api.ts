@@ -5,6 +5,7 @@ import {
   type BillPaymentResult,
   type BillStatus,
   type CreateBillPaymentBody,
+  type MoveOrderTableBody,
 } from '@app/shared';
 import { z } from 'zod';
 
@@ -36,6 +37,20 @@ export const billsApi = baseApi.injectEndpoints({
         { type: 'Order', id: 'LIST' },
       ],
     }),
+    moveOrderTable: builder.mutation<
+      { orderId: string; tableId: string; billId: string; version: number },
+      { branchId: string; orderId: string; body: MoveOrderTableBody }
+    >({
+      query: ({ branchId, orderId, body }) => ({
+        url: `/v1/branches/${branchId}/orders/${orderId}/move-table`,
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: [
+        { type: 'Bill', id: 'LIST' },
+        { type: 'Order', id: 'LIST' },
+      ],
+    }),
     closeBill: builder.mutation<Bill, { branchId: string; billId: string }>({
       query: ({ branchId, billId }) => ({
         url: `/v1/branches/${branchId}/bills/${billId}/close`,
@@ -50,4 +65,9 @@ export const billsApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { useListBillsQuery, usePayBillMutation, useCloseBillMutation } = billsApi;
+export const {
+  useListBillsQuery,
+  usePayBillMutation,
+  useCloseBillMutation,
+  useMoveOrderTableMutation,
+} = billsApi;

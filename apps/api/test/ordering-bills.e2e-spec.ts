@@ -233,4 +233,61 @@ describe('Table bills (e2e)', () => {
     expect((next.body as { billId: string }).billId).not.toBe(body.billId);
     expect((await bill(body.billId)).status).toBe('closed');
   });
+
+  it('moves an order to another table, joining its bill, and frees the old one', async () => {
+    const wrong = await insertDiningTable(db, orgId, branchId, `W-${newUuidV7().slice(-6)}`);
+    const right = await insertDiningTable(db, orgId, branchId, `R-${newUuidV7().slice(-6)}`);
+    const onRight = await order(right, [{ quantity: 1 }]);
+    const rightBillId = (onRight.body as { billId: string }).billId;
+    const placed = await order(wrong, [{ quantity: 2 }]);
+    const body = placed.body as { id: string; billId: string; version: number };
+
+    const sameTable = await owner
+      .post(`/v1/branches/${branchId}/orders/${body.id}/move-table`)
+      .send({ expectedVersion: body.version, tableId: wrong });
+    expect(sameTable.status).toBe(422);
+
+    const stale = await owner
+      .post(`/v1/branches/${branchId}/orders/${body.id}/move-table`)
+      .send({ expectedVersion: body.version + 5, tableId: right });
+    expect(stale.status).toBe(409);
+
+    const moved = await owner
+      .post(`/v1/branches/${branchId}/orders/${body.id}/move-table`)
+      .send({ expectedVersion: body.version, tableId: right });
+    expect(moved.status).toBe(200);
+    expect((moved.body as { billId: string }).billId).toBe(rightBillId);
+
+    const detail = (await owner.get(`/v1/branches/${branchId}/orders/${body.id}`)).body as {
+      tableId: string;
+      billId: string;
+    };
+    expect(detail.tableId).toBe(right);
+    expect(detail.billId).toBe(rightBillId);
+    expect((await bill(body.billId)).status).toBe('closed');
+    expect((await bill(rightBillId)).orders).toHaveLength(2);
+  });
+
+  it('does not move an order that already has a payment', async () => {
+    const a = await insertDiningTable(db, orgId, branchId, `P-${newUuidV7().slice(-6)}`);
+    const b = await insertDiningTable(db, orgId, branchId, `Q-${newUuidV7().slice(-6)}`);
+    const placed = await order(a, [{ quantity: 1 }]);
+    const body = placed.body as { id: string; version: number; totalMinor: number };
+    const clientPaymentId = newUuidV7();
+    const paid = await owner
+      .post(`/v1/branches/${branchId}/orders/${body.id}/payments`)
+      .set('Idempotency-Key', clientPaymentId)
+      .send({ clientPaymentId, expectedVersion: body.version, method: 'card', amountMinor: 100 });
+    expect(paid.status).toBe(201);
+    const cur = (await owner.get(`/v1/branches/${branchId}/orders/${body.id}`)).body as {
+      version: number;
+    };
+    const res = await owner
+      .post(`/v1/branches/${branchId}/orders/${body.id}/move-table`)
+      .send({ expectedVersion: cur.version, tableId: b });
+    expect(res.status).toBe(422);
+    expect((res.body as { code?: string }).code ?? JSON.stringify(res.body)).toContain(
+      'ORDER_HAS_PAYMENTS',
+    );
+  });
 });

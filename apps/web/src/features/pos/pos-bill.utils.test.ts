@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import type { Bill } from '@app/shared';
 
-import { dueItems, seatSummaries, selectedDueMinor, statusesToComplete } from './pos-bill.utils.js';
+import {
+  dueItems,
+  movableOrders,
+  seatSummaries,
+  selectedDueMinor,
+  statusesToComplete,
+  tableCardInfo,
+} from './pos-bill.utils.js';
 
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const item = (n: number, seat: string | null, share: number, paid = 0, voided = false) => ({
@@ -49,5 +56,37 @@ describe('pos bill utils', () => {
     expect(statusesToComplete('placed')).toEqual(['preparing', 'ready', 'completed']);
     expect(statusesToComplete('ready')).toEqual(['completed']);
     expect(statusesToComplete('completed')).toEqual([]);
+  });
+
+  it('summarises a table card over its open bills', () => {
+    const t1 = id(900);
+    const bills = [
+      {
+        tableId: t1,
+        dueMinor: 400,
+        orders: [
+          { status: 'placed', pagerNumber: 12, paidMinor: 0 },
+          { status: 'cancelled', pagerNumber: 99, paidMinor: 0 },
+        ],
+      },
+      { tableId: t1, dueMinor: 100, orders: [{ status: 'ready', pagerNumber: 7, paidMinor: 0 }] },
+      {
+        tableId: id(901),
+        dueMinor: 50,
+        orders: [{ status: 'placed', pagerNumber: 1, paidMinor: 0 }],
+      },
+    ] as unknown as Bill[];
+    expect(tableCardInfo(bills, t1)).toMatchObject({ dueMinor: 500, rounds: 2, pagers: [7, 12] });
+    expect(tableCardInfo(bills, id(902)).bills).toEqual([]);
+  });
+  it('only lets unpaid live orders move', () => {
+    const b = {
+      orders: [
+        { id: 'a', status: 'placed', paidMinor: 0 },
+        { id: 'b', status: 'placed', paidMinor: 100 },
+        { id: 'c', status: 'cancelled', paidMinor: 0 },
+      ],
+    } as unknown as Bill;
+    expect(movableOrders(b).map((o) => o.id)).toEqual(['a']);
   });
 });

@@ -574,7 +574,8 @@
       "section": "Cashier",
       "newOrder": "New order",
       "orders": "Orders",
-      "bills": "Bills"
+      "bills": "Bills",
+      "tables": "Tables"
     },
     "orders": {
       "title": "Orders",
@@ -773,7 +774,36 @@
       "tableBill": "The table's bill",
       "billNumber": "Bill {{number}}",
       "newBill": "New separate bill",
-      "guest": "Guest {{number}}"
+      "guest": "Guest {{number}}",
+      "moveTable": "Move table to another table",
+      "moveRound": "Move",
+      "moveTitle_one": "Move {{count}} order to another table",
+      "moveTitle_other": "Move {{count}} orders to another table",
+      "moveTo": "New table",
+      "moveHint": "The order joins the bill of the new table. Orders that already have a payment stay where they are.",
+      "moveCancel": "Cancel",
+      "moveConfirm": "Move",
+      "moved": "Moved to the new table",
+      "moveError": "Could not move the order. The bills were refreshed.",
+      "moveAmbiguous": "That table has several open bills. Pay or close one first."
+    },
+    "tables": {
+      "title": "Tables",
+      "description": "Pick a table to take an order or add a round. Busy tables show what is due.",
+      "loadError": "Could not load the tables.",
+      "empty": "No tables yet",
+      "emptyHint": "Ask the owner to add tables in the settings.",
+      "free": "Free",
+      "busy": "Busy",
+      "settled": "Settled",
+      "freeHint": "Tap to take an order",
+      "bills_one": "{{count}} bill",
+      "bills_other": "{{count}} bills",
+      "pager": "Pager {{numbers}}",
+      "pagerOne": "Pager {{number}}",
+      "newOrder": "New order",
+      "addRound": "Add round",
+      "bill": "Bill"
     }
   },
   "orders": {

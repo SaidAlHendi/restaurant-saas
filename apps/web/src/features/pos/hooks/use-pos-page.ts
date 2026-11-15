@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 
 import { toast } from '@app/ui';
 import type { CatalogRealtimePayload, OrderDetail, OrderStatus } from '@app/shared';
@@ -181,6 +182,21 @@ export function usePosPage() {
       dispatch(cartActions.initCartForBranch(branchId));
     }
   }, [branchId, dispatch]);
+
+  // Coming from the tables page: the chosen table is already selected (a busy one gets a new round).
+  const [searchParams, setSearchParams] = useSearchParams();
+  const presetTableId = searchParams.get('table');
+  useEffect(() => {
+    if (!branchId || presetTableId === null || tablesData === undefined) {
+      return;
+    }
+    if (tablesData.items.some((table) => table.id === presetTableId && table.isActive)) {
+      dispatch(cartActions.setOrderType('dine_in'));
+      dispatch(cartActions.setTableId(presetTableId));
+      dispatch(cartActions.setSeat(''));
+    }
+    setSearchParams({}, { replace: true });
+  }, [branchId, dispatch, presetTableId, setSearchParams, tablesData]);
 
   useEffect(() => {
     const onOnline = () => {
@@ -667,7 +683,6 @@ export function usePosPage() {
       label: busyTableIds.has(table.id)
         ? t('pos.tableBusyLabel', { label: table.label })
         : table.label,
-      disabled: busyTableIds.has(table.id),
     })),
     openOrders: {
       isLoading: openOrdersLoading,
