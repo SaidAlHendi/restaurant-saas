@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { localizedTextInputSchema, moneyMinorSchema } from '../i18n/localized-text.js';
+import { pageMetaShape } from '../page-pagination.js';
 
 export const modifierSchema = z.object({
   id: z.uuid(),
@@ -46,6 +47,7 @@ export type ModifierGroupListItem = z.infer<typeof modifierGroupListItemSchema>;
 
 export const modifierGroupListResponseSchema = z.object({
   items: z.array(modifierGroupListItemSchema),
+  ...pageMetaShape,
 });
 
 export const createModifierGroupBodySchema = z

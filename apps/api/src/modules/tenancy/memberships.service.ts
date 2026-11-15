@@ -1,5 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 
+import { pageMeta, pageWindow, type PageQuery } from '@app/shared';
+
 import { DRIZZLE, type DrizzleDb } from '../../core/db/db.module';
 import { withOrg } from '../../core/db/with-org';
 import type { RequestContext } from '../../core/context/request-context';
@@ -13,9 +15,10 @@ export class MembershipsService {
     private readonly repo: TenancyRepository,
   ) {}
 
-  list(ctx: RequestContext) {
+  list(ctx: RequestContext, query: PageQuery = {}) {
     return withOrg(this.db, ctx.orgId, async (tx) => {
-      const rows = await this.repo.listMembershipsWithUsers(tx);
+      const rows = await this.repo.listMembershipsWithUsers(tx, pageWindow(query));
+      const total = await this.repo.countMemberships(tx);
       const items = await Promise.all(
         rows.map(async (row) => {
           const branchIds = row.membership.allBranches
@@ -34,7 +37,7 @@ export class MembershipsService {
           };
         }),
       );
-      return { items };
+      return { items, ...pageMeta(query, total) };
     });
   }
 }

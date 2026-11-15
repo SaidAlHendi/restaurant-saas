@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { asc } from 'drizzle-orm';
-import type { AdminPlanListResponse } from '@app/shared';
+import { slicePage, type AdminPlanListResponse, type PageQuery } from '@app/shared';
 
 import { ADMIN_DRIZZLE, type AdminDrizzleDb } from '../../../core/db/admin-db.tokens';
 import { planFeatures, plans } from '../../../core/db/schema/billing';
@@ -9,14 +9,14 @@ import { planFeatures, plans } from '../../../core/db/schema/billing';
 export class AdminPlansService {
   constructor(@Inject(ADMIN_DRIZZLE) private readonly db: AdminDrizzleDb) {}
 
-  async list(): Promise<AdminPlanListResponse> {
+  async list(query: PageQuery = {}): Promise<AdminPlanListResponse> {
     const planRows = await this.db.select().from(plans).orderBy(asc(plans.sortOrder));
     const featureRows = await this.db
       .select()
       .from(planFeatures)
       .orderBy(asc(planFeatures.featureKey));
-    return {
-      items: planRows.map((p) => ({
+    return slicePage(
+      planRows.map((p) => ({
         id: p.id,
         key: p.key,
         name: p.name,
@@ -29,6 +29,7 @@ export class AdminPlansService {
           .filter((f) => f.planId === p.id)
           .map((f) => ({ key: f.featureKey, limit: f.limitValue })),
       })),
-    };
+      query,
+    );
   }
 }

@@ -7,6 +7,7 @@ import type {
   PatchModifierGroupBody,
   ReorderModifiersBody,
 } from '@app/shared';
+import { pageMeta, pageWindow, type PageQuery } from '@app/shared';
 
 import { NotFoundError, ValidationError } from '../../core/errors/app-errors';
 import { DRIZZLE, type DrizzleDb } from '../../core/db/db.module';
@@ -30,15 +31,17 @@ export class ModifierGroupsService {
     private readonly menuCache: CatalogMenuCacheNotifier,
   ) {}
 
-  list(ctx: RequestContext) {
+  list(ctx: RequestContext, query: PageQuery = {}) {
     return withOrg(this.db, ctx.orgId, async (tx) => {
-      const rows = await this.repo.listModifierGroups(tx, ctx.orgId);
+      const rows = await this.repo.listModifierGroups(tx, ctx.orgId, pageWindow(query));
+      const total = await this.repo.countModifierGroups(tx, ctx.orgId);
       return {
         items: rows.map((row) => ({
           ...mapModifierGroup(row),
           modifierCount: row.modifierCount,
           productCount: row.productCount,
         })),
+        ...pageMeta(query, total),
       };
     });
   }

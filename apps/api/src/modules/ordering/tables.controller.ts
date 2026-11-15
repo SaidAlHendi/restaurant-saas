@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post , ParseUUIDPipe } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, ParseUUIDPipe, Query } from '@nestjs/common';
 
 import { RequireFeature } from '../../core/permissions/require-feature.decorator';
 
@@ -10,6 +10,7 @@ import { RequirePermission } from '../../core/permissions/require-permission.dec
 import { CreateDiningTableBodyDto, PatchDiningTableBodyDto } from './dto/ordering.dto';
 import { OrderingPathIdPipe } from './pipes/ordering-path-id.pipe';
 import { TablesService } from './tables.service';
+import { PageQueryDto } from '../../core/validation/page-query.dto';
 
 @RequireBranchScope()
 @Controller('v1/branches/:branchId/tables')
@@ -18,9 +19,13 @@ export class TablesController {
 
   @RequirePermission('branches.read')
   @Get()
-  list(@Ctx() ctx: RequestContext, @Param('branchId', ParseUUIDPipe) branchId: string) {
+  list(
+    @Ctx() ctx: RequestContext,
+    @Param('branchId', ParseUUIDPipe) branchId: string,
+    @Query() query: PageQueryDto,
+  ) {
     const wantsQrToken = ctx.permissions.includes('tables.rotate_qr');
-    return this.tables.list(ctx, branchId, wantsQrToken);
+    return this.tables.list(ctx, branchId, wantsQrToken, query);
   }
 
   @RequirePermission('tables.rotate_qr')

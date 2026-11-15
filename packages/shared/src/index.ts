@@ -542,3 +542,14 @@ export type { LeadAttribution, LeadCreateBody, LeadCreateResponse } from './lead
 
 export { registerValidationMessages } from './validation/validation-messages.js';
 export type { ValidationTranslate } from './validation/validation-messages.js';
+
+export {
+  DEFAULT_PAGE_SIZE,
+  PAGE_SIZE_MAX,
+  pageMeta,
+  pageQuerySchema,
+  pageResponseSchema,
+  pageWindow,
+  slicePage,
+} from './page-pagination.js';
+export type { PageQuery } from './page-pagination.js';

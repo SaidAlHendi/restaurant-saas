@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { pageMetaShape } from '../page-pagination.js';
 
 export const diningTableSchema = z.object({
   id: z.uuid(),
@@ -25,6 +26,7 @@ export const patchDiningTableBodySchema = z.object({
 
 export const diningTableListResponseSchema = z.object({
   items: z.array(diningTableSchema),
+  ...pageMetaShape,
 });
 
 export type DiningTable = z.infer<typeof diningTableSchema>;

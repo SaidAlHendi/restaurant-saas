@@ -159,6 +159,9 @@ describe('directory pages', () => {
           ],
         },
       ],
+      page: 1,
+      pageSize: 1,
+      total: 1,
     }));
     renderAt('/plans', <PlansPage />, '/plans');
     expect(await screen.findByText('$29.00', { exact: false })).toBeInTheDocument();

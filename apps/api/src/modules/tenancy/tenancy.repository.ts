@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gt, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gt, sql } from 'drizzle-orm';
 import { Injectable } from '@nestjs/common';
 
 import { computeEffectivePermissions } from '@app/shared';
@@ -27,8 +27,22 @@ function firstInsertedRow<T>(rows: T[]): T {
 
 @Injectable()
 export class TenancyRepository {
-  async listBranches(tx: DrizzleTx, orgId: string) {
-    return tx.select().from(branches).where(eq(branches.orgId, orgId)).orderBy(branches.name);
+  async listBranches(tx: DrizzleTx, orgId: string, window?: { limit: number; offset: number } | null) {
+    const query = tx
+      .select()
+      .from(branches)
+      .where(eq(branches.orgId, orgId))
+      .orderBy(branches.name, branches.id)
+      .$dynamic();
+    return window ? query.limit(window.limit).offset(window.offset) : query;
+  }
+
+  async countBranches(tx: DrizzleTx, orgId: string): Promise<number> {
+    const [row] = await tx
+      .select({ total: count() })
+      .from(branches)
+      .where(eq(branches.orgId, orgId));
+    return row?.total ?? 0;
   }
 
   async findBranchById(tx: DrizzleTx, branchId: string) {
@@ -59,8 +73,13 @@ export class TenancyRepository {
     return rows.length > 0;
   }
 
-  async listMembershipsWithUsers(tx: DrizzleTx) {
-    return tx
+  async countMemberships(tx: DrizzleTx): Promise<number> {
+    const [row] = await tx.select({ total: count() }).from(memberships);
+    return row?.total ?? 0;
+  }
+
+  async listMembershipsWithUsers(tx: DrizzleTx, window?: { limit: number; offset: number } | null) {
+    const query = tx
       .select({
         membership: memberships,
         user: users,
@@ -69,7 +88,9 @@ export class TenancyRepository {
       .from(memberships)
       .innerJoin(users, eq(memberships.userId, users.id))
       .innerJoin(roles, eq(memberships.roleId, roles.id))
-      .orderBy(asc(users.name), asc(users.id));
+      .orderBy(asc(users.name), asc(users.id))
+      .$dynamic();
+    return window ? query.limit(window.limit).offset(window.offset) : query;
   }
 
   async listMembershipBranchIds(tx: DrizzleTx, membershipId: string): Promise<string[]> {

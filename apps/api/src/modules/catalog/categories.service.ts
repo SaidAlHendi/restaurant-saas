@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 
-import type { CreateCategoryBody, PatchCategoryBody, ReorderBody } from '@app/shared';
+import { pageMeta, pageWindow } from '@app/shared';
+import type { CreateCategoryBody, PageQuery, PatchCategoryBody, ReorderBody } from '@app/shared';
 
 import { ConflictError, NotFoundError } from '../../core/errors/app-errors';
 import { DRIZZLE, type DrizzleDb } from '../../core/db/db.module';
@@ -35,10 +36,11 @@ export class CategoriesService {
     return rows.map((row) => mapCategory(row, branchIds.get(row.id) ?? []));
   }
 
-  list(ctx: RequestContext) {
+  list(ctx: RequestContext, query: PageQuery = {}) {
     return withOrg(this.db, ctx.orgId, async (tx) => {
-      const rows = await this.repo.listCategories(tx, ctx.orgId);
-      return { items: await this.mapMany(tx, rows) };
+      const rows = await this.repo.listCategories(tx, ctx.orgId, pageWindow(query));
+      const total = await this.repo.countCategories(tx, ctx.orgId);
+      return { items: await this.mapMany(tx, rows), ...pageMeta(query, total) };
     });
   }
 

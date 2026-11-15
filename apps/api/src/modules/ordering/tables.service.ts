@@ -2,7 +2,8 @@ import { Inject, Injectable } from '@nestjs/common';
 
 import { EntitlementsService } from '../billing/entitlements.service';
 
-import type { CreateDiningTableBody, PatchDiningTableBody } from '@app/shared';
+import { pageMeta, pageWindow } from '@app/shared';
+import type { CreateDiningTableBody, PageQuery, PatchDiningTableBody } from '@app/shared';
 
 import type { RequestContext } from '../../core/context/request-context';
 import { DRIZZLE, type DrizzleDb } from '../../core/db/db.module';
@@ -23,13 +24,15 @@ export class TablesService {
     private readonly entitlements: EntitlementsService,
   ) {}
 
-  async list(ctx: RequestContext, branchId: string, wantsQrToken: boolean) {
+  async list(ctx: RequestContext, branchId: string, wantsQrToken: boolean, query: PageQuery = {}) {
     const includeQrToken =
       wantsQrToken && (await this.entitlements.can(ctx.orgId, 'menu.table_qr'));
     return withOrg(this.db, ctx.orgId, async (tx) => {
-      const rows = await this.repo.listTables(tx, branchId);
+      const rows = await this.repo.listTables(tx, branchId, pageWindow(query));
+      const total = await this.repo.countTables(tx, branchId);
       return {
         items: rows.map((row) => mapDiningTable(row, includeQrToken)),
+        ...pageMeta(query, total),
       };
     });
   }
