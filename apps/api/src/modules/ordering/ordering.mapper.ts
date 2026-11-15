@@ -202,6 +202,7 @@ export function mapKitchenBoardResponse(input: {
   itemRows: ItemRow[];
   modifierRows: ModifierRow[];
   labelByTableId: Map<string, string>;
+  roundByOrderId?: Map<string, number>;
 }): KitchenBoardResponse {
   const modifiersByItem = new Map<string, ModifierRow[]>();
   for (const mod of input.modifierRows) {
@@ -233,6 +234,7 @@ export function mapKitchenBoardResponse(input: {
         tableLabel,
         customerName: row.customerName,
         pagerNumber: row.pagerNumber,
+        round: input.roundByOrderId?.get(row.id) ?? null,
         notes: row.notes,
         paymentStatus: row.paymentStatus,
         items: items.map((item) => ({

@@ -963,12 +963,17 @@ export class OrderingService {
       ];
       const tableRows = await this.repo.listTableLabelsForBranch(tx, branchId, tableIds);
       const labelByTableId = new Map(tableRows.map((row) => [row.id, row.label]));
+      const billIds = [
+        ...new Set(orderRows.map((row) => row.billId).filter((id): id is string => id !== null)),
+      ];
+      const roundByOrderId = await this.repo.listBillRounds(tx, billIds);
       return mapKitchenBoardResponse({
         serverTime,
         orderRows,
         itemRows,
         modifierRows,
         labelByTableId,
+        roundByOrderId,
       });
     });
   }

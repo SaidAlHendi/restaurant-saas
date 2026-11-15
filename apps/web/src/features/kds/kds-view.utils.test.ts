@@ -26,6 +26,22 @@ const input = {
   labels,
 };
 
+describe('buildKdsCard round hint', () => {
+  it('marks a later round and stays quiet for the first one', () => {
+    const labelsWithRound = { ...labels, round: (n: number) => `Round ${String(n)}` };
+    const second = buildKdsCard(boardOrder({ type: 'dine_in', tableLabel: '5', round: 2 }), {
+      ...input,
+      labels: labelsWithRound,
+    });
+    expect(second.subtitle).toBe('Table 5 · Round 2');
+    const first = buildKdsCard(boardOrder({ type: 'dine_in', tableLabel: '5', round: 1 }), {
+      ...input,
+      labels: labelsWithRound,
+    });
+    expect(first.subtitle).toBe('Table 5');
+  });
+});
+
 describe('buildKdsCard', () => {
   it('shows table, Arabic names, modifiers, additions last and voided items', () => {
     const original = boardItem({

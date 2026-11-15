@@ -74,6 +74,7 @@ describe('OrderingService kitchen board', () => {
             listOrderItemsForOrderIds,
             listOrderItemModifiersForItemIds,
             listTableLabelsForBranch,
+            listBillRounds: jest.fn(() => Promise.resolve(new Map())),
           },
         },
         { provide: TenancyRepository, useValue: { findBranchById } },

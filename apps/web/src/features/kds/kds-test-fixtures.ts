@@ -17,6 +17,7 @@ export function boardOrder(overrides: Partial<KitchenBoardOrder> = {}): KitchenB
     tableLabel: null,
     customerName: null,
     pagerNumber: null,
+    round: null,
     notes: null,
     paymentStatus: 'unpaid',
     items: [],
