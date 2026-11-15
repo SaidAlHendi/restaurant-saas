@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { isValidIanaTimezone } from './timezone.js';
+import { pageMetaShape } from '../page-pagination.js';
 
 const nullableTrimmedText = (max: number) =>
   z
@@ -77,4 +78,5 @@ export type PatchBranchBody = z.infer<typeof patchBranchBodySchema>;
 
 export const branchListResponseSchema = z.object({
   items: z.array(branchSchema),
+  ...pageMetaShape,
 });

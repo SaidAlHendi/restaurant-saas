@@ -15,6 +15,7 @@ import {
   type StaffRulesChange,
   type SystemRoleKey,
 } from '@app/shared';
+import { slicePage, type PageQuery } from '@app/shared';
 
 import { ENV, type Env } from '../../config/config.module';
 import { CLOCK, type Clock } from '../../core/clock/clock.tokens';
@@ -70,7 +71,7 @@ export class StaffService {
     private readonly realtimeKick: RealtimeKickService,
   ) {}
 
-  list(ctx: RequestContext) {
+  list(ctx: RequestContext, query: PageQuery = {}) {
     return withOrg(this.db, ctx.orgId, async (tx) => {
       const rows = await this.tenancyRepo.listStaffWithUsers(tx);
       const items = await Promise.all(
@@ -99,10 +100,11 @@ export class StaffService {
       // Owners (and anyone with access to all branches) see every member.
       // Other actors (managers) only see members who share at least one of
       // their branches, plus themselves.
+      // Scoping happens in memory, so the page is cut after it.
       if (actorRole === 'owner' || ctx.allBranches) {
-        return { items };
+        return slicePage(items, query);
       }
-      return { items: filterStaffByActorBranches(items, ctx.branchIds) };
+      return slicePage(filterStaffByActorBranches(items, ctx.branchIds), query);
     });
   }
 

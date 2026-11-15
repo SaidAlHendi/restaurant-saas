@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { pinLoginBodySchema } from '../auth/pin-login.js';
 import { pinUserListItemSchema } from '../staff/pin-users.js';
+import { pageMetaShape } from '../page-pagination.js';
 
 /** Pairing code alphabet: no 0/O/1/I/L so it can be read out loud or typed from a screen. */
 export const PAIRING_CODE_ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
@@ -31,6 +32,7 @@ export type PosDeviceListItem = z.infer<typeof posDeviceListItemSchema>;
 
 export const posDeviceListResponseSchema = z.object({
   items: z.array(posDeviceListItemSchema),
+  ...pageMetaShape,
 });
 export type PosDeviceListResponse = z.infer<typeof posDeviceListResponseSchema>;
 

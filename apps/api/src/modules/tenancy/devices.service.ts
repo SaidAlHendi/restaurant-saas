@@ -10,6 +10,7 @@ import {
   type PosDeviceListItem,
   type PosDeviceListResponse,
 } from '@app/shared';
+import { slicePage, type PageQuery } from '@app/shared';
 
 import { CLOCK, type Clock } from '../../core/clock/clock.tokens';
 import type { RequestContext } from '../../core/context/request-context';
@@ -58,13 +59,16 @@ export class DevicesService {
     private readonly repo: TenancyRepository,
   ) {}
 
-  list(ctx: RequestContext): Promise<PosDeviceListResponse> {
+  list(ctx: RequestContext, query: PageQuery = {}): Promise<PosDeviceListResponse> {
     return withOrg(this.db, ctx.orgId, async (tx) => {
       const rows = await this.repo.listPosDevices(tx);
       const visible = rows.filter(
         (row) => ctx.allBranches || ctx.branchIds.includes(row.device.branchId),
       );
-      return { items: visible.map((row) => toListItem(row.device, row.branchName)) };
+      return slicePage(
+        visible.map((row) => toListItem(row.device, row.branchName)),
+        query,
+      );
     });
   }
 

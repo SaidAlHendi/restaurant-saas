@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { pageMetaShape } from '../page-pagination.js';
 import { adminRoleSchema } from './roles.js';
 
 /** Cursor-paginated admin lists: `nextCursor` is opaque, pass it back as `cursor`. */
@@ -91,7 +92,7 @@ export const adminPlanSchema = z.object({
 });
 export type AdminPlan = z.infer<typeof adminPlanSchema>;
 
-export const adminPlanListResponseSchema = z.object({ items: z.array(adminPlanSchema) });
+export const adminPlanListResponseSchema = z.object({ items: z.array(adminPlanSchema), ...pageMetaShape });
 export type AdminPlanListResponse = z.infer<typeof adminPlanListResponseSchema>;
 
 // ---- Audit log ----

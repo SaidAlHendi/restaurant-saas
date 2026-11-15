@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Put , ParseUUIDPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, ParseUUIDPipe, Query } from '@nestjs/common';
 
 import { Authenticated } from '../../core/auth/authenticated.decorator';
 import { RequirePermission } from '../../core/permissions/require-permission.decorator';
@@ -13,6 +13,7 @@ import {
   PutStaffPinBodyDto,
 } from './dto/staff.dto';
 import { StaffService } from './staff.service';
+import { PageQueryDto } from '../../core/validation/page-query.dto';
 
 @Controller('v1/staff')
 export class StaffController {
@@ -20,8 +21,8 @@ export class StaffController {
 
   @RequirePermission('staff.read')
   @Get()
-  list(@Ctx() ctx: RequestContext) {
-    return this.staff.list(ctx);
+  list(@Ctx() ctx: RequestContext, @Query() query: PageQueryDto) {
+    return this.staff.list(ctx, query);
   }
 
   @RequirePermission('staff.manage')

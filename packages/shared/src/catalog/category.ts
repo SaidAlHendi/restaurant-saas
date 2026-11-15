@@ -7,6 +7,7 @@ import {
   branchAvailabilityInputFields,
   branchAvailabilityInputValid,
 } from './branch-availability.js';
+import { pageMetaShape } from '../page-pagination.js';
 
 export const categorySchema = z.object({
   id: z.uuid(),
@@ -21,6 +22,7 @@ export type Category = z.infer<typeof categorySchema>;
 
 export const categoryListResponseSchema = z.object({
   items: z.array(categorySchema),
+  ...pageMetaShape,
 });
 
 export const createCategoryBodySchema = z

@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, lt, or, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, inArray, lt, or, sql } from 'drizzle-orm';
 import { Injectable } from '@nestjs/common';
 
 import type { OrderListCursor } from '../../lib/order-list-cursor';
@@ -25,12 +25,22 @@ function firstRow<T>(rows: T[]): T {
 
 @Injectable()
 export class OrderingRepository {
-  async listTables(tx: DrizzleTx, branchId: string) {
-    return tx
+  async listTables(tx: DrizzleTx, branchId: string, window?: { limit: number; offset: number } | null) {
+    const query = tx
       .select()
       .from(diningTables)
       .where(eq(diningTables.branchId, branchId))
-      .orderBy(diningTables.label);
+      .orderBy(diningTables.label, diningTables.id)
+      .$dynamic();
+    return window ? query.limit(window.limit).offset(window.offset) : query;
+  }
+
+  async countTables(tx: DrizzleTx, branchId: string): Promise<number> {
+    const [row] = await tx
+      .select({ total: count() })
+      .from(diningTables)
+      .where(eq(diningTables.branchId, branchId));
+    return row?.total ?? 0;
   }
 
   async findTableById(tx: DrizzleTx, branchId: string, tableId: string) {

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { pageMetaShape } from '../page-pagination.js';
 
 export const membershipListItemSchema = z.object({
   id: z.uuid(),
@@ -16,4 +17,5 @@ export type MembershipListItem = z.infer<typeof membershipListItemSchema>;
 
 export const membershipListResponseSchema = z.object({
   items: z.array(membershipListItemSchema),
+  ...pageMetaShape,
 });

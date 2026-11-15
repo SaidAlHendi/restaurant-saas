@@ -1,4 +1,4 @@
-import { and, asc, eq, getTableColumns, gt, inArray, isNull, or, sql } from 'drizzle-orm';
+import { and, asc, count, eq, getTableColumns, gt, inArray, isNull, or, sql } from 'drizzle-orm';
 import { Injectable } from '@nestjs/common';
 
 import {
@@ -56,12 +56,22 @@ function firstRow<T>(rows: T[]): T {
 
 @Injectable()
 export class CatalogRepository {
-  async listCategories(tx: DrizzleTx, orgId: string) {
-    return tx
+  async listCategories(tx: DrizzleTx, orgId: string, window?: { limit: number; offset: number } | null) {
+    const query = tx
       .select()
       .from(categories)
       .where(and(eq(categories.orgId, orgId), isNull(categories.deletedAt)))
-      .orderBy(asc(categories.sortOrder), asc(categories.id));
+      .orderBy(asc(categories.sortOrder), asc(categories.id))
+      .$dynamic();
+    return window ? query.limit(window.limit).offset(window.offset) : query;
+  }
+
+  async countCategories(tx: DrizzleTx, orgId: string): Promise<number> {
+    const [row] = await tx
+      .select({ total: count() })
+      .from(categories)
+      .where(and(eq(categories.orgId, orgId), isNull(categories.deletedAt)));
+    return row?.total ?? 0;
   }
 
   async findCategoryById(tx: DrizzleTx, categoryId: string, includeDeleted = false) {
@@ -267,11 +277,11 @@ export class CatalogRepository {
   }
 
   /** Groups with how many modifiers they hold and how many (non-deleted) products use them. */
-  async listModifierGroups(tx: DrizzleTx, orgId: string) {
+  async listModifierGroups(tx: DrizzleTx, orgId: string, window?: { limit: number; offset: number } | null) {
     // Inside the subqueries Drizzle would print a bare "id" (the inner table's), so the outer
     // group id is written out qualified.
     const outerGroupId = sql.raw('"modifier_groups"."id"');
-    return tx
+    const query = tx
       .select({
         ...getTableColumns(modifierGroups),
         modifierCount: sql<number>`(
@@ -287,7 +297,17 @@ export class CatalogRepository {
       })
       .from(modifierGroups)
       .where(and(eq(modifierGroups.orgId, orgId), isNull(modifierGroups.deletedAt)))
-      .orderBy(asc(modifierGroups.id));
+      .orderBy(asc(modifierGroups.id))
+      .$dynamic();
+    return window ? query.limit(window.limit).offset(window.offset) : query;
+  }
+
+  async countModifierGroups(tx: DrizzleTx, orgId: string): Promise<number> {
+    const [row] = await tx
+      .select({ total: count() })
+      .from(modifierGroups)
+      .where(and(eq(modifierGroups.orgId, orgId), isNull(modifierGroups.deletedAt)));
+    return row?.total ?? 0;
   }
 
   async findModifierGroupById(tx: DrizzleTx, groupId: string, includeDeleted = false) {

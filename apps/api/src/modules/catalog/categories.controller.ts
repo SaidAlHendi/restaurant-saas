@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query } from '@nestjs/common';
 
 import { Ctx } from '../../core/context/context.decorator';
 import type { RequestContext } from '../../core/context/request-context';
@@ -7,6 +7,7 @@ import { RequirePermission } from '../../core/permissions/require-permission.dec
 import { CategoriesService } from './categories.service';
 import { CreateCategoryBodyDto, PatchCategoryBodyDto, ReorderBodyDto } from './dto/catalog.dto';
 import { CatalogPathIdPipe } from './pipes/catalog-path-id.pipe';
+import { PageQueryDto } from '../../core/validation/page-query.dto';
 
 @Controller('v1/categories')
 export class CategoriesController {
@@ -14,8 +15,8 @@ export class CategoriesController {
 
   @RequirePermission('menu.read')
   @Get()
-  list(@Ctx() ctx: RequestContext) {
-    return this.categories.list(ctx);
+  list(@Ctx() ctx: RequestContext, @Query() query: PageQueryDto) {
+    return this.categories.list(ctx, query);
   }
 
   @RequirePermission('menu.manage')

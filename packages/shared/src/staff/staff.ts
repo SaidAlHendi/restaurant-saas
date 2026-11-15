@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { SYSTEM_ROLE_KEYS } from '../permissions.js';
+import { pageMetaShape } from '../page-pagination.js';
 
 export const staffRoleKeySchema = z.enum(SYSTEM_ROLE_KEYS);
 export type StaffRoleKey = z.infer<typeof staffRoleKeySchema>;
@@ -27,6 +28,7 @@ export type StaffListItem = z.infer<typeof staffListItemSchema>;
 
 export const staffListResponseSchema = z.object({
   items: z.array(staffListItemSchema),
+  ...pageMetaShape,
 });
 
 export type StaffListResponse = z.infer<typeof staffListResponseSchema>;

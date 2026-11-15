@@ -19,6 +19,7 @@ import type {
   PatchBranchBody,
   SystemRoleKey,
 } from '@app/shared';
+import { pageMeta, pageWindow, type PageQuery } from '@app/shared';
 
 import { OUTBOX_BRANCH_SETTINGS_UPDATED } from './tenancy.constants';
 import { TenancyRepository } from './tenancy.repository';
@@ -74,11 +75,13 @@ export class BranchesService {
     private readonly entitlements: EntitlementsService,
   ) {}
 
-  list(ctx: RequestContext) {
+  list(ctx: RequestContext, query: PageQuery = {}) {
     return withOrg(this.db, ctx.orgId, async (tx) => {
-      const rows = await this.repo.listBranches(tx, ctx.orgId);
+      const rows = await this.repo.listBranches(tx, ctx.orgId, pageWindow(query));
+      const total = await this.repo.countBranches(tx, ctx.orgId);
       return {
         items: rows.map((b) => mapBranchRow(b)),
+        ...pageMeta(query, total),
       };
     });
   }
