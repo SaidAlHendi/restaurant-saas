@@ -31,3 +31,5 @@ dump.rdb
 
 # Staging secrets (real values; the template is infra/staging/staging.env.example)
 infra/staging/staging.env
+
+graphify-out/
