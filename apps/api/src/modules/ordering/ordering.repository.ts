@@ -483,6 +483,20 @@ export class OrderingRepository {
       );
   }
 
+  /** Moves additions that waited for payment to the kitchen; returns the released item ids. */
+  async releaseHeldItems(
+    tx: DrizzleTx,
+    orderId: string,
+    target: 'pending' | 'preparing',
+  ): Promise<string[]> {
+    const rows = await tx
+      .update(orderItems)
+      .set({ status: target })
+      .where(and(eq(orderItems.orderId, orderId), eq(orderItems.status, 'awaiting_payment')))
+      .returning({ id: orderItems.id });
+    return rows.map((row) => row.id);
+  }
+
   async findOrderItem(tx: DrizzleTx, orderId: string, itemId: string) {
     const rows = await tx
       .select()

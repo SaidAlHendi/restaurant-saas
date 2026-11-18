@@ -7,6 +7,7 @@ import type { OrderListItem, OrderStatus } from '@app/shared';
 
 import { baseApi } from '../../../app/api/base-api.js';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks.js';
+import { readPrintAdditions } from '../pos-print-pref.js';
 import { intlLocaleForUi, orderMoneyFormatter } from '../../../lib/money.js';
 import type { RealtimeEvent } from '../../../lib/realtime.js';
 import { useListOrdersQuery } from '../../orders/orders.api.js';
@@ -41,6 +42,7 @@ export function usePosOrdersPage() {
   const dispatch = useAppDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const [printAdditionsPref] = useState(readPrintAdditions);
   const branchId = useAppSelector(selectCurrentBranchId);
   const org = useAppSelector(selectSessionOrg);
   const canCancelOrders = useAppSelector(selectCan('orders.cancel'));
@@ -145,7 +147,9 @@ export function usePosOrdersPage() {
       void navigate(`/pos?addTo=${orderId}`);
     },
     onExitAddItems: () => {},
-    printAdditions: false,
+    printAdditions: printAdditionsPref,
+    payBeforeSend: false,
+    onAdditionsHeld: () => {},
     canCancelOrders,
     canCreateOrders,
   });
@@ -157,10 +161,14 @@ export function usePosOrdersPage() {
     onPaymentCaptured: () => {
       const before = beforePaymentStatusRef.current;
       beforePaymentStatusRef.current = null;
+      const paidOrderBefore = orderDetail.order;
       void orderDetail.refetchOrder().then((result) => {
         const updated = result.data;
         if (updated && shouldShowSentToKitchenToast(before, updated.status)) {
           toast.success(t('pos.toast.sentToKitchen', { number: updated.orderNumber }));
+        }
+        if (updated) {
+          orderDetail.announceReleasedAdditions(paidOrderBefore, updated);
         }
       });
     },

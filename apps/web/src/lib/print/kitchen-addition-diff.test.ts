@@ -1,7 +1,7 @@
 import { orderDetailSchema, type OrderItem } from '@app/shared';
 import { describe, expect, it } from 'vitest';
 
-import { newlyAddedItems } from './kitchen-addition-diff.js';
+import { newlyAddedItems, releasedAdditions } from './kitchen-addition-diff.js';
 
 const item = (overrides: Partial<OrderItem> & Pick<OrderItem, 'id'>): OrderItem => ({
   productId: '01932a1a-7b3e-7000-8000-000000000010',
@@ -66,5 +66,21 @@ describe('newlyAddedItems', () => {
     const before = order([item({ id: id(1) })]);
     const after = order([item({ id: id(1) }), item({ id: id(2), status: 'voided' })]);
     expect(newlyAddedItems(before, after)).toEqual([]);
+  });
+});
+
+describe('releasedAdditions', () => {
+  it('returns held items that left awaiting_payment', () => {
+    const before = order([item({ id: id(1) }), item({ id: id(2), status: 'awaiting_payment' })]);
+    const after = order([item({ id: id(1) }), item({ id: id(2), status: 'pending' })]);
+    expect(releasedAdditions(before, after).map((i) => i.id)).toEqual([id(2)]);
+  });
+
+  it('returns nothing while the items are still held or were voided', () => {
+    const before = order([item({ id: id(2), status: 'awaiting_payment' })]);
+    expect(
+      releasedAdditions(before, order([item({ id: id(2), status: 'awaiting_payment' })])),
+    ).toEqual([]);
+    expect(releasedAdditions(before, order([item({ id: id(2), status: 'voided' })]))).toEqual([]);
   });
 });

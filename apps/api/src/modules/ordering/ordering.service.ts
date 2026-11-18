@@ -547,7 +547,12 @@ export class OrderingService {
           lineTotalMinor: computeLineTotalMinor(line.unitPriceMinor, line.quantity),
           notes: line.notes ?? null,
           seat: line.seat ?? null,
-          status: current.status === 'preparing' ? 'preparing' : 'pending',
+          status:
+            current.status !== 'draft' && branch.payBeforeSend
+              ? 'awaiting_payment'
+              : current.status === 'preparing'
+                ? 'preparing'
+                : 'pending',
           isAddition: current.status !== 'draft',
         });
         for (const mod of line.modifiers) {
@@ -924,6 +929,35 @@ export class OrderingService {
         updated,
       );
 
+      if (!placingFromDraft && paymentStatus === 'paid') {
+        // Paid in full: additions held for payment now go to the kitchen.
+        const releasedIds = await this.repo.releaseHeldItems(
+          tx,
+          orderId,
+          current.status === 'preparing' ? 'preparing' : 'pending',
+        );
+        if (releasedIds.length > 0) {
+          await this.repo.insertOrderEvent(tx, {
+            id: newUuidV7(),
+            orgId: ctx.orgId,
+            orderId,
+            type: ORDER_EVENT_TYPES.itemsAdded,
+            fromStatus: current.status,
+            toStatus: current.status,
+            payload: { itemIds: releasedIds, released: true },
+            actorMembershipId: ctx.membershipId,
+          });
+          await this.writeOutbox(
+            tx,
+            ctx.orgId,
+            branchId,
+            orderId,
+            ORDER_EVENT_TYPES.itemsAdded,
+            updated,
+          );
+        }
+      }
+
       if (placingFromDraft) {
         await this.repo.insertOrderEvent(tx, {
           id: newUuidV7(),
@@ -951,7 +985,10 @@ export class OrderingService {
       }
       const orderRows = await this.repo.listKitchenBoardOrders(tx, branchId, 200);
       const orderIds = orderRows.map((row) => row.id);
-      const itemRows = await this.repo.listOrderItemsForOrderIds(tx, orderIds);
+      // Additions still waiting for payment are not for the kitchen yet.
+      const itemRows = (await this.repo.listOrderItemsForOrderIds(tx, orderIds)).filter(
+        (row) => row.status !== 'awaiting_payment',
+      );
       const itemIds = itemRows.map((row) => row.id);
       const modifierRows = await this.repo.listOrderItemModifiersForItemIds(tx, itemIds);
       const tableIds = [

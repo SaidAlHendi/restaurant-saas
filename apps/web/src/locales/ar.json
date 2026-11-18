@@ -582,7 +582,8 @@
       "additionsSent_two": "أُرسل صنفان إلى المطبخ للطلب رقم {{number}}",
       "additionsSent_few": "أُرسلت {{count}} أصناف إلى المطبخ للطلب رقم {{number}}",
       "additionsSent_many": "أُرسل {{count}} صنفًا إلى المطبخ للطلب رقم {{number}}",
-      "additionsSent_other": "أُرسل {{count}} صنف إلى المطبخ للطلب رقم {{number}}"
+      "additionsSent_other": "أُرسل {{count}} صنف إلى المطبخ للطلب رقم {{number}}",
+      "additionsAwaitingPayment": "تم حفظ إضافات الطلب رقم {{number}} وتنتظر الدفع قبل إرسالها إلى المطبخ"
     },
     "nav": {
       "section": "الكاشير",
@@ -708,7 +709,8 @@
       "approvalNext": "متابعة",
       "pickApprover": "اختر المعتمد",
       "emptyApprovers": "لا يوجد مديرون برمز سري في هذا الفرع.",
-      "more": "المزيد"
+      "more": "المزيد",
+      "itemAwaitingPayment": "بانتظار الدفع"
     },
     "lock": {
       "button": "قفل",
@@ -844,7 +846,8 @@
       "send": "إرسال إلى المطبخ ({{count}})",
       "back": "رجوع",
       "printTicket": "طباعة تذكرة المطبخ",
-      "closed": "لا يمكن إضافة أصناف جديدة إلى هذا الطلب."
+      "closed": "لا يمكن إضافة أصناف جديدة إلى هذا الطلب.",
+      "payAndSend": "دفع وإرسال الإضافات ({{count}})"
     }
   },
   "orders": {

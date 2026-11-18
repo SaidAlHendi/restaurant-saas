@@ -35,7 +35,7 @@ The order header. Key columns: `type` (`dine_in`, `takeaway`), `status` (`draft`
 
 ### order_items
 
-Lines on an order: `product_id`, `product_name_snapshot`, `unit_price_minor`, `quantity`, `line_total_minor`, `notes`, `status` (`pending`, `preparing`, `ready`, `voided`), `is_addition` (added after the first send), `seat` (guest label for splitting the bill), and void details. **Used by:** ordering.
+Lines on an order: `product_id`, `product_name_snapshot`, `unit_price_minor`, `quantity`, `line_total_minor`, `notes`, `status` (`awaiting_payment`, `pending`, `preparing`, `ready`, `voided`; `awaiting_payment` is an addition on a pay-before-send branch that stays hidden from the kitchen until the order is paid in full), `is_addition` (added after the first send), `seat` (guest label for splitting the bill), and void details. **Used by:** ordering.
 
 ### order_item_modifiers
 

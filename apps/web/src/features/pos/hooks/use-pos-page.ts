@@ -376,6 +376,13 @@ export function usePosPage() {
     },
     onExitAddItems: exitAddMode,
     printAdditions,
+    payBeforeSend: menu?.branch.payBeforeSend ?? false,
+    onAdditionsHeld: (held: OrderDetail) => {
+      // Pay-before-send: the additions wait for payment, so take it now.
+      beforePaymentStatusRef.current = held.status;
+      setCheckoutOrder(held);
+      paymentDialog.openForOrder(held);
+    },
     canCancelOrders,
     canCreateOrders,
   });
@@ -389,6 +396,7 @@ export function usePosPage() {
     onPaymentCaptured: () => {
       const before = beforePaymentStatusRef.current;
       beforePaymentStatusRef.current = null;
+      const paidOrderBefore = paymentOrder ?? undefined;
       const checkoutId = checkoutOrder?.id;
       const activeBranchId = branchId;
       setCheckoutOrder(null);
@@ -396,6 +404,9 @@ export function usePosPage() {
       const finish = (updated: OrderDetail | undefined) => {
         if (updated && shouldShowSentToKitchenToast(before, updated.status)) {
           toast.success(t('pos.toast.sentToKitchen', { number: updated.orderNumber }));
+        }
+        if (updated) {
+          orderDetail.announceReleasedAdditions(paidOrderBefore, updated);
         }
         if (updated && selectedOrderId === updated.id) {
           orderDetail.printReceipt();
@@ -433,6 +444,8 @@ export function usePosPage() {
           .then((updated) => {
             if (updated.status === 'draft') {
               toast.info(t('pos.toast.awaitingPayment', { number: updated.orderNumber }));
+            } else if (updated.items.some((item) => item.status === 'awaiting_payment')) {
+              toast.info(t('pos.toast.additionsAwaitingPayment', { number: updated.orderNumber }));
             }
           })
           .catch(() => {});
@@ -856,7 +869,7 @@ export function usePosPage() {
       sendToKitchen: (isAddingItems ? orderDetail.addingItems : sending)
         ? t('pos.sending')
         : isAddingItems
-          ? t('pos.addMode.send', {
+          ? t(menu?.branch.payBeforeSend ? 'pos.addMode.payAndSend' : 'pos.addMode.send', {
               count: additionLines.reduce((sum: number, line) => sum + line.quantity, 0),
             })
           : menu?.branch.payBeforeSend

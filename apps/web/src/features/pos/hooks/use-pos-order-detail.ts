@@ -7,7 +7,7 @@ import type { OrderDetail, OrderItem, OrderStatus, PosMenuPayload } from '@app/s
 
 import { openPrintWindow } from '../../../lib/print/open-print-window.js';
 import { printLocaleFromUi } from '../../../lib/print/print-document.js';
-import { activeOrderItems, newlyAddedItems } from '../../../lib/print/kitchen-addition-diff.js';
+import { activeOrderItems, newlyAddedItems, releasedAdditions } from '../../../lib/print/kitchen-addition-diff.js';
 import { renderKitchenHtml } from '../../../lib/print/kitchen-html.js';
 import {
   moneyFormatter,
@@ -55,6 +55,9 @@ export function usePosOrderDetail(input: {
   onStartAddItems: (orderId: string) => void;
   onExitAddItems: () => void;
   printAdditions: boolean;
+  /** Pay-before-send branch: additions are held until paid, so the page opens payment right after saving them. */
+  payBeforeSend: boolean;
+  onAdditionsHeld: (order: OrderDetail) => void;
   canCancelOrders: boolean;
   canCreateOrders: boolean;
 }) {
@@ -228,7 +231,8 @@ export function usePosOrderDetail(input: {
       const html = renderKitchenHtml({
         order: target,
         items,
-        tableLabel,
+        tableLabel:
+          target.tableId !== null ? (input.tableLabelById.get(target.tableId) ?? null) : null,
         locale: input.locale,
         fallbackLocale: input.defaultLocale,
         timeZone: input.menu?.branch.timezone ?? 'UTC',
@@ -244,7 +248,7 @@ export function usePosOrderDetail(input: {
       });
       openPrintWindow(t('pos.print.kitchenTitle'), html, printLocaleFromUi(input.locale));
     },
-    [input, t, tableLabel],
+    [input, t],
   );
 
   const submitAdditions = useCallback(async () => {
@@ -265,6 +269,13 @@ export function usePosOrderDetail(input: {
       return;
     }
     const added = newlyAddedItems(order, result.data);
+    if (input.payBeforeSend) {
+      // Held until paid: nothing goes to the kitchen yet, so no ticket and no "sent" toast.
+      input.clearAdditionLines();
+      input.onExitAddItems();
+      input.onAdditionsHeld(result.data);
+      return;
+    }
     if (input.printAdditions && added.length > 0) {
       printKitchenTicket(result.data, added, true);
     }
@@ -279,6 +290,29 @@ export function usePosOrderDetail(input: {
     input.clearAdditionLines();
     input.onExitAddItems();
   }, [addItems, handleConflict, input, order, printKitchenTicket, t]);
+
+  /** After a payment: tell the cashier which held additions just went to the kitchen, and print them. */
+  const announceReleasedAdditions = useCallback(
+    (before: OrderDetail | undefined, after: OrderDetail) => {
+      if (!before) {
+        return;
+      }
+      const released = releasedAdditions(before, after);
+      if (released.length === 0) {
+        return;
+      }
+      if (input.printAdditions) {
+        printKitchenTicket(after, released, true);
+      }
+      toast.success(
+        t('pos.toast.additionsSent', {
+          count: released.reduce((sum: number, item) => sum + item.quantity, 0),
+          number: after.orderNumber,
+        }),
+      );
+    },
+    [input.printAdditions, printKitchenTicket, t],
+  );
 
   const printReceipt = useCallback(() => {
     if (!order || !input.menu) {
@@ -323,6 +357,8 @@ export function usePosOrderDetail(input: {
       lineTotalLabel: formatMinor(item.lineTotalMinor),
       voided: item.status === 'voided',
       isAddition: item.isAddition,
+      awaitingPayment: item.status === 'awaiting_payment',
+      awaitingPaymentLabel: t('pos.orderDetail.itemAwaitingPayment'),
       onVoid: canVoidOrderItem(order, item.status === 'voided')
         ? () => {
             setVoidItemId(item.id);
@@ -398,6 +434,7 @@ export function usePosOrderDetail(input: {
       setCancelOpen(true);
     },
     printReceipt,
+    announceReleasedAdditions,
     printKitchenFull: () => {
       if (order) {
         printKitchenTicket(order, activeOrderItems(order), false);

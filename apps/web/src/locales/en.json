@@ -570,7 +570,8 @@
       "sentToKitchen": "Order #{{number}} sent to kitchen",
       "awaitingPayment": "Order #{{number}} is waiting for payment",
       "additionsSent_one": "{{count}} item sent to the kitchen for order #{{number}}",
-      "additionsSent_other": "{{count}} items sent to the kitchen for order #{{number}}"
+      "additionsSent_other": "{{count}} items sent to the kitchen for order #{{number}}",
+      "additionsAwaitingPayment": "Additions to order #{{number}} are saved and wait for payment before going to the kitchen"
     },
     "nav": {
       "section": "Cashier",
@@ -696,7 +697,8 @@
       "approvalNext": "Continue",
       "pickApprover": "Choose approver",
       "emptyApprovers": "No managers with a PIN are available at this branch.",
-      "more": "More"
+      "more": "More",
+      "itemAwaitingPayment": "Awaiting payment"
     },
     "lock": {
       "button": "Lock",
@@ -812,7 +814,8 @@
       "send": "Send to kitchen ({{count}})",
       "back": "Back",
       "printTicket": "Print kitchen ticket",
-      "closed": "This order can no longer take new items."
+      "closed": "This order can no longer take new items.",
+      "payAndSend": "Pay & send additions ({{count}})"
     }
   },
   "orders": {

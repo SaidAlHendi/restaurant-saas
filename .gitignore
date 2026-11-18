@@ -33,3 +33,4 @@ dump.rdb
 infra/staging/staging.env
 
 graphify-out/
+.playwright-mcp/

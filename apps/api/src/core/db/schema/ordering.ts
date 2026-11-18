@@ -34,6 +34,7 @@ export const orderStatusEnum = pgEnum('order_status', [
 export const paymentStatusEnum = pgEnum('payment_status', ['unpaid', 'partial', 'paid', 'refunded']);
 
 export const orderItemStatusEnum = pgEnum('order_item_status', [
+  'awaiting_payment',
   'pending',
   'preparing',
   'ready',

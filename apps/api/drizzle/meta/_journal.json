@@ -169,6 +169,13 @@
       "when": 1759676000000,
       "tag": "0023_table_bills",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1759677000000,
+      "tag": "0025_item_awaiting_payment",
+      "breakpoints": true
     }
   ]
 }

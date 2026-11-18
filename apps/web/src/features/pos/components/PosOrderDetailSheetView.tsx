@@ -82,6 +82,11 @@ export function PosOrderDetailSheetView(props: PosOrderDetailSheetViewProps) {
                         <span className="font-medium">
                           {String(row.quantity)}× {row.name}
                         </span>
+                        {row.awaitingPayment ? (
+                          <Badge variant="outline" className="ms-2">
+                            {row.awaitingPaymentLabel}
+                          </Badge>
+                        ) : null}
                         {row.isAddition ? (
                           <Badge variant="outline" className="ms-2">
                             +

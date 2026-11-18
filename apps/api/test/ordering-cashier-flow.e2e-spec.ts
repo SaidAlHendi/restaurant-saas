@@ -479,4 +479,131 @@ describe('Cashier flow (e2e)', () => {
     expect(patch.status).toBe(404);
     expect(orderId.length).toBeGreaterThan(0);
   });
+  describe('additions to a sent order', () => {
+    type Detail = {
+      id: string;
+      version: number;
+      status: string;
+      paymentStatus: string;
+      dueMinor: number;
+      items: Array<{ id: string; status: string; isAddition: boolean }>;
+    };
+
+    async function placedPaidOrder(owner: Agent, branchId: string, productId: string) {
+      const created = await draftOrderOnBranch(owner, branchId, productId);
+      const order = created.body as Detail;
+      const clientPaymentId = newUuidV7();
+      await postPayment(
+        owner,
+        branchId,
+        order.id,
+        {
+          clientPaymentId,
+          expectedVersion: order.version,
+          method: 'cash',
+          amountMinor: order.dueMinor,
+          tenderedMinor: order.dueMinor,
+        },
+        clientPaymentId,
+      );
+      const detail = await owner.get(`/v1/branches/${branchId}/orders/${order.id}`);
+      return detail.body as Detail;
+    }
+
+    async function boardItems(owner: Agent, branchId: string, orderId: string) {
+      const board = await owner.get(`/v1/branches/${branchId}/kitchen/board`);
+      const found = (
+        board.body as { orders: Array<{ id: string; items: Array<{ id: string; status: string }> }> }
+      ).orders.find((o) => o.id === orderId);
+      return found?.items ?? [];
+    }
+
+    it('payBeforeSend: addition is held from the kitchen until the order is paid again', async () => {
+      const owner = await asDemoOwner(apiAgent(app));
+      const { branchId } = await createIsolatedBranch(owner, { payBeforeSend: true });
+      const { productId } = await seedCatalogProduct(agent);
+      const order = await placedPaidOrder(owner, branchId, productId);
+      expect(order.status).toBe('placed');
+
+      const added = await owner.post(`/v1/branches/${branchId}/orders/${order.id}/items`).send({
+        expectedVersion: order.version,
+        items: [{ productId, quantity: 1, modifierIds: [] }],
+      });
+      expect(added.status).toBe(201);
+      const held = added.body as Detail;
+      const newItem = held.items.find((i) => i.isAddition);
+      expect(newItem?.status).toBe('awaiting_payment');
+      expect(held.paymentStatus).toBe('partial');
+      expect(held.dueMinor).toBeGreaterThan(0);
+
+      const hiddenFromKitchen = await boardItems(owner, branchId, order.id);
+      expect(hiddenFromKitchen.map((i) => i.id)).not.toContain(newItem?.id);
+
+      const clientPaymentId = newUuidV7();
+      const paid = await postPayment(
+        owner,
+        branchId,
+        order.id,
+        {
+          clientPaymentId,
+          expectedVersion: held.version,
+          method: 'cash',
+          amountMinor: held.dueMinor,
+          tenderedMinor: held.dueMinor,
+        },
+        clientPaymentId,
+      );
+      expect(paid.status).toBe(201);
+
+      const after = (await owner.get(`/v1/branches/${branchId}/orders/${order.id}`))
+        .body as Detail;
+      expect(after.items.find((i) => i.id === newItem?.id)?.status).toBe('pending');
+      const visible = await boardItems(owner, branchId, order.id);
+      expect(visible.map((i) => i.id)).toContain(newItem?.id);
+    });
+
+    it('payBeforeSend: a partial payment keeps the addition held', async () => {
+      const owner = await asDemoOwner(apiAgent(app));
+      const { branchId } = await createIsolatedBranch(owner, { payBeforeSend: true });
+      const { productId } = await seedCatalogProduct(agent);
+      const order = await placedPaidOrder(owner, branchId, productId);
+      const added = await owner.post(`/v1/branches/${branchId}/orders/${order.id}/items`).send({
+        expectedVersion: order.version,
+        items: [{ productId, quantity: 1, modifierIds: [] }],
+      });
+      const held = added.body as Detail;
+      const clientPaymentId = newUuidV7();
+      await postPayment(
+        owner,
+        branchId,
+        order.id,
+        {
+          clientPaymentId,
+          expectedVersion: held.version,
+          method: 'cash',
+          amountMinor: 1,
+          tenderedMinor: 1,
+        },
+        clientPaymentId,
+      );
+      const after = (await owner.get(`/v1/branches/${branchId}/orders/${order.id}`))
+        .body as Detail;
+      expect(after.items.some((i) => i.status === 'awaiting_payment')).toBe(true);
+    });
+
+    it('payBeforeSend off: addition goes straight to the kitchen', async () => {
+      const owner = await asDemoOwner(apiAgent(app));
+      const { branchId } = await createIsolatedBranch(owner, { payBeforeSend: false });
+      const { productId } = await seedCatalogProduct(agent);
+      const created = await draftOrderOnBranch(owner, branchId, productId);
+      const order = created.body as Detail;
+      const added = await owner.post(`/v1/branches/${branchId}/orders/${order.id}/items`).send({
+        expectedVersion: order.version,
+        items: [{ productId, quantity: 1, modifierIds: [] }],
+      });
+      expect(added.status).toBe(201);
+      const body = added.body as Detail;
+      expect(body.items.find((i) => i.isAddition)?.status).toBe('pending');
+    });
+  });
 });

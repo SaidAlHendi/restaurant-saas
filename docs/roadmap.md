@@ -3,12 +3,12 @@
 ## Status
 Rewrite this section at the end of every session (max 30 lines).
 - **State:** Steps 1-9 done. 10a done; 10b (Sentry, uptime, backup restore test) open, staging deploy in progress (`docs/runbook-staging.md`). Step 12 (admin) 12a-12d merged.
-- **Last task (committed da80223 on dev):** POS add-items flow redone. `/pos?addTo=<orderId>` add mode: cart panel shows only new lines, one "Send to kitchen (N)" button saves and prints an additions ticket (device switch "Print kitchen ticket", `localStorage pos.printAdditions`). Order sheet is Pay / Mark ready / Add items / More (Receipt, Kitchen ticket, Cancel). Removed "Kitchen additions" button and the sessionStorage printed-ids memory.
-- **Changed files:** apps/web/src/features/pos/{hooks/use-pos-page.ts,use-pos-order-detail.ts,use-pos-orders-page.ts,components/PosPageView.tsx,PosOrderDetailSheetView.tsx,pos-print-pref.ts}, lib/print/kitchen-addition-diff(.test).ts, locales en/ar, docs/product.md.
-- **Verified:** pnpm lint/typecheck/test pass; clicked through at 1024x768 EN + AR RTL (add, send+print, skip print, Orders-page entry, Back, invalid id).
+- **Last task (uncommitted, branch dev):** pay-before-send for additions (plan: `docs/pay-before-send-additions.md`). With payBeforeSend on, additions to a sent order are saved as item status `awaiting_payment` (hidden from KDS) and released when the order is paid in full; add mode button is "Pay & send additions", ticket prints and toast shows on release; held lines show an "Awaiting payment" badge. New migration 0025 (enum value). Earlier commit da80223: /pos add mode flow.
+- **Changed files:** api ordering.service/repository, schema + drizzle/0025 + journal, shared enums/order-totals, web pos hooks/components, locales, docs (data-model, architecture, docs-site ordering.mdx), cashier e2e tests.
+- **Verified:** lint/typecheck/test green (api 137 unit + 360 e2e, web 323); clicked through: cancel dialog keeps item held and off KDS, paying from sheet releases it, ticket + toast.
 - **Next step:** staging deploy / Step 10b.
 - **Decisions:** printed ticket = exactly the items just sent (diff before/after), no stored "printed" state. Reprint-additions button dropped; full "Kitchen ticket" in More is the fallback.
-- **Gotchas:** print() blocks a headless browser, stub it when testing. `graphify-out/` is gitignored. Left alone: drizzle 0024_*, .gitignore, test.md.
+- **Gotchas:** a held addition on an order that reaches Ready/Completed is released as pending when paid (edge case, not handled). print() blocks a headless browser, stub it when testing. `graphify-out/` is gitignored. Left alone: drizzle 0024_*, .gitignore, test.md.
 
 - [x] 1. Monorepo scaffold, docker compose (Postgres, Redis), CI (lint, typecheck, test), deploy to staging
 - [x] 1b. UI kit in packages/ui: shadcn/ui + Tailwind v4, themes cupcake/forest, first batch of components, /dev/ui showcase, ESLint UI-only rule (docs/ui-kit.md)

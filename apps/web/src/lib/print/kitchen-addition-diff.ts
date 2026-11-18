@@ -9,3 +9,13 @@ export function newlyAddedItems(before: OrderDetail, after: OrderDetail): OrderI
   const known = new Set(before.items.map((item) => item.id));
   return activeOrderItems(after).filter((item) => !known.has(item.id));
 }
+
+/** Additions that were waiting for payment in `before` and are now on their way to the kitchen in `after`. */
+export function releasedAdditions(before: OrderDetail, after: OrderDetail): OrderItem[] {
+  const held = new Set(
+    before.items.filter((item) => item.status === 'awaiting_payment').map((item) => item.id),
+  );
+  return after.items.filter(
+    (item) => held.has(item.id) && item.status !== 'awaiting_payment' && item.status !== 'voided',
+  );
+}
