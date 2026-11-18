@@ -672,7 +672,9 @@
       "methodCash": "نقد",
       "methodCard": "بطاقة",
       "methodOther": "أخرى",
-      "confirm": "تسجيل الدفع"
+      "confirm": "تسجيل الدفع",
+      "discard": "تجاهل الطلب",
+      "discardReason": "غادر العميل قبل الدفع"
     },
     "paymentStatus": {
       "unpaid": "غير مدفوع",
@@ -700,10 +702,10 @@
       "cancelTitle": "إلغاء هذا الطلب؟",
       "cancelReason": "سبب الإلغاء",
       "cancelConfirm": "إلغاء الطلب",
-      "voidItem": "إبطال",
-      "voidTitle": "إبطال الصنف؟",
-      "voidReason": "سبب الإبطال",
-      "voidConfirm": "إبطال الصنف",
+      "voidItem": "إزالة الصنف",
+      "voidTitle": "إزالة هذا الصنف؟",
+      "voidReason": "سبب الإزالة",
+      "voidConfirm": "إزالة الصنف",
       "approvalTitle": "موافقة المدير",
       "approvalHint": "يجب على المدير أو المالك إدخال الرمز السري للتأكيد.",
       "approvalNext": "متابعة",

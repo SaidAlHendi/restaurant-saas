@@ -692,17 +692,22 @@ export class OrderingService {
         );
       }
 
-      if (await this.repo.hasCapturedPayments(tx, orderId)) {
+      const item = await this.repo.findOrderItem(tx, orderId, itemId);
+      if (!item || item.status === 'voided') {
+        throw new NotFoundError();
+      }
+
+      // An addition still held for payment never reached the kitchen and was not paid for,
+      // so the cashier may take it back even when the order has captured payments.
+      if (
+        item.status !== 'awaiting_payment' &&
+        (await this.repo.hasCapturedPayments(tx, orderId))
+      ) {
         throw new BusinessRuleError(
           'ORDER_HAS_PAYMENTS',
           'Cannot void items on an order with captured payments',
           { orderId },
         );
-      }
-
-      const item = await this.repo.findOrderItem(tx, orderId, itemId);
-      if (!item || item.status === 'voided') {
-        throw new NotFoundError();
       }
 
       const nonVoided = await this.repo.countNonVoidedItems(tx, orderId);

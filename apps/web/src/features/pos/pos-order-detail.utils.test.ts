@@ -74,4 +74,24 @@ describe('pos order detail actions', () => {
       ),
     ).toBe(false);
   });
+
+  it('lets a held addition be voided even when the order has payments', () => {
+    const paid = {
+      status: 'placed' as const,
+      payments: [
+        {
+          id: '01932a1a-7b3e-7000-8000-000000000080',
+          method: 'cash' as const,
+          amountMinor: 100,
+          tenderedMinor: 100,
+          changeMinor: 0,
+          displayTenderedMinor: null,
+          displayChangeMinor: null,
+          createdAt: '2026-04-01T10:00:00.000Z',
+        },
+      ],
+    };
+    expect(canVoidOrderItem(paid, false, true)).toBe(true);
+    expect(canVoidOrderItem(paid, false, false)).toBe(false);
+  });
 });

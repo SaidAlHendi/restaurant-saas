@@ -115,7 +115,22 @@ export function PosPaymentDialogView(props: PosPaymentDialogViewProps) {
             </div>
           ) : null}
         </DialogBody>
-        <DialogFooter>
+        <DialogFooter className="sm:flex-wrap">
+          {props.canDiscard ? (
+            // Own row under the Cancel / Record pair: a rare, destructive action stays quiet but reachable.
+            <Button
+              type="button"
+              variant="ghost"
+              size="touch"
+              className="text-destructive hover:text-destructive sm:order-last sm:basis-full"
+              isLoading={props.discarding}
+              onClick={() => {
+                void props.discard();
+              }}
+            >
+              {labels.discard}
+            </Button>
+          ) : null}
           <Button type="button" variant="outline" size="touch" onClick={close}>
             {labels.cancel}
           </Button>

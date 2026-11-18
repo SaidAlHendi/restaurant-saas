@@ -11,7 +11,7 @@ import {
 } from '@app/shared';
 
 import { randomUuid } from '../../../lib/uuid.js';
-import { useCapturePaymentMutation } from '../../orders/orders.api.js';
+import { useCapturePaymentMutation, useChangeOrderStatusMutation } from '../../orders/orders.api.js';
 import { parseOrdersApiErrorCode } from '../../orders/orders-api-errors.js';
 import { showOrdersApiError } from '../../orders/show-orders-api-error.js';
 import { cashChangeMinor, quickTenderAmounts } from '../pos-payment.utils.js';
@@ -22,6 +22,7 @@ export function usePosPaymentDialog(input: {
   acceptsCard: boolean;
   onPaymentCaptured: () => void;
   onDismissUnpaid?: () => void;
+  onDiscarded?: () => void;
   uiLocale: string;
 }) {
   const { t } = useTranslation();
@@ -31,8 +32,11 @@ export function usePosPaymentDialog(input: {
   const [tenderedMinor, setTenderedMinor] = useState<number | null>(null);
   const [clientPaymentId, setClientPaymentId] = useState<string | null>(null);
   const [capturePayment, captureState] = useCapturePaymentMutation();
+  const [changeStatus, discardState] = useChangeOrderStatusMutation();
 
   const activeOrder = dialogOrder ?? input.order;
+  // Only a brand-new, unpaid draft can be thrown away here (needs no manager approval).
+  const canDiscard = activeOrder?.status === 'draft' && activeOrder.payments.length === 0;
   const dueMinor = activeOrder?.dueMinor ?? 0;
 
   // With a display currency the cashier counts that currency: the dialog works in it throughout.
@@ -65,6 +69,29 @@ export function usePosPaymentDialog(input: {
     setDialogOrder(undefined);
     setClientPaymentId(null);
   }, [dialogOrder, input]);
+
+  const discard = useCallback(async () => {
+    if (!input.branchId || !activeOrder || !canDiscard) {
+      return;
+    }
+    const result = await changeStatus({
+      branchId: input.branchId,
+      orderId: activeOrder.id,
+      body: {
+        to: 'cancelled',
+        expectedVersion: activeOrder.version,
+        reason: t('pos.payment.discardReason'),
+      },
+    });
+    if ('error' in result) {
+      showOrdersApiError(result.error, t);
+      return;
+    }
+    setOpen(false);
+    setDialogOrder(undefined);
+    setClientPaymentId(null);
+    input.onDiscarded?.();
+  }, [activeOrder, canDiscard, changeStatus, input, t]);
 
   const quickAmounts = useMemo(() => quickTenderAmounts(cashDueMinor), [cashDueMinor]);
 
@@ -155,6 +182,9 @@ export function usePosPaymentDialog(input: {
     canSubmit,
     submitting: captureState.isLoading,
     submit,
+    canDiscard,
+    discarding: discardState.isLoading,
+    discard,
     /** Currency the cash fields are in (the display currency when the order has one). */
     currency: cash.currency,
     uiLocale: input.uiLocale,
@@ -168,6 +198,7 @@ export function usePosPaymentDialog(input: {
       change: t('pos.payment.change'),
       confirm: t('pos.payment.confirm'),
       cancel: t('pos.actions.cancel'),
+      discard: t('pos.payment.discard'),
     },
   };
 }

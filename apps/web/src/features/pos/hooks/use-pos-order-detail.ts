@@ -359,7 +359,7 @@ export function usePosOrderDetail(input: {
       isAddition: item.isAddition,
       awaitingPayment: item.status === 'awaiting_payment',
       awaitingPaymentLabel: t('pos.orderDetail.itemAwaitingPayment'),
-      onVoid: canVoidOrderItem(order, item.status === 'voided')
+      onVoid: canVoidOrderItem(order, item.status === 'voided', item.status === 'awaiting_payment')
         ? () => {
             setVoidItemId(item.id);
           }

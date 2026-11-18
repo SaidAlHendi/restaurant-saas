@@ -660,7 +660,9 @@
       "methodCash": "Cash",
       "methodCard": "Card",
       "methodOther": "Other",
-      "confirm": "Record payment"
+      "confirm": "Record payment",
+      "discard": "Discard order",
+      "discardReason": "Customer left before paying"
     },
     "paymentStatus": {
       "unpaid": "Unpaid",
@@ -688,10 +690,10 @@
       "cancelTitle": "Cancel this order?",
       "cancelReason": "Reason for cancellation",
       "cancelConfirm": "Cancel order",
-      "voidItem": "Void",
-      "voidTitle": "Void item?",
-      "voidReason": "Reason for void",
-      "voidConfirm": "Void item",
+      "voidItem": "Remove item",
+      "voidTitle": "Remove this item?",
+      "voidReason": "Reason for removing it",
+      "voidConfirm": "Remove item",
       "approvalTitle": "Manager approval",
       "approvalHint": "A manager or owner must enter their PIN to confirm.",
       "approvalNext": "Continue",

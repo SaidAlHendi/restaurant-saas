@@ -24,6 +24,7 @@ export function canShowCancelOrder(
 export function canVoidOrderItem(
   order: Pick<OrderDetail, 'status' | 'payments'>,
   itemVoided: boolean,
+  itemAwaitingPayment = false,
 ): boolean {
   if (itemVoided) {
     return false;
@@ -36,7 +37,8 @@ export function canVoidOrderItem(
   ) {
     return false;
   }
-  if (order.payments.length > 0) {
+  // A held addition was never paid for or sent, so it can go even after other payments.
+  if (order.payments.length > 0 && !itemAwaitingPayment) {
     return false;
   }
   return true;

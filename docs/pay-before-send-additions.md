@@ -19,7 +19,9 @@ With it off, nothing changes (additions go straight to the kitchen).
 4. Payment capture: when the order becomes fully paid, flip its `awaiting_payment` items to
    `pending` (or `preparing` if the order is preparing) and write an `items_added`-style outbox
    event so the KDS and POS refresh.
-5. Void of a held item stays allowed (cashier changed their mind).
+5. Void of a held item stays allowed (cashier changed their mind), even when the order has captured
+   payments (API skips the `ORDER_HAS_PAYMENTS` guard for `awaiting_payment` items). Totals and due
+   are recomputed. The payment dialog also has "Discard order" for an unpaid draft (cancels it).
 6. Web, add mode with payBeforeSend: button "Pay & send additions" = save held items, open the
    payment dialog for the amount due. On success: toast "N items sent to the kitchen", print the
    additions ticket (if the print switch is on). If the cashier closes the dialog, items stay held:

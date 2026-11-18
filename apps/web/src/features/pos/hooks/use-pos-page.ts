@@ -429,6 +429,10 @@ export function usePosPage() {
         finish(result.data);
       });
     },
+    onDiscarded: () => {
+      beforePaymentStatusRef.current = null;
+      setCheckoutOrder(null);
+    },
     onDismissUnpaid: () => {
       const checkoutId = checkoutOrder?.id;
       const activeBranchId = branchId;

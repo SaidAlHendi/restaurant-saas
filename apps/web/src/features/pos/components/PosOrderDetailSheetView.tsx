@@ -1,3 +1,5 @@
+import { Trash2Icon } from 'lucide-react';
+
 import {
   Badge,
   Button,
@@ -96,7 +98,17 @@ export function PosOrderDetailSheetView(props: PosOrderDetailSheetViewProps) {
                       <div className="flex flex-col items-end gap-1">
                         <span className="tabular-nums">{row.lineTotalLabel}</span>
                         {row.onVoid ? (
-                          <Button type="button" size="sm" variant="ghost" onClick={row.onVoid}>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            className="group text-destructive hover:text-destructive"
+                            onClick={row.onVoid}
+                          >
+                            <Trash2Icon
+                              aria-hidden
+                              className="transition-transform duration-200 motion-safe:group-hover:-rotate-12 motion-safe:group-active:scale-75"
+                            />
                             {row.voidLabel}
                           </Button>
                         ) : null}
@@ -133,15 +145,14 @@ export function PosOrderDetailSheetView(props: PosOrderDetailSheetViewProps) {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={printReceipt}>{labels.printReceipt}</DropdownMenuItem>
+                    <DropdownMenuItem onClick={printReceipt}>
+                      {labels.printReceipt}
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={printKitchenFull}>
                       {labels.printKitchen}
                     </DropdownMenuItem>
                     {canCancel ? (
-                      <DropdownMenuItem
-                        className="text-destructive"
-                        onClick={openCancelDialog}
-                      >
+                      <DropdownMenuItem className="text-destructive" onClick={openCancelDialog}>
                         {labels.cancelOrder}
                       </DropdownMenuItem>
                     ) : null}
