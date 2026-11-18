@@ -3,10 +3,10 @@
 ## Status
 Rewrite this section at the end of every session (max 30 lines).
 - **State:** Steps 1-9 done. 10a done; 10b (Sentry, uptime, backup restore test) open, staging deploy in progress (`docs/runbook-staging.md`). Step 12 (admin) 12a-12d merged.
-- **Last task (uncommitted, branch dev):** POS add-items flow redone. `/pos?addTo=<orderId>` add mode: cart panel shows only new lines, one "Send to kitchen (N)" button saves and prints an additions ticket (device switch "Print kitchen ticket", `localStorage pos.printAdditions`). Order sheet is Pay / Mark ready / Add items / More (Receipt, Kitchen ticket, Cancel). Removed "Kitchen additions" button and the sessionStorage printed-ids memory.
+- **Last task (committed da80223 on dev):** POS add-items flow redone. `/pos?addTo=<orderId>` add mode: cart panel shows only new lines, one "Send to kitchen (N)" button saves and prints an additions ticket (device switch "Print kitchen ticket", `localStorage pos.printAdditions`). Order sheet is Pay / Mark ready / Add items / More (Receipt, Kitchen ticket, Cancel). Removed "Kitchen additions" button and the sessionStorage printed-ids memory.
 - **Changed files:** apps/web/src/features/pos/{hooks/use-pos-page.ts,use-pos-order-detail.ts,use-pos-orders-page.ts,components/PosPageView.tsx,PosOrderDetailSheetView.tsx,pos-print-pref.ts}, lib/print/kitchen-addition-diff(.test).ts, locales en/ar, docs/product.md.
 - **Verified:** pnpm lint/typecheck/test pass; clicked through at 1024x768 EN + AR RTL (add, send+print, skip print, Orders-page entry, Back, invalid id).
-- **Next step:** Said reviews and says commit. Then staging deploy / Step 10b.
+- **Next step:** staging deploy / Step 10b.
 - **Decisions:** printed ticket = exactly the items just sent (diff before/after), no stored "printed" state. Reprint-additions button dropped; full "Kitchen ticket" in More is the fallback.
 - **Gotchas:** print() blocks a headless browser, stub it when testing. `graphify-out/` is gitignored. Left alone: drizzle 0024_*, .gitignore, test.md.
 

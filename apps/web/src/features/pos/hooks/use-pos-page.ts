@@ -356,7 +356,8 @@ export function usePosPage() {
 
   const orderDetail = usePosOrderDetail({
     branchId,
-    orderId: selectedOrderId ?? addToOrderId,
+    // In add mode the target order is fixed by the URL; picking another open order must not retarget it.
+    orderId: addToOrderId ?? selectedOrderId,
     onClose: () => {
       setSelectedOrderId(null);
     },
@@ -765,6 +766,9 @@ export function usePosPage() {
               ? t('pos.awaitingPaymentBadge')
               : t(`pos.orderStatus.${order.status}`),
           onSelect: () => {
+            if (isAddingItems) {
+              return;
+            }
             setSelectedOrderId(order.id);
           },
         };

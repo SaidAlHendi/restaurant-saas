@@ -268,12 +268,14 @@ export function usePosOrderDetail(input: {
     if (input.printAdditions && added.length > 0) {
       printKitchenTicket(result.data, added, true);
     }
-    toast.success(
-      t('pos.toast.additionsSent', {
-        count: added.reduce((sum: number, item) => sum + item.quantity, 0),
-        number: order.orderNumber,
-      }),
-    );
+    if (added.length > 0) {
+      toast.success(
+        t('pos.toast.additionsSent', {
+          count: added.reduce((sum: number, item) => sum + item.quantity, 0),
+          number: order.orderNumber,
+        }),
+      );
+    }
     input.clearAdditionLines();
     input.onExitAddItems();
   }, [addItems, handleConflict, input, order, printKitchenTicket, t]);
