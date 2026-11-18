@@ -1,10 +1,27 @@
-## graphify
+# Session rules (keep sessions small: the whole context is re-read every turn)
+1. One session = one task. Brainstorming happens outside Claude Code.
+2. Plans live in files (`docs/roadmap.md`, `docs/<topic>.md`), never only in chat.
+3. Start by reading `## Status` in `docs/roadmap.md`, not by re-exploring the repo.
+   End by rewriting it (max 30 lines): state, changed files, next step, decisions, gotchas.
+4. Read surgically: rg/grep, then only the relevant lines. Limit command output
+   (head/tail, quiet flags), run only the relevant tests, answer concisely, show diffs only.
+5. Broad repo scans go to a subagent (Explore) that returns conclusions + paths only.
+   Put rules 4 and 6 in its prompt.
+6. Code navigation: if `graphify-out/graph.json` exists, use `graphify query|path|explain`
+   for "where is X / what calls Y / what breaks if I change Z". Use grep when you know the
+   exact string or file. No graph (e.g. cloud sessions)? Use grep. After code changes run
+   `graphify update .` if installed. Read GRAPH_REPORT.md only for architecture reviews.
+7. Docs vs code: code and migrations are the source of truth. If docs disagree, flag it
+   and fix the docs in the same task.
 
-This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
-
-Rules:
-- When graphify-out/graph.json exists, run `graphify query "<question>"` before your first grep, search or source-file read for a codebase question, and put this rule in every subagent prompt that explores code. Read raw files only for lines the graph or an earlier read already located. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
-- If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
-- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
-- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
-- A committed graphify-out/graph.json is rewritten whole on every build, so a large diff to it in a pull request is expected. Do not flag it as churn or suggest skipping the graph rebuild or its hooks.
+# Where to look (paths only)
+- Current state / next step → `docs/roadmap.md` (`## Status`)
+- Product, roles → `docs/product.md` · Architecture → `docs/architecture.md`
+- Backend, auth, RLS → `docs/backend-architecture.md` · DB → `docs/data-model.md`
+- API → `docs/api-conventions.md` · Frontend → `docs/frontend-architecture.md`
+- UI kit → `docs/ui-kit.md` · Env → `docs/env-explained.md` · Staging → `docs/runbook-staging.md`
+- Coding rules → `.cursor/rules/*.mdc` · Done gate: `pnpm lint && pnpm typecheck && pnpm test`
+- Published docs (auth, roles/permissions, DB) are Mintlify, not in this repo
+  (workspace `alhendi-media`, branch `main`). Read the page with the Mintlify
+  `read`/`search` tools instead of exploring code. Update the matching page when
+  behavior changes; publish only with Said's OK.

@@ -1,5 +1,13 @@
 # Roadmap (MVP)
 
+## Status
+Rewrite this section at the end of every session (max 30 lines).
+- **State:** Steps 1-9 done. Step 10a (billing) done; 10b (Sentry, uptime, backup restore test) open, staging deploy on the laptop in progress (`docs/runbook-staging.md`). Step 12 (admin): 12a-12d merged; admin app now also has plans, subscriptions, users, audit pages (verify against `apps/admin/src/features`).
+- **Last changed files:** CLAUDE.md, docs/roadmap.md (session rules + this section)
+- **Next step:** finish staging deploy, then Step 10b ops; remaining Step 12 items below.
+- **Decisions:** PRs target `dev`. Code/migrations beat docs. Mintlify docs live outside the repo.
+- **Gotchas:** `.claude/settings.json` graphify hooks point to `/home/said/.local/bin/graphify`; `graphify-out/` is gitignored, so cloud sessions have no graph.
+
 - [x] 1. Monorepo scaffold, docker compose (Postgres, Redis), CI (lint, typecheck, test), deploy to staging
 - [x] 1b. UI kit in packages/ui: shadcn/ui + Tailwind v4, themes cupcake/forest, first batch of components, /dev/ui showcase, ESLint UI-only rule (docs/ui-kit.md)
 - [x] 2. Auth, organizations, branches, memberships, roles, RLS, tenant-isolation test suite
