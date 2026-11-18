@@ -1,6 +1,6 @@
 import { PrinterIcon } from 'lucide-react';
 
-import { Alert, Button, EmptyState, PageHeader, QrCard, Spinner } from '@app/ui';
+import { Alert, AlertDescription, Button, EmptyState, PageHeader, QrCard, Spinner } from '@app/ui';
 
 export type QrCodesCardViewModel = {
   id: string;
@@ -69,7 +69,11 @@ export function QrCodesPageView({
           ) : null
         }
       />
-      {showTableQrHint ? <Alert>{tableQrUpsell}</Alert> : null}
+      {showTableQrHint ? (
+        <Alert role="status" variant="info">
+          <AlertDescription className="text-foreground">{tableQrUpsell}</AlertDescription>
+        </Alert>
+      ) : null}
       {isLoading ? (
         <Spinner label={title} />
       ) : cards.length === 0 ? (
