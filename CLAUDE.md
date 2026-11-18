@@ -13,6 +13,7 @@
    `graphify update .` if installed. Read GRAPH_REPORT.md only for architecture reviews.
 7. Docs vs code: code and migrations are the source of truth. If docs disagree, flag it
    and fix the docs in the same task.
+8. Never search or read the `sahtain-design` repo unless Said explicitly says so in that session.
 
 # Where to look (paths only)
 - Current state / next step → `docs/roadmap.md` (`## Status`)
