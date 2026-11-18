@@ -3,12 +3,12 @@
 ## Status
 Rewrite this section at the end of every session (max 30 lines).
 - **State:** Steps 1-9 done. 10a done; 10b (Sentry, uptime, backup restore test) open, staging deploy in progress (`docs/runbook-staging.md`). Step 12 (admin) 12a-12d merged.
-- **Last task (uncommitted, branch dev):** pay-before-send for additions (plan: `docs/pay-before-send-additions.md`). With payBeforeSend on, additions to a sent order are saved as item status `awaiting_payment` (hidden from KDS) and released when the order is paid in full; add mode button is "Pay & send additions", ticket prints and toast shows on release; held lines show an "Awaiting payment" badge. New migration 0025 (enum value). Earlier commit da80223: /pos add mode flow.
-- **Changed files:** api ordering.service/repository, schema + drizzle/0025 + journal, shared enums/order-totals, web pos hooks/components, locales, docs (data-model, architecture, docs-site ordering.mdx), cashier e2e tests.
-- **Verified:** lint/typecheck/test green (api 137 unit + 360 e2e, web 323); clicked through: cancel dialog keeps item held and off KDS, paying from sheet releases it, ticket + toast.
+- **Last task:** empty states for dependent catalog pages (Notion: "Improve Unit Selection UX in Add Product Form"). Products page with no category shows "Create a category first" (button to categories for managers). Modifier groups, tables and QR codes show "ask a manager or the owner" copy to users without permission; QR page has its own empty state and shows the table-QR hint to everyone. Pay-before-send for additions was committed earlier (f4eed94).
+- **Changed files:** web menu (ProductsPageView, use-products-screen, use-modifier-groups-screen), web tables (QrCodesPageView, use-qr-codes-screen, use-tables-screen), locales en/ar.
+- **Verified:** typecheck, lint, menu + tables tests green. Not clicked through in a browser.
 - **Next step:** staging deploy / Step 10b.
-- **Decisions:** printed ticket = exactly the items just sent (diff before/after), no stored "printed" state. Reprint-additions button dropped; full "Kitchen ticket" in More is the fallback.
-- **Gotchas:** a held addition on an order that reaches Ready/Completed is released as pending when paid (edge case, not handled). print() blocks a headless browser, stub it when testing. `graphify-out/` is gitignored. Left alone: drizzle 0024_*, .gitignore, test.md.
+- **Decisions:** read-only users get plain text ("ask a manager or the owner"), no button. Tables and QR check `branches.manage`, menu pages `menu.manage`, left as is.
+- **Gotchas:** QR empty state has no "Add tables" button (string `menu.qr.noTablesAction` exists, unused). A held addition on an order that reaches Ready/Completed is released as pending when paid (not handled). print() blocks a headless browser. `graphify-out/` is gitignored.
 
 - [x] 1. Monorepo scaffold, docker compose (Postgres, Redis), CI (lint, typecheck, test), deploy to staging
 - [x] 1b. UI kit in packages/ui: shadcn/ui + Tailwind v4, themes cupcake/forest, first batch of components, /dev/ui showcase, ESLint UI-only rule (docs/ui-kit.md)

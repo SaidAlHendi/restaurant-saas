@@ -18,7 +18,7 @@ import {
   SelectValue,
   Switch,
 } from '@app/ui';
-import { PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react';
+import { LayersIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 
 import type { Product, ProductListItem } from '@app/shared';
 
@@ -32,6 +32,13 @@ export interface ProductsPageViewProps {
   subtitle: string;
   canManage: boolean;
   showAdd: boolean;
+  /** Set when no category exists yet: products cannot be added until one is created. */
+  noCategories: {
+    title: string;
+    description: string;
+    actionLabel: string | null;
+    onAction: () => void;
+  } | null;
   searchDefault: string;
   onSearchChange: (value: string) => void;
   searchClearLabel: string;
@@ -101,6 +108,7 @@ export function ProductsPageView({
   subtitle,
   canManage,
   showAdd,
+  noCategories,
   searchDefault,
   onSearchChange,
   searchClearLabel,
@@ -170,158 +178,176 @@ export function ProductsPageView({
           ) : null
         }
       />
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <SearchInput
-          defaultValue={searchDefault}
-          onValueChange={onSearchChange}
-          clearLabel={searchClearLabel}
-          placeholder={searchPlaceholder}
-          className="sm:max-w-xs"
+      {noCategories ? (
+        <EmptyState
+          icon={<LayersIcon className="size-8" aria-hidden />}
+          title={noCategories.title}
+          description={noCategories.description}
+          action={
+            noCategories.actionLabel ? (
+              <Button type="button" onClick={noCategories.onAction}>
+                <PlusIcon className="size-4" aria-hidden />
+                {noCategories.actionLabel}
+              </Button>
+            ) : undefined
+          }
         />
-        <Select value={categoryFilter} onValueChange={onCategoryFilterChange}>
-          <SelectTrigger className="sm:max-w-xs">
-            <SelectValue placeholder={allCategoriesLabel} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{allCategoriesLabel}</SelectItem>
-            {categories.map((category) => (
-              <SelectItem key={category.id} value={category.id}>
-                {category.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {branchFilter ? (
-          <Select value={branchFilter.value} onValueChange={branchFilter.onChange}>
-            <SelectTrigger className="sm:max-w-xs">
-              <SelectValue placeholder={branchFilter.allLabel} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{branchFilter.allLabel}</SelectItem>
-              {branchFilter.branches.map((branch) => (
-                <SelectItem key={branch.id} value={branch.id}>
-                  {branch.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        ) : null}
-        <Select
-          value={activeFilter}
-          onValueChange={(value) => {
-            onActiveFilterChange(value as ProductActiveFilter);
-          }}
-        >
-          <SelectTrigger className="sm:max-w-xs">
-            <SelectValue placeholder={allActiveLabel} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{allActiveLabel}</SelectItem>
-            <SelectItem value="active">{activeOnlyLabel}</SelectItem>
-            <SelectItem value="inactive">{inactiveOnlyLabel}</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <DataTable
-        columns={[
-          {
-            id: 'name',
-            header: nameColumn,
-            cell: (row) => labelFor(row),
-          },
-          {
-            id: 'category',
-            header: categoryColumn,
-            cell: (row) => categoryLabelFor(row),
-          },
-          {
-            id: 'price',
-            header: priceColumn,
-            cell: (row) => priceLabelFor(row),
-          },
-          {
-            id: 'options',
-            header: optionsColumn,
-            cell: (row: ProductListItem) => {
-              const label = optionsLabelFor(row);
-              return label ? (
-                <Badge variant="secondary">{label}</Badge>
-              ) : (
-                <span className="text-muted-foreground">—</span>
-              );
-            },
-          },
-          ...(availabilityColumn
-            ? [
-                {
-                  id: 'availability',
-                  header: availabilityColumn,
-                  cell: (row: Product) => availabilityLabelFor(row),
+      ) : (
+        <>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <SearchInput
+              defaultValue={searchDefault}
+              onValueChange={onSearchChange}
+              clearLabel={searchClearLabel}
+              placeholder={searchPlaceholder}
+              className="sm:max-w-xs"
+            />
+            <Select value={categoryFilter} onValueChange={onCategoryFilterChange}>
+              <SelectTrigger className="sm:max-w-xs">
+                <SelectValue placeholder={allCategoriesLabel} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{allCategoriesLabel}</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {branchFilter ? (
+              <Select value={branchFilter.value} onValueChange={branchFilter.onChange}>
+                <SelectTrigger className="sm:max-w-xs">
+                  <SelectValue placeholder={branchFilter.allLabel} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{branchFilter.allLabel}</SelectItem>
+                  {branchFilter.branches.map((branch) => (
+                    <SelectItem key={branch.id} value={branch.id}>
+                      {branch.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : null}
+            <Select
+              value={activeFilter}
+              onValueChange={(value) => {
+                onActiveFilterChange(value as ProductActiveFilter);
+              }}
+            >
+              <SelectTrigger className="sm:max-w-xs">
+                <SelectValue placeholder={allActiveLabel} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{allActiveLabel}</SelectItem>
+                <SelectItem value="active">{activeOnlyLabel}</SelectItem>
+                <SelectItem value="inactive">{inactiveOnlyLabel}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <DataTable
+            columns={[
+              {
+                id: 'name',
+                header: nameColumn,
+                cell: (row) => labelFor(row),
+              },
+              {
+                id: 'category',
+                header: categoryColumn,
+                cell: (row) => categoryLabelFor(row),
+              },
+              {
+                id: 'price',
+                header: priceColumn,
+                cell: (row) => priceLabelFor(row),
+              },
+              {
+                id: 'options',
+                header: optionsColumn,
+                cell: (row: ProductListItem) => {
+                  const label = optionsLabelFor(row);
+                  return label ? (
+                    <Badge variant="secondary">{label}</Badge>
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  );
                 },
-              ]
-            : []),
-          {
-            id: 'status',
-            header: statusColumn,
-            cell: (row) =>
-              canManage ? (
-                <Switch
-                  checked={row.isActive}
-                  disabled={togglingProductId === row.id}
-                  aria-label={row.isActive ? activeLabel : inactiveLabel}
-                  onCheckedChange={(checked) => {
-                    onToggleActive(row, checked);
-                  }}
-                />
-              ) : (
-                <span className="text-muted-foreground text-sm">
-                  {row.isActive ? activeLabel : inactiveLabel}
-                </span>
-              ),
-          },
-        ]}
-        data={products}
-        getRowId={(row) => row.id}
-        isLoading={isLoading}
-        error={
-          errorMessage ? (
-            <Alert variant="destructive">
-              <AlertDescription>{errorMessage}</AlertDescription>
-            </Alert>
-          ) : undefined
-        }
-        emptyState={<EmptyState title={emptyTitle} description={emptyDescription} />}
-        labels={{ actions: actionsColumn, sortBy: sortByLabel }}
-        rowActions={
-          canManage
-            ? (row) => (
-                <div className="flex justify-end gap-1">
-                  <IconButton
-                    icon={<PencilIcon />}
-                    label={editLabel}
-                    variant="ghost"
-                    onClick={() => {
-                      onEdit(row);
-                    }}
-                  />
-                  <IconButton
-                    icon={<Trash2Icon />}
-                    label={deleteLabel}
-                    variant="ghost"
-                    onClick={() => {
-                      onDelete(row);
-                    }}
-                  />
-                </div>
-              )
-            : undefined
-        }
-      />
-      {hasMore ? (
-        <Button type="button" variant="outline" onClick={onLoadMore} disabled={isLoadingMore}>
-          {loadMoreLabel}
-        </Button>
-      ) : null}
+              },
+              ...(availabilityColumn
+                ? [
+                    {
+                      id: 'availability',
+                      header: availabilityColumn,
+                      cell: (row: Product) => availabilityLabelFor(row),
+                    },
+                  ]
+                : []),
+              {
+                id: 'status',
+                header: statusColumn,
+                cell: (row) =>
+                  canManage ? (
+                    <Switch
+                      checked={row.isActive}
+                      disabled={togglingProductId === row.id}
+                      aria-label={row.isActive ? activeLabel : inactiveLabel}
+                      onCheckedChange={(checked) => {
+                        onToggleActive(row, checked);
+                      }}
+                    />
+                  ) : (
+                    <span className="text-muted-foreground text-sm">
+                      {row.isActive ? activeLabel : inactiveLabel}
+                    </span>
+                  ),
+              },
+            ]}
+            data={products}
+            getRowId={(row) => row.id}
+            isLoading={isLoading}
+            error={
+              errorMessage ? (
+                <Alert variant="destructive">
+                  <AlertDescription>{errorMessage}</AlertDescription>
+                </Alert>
+              ) : undefined
+            }
+            emptyState={<EmptyState title={emptyTitle} description={emptyDescription} />}
+            labels={{ actions: actionsColumn, sortBy: sortByLabel }}
+            rowActions={
+              canManage
+                ? (row) => (
+                    <div className="flex justify-end gap-1">
+                      <IconButton
+                        icon={<PencilIcon />}
+                        label={editLabel}
+                        variant="ghost"
+                        onClick={() => {
+                          onEdit(row);
+                        }}
+                      />
+                      <IconButton
+                        icon={<Trash2Icon />}
+                        label={deleteLabel}
+                        variant="ghost"
+                        onClick={() => {
+                          onDelete(row);
+                        }}
+                      />
+                    </div>
+                  )
+                : undefined
+            }
+          />
+          {hasMore ? (
+            <Button type="button" variant="outline" onClick={onLoadMore} disabled={isLoadingMore}>
+              {loadMoreLabel}
+            </Button>
+          ) : null}
+        </>
+      )}
       <ProductFormSheetView {...sheetProps} />
       <ModifierGroupFormDialogView {...newGroupDialog} />
       <ConfirmDialog

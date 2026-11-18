@@ -885,6 +885,10 @@
       "editTitle": "Edit product",
       "emptyTitle": "No products yet",
       "emptyDescription": "Add a product or change filters.",
+      "noCategoriesTitle": "Create a category first",
+      "noCategoriesDescription": "Every product belongs to a category, and the category sets which units you can pick. Create at least one category, then come back to add products.",
+      "noCategoriesDescriptionReadOnly": "Products need a category. Ask a manager to create one.",
+      "noCategoriesAction": "Create a category",
       "searchPlaceholder": "Search products",
       "searchClear": "Clear search",
       "allCategories": "All categories",
@@ -928,6 +932,7 @@
       "editTitle": "Edit modifier group",
       "emptyTitle": "No modifier groups",
       "emptyDescription": "Add groups for sizes, extras, or sides, then attach them to products.",
+      "emptyDescriptionReadOnly": "No modifier groups yet. Ask a manager or the owner to add them.",
       "manageModifiers": "Manage modifiers",
       "detailTitle": "Modifier group",
       "deleteConfirm": "This group will be unlinked from products.",
@@ -984,6 +989,7 @@
       "statusColumn": "Status",
       "emptyTitle": "No tables yet",
       "emptyDescription": "Add tables to generate table QR codes.",
+      "emptyDescriptionReadOnly": "No tables yet. Ask a manager or the owner to add them.",
       "noBranchTitle": "Select a branch",
       "noBranchDescription": "Choose a branch from the toolbar above to manage its tables.",
       "rotateQr": "Rotate QR"
@@ -995,7 +1001,12 @@
       "print": "Print",
       "printTitle": "QR codes",
       "back": "Back to QR codes",
-      "tableQrUpsell": "Table QR codes appear when your plan includes table QR and you have active tables."
+      "tableQrUpsell": "Table QR codes appear when your plan includes table QR and you have active tables.",
+      "tableQrUpsellReadOnly": "Table QR codes are not available yet. Ask a manager or the owner to add tables or check the plan.",
+      "noTablesTitle": "No QR codes yet",
+      "noTablesDescription": "QR codes are created from your tables. Add a table first.",
+      "noTablesDescriptionReadOnly": "QR codes are created from tables. Ask a manager or the owner to add them.",
+      "noTablesAction": "Add tables"
     },
     "fields": {
       "name": "Name",

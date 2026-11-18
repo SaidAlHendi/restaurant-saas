@@ -92,7 +92,9 @@ export function useTablesScreen(): TablesPageViewProps {
 
   return {
     title: t('menu.tables.title'),
-    subtitle: branchMissing ? t('menu.tables.subtitle') : t('menu.tables.subtitleBranch', { branch: branchName }),
+    subtitle: branchMissing
+      ? t('menu.tables.subtitle')
+      : t('menu.tables.subtitleBranch', { branch: branchName }),
     canManage,
     canRotateQr,
     isLoading: !branchMissing && isLoading,
@@ -102,7 +104,9 @@ export function useTablesScreen(): TablesPageViewProps {
     items,
     addLabel: t('menu.tables.add'),
     emptyTitle: t('menu.tables.emptyTitle'),
-    emptyDescription: t('menu.tables.emptyDescription'),
+    emptyDescription: t(
+      canManage ? 'menu.tables.emptyDescription' : 'menu.tables.emptyDescriptionReadOnly',
+    ),
     tableLabelHeader: t('menu.tables.labelColumn'),
     statusHeader: t('menu.tables.statusColumn'),
     activeLabel: t('menu.status.active'),

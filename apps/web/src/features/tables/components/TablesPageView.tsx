@@ -75,9 +75,7 @@ export function TablesPageView({
   onRotateQr,
 }: TablesPageViewProps) {
   if (branchMissing) {
-    return (
-      <EmptyState title={branchMissingTitle} description={branchMissingDescription} />
-    );
+    return <EmptyState title={branchMissingTitle} description={branchMissingDescription} />;
   }
 
   return (

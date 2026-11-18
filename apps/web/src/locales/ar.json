@@ -917,6 +917,10 @@
       "editTitle": "تعديل المنتج",
       "emptyTitle": "لا توجد منتجات",
       "emptyDescription": "أضف منتجاً أو غيّر عوامل التصفية.",
+      "noCategoriesTitle": "أنشئ تصنيفاً أولاً",
+      "noCategoriesDescription": "كل منتج ينتمي إلى تصنيف، والتصنيف يحدد الوحدات التي يمكنك اختيارها. أنشئ تصنيفاً واحداً على الأقل ثم عد لإضافة المنتجات.",
+      "noCategoriesDescriptionReadOnly": "تحتاج المنتجات إلى تصنيف. اطلب من المدير إنشاء واحد.",
+      "noCategoriesAction": "إنشاء تصنيف",
       "searchPlaceholder": "بحث في المنتجات",
       "searchClear": "مسح البحث",
       "allCategories": "كل التصنيفات",
@@ -964,6 +968,7 @@
       "editTitle": "تعديل المجموعة",
       "emptyTitle": "لا توجد مجموعات",
       "emptyDescription": "أضف مجموعات للأحجام أو الإضافات أو الأطباق الجانبية، ثم اربطها بالمنتجات.",
+      "emptyDescriptionReadOnly": "لا توجد مجموعات إضافات بعد. اطلب من المدير أو المالك إضافتها.",
       "manageModifiers": "إدارة الإضافات",
       "detailTitle": "مجموعة الإضافات",
       "deleteConfirm": "ستُفك هذه المجموعة من المنتجات المرتبطة.",
@@ -1028,6 +1033,7 @@
       "statusColumn": "الحالة",
       "emptyTitle": "لا توجد طاولات",
       "emptyDescription": "أضف طاولات لإنشاء رموز QR للطاولات.",
+      "emptyDescriptionReadOnly": "لا توجد طاولات بعد. اطلب من المدير أو المالك إضافتها.",
       "noBranchTitle": "اختر فرعاً",
       "noBranchDescription": "اختر فرعاً من شريط الأدوات أعلاه لإدارة طاولاته.",
       "rotateQr": "تدوير QR"
@@ -1039,7 +1045,11 @@
       "print": "طباعة",
       "printTitle": "رموز QR",
       "back": "العودة إلى رموز QR",
-      "tableQrUpsell": "تظهر رموز QR للطاولات عند تفعيل ميزة QR للطاولات في خطتك ووجود طاولات نشطة."
+      "tableQrUpsell": "تظهر رموز QR للطاولات عند تفعيل ميزة QR للطاولات في خطتك ووجود طاولات نشطة.",
+      "tableQrUpsellReadOnly": "رموز QR للطاولات غير متاحة بعد. اطلب من المدير أو المالك إضافة طاولات أو مراجعة الخطة.",
+      "noTablesTitle": "لا توجد رموز QR بعد",
+      "noTablesDescription": "تُنشأ رموز QR من الطاولات. أضف طاولة أولاً.",
+      "noTablesDescriptionReadOnly": "تُنشأ رموز QR من الطاولات. اطلب من المدير أو المالك إضافتها."
     },
     "fields": {
       "name": "الاسم",

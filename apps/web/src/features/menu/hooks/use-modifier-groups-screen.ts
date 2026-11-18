@@ -169,7 +169,11 @@ export function useModifierGroupsScreen(): {
     labelFor,
     addLabel: t('menu.modifierGroups.add'),
     emptyTitle: t('menu.modifierGroups.emptyTitle'),
-    emptyDescription: t('menu.modifierGroups.emptyDescription'),
+    emptyDescription: t(
+      canManage
+        ? 'menu.modifierGroups.emptyDescription'
+        : 'menu.modifierGroups.emptyDescriptionReadOnly',
+    ),
     editLabel: t('menu.actions.edit'),
     deleteLabel: t('menu.actions.delete'),
     minMaxLabel: (group) => {

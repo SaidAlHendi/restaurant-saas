@@ -290,6 +290,21 @@ export function useProductsScreen(): ProductsPageViewProps {
     subtitle: t('menu.products.subtitle'),
     canManage,
     showAdd: canManage && categoryOptions.length > 0,
+    noCategories:
+      categoriesData && categoryOptions.length === 0
+        ? {
+            title: t('menu.products.noCategoriesTitle'),
+            description: t(
+              canManage
+                ? 'menu.products.noCategoriesDescription'
+                : 'menu.products.noCategoriesDescriptionReadOnly',
+            ),
+            actionLabel: canManage ? t('menu.products.noCategoriesAction') : null,
+            onAction: () => {
+              void navigate('/dashboard/menu/categories');
+            },
+          }
+        : null,
     searchDefault: '',
     onSearchChange: setDebouncedSearch,
     searchClearLabel: t('menu.products.searchClear'),
