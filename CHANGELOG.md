@@ -1,5 +1,19 @@
 # Changelog
 
+All notable user-facing changes to Sahtain. Format follows [Keep a Changelog](https://keepachangelog.com/): entries are grouped under Added, Changed, Fixed and Security. Older entries below are more technical.
+
+## Unreleased
+
+### Added
+- Display currency: show prices to staff and guests in a second currency, using an exchange rate you set yourself. Each order keeps the rate it was created with.
+- Add items to an order that was already sent to the kitchen, from the POS "add" mode. Only the new items are printed and sent.
+- Modifier groups: create a group and its options in one step, right from the product form.
+- Edit the modifiers of a line already in the cart.
+
+### Changed
+- "Pay before send" now also applies to items added to an order that was already sent.
+- The POS menu and kitchen display refresh on their own when the menu changes.
+
 ## 2026-11-12 - Base currency changeable before the first order
 
 ### Added
@@ -114,3 +128,7 @@ You did not list the four issues in writing, so these are my best reading of the
 - Added an olive `accent-2` token (`--brand-accent-2` in `themes.css`, exposed as `bg-accent-2` / `text-accent-2`).
 - Toned down: olive only on stat-card icon chips, secondary badges (soft tint) and KDS column panels (15% tint). Active sidebar item and avatar use the primary-tinted secondary again.
 - To remove: delete the token lines in `themes.css` and swap those three usages back (`bg-secondary text-secondary-foreground`, `text-muted-foreground/80`, `bg-foreground/5`).
+
+---
+
+When promoting `dev` to `staging`, rename `## Unreleased` to the promotion date (for example `## 2026-11-18`) and add a fresh empty `## Unreleased` above it.

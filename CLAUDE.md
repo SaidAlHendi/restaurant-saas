@@ -14,6 +14,9 @@
 7. Docs vs code: code and migrations are the source of truth. If docs disagree, flag it
    and fix the docs in the same task.
 8. Never search or read the `sahtain-design` repo unless Said explicitly says so in that session.
+9. Changelog: every PR to `dev` adds one line to `CHANGELOG.md` under `## Unreleased`, in the
+   right Keep a Changelog group (Added, Changed, Fixed, Security). Write it for users, not
+   developers. Skip pure refactors, CI and test-only changes.
 
 # Where to look (paths only)
 - Current state / next step → `docs/roadmap.md` (`## Status`)
