@@ -22,7 +22,6 @@
 - API → `docs/api-conventions.md` · Frontend → `docs/frontend-architecture.md`
 - UI kit → `docs/ui-kit.md` · Env → `docs/env-explained.md` · Staging → `docs/runbook-staging.md`
 - Coding rules → `.cursor/rules/*.mdc` · Done gate: `pnpm lint && pnpm typecheck && pnpm test`
-- Published docs (auth, roles/permissions, DB) are Mintlify, not in this repo
-  (workspace `alhendi-media`, branch `main`). Read the page with the Mintlify
-  `read`/`search` tools instead of exploring code. Update the matching page when
-  behavior changes; publish only with Said's OK.
+- Published docs (auth, roles/permissions, DB, plans) are the Mintlify .mdx files in
+  `docs-site/` (`roles/`, `database/`, `subscriptions/`). Read the relevant page there
+  instead of exploring code. Update the matching page in the same PR as the behavior change.
