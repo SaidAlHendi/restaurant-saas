@@ -1,12 +1,7 @@
 import { orderDetailSchema, type OrderItem } from '@app/shared';
-import { describe, expect, it, beforeEach } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
-import {
-  kitchenItemsToPrint,
-  loadPrintedKitchenItemIds,
-  markKitchenItemsPrinted,
-  savePrintedKitchenItemIds,
-} from './kitchen-addition-diff.js';
+import { newlyAddedItems } from './kitchen-addition-diff.js';
 
 const item = (overrides: Partial<OrderItem> & Pick<OrderItem, 'id'>): OrderItem => ({
   productId: '01932a1a-7b3e-7000-8000-000000000010',
@@ -24,7 +19,7 @@ const item = (overrides: Partial<OrderItem> & Pick<OrderItem, 'id'>): OrderItem 
   ...overrides,
 });
 
-function baseOrder(items: OrderItem[]) {
+function order(items: OrderItem[]) {
   return orderDetailSchema.parse({
     id: '01932a1a-7b3e-7000-8000-000000000099',
     orgId: '01932a1a-7b3e-7000-8000-000000000020',
@@ -58,44 +53,18 @@ function baseOrder(items: OrderItem[]) {
   });
 }
 
-describe('kitchenItemsToPrint', () => {
-  beforeEach(() => {
-    sessionStorage.clear();
+const id = (n: number) => `01932a1a-7b3e-7000-8000-0000000001${String(n).padStart(2, '0')}`;
+
+describe('newlyAddedItems', () => {
+  it('returns only items that were not in the order before', () => {
+    const before = order([item({ id: id(1) })]);
+    const after = order([item({ id: id(1) }), item({ id: id(2), isAddition: true })]);
+    expect(newlyAddedItems(before, after).map((i) => i.id)).toEqual([id(2)]);
   });
 
-  it('returns all active items for a full kitchen ticket', () => {
-    const order = baseOrder([
-      item({ id: '01932a1a-7b3e-7000-8000-000000000001' }),
-      item({ id: '01932a1a-7b3e-7000-8000-000000000002', status: 'voided' }),
-    ]);
-    const result = kitchenItemsToPrint(order, { additionsOnly: false });
-    expect(result.map((i) => i.id)).toEqual(['01932a1a-7b3e-7000-8000-000000000001']);
-  });
-
-  it('returns only unprinted additions when additionsOnly', () => {
-    const order = baseOrder([
-      item({ id: '01932a1a-7b3e-7000-8000-000000000003' }),
-      item({ id: '01932a1a-7b3e-7000-8000-000000000004', isAddition: true }),
-      item({ id: '01932a1a-7b3e-7000-8000-000000000005', isAddition: true }),
-    ]);
-    savePrintedKitchenItemIds(order.id, ['01932a1a-7b3e-7000-8000-000000000004']);
-    const result = kitchenItemsToPrint(order, { additionsOnly: true });
-    expect(result.map((i) => i.id)).toEqual(['01932a1a-7b3e-7000-8000-000000000005']);
-  });
-
-  it('markKitchenItemsPrinted merges ids', () => {
-    const order = baseOrder([
-      item({ id: '01932a1a-7b3e-7000-8000-000000000006' }),
-      item({ id: '01932a1a-7b3e-7000-8000-000000000007', isAddition: true }),
-    ]);
-    markKitchenItemsPrinted(order, [
-      item({ id: '01932a1a-7b3e-7000-8000-000000000007', isAddition: true }),
-    ]);
-    expect(loadPrintedKitchenItemIds(order.id).has('01932a1a-7b3e-7000-8000-000000000007')).toBe(
-      true,
-    );
-    expect(loadPrintedKitchenItemIds(order.id).has('01932a1a-7b3e-7000-8000-000000000006')).toBe(
-      true,
-    );
+  it('ignores voided new items and returns nothing when nothing changed', () => {
+    const before = order([item({ id: id(1) })]);
+    const after = order([item({ id: id(1) }), item({ id: id(2), status: 'voided' })]);
+    expect(newlyAddedItems(before, after)).toEqual([]);
   });
 });

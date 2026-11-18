@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { toast } from '@app/ui';
 import type { OrderListItem, OrderStatus } from '@app/shared';
@@ -40,6 +40,7 @@ export function usePosOrdersPage() {
   const requestLock = usePosLockRequest();
   const dispatch = useAppDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const branchId = useAppSelector(selectCurrentBranchId);
   const org = useAppSelector(selectSessionOrg);
   const canCancelOrders = useAppSelector(selectCan('orders.cancel'));
@@ -136,10 +137,15 @@ export function usePosOrdersPage() {
     locale,
     defaultLocale,
     uiLocale,
+    // Adding items happens on /pos; this page only hands the order over.
     additionLines: [],
     clearAdditionLines: () => {},
     isAddingItems: false,
-    setIsAddingItems: () => {},
+    onStartAddItems: (orderId: string) => {
+      void navigate(`/pos?addTo=${orderId}`);
+    },
+    onExitAddItems: () => {},
+    printAdditions: false,
     canCancelOrders,
     canCreateOrders,
   });

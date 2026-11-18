@@ -63,7 +63,7 @@ Feature keys: `menu.multilang`, `menu.branding`, `menu.table_qr`, `pos.access`, 
 - **Orders** page: tabs (active, awaiting payment, ready, completed, cancelled, all today), search, load more.
 - Owner **branch settings**: pay before send, accept card (dashboard, `branches.manage`).
 - Print receipt (80mm) and kitchen ticket.
-- Open orders panel: tap to add items, pay, cancel (manager PIN when required).
+- Open orders panel: tap an order for details, pay, cancel (manager PIN when required), or "Add items": the POS switches to add mode, the cashier taps products and "Send to kitchen" saves them and prints an additions ticket (optional per device).
 - Clear "sending…/offline" indicator; nothing lost on refresh.
 ### Kitchen display (PWA)
 - Paired device, no personal login. Columns: New · Preparing · Ready.

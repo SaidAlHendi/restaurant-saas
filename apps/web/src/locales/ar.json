@@ -576,7 +576,13 @@
     "awaitingPaymentBadge": "بانتظار الدفع",
     "toast": {
       "sentToKitchen": "تم إرسال الطلب رقم {{number}} للمطبخ",
-      "awaitingPayment": "الطلب رقم {{number}} بانتظار الدفع"
+      "awaitingPayment": "الطلب رقم {{number}} بانتظار الدفع",
+      "additionsSent_zero": "لم يُرسل أي صنف إلى المطبخ للطلب رقم {{number}}",
+      "additionsSent_one": "أُرسل صنف واحد إلى المطبخ للطلب رقم {{number}}",
+      "additionsSent_two": "أُرسل صنفان إلى المطبخ للطلب رقم {{number}}",
+      "additionsSent_few": "أُرسلت {{count}} أصناف إلى المطبخ للطلب رقم {{number}}",
+      "additionsSent_many": "أُرسل {{count}} صنفًا إلى المطبخ للطلب رقم {{number}}",
+      "additionsSent_other": "أُرسل {{count}} صنف إلى المطبخ للطلب رقم {{number}}"
     },
     "nav": {
       "section": "الكاشير",
@@ -686,8 +692,6 @@
       "title": "الطلب",
       "pay": "دفع",
       "addItems": "إضافة أصناف",
-      "addItemsHint": "اضغط على المنتجات لإضافتها إلى هذا الطلب.",
-      "sendAdditions": "إرسال الإضافات",
       "complete": "إتمام",
       "markPreparing": "بدء التحضير",
       "markReady": "تعيين جاهز",
@@ -703,7 +707,8 @@
       "approvalHint": "يجب على المدير أو المالك إدخال الرمز السري للتأكيد.",
       "approvalNext": "متابعة",
       "pickApprover": "اختر المعتمد",
-      "emptyApprovers": "لا يوجد مديرون برمز سري في هذا الفرع."
+      "emptyApprovers": "لا يوجد مديرون برمز سري في هذا الفرع.",
+      "more": "المزيد"
     },
     "lock": {
       "button": "قفل",
@@ -721,7 +726,6 @@
     "print": {
       "receipt": "فاتورة",
       "kitchen": "تذكرة المطبخ",
-      "kitchenAddition": "إضافات المطبخ",
       "receiptTitle": "فاتورة",
       "kitchenTitle": "المطبخ",
       "kitchenAdditionTitle": "إضافات",
@@ -828,6 +832,19 @@
       "newOrder": "طلب جديد",
       "addRound": "إضافة جولة",
       "bill": "الفاتورة"
+    },
+    "addMode": {
+      "title": "إضافة إلى الطلب رقم {{number}}",
+      "alreadySent_zero": "لا أصناف مُرسلة",
+      "alreadySent_one": "صنف واحد مُرسل",
+      "alreadySent_two": "صنفان مُرسلان",
+      "alreadySent_few": "{{count}} أصناف مُرسلة",
+      "alreadySent_many": "{{count}} صنفًا مُرسلًا",
+      "alreadySent_other": "{{count}} صنف مُرسل",
+      "send": "إرسال إلى المطبخ ({{count}})",
+      "back": "رجوع",
+      "printTicket": "طباعة تذكرة المطبخ",
+      "closed": "لا يمكن إضافة أصناف جديدة إلى هذا الطلب."
     }
   },
   "orders": {

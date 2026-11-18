@@ -1,14 +1,13 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import type { OrderStatus, PosMenuPayload } from '@app/shared';
+import { toast } from '@app/ui';
+
+import type { OrderDetail, OrderItem, OrderStatus, PosMenuPayload } from '@app/shared';
 
 import { openPrintWindow } from '../../../lib/print/open-print-window.js';
 import { printLocaleFromUi } from '../../../lib/print/print-document.js';
-import {
-  kitchenItemsToPrint,
-  markKitchenItemsPrinted,
-} from '../../../lib/print/kitchen-addition-diff.js';
+import { activeOrderItems, newlyAddedItems } from '../../../lib/print/kitchen-addition-diff.js';
 import { renderKitchenHtml } from '../../../lib/print/kitchen-html.js';
 import {
   moneyFormatter,
@@ -51,8 +50,11 @@ export function usePosOrderDetail(input: {
   uiLocale: string;
   additionLines: CartLine[];
   clearAdditionLines: () => void;
+  /** True while the cashier is adding items to this order on /pos (the sheet stays closed). */
   isAddingItems: boolean;
-  setIsAddingItems: (value: boolean) => void;
+  onStartAddItems: (orderId: string) => void;
+  onExitAddItems: () => void;
+  printAdditions: boolean;
   canCancelOrders: boolean;
   canCreateOrders: boolean;
 }) {
@@ -61,7 +63,7 @@ export function usePosOrderDetail(input: {
   const [cancelOpen, setCancelOpen] = useState(false);
 
   const skip = !input.branchId || !input.orderId;
-  const { data: order, refetch, isFetching } = useGetOrderQuery(
+  const { data: order, refetch, isFetching, isError: orderLoadFailed } = useGetOrderQuery(
     { branchId: input.branchId ?? '', orderId: input.orderId ?? '' },
     { skip },
   );
@@ -218,6 +220,33 @@ export function usePosOrderDetail(input: {
     },
   });
 
+  const printKitchenTicket = useCallback(
+    (target: OrderDetail, items: OrderItem[], additionsOnly: boolean) => {
+      if (items.length === 0) {
+        return;
+      }
+      const html = renderKitchenHtml({
+        order: target,
+        items,
+        tableLabel,
+        locale: input.locale,
+        fallbackLocale: input.defaultLocale,
+        timeZone: input.menu?.branch.timezone ?? 'UTC',
+        printedAt: new Date(),
+        title: additionsOnly ? t('pos.print.kitchenAdditionTitle') : t('pos.print.kitchenTitle'),
+        isAdditionTicket: additionsOnly,
+        labels: {
+          dineIn: t('pos.orderType.dineIn'),
+          takeaway: t('pos.orderType.takeaway'),
+          pager: t('pos.print.pager'),
+          additionHeader: t('pos.print.kitchenAdditionTitle'),
+        },
+      });
+      openPrintWindow(t('pos.print.kitchenTitle'), html, printLocaleFromUi(input.locale));
+    },
+    [input, t, tableLabel],
+  );
+
   const submitAdditions = useCallback(async () => {
     if (!input.branchId || !order) {
       return;
@@ -235,9 +264,19 @@ export function usePosOrderDetail(input: {
       handleConflict(result.error);
       return;
     }
+    const added = newlyAddedItems(order, result.data);
+    if (input.printAdditions && added.length > 0) {
+      printKitchenTicket(result.data, added, true);
+    }
+    toast.success(
+      t('pos.toast.additionsSent', {
+        count: added.reduce((sum: number, item) => sum + item.quantity, 0),
+        number: order.orderNumber,
+      }),
+    );
     input.clearAdditionLines();
-    input.setIsAddingItems(false);
-  }, [addItems, handleConflict, input, order]);
+    input.onExitAddItems();
+  }, [addItems, handleConflict, input, order, printKitchenTicket, t]);
 
   const printReceipt = useCallback(() => {
     if (!order || !input.menu) {
@@ -271,38 +310,6 @@ export function usePosOrderDetail(input: {
     openPrintWindow(t('pos.print.receiptTitle'), html, printLocaleFromUi(input.locale));
   }, [formatMinor, input, order, t, tableLabel]);
 
-  const printKitchen = useCallback(
-    (additionsOnly: boolean) => {
-      if (!order) {
-        return;
-      }
-      const items = kitchenItemsToPrint(order, { additionsOnly });
-      if (items.length === 0) {
-        return;
-      }
-      const html = renderKitchenHtml({
-        order,
-        items,
-        tableLabel,
-        locale: input.locale,
-        fallbackLocale: input.defaultLocale,
-        timeZone: input.menu?.branch.timezone ?? 'UTC',
-        printedAt: new Date(),
-        title: additionsOnly ? t('pos.print.kitchenAdditionTitle') : t('pos.print.kitchenTitle'),
-        isAdditionTicket: additionsOnly,
-        labels: {
-          dineIn: t('pos.orderType.dineIn'),
-          takeaway: t('pos.orderType.takeaway'),
-          pager: t('pos.print.pager'),
-          additionHeader: t('pos.print.kitchenAdditionTitle'),
-        },
-      });
-      openPrintWindow(t('pos.print.kitchenTitle'), html, printLocaleFromUi(input.locale));
-      markKitchenItemsPrinted(order, items);
-    },
-    [input, order, t, tableLabel],
-  );
-
   const itemRows = useMemo(() => {
     if (!order) {
       return [];
@@ -324,9 +331,7 @@ export function usePosOrderDetail(input: {
   }, [formatMinor, input, order, t]);
 
   const canAddItems =
-    order !== undefined &&
-    (order.status === 'placed' || order.status === 'preparing') &&
-    !input.isAddingItems;
+    order !== undefined && (order.status === 'placed' || order.status === 'preparing');
 
   const canPay = order !== undefined && canShowPay(order);
 
@@ -352,16 +357,15 @@ export function usePosOrderDetail(input: {
   }, [onComplete, onMarkReady, onStartPreparing, order, t]);
 
   return {
-    open: input.orderId !== null,
+    open: input.orderId !== null && !input.isAddingItems,
     onOpenChange: (open: boolean) => {
       if (!open) {
         input.onClose();
-        input.setIsAddingItems(false);
-        input.clearAdditionLines();
       }
     },
     order,
     isFetching,
+    orderLoadFailed,
     itemRows,
     tableLabel,
     canAddItems,
@@ -370,15 +374,16 @@ export function usePosOrderDetail(input: {
     nextStatusAction,
     isAddingItems: input.isAddingItems,
     startAddItems: () => {
-      input.setIsAddingItems(true);
+      if (order) {
+        input.onStartAddItems(order.id);
+      }
     },
     cancelAddItems: () => {
-      input.setIsAddingItems(false);
       input.clearAdditionLines();
+      input.onExitAddItems();
     },
     submitAdditions,
     addingItems: addState.isLoading,
-    additionCount: input.additionLines.length,
     voidDialog: {
       open: voidItemId !== null,
       ...voidDialog,
@@ -392,10 +397,9 @@ export function usePosOrderDetail(input: {
     },
     printReceipt,
     printKitchenFull: () => {
-      printKitchen(false);
-    },
-    printKitchenAddition: () => {
-      printKitchen(true);
+      if (order) {
+        printKitchenTicket(order, activeOrderItems(order), false);
+      }
     },
     refetchOrder: () => refetch(),
     statusChanging: changeState.isLoading,
@@ -409,11 +413,10 @@ export function usePosOrderDetail(input: {
       paymentStatus: order ? t(`pos.paymentStatus.${order.paymentStatus}`) : '',
       pay: t('pos.orderDetail.pay'),
       addItems: t('pos.orderDetail.addItems'),
-      sendAdditions: t('pos.orderDetail.sendAdditions'),
+      more: t('pos.orderDetail.more'),
       cancelOrder: t('pos.orderDetail.cancelOrder'),
       printReceipt: t('pos.print.receipt'),
       printKitchen: t('pos.print.kitchen'),
-      printKitchenAddition: t('pos.print.kitchenAddition'),
       close: t('pos.actions.close'),
       due: order ? t('pos.payment.due') : '',
       total: t('pos.totals.total'),

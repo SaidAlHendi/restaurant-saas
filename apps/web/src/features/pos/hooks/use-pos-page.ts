@@ -41,6 +41,7 @@ import type { PosMenuProduct } from './use-pos-modifier-sheet.js';
 import { usePosModifierSheet } from './use-pos-modifier-sheet.js';
 import { isExchangeRateStale } from '../../settings/currency-settings-form.utils.js';
 import { usePosOrderDetail } from './use-pos-order-detail.js';
+import { readPrintAdditions, writePrintAdditions } from '../pos-print-pref.js';
 import { shouldShowSentToKitchenToast } from '../pos-payment-toast.utils.js';
 import { usePosPaymentDialog } from './use-pos-payment-dialog.js';
 import { usePosLockRequest } from '../pos-lock-context.js';
@@ -68,7 +69,11 @@ export function usePosPage() {
   const [checkoutOrder, setCheckoutOrder] = useState<OrderDetail | null>(null);
   const [pendingBranchId, setPendingBranchId] = useState<string | null>(null);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-  const [isAddingItems, setIsAddingItems] = useState(false);
+  // Add mode is part of the URL (`/pos?addTo=<orderId>`) so the Orders page can send the cashier here.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const addToOrderId = searchParams.get('addTo');
+  const isAddingItems = addToOrderId !== null;
+  const [printAdditions, setPrintAdditionsState] = useState(readPrintAdditions);
   const [additionLines, setAdditionLines] = useState<CartLine[]>([]);
 
   const locale = i18n.language.startsWith('ar') ? 'ar' : 'en';
@@ -184,7 +189,6 @@ export function usePosPage() {
   }, [branchId, dispatch]);
 
   // Coming from the tables page: the chosen table is already selected (a busy one gets a new round).
-  const [searchParams, setSearchParams] = useSearchParams();
   const presetTableId = searchParams.get('table');
   useEffect(() => {
     if (!branchId || presetTableId === null || tablesData === undefined) {
@@ -345,9 +349,14 @@ export function usePosPage() {
     return map;
   }, [tableOptions]);
 
+  const exitAddMode = useCallback(() => {
+    setAdditionLines([]);
+    setSearchParams({}, { replace: true });
+  }, [setSearchParams]);
+
   const orderDetail = usePosOrderDetail({
     branchId,
-    orderId: selectedOrderId,
+    orderId: selectedOrderId ?? addToOrderId,
     onClose: () => {
       setSelectedOrderId(null);
     },
@@ -359,7 +368,13 @@ export function usePosPage() {
     additionLines,
     clearAdditionLines,
     isAddingItems,
-    setIsAddingItems,
+    onStartAddItems: (orderId: string) => {
+      setSelectedOrderId(null);
+      setAdditionLines([]);
+      setSearchParams({ addTo: orderId });
+    },
+    onExitAddItems: exitAddMode,
+    printAdditions,
     canCancelOrders,
     canCreateOrders,
   });
@@ -474,9 +489,24 @@ export function usePosPage() {
     ? unavailableProductIds(cart.lines, menu.categories)
     : new Set<string>();
 
-  const cartLines = cart.lines.map((line) => {
+  // While adding to a sent order the panel lists only the new lines, not the normal cart.
+  const activeLines = isAddingItems ? additionLines : cart.lines;
+  const setLineQuantity = (localId: string, quantity: number) => {
+    if (isAddingItems) {
+      setAdditionLines((prev) =>
+        prev
+          .map((row) => (row.localId === localId ? { ...row, quantity } : row))
+          .filter((row) => row.quantity > 0),
+      );
+      return;
+    }
+    dispatch(cartActions.updateLineQuantity({ localId, quantity }));
+  };
+
+  const cartLines = activeLines.map((line) => {
     const menuProduct = productById.get(line.productId);
-    const canEdit = menuProduct !== undefined && menuProduct.modifierGroups.length > 0;
+    const canEdit =
+      !isAddingItems && menuProduct !== undefined && menuProduct.modifierGroups.length > 0;
     return {
       localId: line.localId,
       onEdit: canEdit
@@ -500,17 +530,13 @@ export function usePosPage() {
       ],
       note: line.note,
       onIncrease: () => {
-        dispatch(
-          cartActions.updateLineQuantity({ localId: line.localId, quantity: line.quantity + 1 }),
-        );
+        setLineQuantity(line.localId, line.quantity + 1);
       },
       onDecrease: () => {
-        dispatch(
-          cartActions.updateLineQuantity({ localId: line.localId, quantity: line.quantity - 1 }),
-        );
+        setLineQuantity(line.localId, line.quantity - 1);
       },
       onRemove: () => {
-        dispatch(cartActions.removeLine(line.localId));
+        setLineQuantity(line.localId, 0);
       },
       decreaseLabel: t('pos.cart.decreaseQty'),
       increaseLabel: t('pos.cart.increaseQty'),
@@ -613,6 +639,43 @@ export function usePosPage() {
       return { value: label, label };
     }),
   ];
+  const addOrder = orderDetail.order;
+  const addMode = {
+    title: addOrder
+      ? t('pos.addMode.title', { number: addOrder.orderNumber })
+      : t('common.loading'),
+    subtitle: addOrder
+      ? [
+          orderDetail.tableLabel,
+          t('pos.addMode.alreadySent', {
+            count: addOrder.items.filter((item) => item.status !== 'voided').length,
+          }),
+        ]
+          .filter((part): part is string => part !== null)
+          .join(' · ')
+      : '',
+    backLabel: t('pos.addMode.back'),
+    onBack: orderDetail.cancelAddItems,
+    printLabel: t('pos.addMode.printTicket'),
+    printChecked: printAdditions,
+    onPrintChange: (value: boolean) => {
+      setPrintAdditionsState(value);
+      writePrintAdditions(value);
+    },
+  };
+
+  // An order that can no longer take additions (paid out, cancelled, gone) ends add mode.
+  const addTargetClosed =
+    isAddingItems &&
+    (orderDetail.orderLoadFailed ||
+      (addOrder !== undefined && addOrder.status !== 'placed' && addOrder.status !== 'preparing'));
+  useEffect(() => {
+    if (addTargetClosed) {
+      toast.info(t('pos.addMode.closed'));
+      exitAddMode();
+    }
+  }, [addTargetClosed, exitAddMode, t]);
+
   const canSend =
     buildCreateOrderBody(cart, menu?.branch.pagerEnabled ?? false) !== null &&
     unavailableIds.size === 0 &&
@@ -723,15 +786,17 @@ export function usePosPage() {
     },
     paymentDialog,
     isAddingItems,
-    addingItemsHint: isAddingItems ? t('pos.orderDetail.addItemsHint') : null,
+    addMode: isAddingItems ? addMode : null,
     cartLines,
-    cartEmpty: cart.lines.length === 0,
-    totals,
+    cartEmpty: activeLines.length === 0,
+    totals: isAddingItems ? null : totals,
     taxInclusive: menu?.branch.taxInclusive ?? false,
     formatMinor,
-    onSendToKitchen,
-    sending,
-    sendDisabled: sending || !canSend,
+    onSendToKitchen: isAddingItems ? orderDetail.submitAdditions : onSendToKitchen,
+    sending: isAddingItems ? orderDetail.addingItems : sending,
+    sendDisabled: isAddingItems
+      ? orderDetail.addingItems || additionLines.length === 0 || !orderDetail.order
+      : sending || !canSend,
     rateStaleMessage:
       menu?.display && isExchangeRateStale(menu.displayRateUpdatedAt, new Date())
         ? t('pos.rateStale')
@@ -782,11 +847,15 @@ export function usePosPage() {
       orderType: t('pos.cart.orderType'),
       cartTitle: t('pos.cart.title'),
       cartCount: t('pos.catalog.items', {
-        count: cart.lines.reduce((sum: number, row) => sum + row.quantity, 0),
+        count: activeLines.reduce((sum: number, row) => sum + row.quantity, 0),
       }),
-      sendToKitchen: sending
+      sendToKitchen: (isAddingItems ? orderDetail.addingItems : sending)
         ? t('pos.sending')
-        : menu?.branch.payBeforeSend
+        : isAddingItems
+          ? t('pos.addMode.send', {
+              count: additionLines.reduce((sum: number, line) => sum + line.quantity, 0),
+            })
+          : menu?.branch.payBeforeSend
           ? t('pos.payAndSend')
           : t('pos.sendToKitchen'),
       orderTypeDineIn: t('pos.orderType.dineIn'),

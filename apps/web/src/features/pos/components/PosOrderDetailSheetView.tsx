@@ -1,6 +1,10 @@
 import {
   Badge,
   Button,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
   Sheet,
   SheetBody,
   SheetContent,
@@ -26,18 +30,12 @@ export function PosOrderDetailSheetView(props: PosOrderDetailSheetViewProps) {
     canPay,
     canCancel,
     nextStatusAction,
-    isAddingItems,
     startAddItems,
-    cancelAddItems,
-    submitAdditions,
-    addingItems,
-    additionCount,
     voidDialog,
     cancelDialog,
     openCancelDialog,
     printReceipt,
     printKitchenFull,
-    printKitchenAddition,
     labels,
     onPay,
     formatMinor,
@@ -101,11 +99,6 @@ export function PosOrderDetailSheetView(props: PosOrderDetailSheetViewProps) {
                     </li>
                   ))}
                 </ul>
-                {isAddingItems ? (
-                  <p className="text-muted-foreground text-sm">
-                    {labels.sendAdditions} ({String(additionCount)})
-                  </p>
-                ) : null}
               </SheetBody>
               <SheetFooter className="flex-col sm:flex-col sm:justify-start">
                 {canPay ? (
@@ -123,45 +116,32 @@ export function PosOrderDetailSheetView(props: PosOrderDetailSheetViewProps) {
                     {nextStatusAction.label}
                   </Button>
                 ) : null}
-                {canAddItems && !isAddingItems ? (
+                {canAddItems ? (
                   <Button type="button" size="touch" variant="outline" onClick={startAddItems}>
                     {labels.addItems}
                   </Button>
                 ) : null}
-                {isAddingItems ? (
-                  <>
-                    <Button type="button" size="touch" variant="outline" onClick={cancelAddItems}>
-                      {labels.close}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button type="button" size="touch" variant="ghost">
+                      {labels.more}
                     </Button>
-                    <Button
-                      type="button"
-                      size="touch"
-                      disabled={additionCount === 0}
-                      isLoading={addingItems}
-                      onClick={() => {
-                        void submitAdditions();
-                      }}
-                    >
-                      {labels.sendAdditions}
-                    </Button>
-                  </>
-                ) : null}
-                <div className="flex flex-wrap gap-2">
-                  <Button type="button" size="sm" variant="outline" onClick={printReceipt}>
-                    {labels.printReceipt}
-                  </Button>
-                  <Button type="button" size="sm" variant="outline" onClick={printKitchenFull}>
-                    {labels.printKitchen}
-                  </Button>
-                  <Button type="button" size="sm" variant="outline" onClick={printKitchenAddition}>
-                    {labels.printKitchenAddition}
-                  </Button>
-                </div>
-                {canCancel ? (
-                  <Button type="button" size="sm" variant="destructive" onClick={openCancelDialog}>
-                    {labels.cancelOrder}
-                  </Button>
-                ) : null}
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={printReceipt}>{labels.printReceipt}</DropdownMenuItem>
+                    <DropdownMenuItem onClick={printKitchenFull}>
+                      {labels.printKitchen}
+                    </DropdownMenuItem>
+                    {canCancel ? (
+                      <DropdownMenuItem
+                        className="text-destructive"
+                        onClick={openCancelDialog}
+                      >
+                        {labels.cancelOrder}
+                      </DropdownMenuItem>
+                    ) : null}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </SheetFooter>
             </>
           ) : null}

@@ -568,7 +568,9 @@
     "awaitingPaymentBadge": "Awaiting payment",
     "toast": {
       "sentToKitchen": "Order #{{number}} sent to kitchen",
-      "awaitingPayment": "Order #{{number}} is waiting for payment"
+      "awaitingPayment": "Order #{{number}} is waiting for payment",
+      "additionsSent_one": "{{count}} item sent to the kitchen for order #{{number}}",
+      "additionsSent_other": "{{count}} items sent to the kitchen for order #{{number}}"
     },
     "nav": {
       "section": "Cashier",
@@ -678,8 +680,6 @@
       "title": "Order",
       "pay": "Pay",
       "addItems": "Add items",
-      "addItemsHint": "Tap products to add items to this order.",
-      "sendAdditions": "Send additions",
       "complete": "Complete",
       "markPreparing": "Start preparing",
       "markReady": "Mark ready",
@@ -695,7 +695,8 @@
       "approvalHint": "A manager or owner must enter their PIN to confirm.",
       "approvalNext": "Continue",
       "pickApprover": "Choose approver",
-      "emptyApprovers": "No managers with a PIN are available at this branch."
+      "emptyApprovers": "No managers with a PIN are available at this branch.",
+      "more": "More"
     },
     "lock": {
       "button": "Lock",
@@ -713,7 +714,6 @@
     "print": {
       "receipt": "Receipt",
       "kitchen": "Kitchen ticket",
-      "kitchenAddition": "Kitchen additions",
       "receiptTitle": "Receipt",
       "kitchenTitle": "Kitchen",
       "kitchenAdditionTitle": "Additions",
@@ -804,6 +804,15 @@
       "newOrder": "New order",
       "addRound": "Add round",
       "bill": "Bill"
+    },
+    "addMode": {
+      "title": "Adding to order #{{number}}",
+      "alreadySent_one": "{{count}} item already sent",
+      "alreadySent_other": "{{count}} items already sent",
+      "send": "Send to kitchen ({{count}})",
+      "back": "Back",
+      "printTicket": "Print kitchen ticket",
+      "closed": "This order can no longer take new items."
     }
   },
   "orders": {
