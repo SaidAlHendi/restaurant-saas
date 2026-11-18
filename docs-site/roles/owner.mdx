@@ -38,6 +38,7 @@ Once a display currency is set:
 - The public menu, the POS, the kitchen display and receipts show prices in the display currency only.
 - For currencies with large numbers, such as SYP, LBP and IQD, item prices are rounded to the nearest 100 and order totals to the nearest 500 by default. Other currencies start with no rounding. You can change both rounding steps at any time.
 - Each order keeps the rate it was created with. Changing the rate later affects the menu and new orders, never past orders.
+- The **Products** table in the dashboard shows each price in the base currency followed by the display-currency price, for example `SAR 100 · $26.67`. Product forms always take the price in the base currency.
 - The dashboard and daily reports show amounts in the display currency, using each order's own rate. Billing for the Sahtain subscription is not affected.
 - **Settings** shows when the rate was last updated, and the POS shows a warning when the rate is older than 7 days.
 

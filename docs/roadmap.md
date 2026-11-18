@@ -3,12 +3,12 @@
 ## Status
 Rewrite this section at the end of every session (max 30 lines).
 - **State:** Steps 1-9 done. 10a done; 10b (Sentry, uptime, backup restore test) open, staging deploy in progress (`docs/runbook-staging.md`). Step 12 (admin) 12a-12d merged.
-- **Last task:** empty states for dependent catalog pages (Notion: "Improve Unit Selection UX in Add Product Form"). Products page with no category shows "Create a category first" (button to categories for managers). Modifier groups, tables and QR codes show "ask a manager or the owner" copy to users without permission; QR page has its own empty state and shows the table-QR hint to everyone. Pay-before-send for additions was committed earlier (f4eed94).
-- **Changed files:** web menu (ProductsPageView, use-products-screen, use-modifier-groups-screen), web tables (QrCodesPageView, use-qr-codes-screen, use-tables-screen), locales en/ar.
-- **Verified:** typecheck, lint, menu + tables tests green. Not clicked through in a browser.
+- **Last task:** Notion "wrong price unit in adding product". Products table showed `product.currency` (e.g. USD) while the form showed the base currency (SAR). Table now shows the system price in `org.defaultCurrency`, plus the converted display price (`SAR 100 · $26.67`) when a display currency is active and differs. Empty states for dependent catalog pages were committed earlier (b8ae0d8).
+- **Changed files:** web menu `use-products-screen.ts`, `docs-site/roles/owner.mdx`.
+- **Verified:** typecheck, eslint, menu + money tests green. Not clicked through in a browser.
 - **Next step:** staging deploy / Step 10b.
 - **Decisions:** read-only users get plain text ("ask a manager or the owner"), no button. Tables and QR check `branches.manage`, menu pages `menu.manage`, left as is.
-- **Gotchas:** QR empty state has no "Add tables" button (string `menu.qr.noTablesAction` exists, unused). A held addition on an order that reaches Ready/Completed is released as pending when paid (not handled). print() blocks a headless browser. `graphify-out/` is gitignored.
+- **Gotchas:** display config comes from `GET /v1/org/settings` (`org.manage`), so `menu.manage`-only users see just the system price in the products table. `productDisplayCurrency` in `lib/money.ts` is now unused outside its test. QR empty state has no "Add tables" button (string `menu.qr.noTablesAction` exists, unused). A held addition on an order that reaches Ready/Completed is released as pending when paid (not handled). print() blocks a headless browser. `graphify-out/` is gitignored.
 
 - [x] 1. Monorepo scaffold, docker compose (Postgres, Redis), CI (lint, typecheck, test), deploy to staging
 - [x] 1b. UI kit in packages/ui: shadcn/ui + Tailwind v4, themes cupcake/forest, first batch of components, /dev/ui showcase, ESLint UI-only rule (docs/ui-kit.md)

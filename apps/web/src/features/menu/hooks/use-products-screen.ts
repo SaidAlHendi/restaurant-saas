@@ -5,9 +5,10 @@ import { useNavigate } from 'react-router-dom';
 import type { Product, ProductListItem, ProductListQuery } from '@app/shared';
 
 import { useAppSelector } from '../../../app/hooks.js';
-import { formatMoney, intlLocaleForUi, productDisplayCurrency } from '../../../lib/money.js';
+import { formatMoney, intlLocaleForUi, moneyFormatter } from '../../../lib/money.js';
 import { planGateFromError, planLimitMessageKey } from '../../billing/plan-gate.utils.js';
 import { selectCan } from '../../session/session.selectors.js';
+import { useGetOrgSettingsQuery } from '../../settings/settings.api.js';
 import type { ProductsPageViewProps } from '../components/ProductsPageView.js';
 import {
   useCreateProductMutation,
@@ -53,6 +54,20 @@ export function useProductsScreen(): ProductsPageViewProps {
   const canManage = useAppSelector(selectCan('menu.manage'));
   const org = useCatalogOrg();
   const moneyLocale = intlLocaleForUi(org.uiLocale);
+  const canReadOrgSettings = useAppSelector(selectCan('org.manage'));
+  const { data: orgSettings } = useGetOrgSettingsQuery(undefined, { skip: !canReadOrgSettings });
+  const moneyDisplay = useMemo(
+    () =>
+      orgSettings?.displayCurrency && orgSettings.exchangeRate
+        ? {
+            currency: orgSettings.displayCurrency,
+            rate: orgSettings.exchangeRate,
+            itemStep: orgSettings.displayItemStep,
+            totalStep: orgSettings.displayTotalStep,
+          }
+        : null,
+    [orgSettings],
+  );
 
   const { data: categoriesData } = useListCategoriesQuery(undefined);
   const categories = useMemo(() => categoriesData?.items ?? [], [categoriesData]);
@@ -278,12 +293,15 @@ export function useProductsScreen(): ProductsPageViewProps {
     return t('menu.availability.count', { count: product.branchIds.length });
   };
 
-  const priceLabelFor = (product: Product) =>
-    formatMoney(
+  // Prices are stored in the base currency (the system price). When a display currency is active
+  // the converted price is shown next to it.
+  const priceLabelFor = (product: Product) => {
+    const systemPrice = formatMoney(product.priceMinor, org.defaultCurrency, org.uiLocale);
+    const displayPrice = moneyFormatter(org.defaultCurrency, org.uiLocale, moneyDisplay)(
       product.priceMinor,
-      productDisplayCurrency(product, org.defaultCurrency),
-      org.uiLocale,
     );
+    return displayPrice === systemPrice ? systemPrice : `${systemPrice} · ${displayPrice}`;
+  };
 
   return {
     title: t('menu.products.title'),
