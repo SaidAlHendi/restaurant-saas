@@ -1,0 +1,28 @@
+---
+title: "Super admin"
+description: "Full platform control, including suspending and reactivating restaurants."
+icon: "shield-check"
+---
+
+## Who this role is for
+
+The Sahtain platform owner or a trusted operator who administers the whole platform. It is the highest admin role and includes everything billing and support can do.
+
+## What super admins can do
+
+- Everything the **billing** and **support** roles can do.
+- Suspend a restaurant, which blocks its staff from signing in.
+- Reactivate a suspended restaurant.
+- Every suspend and reactivate action is written to the audit log.
+
+## What super admins cannot do
+
+- Act as a restaurant user or change a restaurant's orders and menu from the admin app. Admin access is separate from restaurant roles.
+
+## Where they work
+
+The admin app, with the full sidebar. The restaurant detail page shows the suspend and reactivate action only to this role.
+
+<Note>
+  Admin roles are checked against the database on every request, so a demotion or deactivation takes effect immediately.
+</Note>

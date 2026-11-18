@@ -1,0 +1,68 @@
+---
+title: "Tenancy and identity"
+description: "Restaurants, branches, staff, roles and sign-in sessions."
+icon: "building"
+---
+
+## Tables
+
+### organizations
+
+One row per restaurant (the tenant). Holds name, unique `slug`, `country`, default currency and locale, the enabled `locales`, `logo_key`, and `status` (`trial`, `active`, `past_due`, `suspended`, `cancelled`).
+
+The default currency is the base currency that all prices are stored in. The owner can change it only while the restaurant has no orders; `branches.currency` is updated with it. Optional display currency columns: `display_currency`, `exchange_rate` (numeric(18,6), display units per 1 base unit), `exchange_rate_updated_at`, `display_item_step` (default 100) and `display_total_step` (default 500). When `display_currency` is null, no conversion happens. Each order copies these values into its own `display_currency`, `exchange_rate`, `display_item_step` and `display_total_step` when it is created, and cash payments store `display_tendered_minor` and `display_change_minor`.
+
+**Used by:** tenancy (settings), identity (signup and login checks), public-menu (menu lookup by slug), billing, and admin (restaurants list, suspend and reactivate). Login is refused when the status is suspended or cancelled.
+
+### branches
+
+A location of a restaurant. Holds `timezone`, `currency`, tax (`tax_rate_bp` in basis points, `tax_inclusive`), `day_start_hour` (default 4, defines the business date), address, receipt header and footer, `pay_before_send`, `accepts_card` and `is_active`. Unique by `(org_id, slug)`.
+
+**Used by:** nearly every module, because orders, tables, counters and reports hang off a branch.
+
+### roles and role_permissions
+
+`roles` holds the four system roles (owner, manager, cashier, kitchen) with `org_id` null and `is_system` true. `role_permissions` maps a role to permission keys such as `orders.create`. See [Roles overview](/roles/overview).
+
+**Used by:** identity (builds the session permission list) and tenancy (staff role assignment).
+
+### membership_permission_overrides
+
+Per-employee exceptions on top of the role. One row per membership and permission key, with `effect` set to `grant` (adds the key) or `deny` (removes it) and the restaurant's `org_id`. The effective permission list is the role's keys, plus grants, minus denies. Row-level security restricts rows to the current restaurant, and rows are deleted with their membership. `org.manage` and `billing.manage` cannot be overridden. The owner role also gets the `tables.rotate_qr` permission, which controls rotating table QR codes.
+
+### memberships
+
+A user's place in one restaurant: `user_id`, `role_id` (foreign key to `roles.id`; there is no `role` column, the readable name is `roles.key`), `status` (`active`, `invited`, `disabled`), `all_branches`, PIN fields (`pin_hash`, `pin_failed_attempts`, `pin_locked_until`) and invite fields (`invite_token_hash`, `invite_expires_at`). Unique by `(org_id, user_id)`.
+
+**Used by:** identity (login, PIN login) and tenancy (staff settings and invites). Orders, payments and events store the **membership id** as the actor.
+
+**Example: which role does a user have?**
+
+```sql
+SELECT u.id, u.email, r.key AS role, m.status, m.all_branches, o.name AS org_name
+FROM users u
+JOIN memberships m ON m.user_id = u.id
+JOIN roles r ON r.id = m.role_id
+JOIN organizations o ON o.id = m.org_id
+WHERE u.id = '<user-id>';
+```
+
+A user with memberships in several restaurants returns one row per restaurant.
+
+### membership_branches
+
+Limits a membership to specific branches when `all_branches` is false. Columns: `membership_id`, `branch_id`, `org_id` (primary key `(membership_id, branch_id)`; no `id` or timestamps).
+
+**Used by:** tenancy.
+
+### users
+
+One person, across restaurants. Email (nullable for PIN-only staff), `password_hash` (nullable), name, locale, `last_org_id`. It also still has `is_platform_admin` and `platform_role` columns, which the separate admin tables replaced.
+
+**Used by:** identity and tenancy. The admin module also references it.
+
+### auth_sessions
+
+Refresh-token sessions for restaurant staff: hashed token, `family_id` for rotation and reuse detection, expiry, revoke time, user agent and IP. Cascades when the organization is deleted.
+
+**Used by:** identity.
