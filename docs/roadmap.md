@@ -8,7 +8,7 @@ Rewrite this section at the end of every session (max 30 lines).
 - **Verified:** lint, typecheck, api unit, web tests, ordering/kitchen e2e green. Not clicked through in a browser again. Mintlify not published.
 - **Next step:** merge the PR to `dev`, then staging deploy / Step 10b. Open question for the PR: Active list went empty with 401s after Undo (needs a repro on `dev`).
 - **Decisions:** Undo of Ready always returns to `preparing` (also from `placed`); items that were open at Ready go back to preparing, items ticked earlier stay ready. Undo of a handover is refused (`ORDER_UNDO_BILL_CLOSED`, 422) once the table bill is closed. Undo by another user is `ORDER_UNDO_EXPIRED`.
-- **Gotchas:** Awaiting payment and Cancelled tabs keep today-only ON by default. The `hiddenOlderCount` is skipped when searching. Earlier gotchas still apply (display config needs `org.manage`; held additions on Ready/Completed orders; `graphify-out/` gitignored).
+- **Gotchas:** Today-only defaults to OFF on Active, Awaiting payment and Ready, ON on Completed, Cancelled and All today. The `hiddenOlderCount` is skipped when searching. Earlier gotchas still apply (display config needs `org.manage`; held additions on Ready/Completed orders; `graphify-out/` gitignored).
 
 - [x] 1. Monorepo scaffold, docker compose (Postgres, Redis), CI (lint, typecheck, test), deploy to staging
 - [x] 1b. UI kit in packages/ui: shadcn/ui + Tailwind v4, themes cupcake/forest, first batch of components, /dev/ui showcase, ESLint UI-only rule (docs/ui-kit.md)

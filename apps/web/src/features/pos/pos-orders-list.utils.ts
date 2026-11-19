@@ -26,9 +26,9 @@ export function parsePosOrdersTab(value: string | null): PosOrdersTab {
   return 'active';
 }
 
-/** Open-order tabs show everything by default; the lists that grow every day default to today. */
+/** Open-order tabs (Active, Awaiting payment, Ready) show everything by default; the lists that grow every day default to today. */
 export function defaultTodayOnly(tab: PosOrdersTab): boolean {
-  return tab !== 'active' && tab !== 'ready';
+  return tab !== 'active' && tab !== 'ready' && tab !== 'awaitingPayment';
 }
 
 /** `?today=1|0` wins; otherwise the tab's default. */
@@ -72,7 +72,7 @@ export function showOlderOrdersHint(
   todayOnly: boolean,
   hiddenOlderCount: number | undefined,
 ): boolean {
-  return (tab === 'active' || tab === 'ready') && todayOnly && (hiddenOlderCount ?? 0) > 0;
+  return (tab === 'active' || tab === 'ready' || tab === 'awaitingPayment') && todayOnly && (hiddenOlderCount ?? 0) > 0;
 }
 
 export function mergeListQueryWithSearch(

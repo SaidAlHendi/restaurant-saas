@@ -371,4 +371,25 @@ describe('Order handover (e2e)', () => {
     // Lists of finished orders never report hidden open orders.
     expect((await list({ status: 'completed', todayOnly: true })).hiddenOlderCount).toBeUndefined();
   });
+
+  it('a draft (awaiting payment) order from an earlier day is hidden by todayOnly and counted', async () => {
+    const owner = await asDemoOwner(apiAgent(app));
+    const { branchId } = await createIsolatedBranch(owner, { payBeforeSend: true });
+    const old = await create(owner, branchId);
+    expect(old.status).toBe('draft');
+    await withOrg(db, orgId, async (tx) => {
+      await tx.execute(
+        sql`UPDATE orders SET business_date = business_date - 1 WHERE id = ${old.id}::uuid`,
+      );
+    });
+    const res = await owner
+      .get(`/v1/branches/${branchId}/orders`)
+      .query({ status: 'draft', todayOnly: true });
+    const body = res.body as { items: Array<{ id: string }>; hiddenOlderCount?: number };
+    expect(body.items).toEqual([]);
+    expect(body.hiddenOlderCount).toBe(1);
+
+    const all = await owner.get(`/v1/branches/${branchId}/orders`).query({ status: 'draft' });
+    expect((all.body as { items: Array<{ id: string }> }).items.map((o) => o.id)).toEqual([old.id]);
+  });
 });

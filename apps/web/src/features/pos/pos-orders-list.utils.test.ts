@@ -19,8 +19,7 @@ describe('tabToListQuery', () => {
     expect(tabToListQuery('awaitingPayment', 20)).toEqual({
       limit: 20,
       status: 'draft',
-      todayOnly: true,
-    });
+});
   });
 });
 
@@ -44,7 +43,8 @@ describe('today-only switch', () => {
   it('defaults: open-order tabs show everything, daily lists show today', () => {
     expect(defaultTodayOnly('active')).toBe(false);
     expect(defaultTodayOnly('ready')).toBe(false);
-    for (const tab of ['awaitingPayment', 'completed', 'cancelled', 'allToday'] as const) {
+    expect(defaultTodayOnly('awaitingPayment')).toBe(false);
+    for (const tab of ['completed', 'cancelled', 'allToday'] as const) {
       expect(defaultTodayOnly(tab)).toBe(true);
     }
   });
@@ -88,6 +88,8 @@ describe('today-only switch', () => {
     expect(showOlderOrdersHint('ready', false, 2)).toBe(false);
     expect(showOlderOrdersHint('ready', true, 0)).toBe(false);
     expect(showOlderOrdersHint('ready', true, undefined)).toBe(false);
+    expect(showOlderOrdersHint('awaitingPayment', true, 1)).toBe(true);
+    expect(showOlderOrdersHint('awaitingPayment', false, 1)).toBe(false);
     expect(showOlderOrdersHint('completed', true, 3)).toBe(false);
   });
 });
