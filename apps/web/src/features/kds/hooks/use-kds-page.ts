@@ -38,7 +38,7 @@ import {
   useGetKitchenBoardQuery,
   useMoveKitchenOrderMutation,
 } from '../kds.api.js';
-import { useNow } from './use-now.js';
+import { useNow } from '../../../lib/use-now.js';
 import { useWakeLock } from './use-wake-lock.js';
 
 const REFETCH_DEBOUNCE_MS = 300;

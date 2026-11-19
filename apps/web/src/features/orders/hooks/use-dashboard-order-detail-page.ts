@@ -9,6 +9,9 @@ import { orderDetailsBodyLabels } from '../components/order-details/order-detail
 import { buildOrderDetailsModel } from '../components/order-details/order-details.model.js';
 import { moneyFormatter } from '../../../lib/money.js';
 import { isOrderNotFoundError } from '../orders-api-errors.js';
+import { useNow } from '../../../lib/use-now.js';
+import { useListDiningTablesQuery } from '../../tables/tables.api.js';
+import { resolveOrderTableLabel } from '../order-type-table-label.utils.js';
 import { useGetOrderQuery, useListOrderEventsQuery } from '../orders.api.js';
 import { useOrgSwitcher } from './use-org-switcher.js';
 
@@ -42,7 +45,12 @@ export function useDashboardOrderDetailPage() {
     { skip: !branchId || orderId.length === 0 },
   );
 
+  const tablesQuery = useListDiningTablesQuery(branchId ?? '', { skip: !branchId });
+  // Keeps "5 minutes ago" labels fresh.
+  const nowMs = useNow(60_000);
+
   const order = orderQuery.data;
+  const tableLabel = resolveOrderTableLabel(order?.tableId ?? null, tablesQuery.data?.items);
   const currency = order?.currency ?? org?.defaultCurrency ?? 'SAR';
 
   // The display currency frozen on this order, so old orders keep the amounts they were sold at.
@@ -64,11 +72,12 @@ export function useDashboardOrderDetailPage() {
             contentLocale,
             defaultLocale,
             formatMinor,
-            tableLabel: null,
+            tableLabel,
+            now: new Date(nowMs),
             showVersion: true,
           })
         : null,
-    [contentLocale, defaultLocale, eventsQuery.data?.items, eventsQuery.isError, formatMinor, i18n.language, order, t, uiLocale],
+    [contentLocale, defaultLocale, eventsQuery.data?.items, eventsQuery.isError, formatMinor, i18n.language, nowMs, order, t, tableLabel, uiLocale],
   );
 
   const notFound = orderQuery.isError && isOrderNotFoundError(orderQuery.error);

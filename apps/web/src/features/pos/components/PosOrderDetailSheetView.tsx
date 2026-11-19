@@ -107,7 +107,7 @@ export function PosOrderDetailSheetView(props: PosOrderDetailSheetViewProps) {
               <OrderDetailsBodyView
                 model={details}
                 labels={labels}
-                timeline={{ collapsible: true, onToggle: timeline.onToggle, loading: timeline.loading }}
+                timeline={{ collapsible: true, loading: timeline.loading }}
               />
             ) : orderLoadFailed ? (
               <p role="alert" className="text-destructive text-sm">
