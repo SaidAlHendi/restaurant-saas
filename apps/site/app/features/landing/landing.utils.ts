@@ -1,3 +1,4 @@
+import { intlLocaleForUi } from '@app/shared';
 import { landingPath, type LandingLocale, type PageKey } from '../../lib/locale.js';
 import type { LandingContent, NavKey, NavSectionId } from './content/types.js';
 import { LANDING_IMAGES, type LandingImageName } from './landing-media.generated.js';
@@ -31,12 +32,12 @@ export function videoUrl(name: 'pos' | 'kds', format: 'webm' | 'mp4'): string {
 const CURRENCY_MARK: Record<string, string> = { USD: '$' };
 
 /**
- * Whole-unit price for the marketing page ("$39", or "٣٩ $" in Arabic). Transactions use
+ * Whole-unit price for the marketing page ("$39", or "39 $" in Arabic). Transactions use
  * `formatMoney` with decimals; a pricing table reads better without ".00", and the Arabic locale
  * would otherwise print the long "US$" form.
  */
 export function formatPlanPrice(minor: number, currency: string, locale: LandingLocale): string {
-  const amount = new Intl.NumberFormat(locale === 'ar' ? 'ar-SA' : 'en-US', { maximumFractionDigits: 0 }).format(
+  const amount = new Intl.NumberFormat(intlLocaleForUi(locale), { maximumFractionDigits: 0 }).format(
     minor / 100,
   );
   const mark = CURRENCY_MARK[currency] ?? currency;

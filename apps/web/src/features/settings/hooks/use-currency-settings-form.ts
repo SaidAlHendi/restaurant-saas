@@ -75,7 +75,7 @@ export function useCurrencySettingsForm(data: OrgSettingsResponse | undefined) {
     label:
       step === 0
         ? t('settings.currency.noRounding')
-        : new Intl.NumberFormat(uiLocale).format(step),
+        : new Intl.NumberFormat(intlLocaleForUi(uiLocale)).format(step),
   }));
 
   // One whole unit of the base currency x10, e.g. "10.00 USD", as the sample price.
@@ -141,7 +141,7 @@ export function useCurrencySettingsForm(data: OrgSettingsResponse | undefined) {
       rateUpdatedLabel:
         data?.displayCurrency && data.exchangeRateUpdatedAt
           ? t('settings.currency.rateUpdated', {
-              date: new Intl.DateTimeFormat(uiLocale, { dateStyle: 'medium' }).format(
+              date: new Intl.DateTimeFormat(intlLocaleForUi(uiLocale), { dateStyle: 'medium' }).format(
                 new Date(data.exchangeRateUpdatedAt),
               ),
             })

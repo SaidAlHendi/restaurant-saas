@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { intlLocaleForUi } from '@app/shared';
 
 import { useListPlansQuery } from './plans.api.js';
 
@@ -23,7 +24,7 @@ export function usePlansPage() {
     retry: () => void refetch(),
     formatPrice: (priceMinor: number, currency: string) => {
       try {
-        return new Intl.NumberFormat(i18n.language, { style: 'currency', currency }).format(
+        return new Intl.NumberFormat(intlLocaleForUi(i18n.language), { style: 'currency', currency }).format(
           priceMinor / 100,
         );
       } catch {
@@ -36,7 +37,7 @@ export function usePlansPage() {
       const limit = limits.get(key);
       return limit === null || limit === undefined
         ? t('plans.unlimited')
-        : new Intl.NumberFormat(i18n.language).format(limit);
+        : new Intl.NumberFormat(intlLocaleForUi(i18n.language)).format(limit);
     },
   };
 }

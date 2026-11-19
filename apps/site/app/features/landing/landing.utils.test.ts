@@ -36,8 +36,8 @@ describe('formatPlanPrice', () => {
   });
 
   it('formats Arabic prices with Arabic digits and the amount first', () => {
-    expect(formatPlanPrice(7900, 'USD', 'ar')).toBe('٧٩ $');
-    expect(formatPlanPrice(0, 'USD', 'ar')).toBe('٠ $');
+    expect(formatPlanPrice(7900, 'USD', 'ar')).toBe('79 $');
+    expect(formatPlanPrice(0, 'USD', 'ar')).toBe('0 $');
   });
 
   it('falls back to the currency code for currencies without a mark', () => {

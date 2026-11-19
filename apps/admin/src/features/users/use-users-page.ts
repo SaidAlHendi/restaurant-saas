@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { intlLocaleForUi } from '@app/shared';
 
 import { useCursorPages } from '../../lib/use-cursor-pages.js';
 import { useListUsersQuery } from './users.api.js';
@@ -14,7 +15,7 @@ export function useUsersPage() {
     cursor: pages.cursor,
   });
   const dateFormat = useMemo(
-    () => new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium' }),
+    () => new Intl.DateTimeFormat(intlLocaleForUi(i18n.language), { dateStyle: 'medium' }),
     [i18n.language],
   );
 

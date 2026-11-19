@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { adminOrgStatusSchema, type AdminOrgListItem, type AdminOrgStatus } from '@app/shared';
+import { adminOrgStatusSchema, type AdminOrgListItem, type AdminOrgStatus, intlLocaleForUi } from '@app/shared';
 
 import { useListRestaurantsQuery } from './restaurants.api.js';
 
@@ -55,9 +55,9 @@ export function useRestaurantsPage() {
   );
 
   const pageCount = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
-  const numberFormat = useMemo(() => new Intl.NumberFormat(i18n.language), [i18n.language]);
+  const numberFormat = useMemo(() => new Intl.NumberFormat(intlLocaleForUi(i18n.language)), [i18n.language]);
   const dateFormat = useMemo(
-    () => new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium' }),
+    () => new Intl.DateTimeFormat(intlLocaleForUi(i18n.language), { dateStyle: 'medium' }),
     [i18n.language],
   );
 

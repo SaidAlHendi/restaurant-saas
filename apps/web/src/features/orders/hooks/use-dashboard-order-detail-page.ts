@@ -98,6 +98,10 @@ export function useDashboardOrderDetailPage(extra: {
       business: t('orderDetails.businessDate'),
       created: t('orderDetails.createdAt'),
       dueLabel: t('orderDetails.totals.due'),
+      pagerLabel: t('orderDetails.pagerShort'),
+      customerLabel: t('orderDetails.info.customer'),
+      notesLabel: t('orderDetails.info.notes'),
+      createdByLabel: t('orderDetails.info.createdBy'),
     },
   };
 }

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { intlLocaleForUi } from '@app/shared';
 
 import { toast } from '@app/ui';
 
@@ -318,7 +319,7 @@ export function useKdsPage() {
 
   return {
     branchName,
-    clockLabel: new Intl.DateTimeFormat(i18n.language, { hour: '2-digit', minute: '2-digit' }).format(
+    clockLabel: new Intl.DateTimeFormat(intlLocaleForUi(i18n.language), { hour: '2-digit', minute: '2-digit' }).format(
       new Date(nowMs + offsetMs),
     ),
     isLoading: board.isLoading,

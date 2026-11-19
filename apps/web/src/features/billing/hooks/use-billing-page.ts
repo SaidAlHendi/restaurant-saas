@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { toast } from '@app/ui';
-import type { BillingOverviewResponse, PlanKey } from '@app/shared';
+import { intlLocaleForUi, type BillingOverviewResponse, type PlanKey } from '@app/shared';
 
 import { useAppDispatch, useAppSelector } from '../../../app/hooks.js';
 import { formatMoney } from '../../../lib/money.js';
@@ -72,7 +72,7 @@ export function useBillingPage() {
 
   const formatDate = useCallback(
     (iso: string) =>
-      new Intl.DateTimeFormat(uiLocale.startsWith('ar') ? 'ar-SA' : 'en', {
+      new Intl.DateTimeFormat(intlLocaleForUi(uiLocale), {
         dateStyle: 'medium',
       }).format(new Date(iso)),
     [uiLocale],

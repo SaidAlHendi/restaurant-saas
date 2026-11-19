@@ -6,6 +6,7 @@ import {
   formatMinor,
   minorToText,
   parseMinor,
+  toWesternDigits,
 } from '../lib/number.js';
 
 export interface UseMoneyInputOptions {
@@ -41,7 +42,7 @@ export function useMoneyInput({
   };
 
   const onChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const next = event.target.value;
+    const next = toWesternDigits(event.target.value);
     const parsed = parseMinor(next, digits, { allowNegative });
     // Ignore keystrokes that can never become valid (letters, a 4th decimal in SAR).
     if (parsed === undefined && next !== '-') return;

@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { intlLocaleForUi } from '@app/shared';
 
 import { toast } from '@app/ui';
 
@@ -52,7 +53,7 @@ export function useDevicesPage() {
     (iso: string | null) =>
       iso === null
         ? t('devices.never')
-        : new Intl.DateTimeFormat(i18n.language, {
+        : new Intl.DateTimeFormat(intlLocaleForUi(i18n.language), {
             dateStyle: 'medium',
             timeStyle: 'short',
           }).format(new Date(iso)),

@@ -206,7 +206,7 @@ export function useDashboardTodayPage() {
     recentRows: (recentOrders.data?.items ?? []).map((order) => ({
       id: order.id,
       number: `#${String(order.orderNumber)}`,
-      time: new Intl.DateTimeFormat(uiLocale, {
+      time: new Intl.DateTimeFormat(intlLocaleForUi(uiLocale), {
         hour: '2-digit',
         minute: '2-digit',
         timeZone: timezone,

@@ -1,4 +1,5 @@
 import { CheckIcon, ClockIcon } from 'lucide-react';
+import { intlLocaleForUi } from '@app/shared';
 
 import { cn, Popover, PopoverClose, PopoverContent, PopoverTrigger } from '@app/ui';
 
@@ -13,7 +14,7 @@ export type DayStartPickerProps = {
 
 function formatHour(hour: number, locale: string): string {
   const d = new Date(2000, 0, 1, hour, 0, 0);
-  return new Intl.DateTimeFormat(locale, { hour: 'numeric', minute: '2-digit' }).format(d);
+  return new Intl.DateTimeFormat(intlLocaleForUi(locale), { hour: 'numeric', minute: '2-digit' }).format(d);
 }
 
 /** Friendly time picker for the business-day start, grouped by part of the day. */

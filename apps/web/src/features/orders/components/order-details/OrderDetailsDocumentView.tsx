@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 
 import { Badge, Button, Skeleton } from '@app/ui';
 
-import type { DetailsRow, OrderDetailsModel } from './order-details.model.js';
+import type { OrderDetailsModel } from './order-details.model.js';
 import type { OrderDetailsBodyLabels } from './OrderDetailsBodyView.js';
 
 export type OrderDetailsDocumentViewProps = {
@@ -14,6 +14,10 @@ export type OrderDetailsDocumentViewProps = {
     business: string;
     created: string;
     due: string;
+    pager: string;
+    customer: string;
+    notes: string;
+    createdBy: string;
   };
   timelineLoading: boolean;
   /** Sticky action bar, rendered at the bottom of the paper. */
@@ -31,19 +35,6 @@ function Leader({ left, right, strong, muted }: { left: ReactNode; right: ReactN
   );
 }
 
-function Note({ rows }: { rows: DetailsRow[] }) {
-  return (
-    <dl className="flex flex-col gap-2.5 text-sm">
-      {rows.map((row) => (
-        <div key={row.key}>
-          <dt className="text-muted-foreground text-xs">{row.label}</dt>
-          <dd className="break-words">{row.value}</dd>
-        </div>
-      ))}
-    </dl>
-  );
-}
-
 /**
  * The dashboard order page: the order as a ticket (header, progress, ledger, totals, payments on one
  * surface) with the details and the timeline as plain notes in the margin. No card per section.
@@ -51,6 +42,8 @@ function Note({ rows }: { rows: DetailsRow[] }) {
 export function OrderDetailsDocumentView({ model, labels, timelineLoading, actions }: OrderDetailsDocumentViewProps) {
   const { header, stepper } = model;
   const cancelled = stepper.mode === 'cancelled';
+  const firstDate = model.facts.times[0]?.date ?? '';
+  const sameDay = model.facts.times.every((row) => row.date === firstDate);
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_17rem]">
       <article aria-label={labels.orderNumber} className="bg-card min-w-0 rounded-md border">
@@ -205,7 +198,52 @@ export function OrderDetailsDocumentView({ model, labels, timelineLoading, actio
       <aside className="flex min-w-0 flex-col gap-8 lg:border-s lg:ps-7">
         <section aria-labelledby="doc-info">
           <h3 id="doc-info" className="mb-3 text-base font-semibold">{labels.info}</h3>
-          <Note rows={[...model.info, ...model.timestamps.map((row) => ({ ...row, key: `t-${row.key}` }))]} />
+          <div className="flex flex-col gap-4 text-sm">
+            {model.facts.pager || model.facts.customer ? (
+              <div className="flex items-center gap-3">
+                {model.facts.pager ? (
+                  <div className="border-foreground/70 flex min-w-14 flex-col items-center rounded-md border-2 px-2 py-1">
+                    <span className="text-muted-foreground text-[0.7rem] leading-tight">{labels.pager}</span>
+                    <span className="text-2xl leading-none font-bold tabular-nums">{model.facts.pager}</span>
+                  </div>
+                ) : null}
+                {model.facts.customer ? (
+                  <div className="min-w-0">
+                    <p className="text-muted-foreground text-xs">{labels.customer}</p>
+                    <p className="text-base font-medium break-words"><bdi>{model.facts.customer}</bdi></p>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+            {model.facts.notes ? (
+              <blockquote className="border-warning bg-warning/10 rounded-e-md border-s-4 py-2 pe-3 ps-3">
+                <p className="text-muted-foreground text-xs">{labels.notes}</p>
+                <p className="break-words">{model.facts.notes}</p>
+              </blockquote>
+            ) : null}
+            {model.facts.createdBy ? (
+              <p>
+                <span className="text-muted-foreground">{labels.createdBy}</span>{' '}
+                <bdi className="font-medium">{model.facts.createdBy}</bdi>
+              </p>
+            ) : null}
+            <dl className="border-t pt-3">
+              {sameDay ? <p className="text-muted-foreground mb-1.5 text-xs tabular-nums">{firstDate}</p> : null}
+              {model.facts.times.map((row) => (
+                <div key={row.key} className="flex items-baseline justify-between gap-3 py-0.5">
+                  <dt className="text-muted-foreground">{row.label}</dt>
+                  <dd className="tabular-nums">
+                    <span className="font-medium">{row.time}</span>
+                    {sameDay ? null : <span className="text-muted-foreground ms-2 text-xs">{row.date}</span>}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+            <p className="text-muted-foreground border-t pt-3 text-xs tabular-nums">
+              {model.facts.currency}
+              {model.facts.version ? `, ${model.facts.version}` : ''}
+            </p>
+          </div>
         </section>
         <section aria-labelledby="doc-timeline">
           <h3 id="doc-timeline" className="mb-3 text-base font-semibold">{labels.timeline}</h3>

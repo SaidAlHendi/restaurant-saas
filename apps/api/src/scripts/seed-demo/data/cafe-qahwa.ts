@@ -395,7 +395,7 @@ export const cafeQahwaOrg: OrgSeedDefinition = {
     productLine(
       'v60',
       'brew',
-      { ar: 'في ٦٠', en: 'V60 pour-over' },
+      { ar: 'في 60', en: 'V60 pour-over' },
       {
         ar: 'تقطير يدوي يبرز حموضة المحصول ونكهاته الفاكهية.',
         en: 'Hand pour-over that highlights the bean’s acidity and fruit notes.',
@@ -463,7 +463,7 @@ export const cafeQahwaOrg: OrgSeedDefinition = {
       'brew',
       { ar: 'دلة قهوة سعودية', en: 'Saudi coffee dallah' },
       {
-        ar: 'دلة قهوة سعودية تكفي ٤ أشخاص مع صحن تمر سكري.',
+        ar: 'دلة قهوة سعودية تكفي 4 أشخاص مع صحن تمر سكري.',
         en: 'A dallah of Saudi coffee for four, served with a plate of Sukkari dates.',
       },
       2600,
@@ -509,7 +509,7 @@ export const cafeQahwaOrg: OrgSeedDefinition = {
       'cold',
       { ar: 'كولد برو', en: 'Cold brew' },
       {
-        ar: 'قهوة منقوعة على البارد ١٨ ساعة بطعم ناعم وقليل الحموضة.',
+        ar: 'قهوة منقوعة على البارد 18 ساعة بطعم ناعم وقليل الحموضة.',
         en: '18-hour slow cold extraction with a smooth, low-acid taste.',
       },
       1600,

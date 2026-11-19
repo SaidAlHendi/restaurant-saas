@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
-import { ADMIN_GRANT_PLAN_KEYS } from '@app/shared';
+import { ADMIN_GRANT_PLAN_KEYS, intlLocaleForUi } from '@app/shared';
 import { toast } from '@app/ui';
 
 import { useAppSelector } from '../../app/hooks.js';
@@ -17,7 +17,7 @@ import {
 /** Minor units to a currency string; falls back to "CODE amount" for unknown codes. */
 function formatMoney(locale: string, amountMinor: number, currency: string): string {
   try {
-    const formatter = new Intl.NumberFormat(locale, { style: 'currency', currency });
+    const formatter = new Intl.NumberFormat(intlLocaleForUi(locale), { style: 'currency', currency });
     const digits = formatter.resolvedOptions().maximumFractionDigits ?? 2;
     return formatter.format(amountMinor / 10 ** digits);
   } catch {
@@ -98,10 +98,10 @@ export function useRestaurantDetailPage() {
   };
 
   const dateFormat = useMemo(
-    () => new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium' }),
+    () => new Intl.DateTimeFormat(intlLocaleForUi(i18n.language), { dateStyle: 'medium' }),
     [i18n.language],
   );
-  const numberFormat = useMemo(() => new Intl.NumberFormat(i18n.language), [i18n.language]);
+  const numberFormat = useMemo(() => new Intl.NumberFormat(intlLocaleForUi(i18n.language)), [i18n.language]);
 
   const notFound =
     isError && typeof error === 'object' && 'status' in error && error.status === 404;

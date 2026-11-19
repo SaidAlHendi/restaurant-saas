@@ -69,7 +69,14 @@ export function DashboardOrderDetailView(props: DashboardOrderDetailViewProps) {
       </div>
       <OrderDetailsDocumentView
         model={details}
-        labels={{ ...labels, due: labels.dueLabel }}
+        labels={{
+          ...labels,
+          due: labels.dueLabel,
+          pager: labels.pagerLabel,
+          customer: labels.customerLabel,
+          notes: labels.notesLabel,
+          createdBy: labels.createdByLabel,
+        }}
         timelineLoading={eventsLoading}
         actions={actionBar}
       />

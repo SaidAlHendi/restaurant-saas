@@ -1,6 +1,6 @@
 import { useState, type ChangeEvent, type KeyboardEvent } from 'react';
 
-import { clamp, parseNumber } from '../lib/number.js';
+import { clamp, parseNumber, toWesternDigits } from '../lib/number.js';
 
 export interface UseNumberInputOptions {
   value: number | null;
@@ -38,7 +38,7 @@ export function useNumberInput({
   };
 
   const onChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const next = event.target.value;
+    const next = toWesternDigits(event.target.value);
     const parsed = parseNumber(next, { allowDecimal, allowNegative });
     if (parsed === undefined && next !== '-') return;
     setDraft(next);

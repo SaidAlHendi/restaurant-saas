@@ -410,7 +410,7 @@ export const burgerLabOrg: OrgSeedDefinition = {
     productLine(
       'chicken-tenders-3',
       'chicken',
-      { ar: 'تندر دجاج ٣ قطع', en: 'Chicken Tenders (3 pcs)' },
+      { ar: 'تندر دجاج 3 قطع', en: 'Chicken Tenders (3 pcs)' },
       {
         ar: 'ثلاث قطع تندر دجاج مقرمشة متبلة يدوياً مع صوص من اختيارك.',
         en: 'Three crispy hand-breaded chicken tenders with your choice of dip.',
@@ -421,7 +421,7 @@ export const burgerLabOrg: OrgSeedDefinition = {
     productLine(
       'chicken-tenders-5',
       'chicken',
-      { ar: 'تندر دجاج ٥ قطع', en: 'Chicken Tenders (5 pcs)' },
+      { ar: 'تندر دجاج 5 قطع', en: 'Chicken Tenders (5 pcs)' },
       {
         ar: 'خمس قطع تندر دجاج مقرمشة مع بطاطس مقلية وصوص من اختيارك.',
         en: 'Five crispy chicken tenders with fries and your choice of dip.',
@@ -432,7 +432,7 @@ export const burgerLabOrg: OrgSeedDefinition = {
     productLine(
       'buffalo-wings',
       'chicken',
-      { ar: 'أجنحة بافلو ٦ قطع', en: 'Buffalo Wings (6 pcs)' },
+      { ar: 'أجنحة بافلو 6 قطع', en: 'Buffalo Wings (6 pcs)' },
       {
         ar: 'أجنحة دجاج مقرمشة مغطاة بصوص البافلو الحار مع صوص الرانش.',
         en: 'Crispy wings tossed in tangy buffalo sauce, served with ranch.',
@@ -443,7 +443,7 @@ export const burgerLabOrg: OrgSeedDefinition = {
     productLine(
       'bbq-wings',
       'chicken',
-      { ar: 'أجنحة باربكيو ٦ قطع', en: 'BBQ Wings (6 pcs)' },
+      { ar: 'أجنحة باربكيو 6 قطع', en: 'BBQ Wings (6 pcs)' },
       {
         ar: 'أجنحة دجاج مغطاة بصوص الباربكيو المدخن ومرشوشة بالسمسم.',
         en: 'Chicken wings glazed in smoky BBQ sauce and sprinkled with sesame.',

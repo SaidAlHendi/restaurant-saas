@@ -272,7 +272,7 @@ export function usePosOrdersPage() {
     return accumulated.map((order) => ({
       id: order.id,
       orderNumber: order.orderNumber,
-      timeLabel: new Intl.DateTimeFormat(uiLocale, {
+      timeLabel: new Intl.DateTimeFormat(intlLocaleForUi(uiLocale), {
         hour: '2-digit',
         minute: '2-digit',
         timeZone: menu?.branch.timezone,

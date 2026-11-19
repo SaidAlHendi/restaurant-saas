@@ -85,6 +85,16 @@ export type OrderDetailsModel = {
     note: string | null;
   };
   info: DetailsRow[];
+  /** The same facts, grouped for the dashboard page: who, notes, when, and the technical footnote. */
+  facts: {
+    customer: string | null;
+    pager: string | null;
+    notes: string | null;
+    createdBy: string | null;
+    currency: string;
+    version: string | null;
+    times: { key: string; label: string; time: string; date: string }[];
+  };
   items: { groups: (SeatGroup<DetailsItemRow> & { title: string | null })[]; count: number };
   totals: {
     rows: (DetailsRow & { strong?: boolean })[];
@@ -145,6 +155,7 @@ export function buildOrderDetailsModel(input: BuildOrderDetailsInput): OrderDeta
     timeStyle: 'short',
   });
   const timeOnly = new Intl.DateTimeFormat(input.intlLocale, { timeStyle: 'short' });
+  const dateOnly = new Intl.DateTimeFormat(input.intlLocale, { dateStyle: 'medium' });
   const fmt = (iso: string) => dateTime.format(new Date(iso));
   const statusText = (status: string) => t(`orderDetails.status.${status}`, { defaultValue: status });
 
@@ -266,6 +277,11 @@ export function buildOrderDetailsModel(input: BuildOrderDetailsInput): OrderDeta
     ...(order.cancelledAt ? [{ key: 'cancelled', label: t('orderDetails.timestamps.cancelled'), value: fmt(order.cancelledAt) }] : []),
   ];
 
+  const timeRow = (key: string, iso: string | null): OrderDetailsModel['facts']['times'] =>
+    iso
+      ? [{ key, label: t(`orderDetails.timestamps.${key}`), time: timeOnly.format(new Date(iso)), date: dateOnly.format(new Date(iso)) }]
+      : [];
+
   const stepper = orderStepper(order.status);
   /** When each step happened: placed/completed are on the order, the others come from the events. */
   const stepTime = (key: StepKey): string | null => {
@@ -314,6 +330,20 @@ export function buildOrderDetailsModel(input: BuildOrderDetailsInput): OrderDeta
       note: stepperNote,
     },
     info,
+    facts: {
+      customer: nonEmpty(order.customerName) ? order.customerName : null,
+      pager: order.pagerNumber !== null ? String(order.pagerNumber) : null,
+      notes: nonEmpty(order.notes) ? order.notes : null,
+      createdBy: nonEmpty(firstActor) ? firstActor : null,
+      currency: order.currency,
+      version: input.showVersion ? `v${String(order.version)}` : null,
+      times: [
+        ...timeRow('created', order.createdAt),
+        ...timeRow('placed', order.placedAt),
+        ...timeRow('completed', order.completedAt),
+        ...timeRow('cancelled', order.cancelledAt),
+      ],
+    },
     items: { groups, count: order.items.length },
     totals: {
       rows,

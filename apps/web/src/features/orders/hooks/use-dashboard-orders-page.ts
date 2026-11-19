@@ -158,7 +158,7 @@ export function useDashboardOrdersPage() {
     return accumulated.map((order) => ({
       id: order.id,
       orderNumber: String(order.orderNumber),
-      dateTimeLabel: new Intl.DateTimeFormat(uiLocale, {
+      dateTimeLabel: new Intl.DateTimeFormat(intlLocaleForUi(uiLocale), {
         dateStyle: 'short',
         timeStyle: 'short',
         timeZone: timezone,

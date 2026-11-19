@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 
-import { adminSubscriptionStatusSchema, type AdminSubscriptionStatus } from '@app/shared';
+import { adminSubscriptionStatusSchema, type AdminSubscriptionStatus, intlLocaleForUi } from '@app/shared';
 
 import { useListSubscriptionsQuery } from './subscriptions.api.js';
 
@@ -38,7 +38,7 @@ export function useSubscriptionsPage() {
   }, [data, plan]);
 
   const dateFormat = useMemo(
-    () => new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium' }),
+    () => new Intl.DateTimeFormat(intlLocaleForUi(i18n.language), { dateStyle: 'medium' }),
     [i18n.language],
   );
 

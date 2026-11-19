@@ -79,6 +79,7 @@ export {
   formatMinor,
   minorToText,
   normalizeDigits,
+  toWesternDigits,
   parseMinor,
 } from './lib/number.js';
 export * from './lib/direction.js';

@@ -103,32 +103,32 @@ export const landingAr: LandingContent = {
     title: 'شاشة المطبخ: كل تذكرة في مكانها.',
     tickets: [
       {
-        meta: 'طاولة ٤ · ١٢:٤٠',
-        number: '#٢٣',
+        meta: 'طاولة 4 · 12:40',
+        number: '#23',
         status: 'جديد',
         tone: 'new',
         items: [
-          { qty: '٢×', name: 'لاتيه' },
-          { qty: '١×', name: 'كرواسان زعتر' },
+          { qty: '2×', name: 'لاتيه' },
+          { qty: '1×', name: 'كرواسان زعتر' },
         ],
       },
       {
-        meta: 'سفري · ١٢:٣٤',
-        number: '#٢٢',
+        meta: 'سفري · 12:34',
+        number: '#22',
         status: 'قيد التحضير',
         tone: 'cooking',
         items: [
-          { qty: '١×', name: 'إسبريسو مزدوج' },
-          { qty: '١×', name: 'كيك الجزر' },
-          { qty: '١×', name: 'شاي كرك' },
+          { qty: '1×', name: 'إسبريسو مزدوج' },
+          { qty: '1×', name: 'كيك الجزر' },
+          { qty: '1×', name: 'شاي كرك' },
         ],
       },
       {
-        meta: 'طاولة ٢ · ١٢:٣٠',
-        number: '#٢١',
+        meta: 'طاولة 2 · 12:30',
+        number: '#21',
         status: 'جاهز',
         tone: 'ready',
-        items: [{ qty: '٣×', name: 'كابتشينو' }],
+        items: [{ qty: '3×', name: 'كابتشينو' }],
       },
     ],
   },
@@ -143,7 +143,7 @@ export const landingAr: LandingContent = {
         currency: 'USD',
         unit: '',
         highlight: false,
-        features: ['حتى ٤٠ منتجًا', 'موظف واحد لكل فرع'],
+        features: ['حتى 40 منتجًا', 'موظف واحد لكل فرع'],
       },
       {
         key: 'menu',
@@ -161,7 +161,7 @@ export const landingAr: LandingContent = {
         currency: 'USD',
         unit: '/ فرع / شهر',
         highlight: true,
-        features: ['الكاشير وشاشة المطبخ', 'تقارير يومية', '١٠ موظفين لكل فرع'],
+        features: ['الكاشير وشاشة المطبخ', 'تقارير يومية', '10 موظفين لكل فرع'],
       },
       {
         key: 'business',
@@ -248,7 +248,7 @@ export const landingAr: LandingContent = {
   teasers: {
     plans: {
       title: 'أربع باقات. أسعار واضحة.',
-      body: 'من باقة مجانية إلى ٧٩ $ لكل فرع في الشهر.',
+      body: 'من باقة مجانية إلى 79 $ لكل فرع في الشهر.',
       cta: 'شاهد الباقات',
     },
     faq: {
@@ -261,7 +261,7 @@ export const landingAr: LandingContent = {
     plans: {
       title: 'الباقات والأسعار — صحتين',
       description:
-        'باقة مجانية، والقائمة ١٢ $ شهريًا، والمطعم ٣٩ $ لكل فرع، والأعمال ٧٩ $ لكل فرع. قارن الباقات واختر ما يناسب مطعمك.',
+        'باقة مجانية، والقائمة 12 $ شهريًا، والمطعم 39 $ لكل فرع، والأعمال 79 $ لكل فرع. قارن الباقات واختر ما يناسب مطعمك.',
     },
     faq: {
       title: 'أسئلة شائعة — صحتين',

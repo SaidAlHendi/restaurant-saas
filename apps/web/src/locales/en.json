@@ -1444,6 +1444,7 @@
       "completed": "Completed",
       "cancelled": "Cancelled"
     },
-    "actions": "Order actions"
+    "actions": "Order actions",
+    "pagerShort": "Pager"
   }
 }
