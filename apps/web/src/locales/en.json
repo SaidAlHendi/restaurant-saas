@@ -1443,6 +1443,7 @@
       "placed": "Placed",
       "completed": "Completed",
       "cancelled": "Cancelled"
-    }
+    },
+    "actions": "Order actions"
   }
 }

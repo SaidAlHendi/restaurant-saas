@@ -15,7 +15,7 @@ All notable user-facing changes to Sahtain. Format follows [Keep a Changelog](ht
 - Edit the modifiers of a line already in the cart.
 
 ### Changed
-- Order details redesigned: one clear, colour-coded layout on the POS and the dashboard, with a progress bar, items grouped by guest seat, totals with the display-currency rate, payments, a timeline (including reopen and undo) and one big action button per status. Works in English and Arabic.
+- Order details redesigned: one clear, colour-coded layout on the POS and the dashboard, with a progress bar, items grouped by guest seat, totals with the display-currency rate, payments, a timeline (including reopen and undo) and one big action button per status. Works in English and Arabic. The dashboard order page now has the same action buttons as the POS (except Add items), shown only for what you are allowed to do.
 - The kitchen display no longer has a Start button: ticking the first item starts the order.
 - "Pay before send" now also applies to items added to an order that was already sent.
 - The POS menu and kitchen display refresh on their own when the menu changes.

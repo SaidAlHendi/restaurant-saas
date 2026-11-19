@@ -422,6 +422,21 @@ export function usePosOrderDetail(input: {
     [canAddItems, canCancel, canReopen, order],
   );
 
+  const voidAction = useMemo(
+    () =>
+      order
+        ? {
+            label: t('pos.orderDetail.voidItem'),
+            canVoid: (item: OrderItem) =>
+              canVoidOrderItem(order, item.status === 'voided', item.status === 'awaiting_payment'),
+            onVoid: (itemId: string) => {
+              setVoidItemId(itemId);
+            },
+          }
+        : undefined,
+    [order, t],
+  );
+
   const details = useMemo(
     () =>
       order
@@ -437,17 +452,10 @@ export function usePosOrderDetail(input: {
             formatMinor,
             tableLabel,
             showVersion: false,
-            voidAction: {
-              label: t('pos.orderDetail.voidItem'),
-              canVoid: (item) =>
-                canVoidOrderItem(order, item.status === 'voided', item.status === 'awaiting_payment'),
-              onVoid: (itemId) => {
-                setVoidItemId(itemId);
-              },
-            },
+            voidAction,
           })
         : null,
-    [eventsQuery.data?.items, eventsQuery.isError, formatMinor, input.defaultLocale, input.locale, input.uiLocale, order, t, tableLabel],
+    [eventsQuery.data?.items, eventsQuery.isError, formatMinor, input.defaultLocale, input.locale, input.uiLocale, order, t, tableLabel, voidAction],
   );
 
   return {
@@ -461,6 +469,7 @@ export function usePosOrderDetail(input: {
     isFetching,
     orderLoadFailed,
     details,
+    voidAction,
     layout,
     timeline: {
       loading: eventsQuery.isFetching,
