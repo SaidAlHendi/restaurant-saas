@@ -21,6 +21,7 @@ import {
   useAddOrderItemsMutation,
   useChangeOrderStatusMutation,
   useGetOrderQuery,
+  useListOrderEventsQuery,
   useVoidOrderItemMutation,
 } from '../../orders/orders.api.js';
 import { parseOrdersApiErrorCode } from '../../orders/orders-api-errors.js';
@@ -30,13 +31,16 @@ import {
   cancelOrderNeedsApproval,
   voidItemNeedsApproval,
 } from '../pos-approval.utils.js';
-import { posLocalizedName } from '../pos-label.utils.js';
+import { orderDetailsBodyLabels } from '../../orders/components/order-details/order-details.labels.js';
+import { buildOrderDetailsModel } from '../../orders/components/order-details/order-details.model.js';
+import { intlLocaleForUi } from '../../../lib/money.js';
 import {
   canShowCancelOrder,
   canShowPay,
   canVoidOrderItem,
   handoverLabelKey,
   canShowReopen,
+  posDetailActionLayout,
   nextOrderStatusTarget,
   orderIsPaid,
 } from '../pos-order-detail.utils.js';
@@ -70,6 +74,7 @@ export function usePosOrderDetail(input: {
   onHandoverNeedsPayment: () => void;
 }) {
   const { t } = useTranslation();
+  const [timelineOpen, setTimelineOpen] = useState(false);
   const [voidItemId, setVoidItemId] = useState<string | null>(null);
   const [cancelOpen, setCancelOpen] = useState(false);
 
@@ -86,6 +91,12 @@ export function usePosOrderDetail(input: {
         ? orderMoneyFormatter(order, input.uiLocale)
         : moneyFormatter(input.menu?.branch.currency ?? 'USD', input.uiLocale, null),
     [input.menu?.branch.currency, input.uiLocale, order],
+  );
+
+  // The timeline is fetched only once the cashier opens it.
+  const eventsQuery = useListOrderEventsQuery(
+    { branchId: input.branchId ?? '', orderId: input.orderId ?? '' },
+    { skip: skip || !timelineOpen },
   );
 
   const [changeStatus, changeState] = useChangeOrderStatusMutation();
@@ -375,28 +386,6 @@ export function usePosOrderDetail(input: {
     openPrintWindow(t('pos.print.receiptTitle'), html, printLocaleFromUi(input.locale));
   }, [formatMinor, input, order, t, tableLabel]);
 
-  const itemRows = useMemo(() => {
-    if (!order) {
-      return [];
-    }
-    return order.items.map((item) => ({
-      id: item.id,
-      name: posLocalizedName(item.productNameSnapshot, input.locale, input.defaultLocale),
-      quantity: item.quantity,
-      lineTotalLabel: formatMinor(item.lineTotalMinor),
-      voided: item.status === 'voided',
-      isAddition: item.isAddition,
-      awaitingPayment: item.status === 'awaiting_payment',
-      awaitingPaymentLabel: t('pos.orderDetail.itemAwaitingPayment'),
-      onVoid: canVoidOrderItem(order, item.status === 'voided', item.status === 'awaiting_payment')
-        ? () => {
-            setVoidItemId(item.id);
-          }
-        : undefined,
-      voidLabel: t('pos.orderDetail.voidItem'),
-    }));
-  }, [formatMinor, input, order, t]);
-
   const canAddItems =
     order !== undefined && (order.status === 'placed' || order.status === 'preparing');
 
@@ -425,6 +414,42 @@ export function usePosOrderDetail(input: {
     return null;
   }, [onComplete, onMarkReady, onStartPreparing, order, t]);
 
+  const layout = useMemo(
+    () =>
+      order
+        ? posDetailActionLayout({ order, canAddItems, canCancel, canReopen })
+        : null,
+    [canAddItems, canCancel, canReopen, order],
+  );
+
+  const details = useMemo(
+    () =>
+      order
+        ? buildOrderDetailsModel({
+            order,
+            events: eventsQuery.data?.items,
+            eventsError: eventsQuery.isError,
+            t,
+            uiLocale: input.uiLocale,
+            intlLocale: intlLocaleForUi(input.uiLocale),
+            contentLocale: input.locale,
+            defaultLocale: input.defaultLocale,
+            formatMinor,
+            tableLabel,
+            showVersion: false,
+            voidAction: {
+              label: t('pos.orderDetail.voidItem'),
+              canVoid: (item) =>
+                canVoidOrderItem(order, item.status === 'voided', item.status === 'awaiting_payment'),
+              onVoid: (itemId) => {
+                setVoidItemId(itemId);
+              },
+            },
+          })
+        : null,
+    [eventsQuery.data?.items, eventsQuery.isError, formatMinor, input.defaultLocale, input.locale, input.uiLocale, order, t, tableLabel],
+  );
+
   return {
     open: input.orderId !== null && !input.isAddingItems,
     onOpenChange: (open: boolean) => {
@@ -435,7 +460,15 @@ export function usePosOrderDetail(input: {
     order,
     isFetching,
     orderLoadFailed,
-    itemRows,
+    details,
+    layout,
+    timeline: {
+      loading: eventsQuery.isFetching,
+      onToggle: setTimelineOpen,
+    },
+    onStartPreparing,
+    onMarkReady,
+    onComplete,
     tableLabel,
     canAddItems,
     canPay,
@@ -478,6 +511,18 @@ export function usePosOrderDetail(input: {
     statusChanging: changeState.isLoading || handover.isLoading,
     formatMinor,
     labels: {
+      ...orderDetailsBodyLabels(t),
+      progress: t('orderDetails.progress'),
+      business: t('orderDetails.businessDate'),
+      created: t('orderDetails.createdAt'),
+      dueLabel: t('orderDetails.totals.due'),
+      startPreparing: t('pos.orderDetail.markPreparing'),
+      markReady: t('pos.orderDetail.markReady'),
+      handover: order ? t(handoverLabelKey(order.type)) : '',
+      manager: t('orderDetails.managerSection'),
+      moreActions: t('pos.orderDetail.more'),
+      loading: t('common.loading'),
+      loadFailed: t('orderDetails.error.order'),
       title: t('pos.orderDetail.title'),
       orderNumber: order
         ? t('pos.result.orderNumber', { number: order.orderNumber })

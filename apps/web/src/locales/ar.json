@@ -327,11 +327,14 @@
       "placed": "أُرسل للمطبخ",
       "statusChanged": "الحالة {{from}} ← {{to}}",
       "itemsAdded": "أُضيف {{count}} صنف",
-      "itemVoided": "أُلغي {{name}} ({{reason}})",
+      "itemVoided": "حُذف {{name}}",
       "itemStatusChanged": "{{name}}: {{status}}",
-      "cancelled": "أُلغى ({{reason}})",
+      "cancelled": "أُلغي الطلب",
       "paymentCaptured": "دفع {{method}} ({{amountMinor}})",
-      "unknown": "حدث: {{type}}"
+      "unknown": "حدث: {{type}}",
+      "reopened": "أُعيد فتح الطلب: {{from}} ← {{to}}",
+      "undone": "تم التراجع: عاد إلى {{to}}",
+      "handedOver": "تم التسليم"
     }
   },
   "settings": {
@@ -1418,5 +1421,105 @@
     "invalidType": "أدخل قيمة صحيحة.",
     "invalidFormat": "صيغة هذه القيمة غير صحيحة.",
     "invalidValue": "اختر أحد الخيارات المتاحة."
+  },
+  "orderDetails": {
+    "orderNumber": "الطلب رقم {{number}}",
+    "progress": "مراحل الطلب",
+    "businessDate": "تاريخ العمل",
+    "createdAt": "وقت الإنشاء",
+    "pager": "جهاز النداء {{number}}",
+    "seat": "الضيف {{seat}}",
+    "noSeat": "بدون مقعد",
+    "addedLater": "أُضيف لاحقًا",
+    "each": "للقطعة",
+    "by": "بواسطة",
+    "approvedBy": "وافق عليه",
+    "reason": "السبب",
+    "managerSection": "المدير",
+    "loadingTimeline": "جارٍ تحميل السجل",
+    "error": {
+      "order": "تعذّر تحميل هذا الطلب. أغلق النافذة وحاول مجددًا.",
+      "events": "تعذّر تحميل السجل."
+    },
+    "cards": {
+      "items": "الأصناف",
+      "info": "معلومات الطلب",
+      "totals": "المجاميع",
+      "payments": "المدفوعات",
+      "timeline": "السجل الزمني",
+      "timestamps": "الأوقات"
+    },
+    "empty": {
+      "items": "لا توجد أصناف في هذا الطلب.",
+      "payments": "لا توجد مدفوعات بعد",
+      "events": "لا يوجد نشاط بعد."
+    },
+    "status": {
+      "draft": "مسودة",
+      "placed": "تم الإرسال",
+      "preparing": "قيد التحضير",
+      "ready": "جاهز",
+      "completed": "مكتمل",
+      "cancelled": "ملغى",
+      "refunded": "مُسترد",
+      "unknown": "غير معروف"
+    },
+    "itemStatus": {
+      "awaiting_payment": "بانتظار الدفع",
+      "pending": "قيد الانتظار",
+      "preparing": "قيد التحضير",
+      "ready": "جاهز",
+      "voided": "ملغى"
+    },
+    "paymentStatus": {
+      "unpaid": "غير مدفوع",
+      "partial": "مدفوع جزئيًا",
+      "paid": "مدفوع",
+      "refunded": "مُسترد"
+    },
+    "type": {
+      "dine_in": "في المطعم",
+      "takeaway": "سفري"
+    },
+    "method": {
+      "cash": "نقدًا",
+      "card": "بطاقة",
+      "other": "أخرى"
+    },
+    "payment": {
+      "tendered": "المبلغ المستلم",
+      "change": "الباقي"
+    },
+    "stepper": {
+      "awaitingPayment": "بانتظار الدفع",
+      "cancelled": "ملغى",
+      "cancelledWithReason": "ملغى: {{reason}}"
+    },
+    "info": {
+      "type": "النوع",
+      "table": "الطاولة",
+      "pager": "رقم جهاز النداء",
+      "customer": "العميل",
+      "notes": "ملاحظات الطلب",
+      "currency": "العملة",
+      "version": "الإصدار",
+      "createdBy": "أنشأه"
+    },
+    "totals": {
+      "subtotal": "المجموع الفرعي",
+      "discount": "الخصم",
+      "tax": "الضريبة",
+      "total": "الإجمالي",
+      "paid": "المدفوع",
+      "due": "المتبقي",
+      "inCurrency": "الإجمالي بعملة {{currency}}",
+      "rate": "سعر الصرف"
+    },
+    "timestamps": {
+      "created": "الإنشاء",
+      "placed": "الإرسال",
+      "completed": "الإكمال",
+      "cancelled": "الإلغاء"
+    }
   }
 }

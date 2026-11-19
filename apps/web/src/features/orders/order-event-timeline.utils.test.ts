@@ -62,4 +62,37 @@ describe('mapOrderEventToTimelineRow', () => {
     expect(row.labelKey).toBe('order.events.unknown');
     expect(row.labelParams).toEqual({ type: 'order.custom_future' });
   });
+
+  it('labels a reopen, with its reason', () => {
+    const row = mapOrderEventToTimelineRow(
+      baseEvent({
+        type: 'order.status_changed',
+        fromStatus: 'completed',
+        toStatus: 'ready',
+        payload: { reopen: true, reason: 'Wrong table' },
+      }),
+    );
+    expect(row.labelKey).toBe('order.events.reopened');
+    expect(row.icon).toBe('reopen');
+    expect(row.reason).toBe('Wrong table');
+  });
+
+  it('labels an undo and a handover', () => {
+    const undo = mapOrderEventToTimelineRow(
+      baseEvent({ type: 'order.status_changed', toStatus: 'preparing', payload: { undo: true } }),
+    );
+    expect(undo.labelKey).toBe('order.events.undone');
+    expect(undo.icon).toBe('undo');
+    const handover = mapOrderEventToTimelineRow(
+      baseEvent({ type: 'order.status_changed', toStatus: 'completed', payload: { handover: true } }),
+    );
+    expect(handover.labelKey).toBe('order.events.handedOver');
+  });
+
+  it('carries the cancel reason separately', () => {
+    const row = mapOrderEventToTimelineRow(
+      baseEvent({ type: 'order.cancelled', payload: { reason: 'Guest left' } }),
+    );
+    expect(row.reason).toBe('Guest left');
+  });
 });

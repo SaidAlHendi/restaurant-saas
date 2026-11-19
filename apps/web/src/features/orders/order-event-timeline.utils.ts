@@ -2,11 +2,13 @@ import type { OrderEvent, OrderStatus } from '@app/shared';
 
 export type OrderTimelineRow = {
   id: string;
-  icon: 'status' | 'items' | 'payment' | 'cancel' | 'default';
+  icon: 'status' | 'items' | 'payment' | 'cancel' | 'reopen' | 'undo' | 'default';
   labelKey: string;
   labelParams: Record<string, string | number>;
   actorName: string | null;
   approverName: string | null;
+  /** Reason text for cancel, void and reopen events; null when none was given. */
+  reason: string | null;
   timeIso: string;
 };
 
@@ -40,6 +42,7 @@ export function mapOrderEventToTimelineRow(event: OrderEvent): OrderTimelineRow 
         labelParams: {},
         actorName: event.actorName,
         approverName: event.approverName,
+        reason: null,
         timeIso: event.createdAt,
       };
     case 'order.placed':
@@ -50,18 +53,34 @@ export function mapOrderEventToTimelineRow(event: OrderEvent): OrderTimelineRow 
         labelParams: {},
         actorName: event.actorName,
         approverName: event.approverName,
+        reason: null,
         timeIso: event.createdAt,
       };
     case 'order.status_changed': {
       const from = event.fromStatus ?? ('unknown' as OrderStatus);
       const to = event.toStatus ?? ('unknown' as OrderStatus);
+      const isReopen = payload['reopen'] === true;
+      const isUndo = payload['undo'] === true;
+      const isHandover = payload['handover'] === true;
+      let icon: OrderTimelineRow['icon'] = 'status';
+      let labelKey = 'order.events.statusChanged';
+      if (isReopen) {
+        icon = 'reopen';
+        labelKey = 'order.events.reopened';
+      } else if (isUndo) {
+        icon = 'undo';
+        labelKey = 'order.events.undone';
+      } else if (isHandover) {
+        labelKey = 'order.events.handedOver';
+      }
       return {
         id: event.id,
-        icon: 'status',
-        labelKey: 'order.events.statusChanged',
+        icon,
+        labelKey,
         labelParams: { from, to },
         actorName: event.actorName,
         approverName: event.approverName,
+        reason: readString(payload, 'reason') ?? null,
         timeIso: event.createdAt,
       };
     }
@@ -73,6 +92,7 @@ export function mapOrderEventToTimelineRow(event: OrderEvent): OrderTimelineRow 
         labelParams: { count: readItemCount(payload) },
         actorName: event.actorName,
         approverName: event.approverName,
+        reason: null,
         timeIso: event.createdAt,
       };
     case 'order.item_voided':
@@ -86,6 +106,7 @@ export function mapOrderEventToTimelineRow(event: OrderEvent): OrderTimelineRow 
         },
         actorName: event.actorName,
         approverName: event.approverName,
+        reason: readString(payload, 'reason') ?? null,
         timeIso: event.createdAt,
       };
     case 'order.item_status_changed':
@@ -99,6 +120,7 @@ export function mapOrderEventToTimelineRow(event: OrderEvent): OrderTimelineRow 
         },
         actorName: event.actorName,
         approverName: event.approverName,
+        reason: null,
         timeIso: event.createdAt,
       };
     case 'order.cancelled':
@@ -109,6 +131,7 @@ export function mapOrderEventToTimelineRow(event: OrderEvent): OrderTimelineRow 
         labelParams: { reason: readString(payload, 'reason') ?? '' },
         actorName: event.actorName,
         approverName: event.approverName,
+        reason: readString(payload, 'reason') ?? null,
         timeIso: event.createdAt,
       };
     case 'payment.captured':
@@ -122,6 +145,7 @@ export function mapOrderEventToTimelineRow(event: OrderEvent): OrderTimelineRow 
         },
         actorName: event.actorName,
         approverName: event.approverName,
+        reason: null,
         timeIso: event.createdAt,
       };
     default:
@@ -132,6 +156,7 @@ export function mapOrderEventToTimelineRow(event: OrderEvent): OrderTimelineRow 
         labelParams: { type: event.type },
         actorName: event.actorName,
         approverName: event.approverName,
+        reason: null,
         timeIso: event.createdAt,
       };
   }
