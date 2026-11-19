@@ -69,3 +69,23 @@ describe('ordersApiErrorMessage', () => {
     expect(ordersApiErrorMessage(t, 'PIN_LOCKED')).toBe('orders.errors.pinLocked');
   });
 });
+
+describe('reopen errors', () => {
+  it('maps the closed-bill codes to one message and keeps them known', () => {
+    const err = { status: 422, data: { error: { code: 'ORDER_REOPEN_BILL_CLOSED' } } };
+    expect(parseOrdersApiErrorCode(err)).toBe('ORDER_REOPEN_BILL_CLOSED');
+    expect(ordersApiErrorMessage(t, 'ORDER_REOPEN_BILL_CLOSED')).toBe('orders.errors.billClosed');
+    expect(ordersApiErrorMessage(t, 'ORDER_UNDO_BILL_CLOSED')).toBe('orders.errors.billClosed');
+  });
+
+  it('has the message in English and Arabic', async () => {
+    type Bundle = { orders: { errors: { billClosed: string } }; pos: { reopen: { action: string; done: string } } };
+    const en = (await import('../../locales/en.json')).default as unknown as Bundle;
+    const ar = (await import('../../locales/ar.json')).default as unknown as Bundle;
+    for (const bundle of [en, ar]) {
+      expect(bundle.orders.errors.billClosed).toBeTruthy();
+      expect(bundle.pos.reopen.action).toBeTruthy();
+      expect(bundle.pos.reopen.done).toContain('{{number}}');
+    }
+  });
+});

@@ -36,10 +36,12 @@ import {
   canShowPay,
   canVoidOrderItem,
   handoverLabelKey,
+  canShowReopen,
   nextOrderStatusTarget,
   orderIsPaid,
 } from '../pos-order-detail.utils.js';
 import { usePosHandover } from './use-pos-handover.js';
+import { usePosReopen } from './use-pos-reopen.js';
 import { usePosOrderActionDialog } from './use-pos-order-action-dialog.js';
 
 export function usePosOrderDetail(input: {
@@ -63,6 +65,7 @@ export function usePosOrderDetail(input: {
   onAdditionsHeld: (order: OrderDetail) => void;
   canCancelOrders: boolean;
   canCreateOrders: boolean;
+  canReopenOrders: boolean;
   /** Unpaid ready order: the page opens the payment dialog, then completes the handover. */
   onHandoverNeedsPayment: () => void;
 }) {
@@ -130,6 +133,11 @@ export function usePosOrderDetail(input: {
     [changeStatus, handleConflict, input, order],
   );
 
+  const reopen = usePosReopen({
+    branchId: input.branchId,
+    order,
+    onReopened: input.onClose,
+  });
   const handover = usePosHandover(input.branchId);
   const { complete: completeHandover } = handover;
 
@@ -394,6 +402,8 @@ export function usePosOrderDetail(input: {
 
   const canPay = order !== undefined && canShowPay(order);
 
+  const canReopen = order !== undefined && canShowReopen(input.canReopenOrders, order.status);
+
   const canCancel =
     order !== undefined &&
     canShowCancelOrder(input.canCancelOrders, input.canCreateOrders, order.status);
@@ -430,6 +440,8 @@ export function usePosOrderDetail(input: {
     canAddItems,
     canPay,
     canCancel,
+    canReopen,
+    reopen,
     nextStatusAction,
     isAddingItems: input.isAddingItems,
     startAddItems: () => {

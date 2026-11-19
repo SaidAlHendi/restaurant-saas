@@ -207,6 +207,14 @@ export const changeOrderStatusBodySchema = z.object({
   approval: orderApprovalSchema.optional(),
   /** Takes back a status change just made by the same person (ready to preparing, completed to ready). */
   undo: z.boolean().optional(),
+  /** Manager/owner moves a completed order back to ready (`orders.reopen`, no time limit). */
+  reopen: z.boolean().optional(),
+}).refine((body) => body.reopen !== true || body.undo !== true, {
+  message: 'reopen and undo cannot be combined',
+  path: ['reopen'],
+}).refine((body) => body.reopen !== true || (body.reason ?? '').length <= 200, {
+  message: 'Reopen reason is at most 200 characters',
+  path: ['reason'],
 });
 
 export type ChangeOrderStatusBody = z.infer<typeof changeOrderStatusBodySchema>;

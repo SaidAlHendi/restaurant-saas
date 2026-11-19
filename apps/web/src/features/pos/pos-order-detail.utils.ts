@@ -81,3 +81,16 @@ export function canShowPay(order: Pick<OrderDetail, 'dueMinor' | 'status'>): boo
   }
   return order.dueMinor > 0;
 }
+
+/** Reopen (completed -> ready) is a manager fix: needs `orders.reopen` and a completed order. */
+export function canShowReopen(hasReopenPermission: boolean, status: OrderStatus): boolean {
+  return hasReopenPermission && status === 'completed';
+}
+
+/** Reopen reason is optional; empty becomes "no reason", and the server accepts up to 200 chars. */
+export const REOPEN_REASON_MAX = 200;
+
+export function reopenReasonValue(raw: string): string | undefined {
+  const trimmed = raw.trim().slice(0, REOPEN_REASON_MAX);
+  return trimmed.length === 0 ? undefined : trimmed;
+}

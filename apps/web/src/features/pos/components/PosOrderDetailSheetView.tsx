@@ -17,6 +17,7 @@ import {
 
 import type { PosOrderDetailViewModel } from '../hooks/use-pos-order-detail.js';
 import { PosOrderActionDialogView } from './PosOrderActionDialogView.js';
+import { PosReopenDialogView } from './PosReopenDialogView.js';
 
 export type PosOrderDetailSheetViewProps = PosOrderDetailViewModel & {
   onPay: () => void;
@@ -31,6 +32,8 @@ export function PosOrderDetailSheetView(props: PosOrderDetailSheetViewProps) {
     canAddItems,
     canPay,
     canCancel,
+    canReopen,
+    reopen,
     nextStatusAction,
     startAddItems,
     voidDialog,
@@ -151,6 +154,11 @@ export function PosOrderDetailSheetView(props: PosOrderDetailSheetViewProps) {
                     <DropdownMenuItem onClick={printKitchenFull}>
                       {labels.printKitchen}
                     </DropdownMenuItem>
+                    {canReopen ? (
+                      <DropdownMenuItem onClick={reopen.openDialog}>
+                        {reopen.labels.action}
+                      </DropdownMenuItem>
+                    ) : null}
                     {canCancel ? (
                       <DropdownMenuItem className="text-destructive" onClick={openCancelDialog}>
                         {labels.cancelOrder}
@@ -165,6 +173,7 @@ export function PosOrderDetailSheetView(props: PosOrderDetailSheetViewProps) {
       </Sheet>
       <PosOrderActionDialogView {...voidDialog} />
       <PosOrderActionDialogView {...cancelDialog} />
+      <PosReopenDialogView {...reopen} />
     </>
   );
 }

@@ -26,6 +26,18 @@ const UNDO_ALLOWED: StatusTransition[] = [
   { from: 'completed', to: 'ready', permission: 'orders.update_status' },
 ];
 
+/** Manager/owner fix after the Undo window: a completed order goes back to Ready. */
+export function assertReopenTransition(from: OrderStatus, to: OrderStatus): StatusTransition {
+  if (from !== 'completed' || to !== 'ready') {
+    throw new BusinessRuleError(
+      'ORDER_INVALID_TRANSITION',
+      `Cannot reopen from ${from} to ${to}`,
+      { from, to },
+    );
+  }
+  return { from, to, permission: 'orders.reopen' };
+}
+
 export function assertUndoTransition(from: OrderStatus, to: OrderStatus): StatusTransition {
   const transition = UNDO_ALLOWED.find((t) => t.from === from && t.to === to);
   if (!transition) {

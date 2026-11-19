@@ -61,6 +61,7 @@ import { resolveCashAmounts } from './cash-amounts';
 import { OrderingRepository } from './ordering.repository';
 import {
   assertTransition,
+  assertReopenTransition,
   assertUndoTransition,
   itemStatusForNotReady,
   itemStatusForOrderStatus,
@@ -401,9 +402,11 @@ export class OrderingService {
     });
 
     const transition =
-      body.undo === true
-        ? assertUndoTransition(preflight.status, body.to)
-        : assertTransition(preflight.status, body.to);
+      body.reopen === true
+        ? assertReopenTransition(preflight.status, body.to)
+        : body.undo === true
+          ? assertUndoTransition(preflight.status, body.to)
+          : assertTransition(preflight.status, body.to);
     let approvedByMembershipId: string | null = null;
     if (!ctx.permissions.includes(transition.permission)) {
       if (transition.permission === 'orders.cancel') {
@@ -435,16 +438,20 @@ export class OrderingService {
       let undoneEvent: Awaited<ReturnType<OrderingService['assertUndoWindow']>> | undefined;
       if (body.undo === true) {
         undoneEvent = await this.assertUndoWindow(tx, ctx, orderId, current.status);
-        if (current.status === 'completed' && current.billId !== null) {
-          // The table was settled and closed since: reopening one order would leave the bill wrong.
-          const billStatus = await this.repo.findBillStatus(tx, current.billId);
-          if (billStatus === 'closed') {
-            throw new BusinessRuleError(
-              'ORDER_UNDO_BILL_CLOSED',
-              'The table bill is already closed, so this order cannot be reopened',
-              { orderId },
-            );
-          }
+      }
+      if (
+        (body.undo === true || body.reopen === true) &&
+        current.status === 'completed' &&
+        current.billId !== null
+      ) {
+        // The table was settled and closed since: reopening one order would leave the bill wrong.
+        const billStatus = await this.repo.findBillStatus(tx, current.billId);
+        if (billStatus === 'closed') {
+          throw new BusinessRuleError(
+            body.reopen === true ? 'ORDER_REOPEN_BILL_CLOSED' : 'ORDER_UNDO_BILL_CLOSED',
+            'The table bill is already closed, so this order cannot be reopened',
+            { orderId },
+          );
         }
       }
 
@@ -479,7 +486,7 @@ export class OrderingService {
       if (body.to === 'completed') {
         patch.completedAt = now;
       }
-      if (body.undo === true && current.status === 'completed') {
+      if ((body.undo === true || body.reopen === true) && current.status === 'completed') {
         patch.completedAt = null;
       }
       if (body.to === 'cancelled') {
@@ -507,6 +514,8 @@ export class OrderingService {
       let itemsMovedToReady: Array<{ id: string; from: 'pending' | 'preparing' }> | undefined;
       if (body.undo === true && body.to === 'preparing') {
         await this.restoreItemsAfterUndoReady(tx, orderId, undoneEvent?.payload);
+      } else if (body.reopen === true) {
+        // Items of a completed order are already ready: nothing to change.
       } else if (body.to === 'ready' && body.undo !== true) {
         // Whole order Ready (one tap): remember which items were still open, so Undo can put them back.
         itemsMovedToReady = await this.repo.markOpenItemsReady(tx, orderId);
@@ -529,6 +538,7 @@ export class OrderingService {
         payload: {
           ...(body.reason ? { reason: body.reason } : {}),
           ...(body.undo === true ? { undo: true } : {}),
+          ...(body.reopen === true ? { reopen: true } : {}),
           ...(itemsMovedToReady !== undefined
             ? { auto: false, itemsMovedToReady }
             : {}),
@@ -561,6 +571,12 @@ export class OrderingService {
       last !== undefined &&
       last.toStatus === currentStatus &&
       last.actorMembershipId === ctx.membershipId &&
+      // A manager's Reopen is not a handover/ready tap the cook can undo.
+      !(
+        last.payload !== null &&
+        typeof last.payload === 'object' &&
+        (last.payload as { reopen?: unknown }).reopen === true
+      ) &&
       this.clock.now().getTime() - last.createdAt.getTime() <= UNDO_WINDOW_MS;
     if (!fresh) {
       throw new BusinessRuleError('ORDER_UNDO_EXPIRED', 'Undo is no longer available', {

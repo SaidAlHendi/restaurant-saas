@@ -31,7 +31,7 @@ One row per branch per business date holding `last_order_number`, so order numbe
 
 ### orders
 
-The order header. Key columns: `type` (`dine_in`, `takeaway`), `status` (`draft`, `placed`, `preparing`, `ready`, `completed`, `cancelled`, `refunded`), `payment_status` (`unpaid`, `partial`, `paid`, `refunded`), `table_id`, `bill_id` (nullable; takeaway orders have none), `pager_number`, `customer_name`, `notes`, `subtotal_minor`, `discount_minor`, `tax_minor`, `total_minor`, `currency`, `cancel_reason`, `version` (optimistic locking), `business_date`, `order_number`, and the timestamps `placed_at`, `completed_at`, `cancelled_at`. `client_order_id` makes creation safe to retry from the POS. **Used by:** ordering, kitchen display, reporting (daily sales), realtime, admin overview counts.
+The order header. Key columns: `type` (`dine_in`, `takeaway`), `status` (`draft`, `placed`, `preparing`, `ready`, `completed`, `cancelled`, `refunded`; a manager or owner can reopen `completed` to `ready` with the `orders.reopen` permission, logged as an event with `reopen: true`), `payment_status` (`unpaid`, `partial`, `paid`, `refunded`), `table_id`, `bill_id` (nullable; takeaway orders have none), `pager_number`, `customer_name`, `notes`, `subtotal_minor`, `discount_minor`, `tax_minor`, `total_minor`, `currency`, `cancel_reason`, `version` (optimistic locking), `business_date`, `order_number`, and the timestamps `placed_at`, `completed_at`, `cancelled_at`. `client_order_id` makes creation safe to retry from the POS. **Used by:** ordering, kitchen display, reporting (daily sales), realtime, admin overview counts.
 
 ### order_items
 

@@ -9,6 +9,7 @@ export const PERMISSION_KEYS = [
   'orders.read',
   'orders.update_status',
   'orders.cancel',
+  'orders.reopen',
   'menu.read',
   'menu.manage',
   'reports.read',

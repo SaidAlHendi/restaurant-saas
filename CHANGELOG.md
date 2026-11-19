@@ -5,6 +5,7 @@ All notable user-facing changes to Sahtain. Format follows [Keep a Changelog](ht
 ## Unreleased
 
 ### Added
+- Reopen a completed order: managers and owners (and anyone the owner grants **Reopen completed orders**) can send a wrongly handed-over order back to Ready from the order sheet. Payment is unchanged; not possible once the table bill is closed.
 - Handing over an order: tap **Picked up** (takeaway) or **Served** (dine-in) on a ready order, with a 10-second Undo. Ready orders now stay on the POS, kitchen and Ready screens until handed over, and an unpaid one opens payment first.
 - Kitchen: tap **Ready** with a 5-second Undo, also straight from a New order. A lighter **Start** button on a New order moves it to Preparing. Undo keeps the items you had ticked.
 - POS Orders: a **Today only** switch (off on Active, Awaiting payment and Ready, so open orders from earlier days stay visible) with a note when older open orders are hidden.
