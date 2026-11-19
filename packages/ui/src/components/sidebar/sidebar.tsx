@@ -96,7 +96,11 @@ export function SidebarContent({ className, ...props }: React.ComponentProps<'di
   return (
     <div
       data-slot="sidebar-content"
-      className={cn('flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-3 py-4', className)}
+      className={cn(
+        // Stable gutter: a scrollbar in longer areas (POS) must not shrink the module switch.
+        'flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-3 py-4 [scrollbar-gutter:stable]',
+        className,
+      )}
       {...props}
     />
   );
@@ -347,7 +351,7 @@ export function SidebarModuleSwitch({
           aria-label={collapsed ? `${label}: ${currentLabel}` : label}
           data-slot="sidebar-module-switch"
           className={cn(
-            'flex h-11 w-full items-center gap-3 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground [&_svg]:size-4 [&_svg]:shrink-0',
+            'flex h-11 w-full shrink-0 items-center gap-3 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground [&_svg]:size-4 [&_svg]:shrink-0',
             collapsed && 'justify-center px-0',
             focusRing,
           )}
