@@ -35,6 +35,9 @@ export type KdsOrderCardProps = {
   actionLabel?: string;
   onAction?: () => void;
   actionDisabled?: boolean;
+  /** Optional lighter action next to the primary one, e.g. "Start" on a new order. */
+  secondaryActionLabel?: string;
+  onSecondaryAction?: () => void;
   /** Shown when there is no action, e.g. "Awaiting payment". */
   statusNote?: string | null;
   /** Dims the card while a request is in flight. */
@@ -56,6 +59,8 @@ export function KdsOrderCard({
   actionLabel,
   onAction,
   actionDisabled,
+  secondaryActionLabel,
+  onSecondaryAction,
   statusNote,
   pending,
   className,
@@ -154,9 +159,22 @@ export function KdsOrderCard({
       <footer className="mt-auto flex flex-wrap items-center justify-between gap-2 border-t p-3">
         <AgeTimer label={ageLabel} level={ageLevel} ariaLabel={ageAriaLabel} />
         {actionLabel && onAction ? (
-          <Button type="button" size="touch" onClick={onAction} disabled={actionDisabled}>
-            {actionLabel}
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            {secondaryActionLabel && onSecondaryAction ? (
+              <Button
+                type="button"
+                size="touch"
+                variant="outline"
+                onClick={onSecondaryAction}
+                disabled={actionDisabled}
+              >
+                {secondaryActionLabel}
+              </Button>
+            ) : null}
+            <Button type="button" size="touch" onClick={onAction} disabled={actionDisabled}>
+              {actionLabel}
+            </Button>
+          </div>
         ) : statusNote ? (
           <p className="text-muted-foreground text-sm font-medium">{statusNote}</p>
         ) : null}

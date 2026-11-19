@@ -1134,6 +1134,7 @@
       "round": "الجولة {{number}}",
       "added": "مُضاف",
       "voided": "ملغى",
+      "start": "ابدأ",
       "markReady": "جاهز",
       "awaitingPayment": "بانتظار الدفع",
       "readyForPickup": "جاهز — بانتظار الكاشير",

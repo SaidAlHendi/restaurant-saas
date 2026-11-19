@@ -19,7 +19,7 @@ describe('tabToListQuery', () => {
     expect(tabToListQuery('awaitingPayment', 20)).toEqual({
       limit: 20,
       status: 'draft',
-});
+    });
   });
 });
 
