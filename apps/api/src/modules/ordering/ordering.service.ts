@@ -347,7 +347,16 @@ export class OrderingService {
               id: last.order.id,
             })
           : null;
+      const hiddenOlderCount =
+        todayOnlyBusinessDate !== undefined && cursor === undefined && query.q === undefined
+          ? await this.repo.countOlderOpenOrders(tx, branchId, {
+              status: query.status,
+              activeOnly: query.activeOnly,
+              before: todayOnlyBusinessDate,
+            })
+          : undefined;
       return {
+        ...(hiddenOlderCount !== undefined ? { hiddenOlderCount } : {}),
         items: page.map((row) =>
           mapOrderListItem(
             row.order,
@@ -423,8 +432,20 @@ export class OrderingService {
         );
       }
 
+      let undoneEvent: Awaited<ReturnType<OrderingService['assertUndoWindow']>> | undefined;
       if (body.undo === true) {
-        await this.assertUndoWindow(tx, ctx, orderId, current.status);
+        undoneEvent = await this.assertUndoWindow(tx, ctx, orderId, current.status);
+        if (current.status === 'completed' && current.billId !== null) {
+          // The table was settled and closed since: reopening one order would leave the bill wrong.
+          const billStatus = await this.repo.findBillStatus(tx, current.billId);
+          if (billStatus === 'closed') {
+            throw new BusinessRuleError(
+              'ORDER_UNDO_BILL_CLOSED',
+              'The table bill is already closed, so this order cannot be reopened',
+              { orderId },
+            );
+          }
+        }
       }
 
       if (
@@ -483,8 +504,12 @@ export class OrderingService {
       }
 
       const itemTarget = itemStatusForOrderStatus(body.to);
+      let itemsMovedToReady: Array<{ id: string; from: 'pending' | 'preparing' }> | undefined;
       if (body.undo === true && body.to === 'preparing') {
-        await this.repo.syncItemStatusesForOrder(tx, orderId, 'preparing', ['ready']);
+        await this.restoreItemsAfterUndoReady(tx, orderId, undoneEvent?.payload);
+      } else if (body.to === 'ready' && body.undo !== true) {
+        // Whole order Ready (one tap): remember which items were still open, so Undo can put them back.
+        itemsMovedToReady = await this.repo.markOpenItemsReady(tx, orderId);
       } else if (itemTarget === 'preparing') {
         await this.repo.syncItemStatusesForOrder(tx, orderId, 'preparing', ['pending']);
       } else if (itemTarget === 'ready') {
@@ -504,6 +529,9 @@ export class OrderingService {
         payload: {
           ...(body.reason ? { reason: body.reason } : {}),
           ...(body.undo === true ? { undo: true } : {}),
+          ...(itemsMovedToReady !== undefined
+            ? { auto: false, itemsMovedToReady }
+            : {}),
           ...(body.undo !== true && current.status === 'ready' && body.to === 'completed'
             ? { handover: true }
             : {}),
@@ -524,7 +552,7 @@ export class OrderingService {
     ctx: RequestContext,
     orderId: string,
     currentStatus: OrderStatus,
-  ): Promise<void> {
+  ) {
     const events = await this.repo.listOrderEvents(tx, orderId);
     const last = [...events]
       .reverse()
@@ -539,6 +567,32 @@ export class OrderingService {
         orderId,
       });
     }
+    return last;
+  }
+
+  /**
+   * Undo of "Ready": items that were still open when the order was marked ready go back to how they
+   * were. Older events without that list fall back to "all ready items back to preparing".
+   * Items ticked one by one before Ready stay ready. The order always returns to `preparing`
+   * (also when it was `placed` before), because the kitchen had started.
+   */
+  private async restoreItemsAfterUndoReady(
+    tx: DrizzleTx,
+    orderId: string,
+    payload: unknown,
+  ): Promise<void> {
+    const moved =
+      payload !== null && typeof payload === 'object'
+        ? (payload as { itemsMovedToReady?: unknown }).itemsMovedToReady
+        : undefined;
+    if (!Array.isArray(moved)) {
+      await this.repo.syncItemStatusesForOrder(tx, orderId, 'preparing', ['ready']);
+      return;
+    }
+    const ids = moved
+      .map((entry) => (entry as { id?: unknown }).id)
+      .filter((id): id is string => typeof id === 'string');
+    await this.repo.restoreItemsToPreparing(tx, orderId, ids);
   }
 
   async addItems(

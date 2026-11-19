@@ -11,6 +11,8 @@ export type StatusTransition = {
 const ALLOWED: StatusTransition[] = [
   { from: 'draft', to: 'cancelled', permission: 'orders.create' },
   { from: 'placed', to: 'preparing', permission: 'orders.update_status' },
+  // One tap on a New order: the cook marks the whole order ready without ticking items first.
+  { from: 'placed', to: 'ready', permission: 'orders.update_status' },
   { from: 'preparing', to: 'ready', permission: 'orders.update_status' },
   { from: 'ready', to: 'completed', permission: 'orders.update_status' },
   { from: 'placed', to: 'cancelled', permission: 'orders.cancel' },

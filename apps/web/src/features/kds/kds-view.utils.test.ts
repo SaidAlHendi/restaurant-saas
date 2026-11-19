@@ -66,9 +66,9 @@ describe('buildKdsCard', () => {
     const v = card.items.find((i) => i.isVoided);
     expect(v?.canToggle).toBe(false);
     expect(v?.voidReason).toBe('mistake');
-    // No Start button: a new order shows as New and starts when the first item is ticked.
-    expect(card.next).toBeNull();
-    expect(card.actionLabel).toBeNull();
+    // No Start button; a New card has the one-tap Ready action.
+    expect(card.next).toBe('ready');
+    expect(card.actionLabel).toBe('Ready');
   });
 
   it('preparing cards have a single Ready tap', () => {

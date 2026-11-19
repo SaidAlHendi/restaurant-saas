@@ -62,8 +62,8 @@ describe('age timer', () => {
 });
 
 describe('nextKitchenStatus', () => {
-  it('has no Start step; preparing -> ready and stops at ready', () => {
-    expect(nextKitchenStatus('placed')).toBeNull();
+  it('has no Start step; New and preparing orders go straight to ready, which is the end', () => {
+    expect(nextKitchenStatus('placed')).toBe('ready');
     expect(nextKitchenStatus('preparing')).toBe('ready');
     expect(nextKitchenStatus('ready')).toBeNull();
   });

@@ -1,9 +1,14 @@
+import { sql } from 'drizzle-orm';
 import { type INestApplication } from '@nestjs/common';
 import type { Agent } from 'supertest';
 
+import { DRIZZLE, type DrizzleDb } from '../src/core/db/db.module';
+import { withOrg } from '../src/core/db/with-org';
 import { newUuidV7 } from '../src/lib/uuid';
 
-import { asDemoKitchen, asDemoOwner } from './catalog-helpers';
+import { asDemoKitchen, asDemoManager, asDemoOwner } from './catalog-helpers';
+import { type Clock } from '../src/core/clock/clock.tokens';
+
 import { createTestApp } from './create-test-app';
 import { apiAgent } from './http';
 import { createIsolatedBranch, postOrder, postPayment, seedCatalogProduct } from './ordering-helpers';
@@ -16,13 +21,37 @@ type OrderBody = {
   items: Array<{ id: string }>;
 };
 
+/** Real time plus an offset the test can push forward (no real waiting). */
+class ShiftableClock implements Clock {
+  private offsetMs = 0;
+  now(): Date {
+    return new Date(Date.now() + this.offsetMs);
+  }
+  reset(): void {
+    this.offsetMs = 0;
+  }
+  advance(ms: number): void {
+    this.offsetMs += ms;
+  }
+}
+
 describe('Order handover (e2e)', () => {
+  const clock = new ShiftableClock();
   let app: INestApplication;
   let productId = '';
+  let orgId = '';
+  let db: DrizzleDb;
 
   beforeAll(async () => {
-    ({ app } = await createTestApp());
+    ({ app } = await createTestApp(undefined, clock));
+    db = app.get(DRIZZLE);
+    const me = await (await asDemoOwner(apiAgent(app))).get('/v1/me');
+    orgId = (me.body as { org: { id: string } }).org.id;
     ({ productId } = await seedCatalogProduct(apiAgent(app)));
+  });
+
+  beforeEach(() => {
+    clock.reset();
   });
 
   afterAll(async () => {
@@ -145,7 +174,6 @@ describe('Order handover (e2e)', () => {
   });
 
   it('undo ready within the window works; after the window it is refused', async () => {
-    jest.setTimeout(30_000);
     const owner = await asDemoOwner(apiAgent(app));
     const { branchId } = await createIsolatedBranch(owner, { payBeforeSend: false });
     const order = await create(owner, branchId);
@@ -160,7 +188,7 @@ describe('Order handover (e2e)', () => {
     expect((undone.body as OrderBody).status).toBe('preparing');
 
     expect((await move(owner, branchId, order.id, 'ready')).status).toBe(201);
-    await new Promise((resolve) => setTimeout(resolve, 15_500));
+    clock.advance(16_000);
     const late = await move(owner, branchId, order.id, 'preparing', { undo: true });
     expect([409, 422]).toContain(late.status);
     expect((await get(owner, branchId, order.id)).status).toBe('ready');
@@ -203,5 +231,144 @@ describe('Order handover (e2e)', () => {
     await toReady(owner, branchId, order.id);
     expect((await get(owner, branchId, order.id)).status).toBe('ready');
     expect((await move(owner, branchId, order.id, 'completed')).status).toBe(201);
+  });
+
+  it('undo by a different user is refused for ready -> preparing and completed -> ready', async () => {
+    const owner = await asDemoOwner(apiAgent(app));
+    const manager = await asDemoManager(apiAgent(app));
+    const { branchId } = await createIsolatedBranch(owner, { payBeforeSend: false });
+    const order = await create(owner, branchId);
+    await pay(owner, branchId, order.id);
+    await toReady(owner, branchId, order.id);
+
+    const otherReady = await move(manager, branchId, order.id, 'preparing', { undo: true });
+    expect(otherReady.status).toBe(422);
+    expect((otherReady.body as { error: { code: string } }).error.code).toBe('ORDER_UNDO_EXPIRED');
+
+    expect((await move(owner, branchId, order.id, 'completed')).status).toBe(201);
+    const otherDone = await move(manager, branchId, order.id, 'ready', { undo: true });
+    expect(otherDone.status).toBe(422);
+    expect((otherDone.body as { error: { code: string } }).error.code).toBe('ORDER_UNDO_EXPIRED');
+    expect((await get(owner, branchId, order.id)).status).toBe('completed');
+  });
+
+  it('undo of a handover is refused once the dine-in table bill is closed', async () => {
+    const owner = await asDemoOwner(apiAgent(app));
+    const { branchId } = await createIsolatedBranch(owner, { payBeforeSend: false });
+    const order = await create(owner, branchId, 'dine_in');
+    await pay(owner, branchId, order.id);
+    await toReady(owner, branchId, order.id);
+    expect((await move(owner, branchId, order.id, 'completed')).status).toBe(201);
+
+    const billId = ((await owner.get(`/v1/branches/${branchId}/orders/${order.id}`)).body as {
+      billId: string;
+    }).billId;
+    expect((await owner.post(`/v1/branches/${branchId}/bills/${billId}/close`)).status).toBe(200);
+
+    const undone = await move(owner, branchId, order.id, 'ready', { undo: true });
+    expect(undone.status).toBe(422);
+    expect((undone.body as { error: { code: string } }).error.code).toBe(
+      'ORDER_UNDO_BILL_CLOSED',
+    );
+    expect((await get(owner, branchId, order.id)).status).toBe('completed');
+  });
+
+  it('Ready in one tap on a New order; Undo returns to preparing and restores item progress', async () => {
+    const owner = await asDemoOwner(apiAgent(app));
+    const kitchen = await asDemoKitchen(apiAgent(app));
+    const { branchId } = await createIsolatedBranch(owner, { payBeforeSend: false });
+    const clientOrderId = newUuidV7();
+    const res = await postOrder(
+      owner,
+      branchId,
+      {
+        clientOrderId,
+        type: 'takeaway',
+        items: [
+          { productId, quantity: 1, modifierIds: [] },
+          { productId, quantity: 2, modifierIds: [] },
+        ],
+      },
+      clientOrderId,
+    );
+    const order = res.body as OrderBody;
+    type Detail = {
+      id: string;
+      version: number;
+      status: string;
+      items: Array<{ id: string; status: string }>;
+    };
+
+    // placed -> ready directly (no Start, no item ticks)
+    const ready = await move(kitchen, branchId, order.id, 'ready');
+    expect(ready.status).toBe(201);
+    const readyBody = ready.body as Detail;
+    expect(readyBody.status).toBe('ready');
+    expect(readyBody.items.map((i) => i.status)).toEqual(['ready', 'ready']);
+
+    const events = await owner.get(`/v1/branches/${branchId}/orders/${order.id}/events`);
+    const last = (events.body as { items: Array<{ payload: Record<string, unknown> }> }).items.at(-1);
+    expect(last?.payload.auto).toBe(false);
+
+    // Undo: back to preparing (not placed), items cooking again
+    const undone = await move(kitchen, branchId, order.id, 'preparing', { undo: true });
+    expect(undone.status).toBe(201);
+    expect((undone.body as Detail).status).toBe('preparing');
+    expect((undone.body as Detail).items.map((i) => i.status)).toEqual(['preparing', 'preparing']);
+
+    // Second order: one item ticked first, then whole-order Ready, then Undo keeps the tick.
+    const clientOrderId2 = newUuidV7();
+    const two = await postOrder(
+      owner,
+      branchId,
+      {
+        clientOrderId: clientOrderId2,
+        type: 'takeaway',
+        items: [
+          { productId, quantity: 1, modifierIds: [] },
+          { productId, quantity: 1, modifierIds: [] },
+        ],
+      },
+      clientOrderId2,
+    );
+    const twoOrder = two.body as Detail;
+    const itemUrl = `/v1/branches/${branchId}/orders/${twoOrder.id}/items/${twoOrder.items[0]?.id ?? ''}/status`;
+    const tick = await kitchen.post(itemUrl).send({ to: 'ready', expectedVersion: twoOrder.version });
+    expect((tick.body as Detail).status).toBe('preparing');
+    expect((await move(kitchen, branchId, twoOrder.id, 'ready')).status).toBe(201);
+    const back = await move(kitchen, branchId, twoOrder.id, 'preparing', { undo: true });
+    expect((back.body as Detail).items.map((i) => i.status)).toEqual(['ready', 'preparing']);
+  });
+
+  it('todayOnly hides ready orders from earlier days and reports how many (hiddenOlderCount)', async () => {
+    const owner = await asDemoOwner(apiAgent(app));
+    const { branchId } = await createIsolatedBranch(owner, { payBeforeSend: false });
+    const old = await create(owner, branchId);
+    await toReady(owner, branchId, old.id);
+    await withOrg(db, orgId, async (tx) => {
+      await tx.execute(
+        sql`UPDATE orders SET business_date = business_date - 1 WHERE id = ${old.id}::uuid`,
+      );
+    });
+    const today = await create(owner, branchId);
+    await toReady(owner, branchId, today.id);
+
+    const list = async (query: Record<string, unknown>) =>
+      (await owner.get(`/v1/branches/${branchId}/orders`).query(query)).body as {
+        items: Array<{ id: string }>;
+        hiddenOlderCount?: number;
+      };
+    const filtered = await list({ status: 'ready', todayOnly: true });
+    expect(filtered.items.map((o) => o.id)).toEqual([today.id]);
+    expect(filtered.hiddenOlderCount).toBe(1);
+
+    const all = await list({ status: 'ready' });
+    expect(all.items.map((o) => o.id).sort()).toEqual([old.id, today.id].sort());
+    expect(all.hiddenOlderCount).toBeUndefined();
+
+    const active = await list({ activeOnly: true, todayOnly: true });
+    expect(active.hiddenOlderCount).toBe(1);
+    // Lists of finished orders never report hidden open orders.
+    expect((await list({ status: 'completed', todayOnly: true })).hiddenOlderCount).toBeUndefined();
   });
 });

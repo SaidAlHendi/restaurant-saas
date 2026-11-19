@@ -3,8 +3,10 @@ import {
   Button,
   ConnectionBanner,
   EmptyState,
+  Label,
   SearchInput,
   Spinner,
+  Switch,
   Tabs,
   TabsContent,
   TabsList,
@@ -21,6 +23,9 @@ export function PosOrdersPageView(props: PosOrdersPageViewModel) {
     tab,
     tabs,
     search,
+    todaySwitch,
+    tableHeaders,
+    olderHint,
     rows,
     isLoading,
     isError,
@@ -66,6 +71,28 @@ export function PosOrdersPageView(props: PosOrdersPageViewModel) {
             placeholder={search.placeholder}
             clearLabel={search.clearLabel}
           />
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Switch
+                id="pos-orders-today-only"
+                checked={todaySwitch.checked}
+                onCheckedChange={todaySwitch.onChange}
+              />
+              <Label htmlFor="pos-orders-today-only">{todaySwitch.label}</Label>
+            </div>
+            {olderHint ? (
+              <p className="text-muted-foreground text-sm" role="status">
+                {olderHint.message}{' '}
+                <button
+                  type="button"
+                  className="text-primary font-medium underline underline-offset-2"
+                  onClick={olderHint.onShowAll}
+                >
+                  {olderHint.actionLabel}
+                </button>
+              </p>
+            ) : null}
+          </div>
           {isLoading ? (
             <div className="flex justify-center py-12">
               <Spinner label={labels.loading} />
@@ -86,6 +113,18 @@ export function PosOrdersPageView(props: PosOrdersPageViewModel) {
             <>
               <div className="hidden overflow-x-auto rounded-lg border bg-card md:block">
                 <table className="w-full border-separate border-spacing-0 text-sm">
+                  <thead className="sr-only">
+                    <tr>
+                      <th scope="col">{tableHeaders.order}</th>
+                      <th scope="col">{tableHeaders.time}</th>
+                      <th scope="col">{tableHeaders.typeTable}</th>
+                      <th scope="col">{tableHeaders.items}</th>
+                      <th scope="col">{tableHeaders.total}</th>
+                      <th scope="col">{tableHeaders.status}</th>
+                      <th scope="col">{tableHeaders.payment}</th>
+                      <th scope="col">{tableHeaders.action}</th>
+                    </tr>
+                  </thead>
                   <tbody>
                     {rows.map((row) => (
                       <tr
@@ -111,11 +150,13 @@ export function PosOrdersPageView(props: PosOrdersPageViewModel) {
                             <Button
                               type="button"
                               size="sm"
+                              disabled={row.handover.loading}
                               onClick={(event) => {
                                 event.stopPropagation();
                                 row.handover?.onClick();
                               }}
                             >
+                              {row.handover.loading ? <Spinner label={labels.loading} /> : null}
                               {row.handover.label}
                             </Button>
                           ) : null}
@@ -153,8 +194,10 @@ export function PosOrdersPageView(props: PosOrdersPageViewModel) {
                         type="button"
                         size="touch"
                         className="mt-2 w-full"
+                        disabled={row.handover.loading}
                         onClick={row.handover.onClick}
                       >
+                        {row.handover.loading ? <Spinner label={labels.loading} /> : null}
                         {row.handover.label}
                       </Button>
                     ) : null}

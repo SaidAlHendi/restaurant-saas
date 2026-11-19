@@ -586,6 +586,20 @@
       "empty": "No orders match this view.",
       "error": "Could not load orders.",
       "loadMore": "Load more",
+      "todayOnly": "Today only",
+      "olderHidden_one": "{{count}} older order hidden.",
+      "olderHidden_other": "{{count}} older orders hidden.",
+      "showOlder": "Show them",
+      "columns": {
+        "order": "Order",
+        "time": "Time",
+        "typeTable": "Table or customer",
+        "items": "Items",
+        "total": "Total",
+        "status": "Status",
+        "payment": "Payment",
+        "action": "Action"
+      },
       "tabs": {
         "active": "Active",
         "awaitingPayment": "Awaiting payment",

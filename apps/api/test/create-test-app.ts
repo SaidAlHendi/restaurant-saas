@@ -3,6 +3,7 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import cookieParser from 'cookie-parser';
 
 import { AppModule } from '../src/app.module';
+import { CLOCK, type Clock } from '../src/core/clock/clock.tokens';
 import { loadEnv, resetEnvCacheForTests } from '../src/config/env';
 import { SocketIoRedisIoAdapter } from '../src/core/realtime/socket-io-redis.adapter';
 
@@ -14,12 +15,17 @@ export type TestAppContext = {
 
 export async function createTestApp(
   envOverrides?: Record<string, string | undefined>,
+  clock?: Clock,
 ): Promise<TestAppContext> {
   resetEnvCacheForTests();
   if (envOverrides !== undefined) {
     loadEnv(envOverrides);
   }
-  const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+  const builder = Test.createTestingModule({ imports: [AppModule] });
+  const moduleRef = await (clock === undefined
+    ? builder
+    : builder.overrideProvider(CLOCK).useValue(clock)
+  ).compile();
   const app = moduleRef.createNestApplication({ rawBody: true });
   const env = loadEnv(envOverrides);
   app.use(cookieParser());

@@ -22,7 +22,9 @@ import { posOrderTagsForEvent } from '../pos-realtime.utils.js';
 import {
   mergeListQueryWithSearch,
   parsePosOrdersTab,
+  parseTodayOnly,
   POS_ORDERS_TABS,
+  showOlderOrdersHint,
   tabToListQuery,
   type PosOrdersTab,
 } from '../pos-orders-list.utils.js';
@@ -52,12 +54,15 @@ export function usePosOrdersPage() {
   const canCreateOrders = useAppSelector(selectCan('orders.create'));
 
   const tab = parsePosOrdersTab(searchParams.get('tab'));
+  const todayOnly = parseTodayOnly(searchParams.get('today'), tab);
   const [searchQ, setSearchQ] = useState('');
   const [cursor, setCursor] = useState<string | undefined>(undefined);
   const [accumulated, setAccumulated] = useState<OrderListItem[]>([]);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const beforePaymentStatusRef = useRef<OrderStatus | null>(null);
   const handoverAfterPayRef = useRef<string | null>(null);
+  /** Row whose handover is being prepared (fetching the order or completing it): its button shows a spinner. */
+  const [handoverBusyId, setHandoverBusyId] = useState<string | null>(null);
 
   const reloadFirstPage = useCallback(() => {
     setCursor(undefined);
@@ -66,15 +71,15 @@ export function usePosOrdersPage() {
 
   useEffect(() => {
     reloadFirstPage();
-  }, [tab, branchId, searchQ, reloadFirstPage]);
+  }, [tab, todayOnly, branchId, searchQ, reloadFirstPage]);
 
   const locale = i18n.language.startsWith('ar') ? 'ar' : 'en';
   const uiLocale = intlLocaleForUi(i18n.language);
   const defaultLocale = org?.defaultLocale ?? 'en';
 
   const listQuery = useMemo(
-    () => mergeListQueryWithSearch(tabToListQuery(tab, PAGE_SIZE), searchQ),
-    [tab, searchQ],
+    () => mergeListQueryWithSearch(tabToListQuery(tab, PAGE_SIZE, todayOnly), searchQ),
+    [tab, todayOnly, searchQ],
   );
 
   const { data, isLoading, isError, isFetching, refetch } = useListOrdersQuery(
@@ -222,11 +227,12 @@ export function usePosOrdersPage() {
       if (!branchId) {
         return;
       }
-      if (row.paymentStatus === 'paid' || row.totalMinor === 0) {
-        await rowHandover.complete(row);
-        return;
-      }
+      setHandoverBusyId(row.id);
       try {
+        if (row.paymentStatus === 'paid' || row.totalMinor === 0) {
+          await rowHandover.complete(row);
+          return;
+        }
         const detail = await dispatch(
           ordersApi.endpoints.getOrder.initiate(
             { branchId, orderId: row.id },
@@ -238,9 +244,18 @@ export function usePosOrdersPage() {
         paymentDialog.openForOrder(detail);
       } catch (error) {
         showOrdersApiError(error, t);
+      } finally {
+        setHandoverBusyId(null);
       }
     },
     [branchId, dispatch, paymentDialog, rowHandover, t],
+  );
+
+  const setTodayOnly = useCallback(
+    (next: boolean) => {
+      setSearchParams({ tab, today: next ? '1' : '0' });
+    },
+    [setSearchParams, tab],
   );
 
   const setTab = useCallback(
@@ -282,13 +297,14 @@ export function usePosOrdersPage() {
         order.status === 'ready'
           ? {
               label: t(handoverLabelKey(order.type)),
+              loading: handoverBusyId === order.id,
               onClick: () => {
                 void handoverRow(order);
               },
             }
           : null,
     }));
-  }, [accumulated, handoverRow, menu?.branch.timezone, t, tableLabelById, uiLocale]);
+  }, [accumulated, handoverBusyId, handoverRow, menu?.branch.timezone, t, tableLabelById, uiLocale]);
 
   return {
     tab,
@@ -304,6 +320,30 @@ export function usePosOrdersPage() {
       onChange: setSearchQ,
       placeholder: t('pos.orders.searchPlaceholder'),
       clearLabel: t('pos.catalog.searchClear'),
+    },
+    todaySwitch: {
+      checked: todayOnly,
+      label: t('pos.orders.todayOnly'),
+      onChange: setTodayOnly,
+    },
+    olderHint: showOlderOrdersHint(tab, todayOnly, data?.hiddenOlderCount)
+      ? {
+          message: t('pos.orders.olderHidden', { count: data?.hiddenOlderCount ?? 0 }),
+          actionLabel: t('pos.orders.showOlder'),
+          onShowAll: () => {
+            setTodayOnly(false);
+          },
+        }
+      : null,
+    tableHeaders: {
+      order: t('pos.orders.columns.order'),
+      time: t('pos.orders.columns.time'),
+      typeTable: t('pos.orders.columns.typeTable'),
+      items: t('pos.orders.columns.items'),
+      total: t('pos.orders.columns.total'),
+      status: t('pos.orders.columns.status'),
+      payment: t('pos.orders.columns.payment'),
+      action: t('pos.orders.columns.action'),
     },
     rows,
     isLoading,

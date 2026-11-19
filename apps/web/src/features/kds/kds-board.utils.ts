@@ -77,8 +77,9 @@ export function formatAge(ageMs: number): string {
 
 /** The status one tap moves the order to; ready -> completed is the cashier's job. */
 export function nextKitchenStatus(status: OrderStatus): 'preparing' | 'ready' | null {
-  // A new order has no Start button: ticking the first item moves it to preparing on the server.
-  if (status === 'preparing') {
+  // A new order has no Start button. Ready is one tap even on a New order; ticking an item first
+  // also works and moves the order to preparing on the server.
+  if (status === 'placed' || status === 'preparing') {
     return 'ready';
   }
   return null;

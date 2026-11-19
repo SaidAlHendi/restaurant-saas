@@ -9,6 +9,7 @@ import {
   diningTables,
   orderEvents,
   orderItemModifiers,
+  bills,
   orderItems,
   orders,
   payments,
@@ -172,6 +173,35 @@ export class OrderingRepository {
       .from(orderItems)
       .where(and(eq(orderItems.orderId, orderId), sql`${orderItems.status} <> 'voided'`));
     return result[0]?.count ?? 0;
+  }
+
+  /**
+   * Open orders (draft/placed/preparing/ready) from business days before `before`, for the
+   * "N older orders hidden" hint. Returns undefined when the list is not about open orders.
+   */
+  async countOlderOpenOrders(
+    tx: DrizzleTx,
+    branchId: string,
+    opts: { status?: OrderStatus; activeOnly?: boolean; before: string },
+  ): Promise<number | undefined> {
+    const open: OrderStatus[] = ['draft', 'placed', 'preparing', 'ready'];
+    if (opts.status !== undefined && !open.includes(opts.status)) {
+      return undefined;
+    }
+    if (opts.status === undefined && opts.activeOnly !== true) {
+      return undefined;
+    }
+    const rows = await tx
+      .select({ c: count() })
+      .from(orders)
+      .where(
+        and(
+          eq(orders.branchId, branchId),
+          opts.status !== undefined ? eq(orders.status, opts.status) : inArray(orders.status, open),
+          sql`${orders.businessDate} < ${opts.before}::date`,
+        ),
+      );
+    return rows[0]?.c ?? 0;
   }
 
   async listOrders(
@@ -481,6 +511,51 @@ export class OrderingRepository {
           inArray(orderItems.status, fromStatuses),
         ),
       );
+  }
+
+  /** Whole-order Ready: marks every open item ready; returns the items it changed. */
+  async markOpenItemsReady(tx: DrizzleTx, orderId: string) {
+    const open = await tx
+      .select({ id: orderItems.id, status: orderItems.status })
+      .from(orderItems)
+      .where(and(eq(orderItems.orderId, orderId), inArray(orderItems.status, ['pending', 'preparing'])));
+    if (open.length > 0) {
+      await tx
+        .update(orderItems)
+        .set({ status: 'ready' })
+        .where(
+          and(
+            eq(orderItems.orderId, orderId),
+            inArray(
+              orderItems.id,
+              open.map((item) => item.id),
+            ),
+          ),
+        );
+    }
+    return open.map((item) => ({ id: item.id, from: item.status as 'pending' | 'preparing' }));
+  }
+
+  /** Undo of Ready: the listed items are being cooked again. */
+  async restoreItemsToPreparing(tx: DrizzleTx, orderId: string, itemIds: string[]) {
+    if (itemIds.length === 0) {
+      return;
+    }
+    await tx
+      .update(orderItems)
+      .set({ status: 'preparing' })
+      .where(
+        and(
+          eq(orderItems.orderId, orderId),
+          inArray(orderItems.id, itemIds),
+          eq(orderItems.status, 'ready'),
+        ),
+      );
+  }
+
+  async findBillStatus(tx: DrizzleTx, billId: string): Promise<'open' | 'closed' | undefined> {
+    const rows = await tx.select({ status: bills.status }).from(bills).where(eq(bills.id, billId)).limit(1);
+    return rows[0]?.status;
   }
 
   /** Moves additions that waited for payment to the kitchen; returns the released item ids. */

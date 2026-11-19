@@ -35,6 +35,7 @@ describe('order state machine', () => {
           (from === 'draft' && to === 'cancelled') ||
           (from === 'placed' && to === 'preparing') ||
           (from === 'preparing' && to === 'ready') ||
+          (from === 'placed' && to === 'ready') ||
           (from === 'ready' && to === 'completed') ||
           (from === 'placed' && to === 'cancelled') ||
           (from === 'preparing' && to === 'cancelled') ||

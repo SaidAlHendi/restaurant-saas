@@ -3,12 +3,12 @@
 ## Status
 Rewrite this section at the end of every session (max 30 lines).
 - **State:** Steps 1-9 done. 10a done; 10b (Sentry, uptime, backup restore test) open, staging deploy in progress (`docs/runbook-staging.md`). Step 12 (admin) 12a-12d merged.
-- **Last task:** Order handover (branch `feat/order-handover`): removed auto-complete; cashier taps Picked up / Served (ready -> completed, needs paid, else payment opens first); KDS has no Start (first item tick -> preparing) and a 5 s Undo after Ready; POS 10 s Undo after handover.
-- **Changed files:** api `ordering.service.ts`, `state-machine.ts` (undo transitions), shared `changeOrderStatusBodySchema` (`undo`), e2e `ordering-handover`, `ordering-payments` (reverted edits), `kitchen-board`; web `use-pos-handover.ts`, POS detail/orders hooks and views, KDS hook/utils, locales en/ar; docs-site cashier/kitchen/owner, `docs/product.md`, `docs/data-model.md`, CHANGELOG.
-- **Verified:** api unit + ordering/kitchen/pager/public-menu e2e green; web tsc and vitest green. Not clicked through in a browser. Mintlify not published.
-- **Next step:** review/merge PR to dev, then staging deploy / Step 10b.
-- **Decisions:** reused `/status` + `orders.update_status` (body `undo: true`); handover event payload `handover: true`; undo window 15 s server-side (actor of last status event); error `ORDER_UNDO_EXPIRED` (422). Cashier sheet still has manual Start preparing / Mark ready.
-- **Gotchas:** Open review findings in `docs/order-handover.md`. Un-ticking an item never moves an order back to placed. Follow-ups: Reopen/Recall for old completed orders, optional 15-min auto-complete, permissions UI. The diagram `/mnt/project-files/diagrams/takeaway-order-example.png` was not available. Earlier gotchas still apply (display config needs `org.manage`; held additions on Ready/Completed orders; `graphify-out/` gitignored).
+- **Last task:** Order handover review fixes (branch `feat/order-handover`): Today-only switch on POS Orders (`?today=1|0`, API `hiddenOlderCount`), Ready on a New order (`placed -> ready`), table header + loading state on the handover button, undo restores item progress and is refused after the table bill closes, fake-clock e2e (no real waits).
+- **Changed files:** api `ordering.service.ts`, `ordering.repository.ts`, `state-machine.ts`, `test/create-test-app.ts` (optional clock), `ordering-handover.e2e-spec.ts`; shared `orderListResponseSchema`; web POS orders hook/view/utils, KDS utils, locales en/ar; docs-site cashier/kitchen, CHANGELOG.
+- **Verified:** lint, typecheck, api unit, web tests, ordering/kitchen e2e green. Not clicked through in a browser again. Mintlify not published.
+- **Next step:** merge the PR to `dev`, then staging deploy / Step 10b. Open question for the PR: Active list went empty with 401s after Undo (needs a repro on `dev`).
+- **Decisions:** Undo of Ready always returns to `preparing` (also from `placed`); items that were open at Ready go back to preparing, items ticked earlier stay ready. Undo of a handover is refused (`ORDER_UNDO_BILL_CLOSED`, 422) once the table bill is closed. Undo by another user is `ORDER_UNDO_EXPIRED`.
+- **Gotchas:** Awaiting payment and Cancelled tabs keep today-only ON by default. The `hiddenOlderCount` is skipped when searching. Earlier gotchas still apply (display config needs `org.manage`; held additions on Ready/Completed orders; `graphify-out/` gitignored).
 
 - [x] 1. Monorepo scaffold, docker compose (Postgres, Redis), CI (lint, typecheck, test), deploy to staging
 - [x] 1b. UI kit in packages/ui: shadcn/ui + Tailwind v4, themes cupcake/forest, first batch of components, /dev/ui showcase, ESLint UI-only rule (docs/ui-kit.md)
