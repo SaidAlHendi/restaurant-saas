@@ -25,8 +25,17 @@ Front-of-house staff who take customer orders and handle payment at the counter.
 When the owner turns on **Pickup numbers / pagers** for a branch, the cart shows an optional **Pager no.** field. Type the number of the pager you hand to the customer (1 to 9999) before you send the order.
 
 - The pager number shows on the kitchen display card and on kitchen tickets and customer receipts.
-- When the kitchen marks the order **Ready**, its number appears on the branch's customer **Ready** screen, with a chime. Orders without a pager show the order number.
+- When the kitchen marks the order **Ready**, its number appears on the branch's customer **Ready** screen, with a chime, and stays there until you tap **Picked up** or **Served**. Orders without a pager show the order number.
 - The field is optional. Leave it empty for orders that have no pager.
+
+## Handing over a ready order
+
+A ready order stays visible on the POS (Active tab), the kitchen display and the customer **Ready** screen until you hand it over. Paying an order does not complete it, and neither does the kitchen marking it ready.
+
+- When the customer has the food, tap **Picked up** (takeaway) or **Served** (dine-in). You find the button on the order sheet and on each ready order in the **Orders** list. The order becomes **Completed**.
+- An order must be fully paid to be completed. If it is not, the button opens the payment window first, and the order is completed as soon as it is paid in full. No second tap is needed.
+- On the **Orders** page, the **Today only** switch limits the list to today's business day. **Active**, **Awaiting payment** and **Ready** start with it off, so an open order from an earlier day never disappears before it is handled. **Completed**, **Cancelled** and **All today** start with it on. Your choice stays in the page address. When it is on and older open orders are hidden, a note says how many, with a button to show them.
+- After the tap, an **Undo** message stays for 10 seconds. Tap it to put the order back to ready. Only the person who made the change can undo it, and only within a short time.
 
 ## Tables and table bills
 
@@ -39,7 +48,6 @@ Open **Tables** in the sidebar. Every table shows as a card: **free**, **busy** 
 - **Pay selected** takes payment for the ticked items only. Pay with cash (change and the display currency are shown) or card. A bill can be paid in several steps, and an item cannot be paid twice.
 - Takeaway orders have no bill and work as before.
 - **Close table** is available once every order is completed and nothing is due. A settled bill closes by itself when a new order arrives at that table.
-- An order that is both ready and fully paid is completed automatically, whichever happens last (kitchen marks it ready, or the cashier takes the payment).
 
 ### Moving an order to another table
 

@@ -3,12 +3,12 @@
 ## Status
 Rewrite this section at the end of every session (max 30 lines).
 - **State:** Steps 1-9 done. 10a done; 10b (Sentry, uptime, backup restore test) open, staging deploy in progress (`docs/runbook-staging.md`). Step 12 (admin) 12a-12d merged.
-- **Last task:** Product form shows both prices (system in base currency, display in display currency) when a display currency is active; editing one updates the other (display input keeps what was typed until the system price changes).
-- **Changed files:** web menu `ProductFormSheetView.tsx`, `hooks/use-display-price.ts`, `use-products-screen.ts`, locales en/ar, `docs-site/roles/owner.mdx`.
-- **Verified:** tsc, eslint, menu tests green. Not clicked through in a browser; no unit test for `useDisplayPrice` yet. Form still needs `org.manage` (settings read) to show the display field.
-- **Next step:** staging deploy / Step 10b.
-- **Decisions:** read-only users get plain text ("ask a manager or the owner"), no button. Tables and QR check `branches.manage`, menu pages `menu.manage`, left as is.
-- **Gotchas:** display config comes from `GET /v1/org/settings` (`org.manage`), so `menu.manage`-only users see just the system price in the products table. `productDisplayCurrency` in `lib/money.ts` is now unused outside its test. QR empty state has no "Add tables" button (string `menu.qr.noTablesAction` exists, unused). A held addition on an order that reaches Ready/Completed is released as pending when paid (not handled). print() blocks a headless browser. `graphify-out/` is gitignored.
+- **Last task:** Order handover review fixes (branch `feat/order-handover`): Today-only switch on POS Orders (`?today=1|0`, API `hiddenOlderCount`), Ready on a New order (`placed -> ready`), table header + loading state on the handover button, undo restores item progress and is refused after the table bill closes, fake-clock e2e (no real waits).
+- **Changed files:** api `ordering.service.ts`, `ordering.repository.ts`, `state-machine.ts`, `test/create-test-app.ts` (optional clock), `ordering-handover.e2e-spec.ts`; shared `orderListResponseSchema`; web POS orders hook/view/utils, KDS utils, locales en/ar; docs-site cashier/kitchen, CHANGELOG.
+- **Verified:** lint, typecheck, api unit, web tests, ordering/kitchen e2e green. Not clicked through in a browser again. Mintlify not published.
+- **Next step:** merge the PR to `dev`, then staging deploy / Step 10b. Open question for the PR: Active list went empty with 401s after Undo (needs a repro on `dev`).
+- **Decisions:** Undo of Ready always returns to `preparing` (also from `placed`); items that were open at Ready go back to preparing, items ticked earlier stay ready. Undo of a handover is refused (`ORDER_UNDO_BILL_CLOSED`, 422) once the table bill is closed. Undo by another user is `ORDER_UNDO_EXPIRED`.
+- **Gotchas:** Today-only defaults to OFF on Active, Awaiting payment and Ready, ON on Completed, Cancelled and All today. The `hiddenOlderCount` is skipped when searching. Earlier gotchas still apply (display config needs `org.manage`; held additions on Ready/Completed orders; `graphify-out/` gitignored).
 
 - [x] 1. Monorepo scaffold, docker compose (Postgres, Redis), CI (lint, typecheck, test), deploy to staging
 - [x] 1b. UI kit in packages/ui: shadcn/ui + Tailwind v4, themes cupcake/forest, first batch of components, /dev/ui showcase, ESLint UI-only rule (docs/ui-kit.md)

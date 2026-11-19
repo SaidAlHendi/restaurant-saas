@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 
 import {
   canShowCancelOrder,
+  canShowHandover,
   canShowPay,
+  handoverLabelKey,
   canVoidOrderItem,
   nextOrderStatusTarget,
 } from './pos-order-detail.utils.js';
@@ -15,9 +17,20 @@ const baseOrder = {
 };
 
 describe('pos order detail actions', () => {
-  it('shows Pay instead of Complete when ready and unpaid', () => {
-    expect(nextOrderStatusTarget(baseOrder)).toBeNull();
+  it('offers the handover tap on a ready order even when unpaid (it opens payment first)', () => {
+    expect(nextOrderStatusTarget(baseOrder)).toBe('completed');
+    expect(canShowHandover(baseOrder)).toBe(true);
     expect(canShowPay(baseOrder)).toBe(true);
+  });
+
+  it('labels the handover by order type', () => {
+    expect(handoverLabelKey('takeaway')).toBe('pos.handover.pickedUp');
+    expect(handoverLabelKey('dine_in')).toBe('pos.handover.served');
+  });
+
+  it('shows no handover tap before ready or after completion', () => {
+    expect(canShowHandover({ status: 'preparing' })).toBe(false);
+    expect(canShowHandover({ status: 'completed' })).toBe(false);
   });
 
   it('allows Complete when ready and paid', () => {

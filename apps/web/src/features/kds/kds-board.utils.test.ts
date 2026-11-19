@@ -62,8 +62,8 @@ describe('age timer', () => {
 });
 
 describe('nextKitchenStatus', () => {
-  it('moves placed -> preparing -> ready and stops at ready', () => {
-    expect(nextKitchenStatus('placed')).toBe('preparing');
+  it('has no Start step; New and preparing orders go straight to ready, which is the end', () => {
+    expect(nextKitchenStatus('placed')).toBe('ready');
     expect(nextKitchenStatus('preparing')).toBe('ready');
     expect(nextKitchenStatus('ready')).toBeNull();
   });
@@ -202,6 +202,15 @@ describe('board patches', () => {
     expect(
       withItemReady(board, cooking.id, cookingItem?.id ?? '', false).orders[1]?.items[0]?.status,
     ).toBe('preparing');
+  });
+
+  it('ticking the first item of a new order moves it to preparing (optimistic)', () => {
+    const item = boardItem({ status: 'pending' });
+    const placed = boardOrder({ items: [item] });
+    const board = { serverTime: '', orders: [placed] };
+    const after = withItemReady(board, placed.id, item.id, true).orders[0];
+    expect(after?.status).toBe('preparing');
+    expect(after?.items[0]?.status).toBe('ready');
   });
 
   it('applies a newer server order and drops orders that left the board', () => {

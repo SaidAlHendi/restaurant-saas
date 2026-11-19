@@ -42,6 +42,8 @@ import { useNow } from './use-now.js';
 import { useWakeLock } from './use-wake-lock.js';
 
 const REFETCH_DEBOUNCE_MS = 300;
+/** How long the cook can take back "Ready"; the server allows a little longer. */
+const KDS_UNDO_MS = 5_000;
 
 export function useKdsPage() {
   const { t, i18n } = useTranslation();
@@ -134,7 +136,6 @@ export function useKdsPage() {
       round: (n) => t('kds.card.round', { number: n }),
       added: t('kds.card.added'),
       voided: t('kds.card.voided'),
-      start: t('kds.card.start'),
       ready: t('kds.card.markReady'),
       awaitingPayment: t('kds.card.awaitingPayment'),
       readyForPickup: t('kds.card.readyForPickup'),
@@ -181,14 +182,36 @@ export function useKdsPage() {
         return;
       }
       markPending(card.id, true);
-      moveOrder({ branchId, orderId: card.id, to: card.next, expectedVersion: card.version })
+      const to = card.next;
+      moveOrder({ branchId, orderId: card.id, to, expectedVersion: card.version })
         .unwrap()
+        .then((order) => {
+          if (to === 'ready') {
+            toast(t('kds.undo.done', { number: card.orderNumberLabel }), {
+              duration: KDS_UNDO_MS,
+              action: {
+                label: t('kds.undo.action'),
+                onClick: () => {
+                  moveOrder({
+                    branchId,
+                    orderId: card.id,
+                    to: 'preparing',
+                    expectedVersion: order.version,
+                    undo: true,
+                  })
+                    .unwrap()
+                    .catch(handleMutationError);
+                },
+              },
+            });
+          }
+        })
         .catch(handleMutationError)
         .finally(() => {
           markPending(card.id, false);
         });
     },
-    [branchId, canTap, handleMutationError, markPending, moveOrder],
+    [branchId, canTap, handleMutationError, markPending, moveOrder, t],
   );
 
   const onToggleItem = useCallback(

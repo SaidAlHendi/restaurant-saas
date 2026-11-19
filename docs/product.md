@@ -60,6 +60,7 @@ Feature keys: `menu.multilang`, `menu.branding`, `menu.table_qr`, `pos.access`, 
 - Order type: dine-in (table) / takeaway (customer name). Notes per item and per order.
 - Send to kitchen = `placed` (or `draft` when branch **pay before send** is on and total &gt; 0; full payment then sends to kitchen).
 - Pay now or later. Payment: cash (tendered → change) or card (external terminal) when branch accepts card.
+- Order flow: draft, placed, preparing, ready, completed. The kitchen ticking the first item moves placed to preparing; Ready stays visible (POS, KDS, pager screen) until the cashier taps Picked up (takeaway) / Served (dine-in). `completed` means handed over AND fully paid (`422 ORDER_NOT_PAID` otherwise). Undo: ready to preparing (KDS, 5 s) and completed to ready (POS, 10 s), same person, server window 15 s.
 - **Orders** page: tabs (active, awaiting payment, ready, completed, cancelled, all today), search, load more.
 - Owner **branch settings**: pay before send, accept card (dashboard, `branches.manage`).
 - Print receipt (80mm) and kitchen ticket.

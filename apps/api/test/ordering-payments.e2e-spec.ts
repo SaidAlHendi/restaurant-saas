@@ -326,9 +326,13 @@ describe('Ordering payments (e2e)', () => {
       method: 'card',
       amountMinor: totalMinor,
     });
-    // Paying a ready order completes it automatically.
     const paid = await owner.get(`/v1/branches/${branchId}/orders/${orderId}`);
-    expect((paid.body as { status: string }).status).toBe('completed');
+    const v4 = (paid.body as { version: number }).version;
+    const complete = await owner.post(`/v1/branches/${branchId}/orders/${orderId}/status`).send({
+      to: 'completed',
+      expectedVersion: v4,
+    });
+    expect(complete.status).toBe(201);
   });
 
   it('add items after paid moves payment_status to partial', async () => {
@@ -418,6 +422,12 @@ describe('Ordering payments (e2e)', () => {
       to: 'ready',
       expectedVersion: v,
     });
+    order = await owner.get(`/v1/branches/${branchId}/orders/${orderId}`);
+    v = (order.body as { version: number }).version;
+    await owner.post(`/v1/branches/${branchId}/orders/${orderId}/status`).send({
+      to: 'completed',
+      expectedVersion: v,
+    });
 
     const completedList = await owner
       .get(`/v1/branches/${branchId}/orders`)
@@ -470,8 +480,13 @@ describe('Ordering payments (e2e)', () => {
       to: 'ready',
       expectedVersion: version,
     });
-    // Marking a paid order ready completes it automatically.
-    const completed = await owner.get(`/v1/branches/${branchId}/orders/${orderId}`);
+    const ready = await owner.get(`/v1/branches/${branchId}/orders/${orderId}`);
+    version = (ready.body as { version: number }).version;
+    const completed = await owner.post(`/v1/branches/${branchId}/orders/${orderId}/status`).send({
+      to: 'completed',
+      expectedVersion: version,
+    });
+    expect(completed.status).toBe(201);
     expect((completed.body as { status: string }).status).toBe('completed');
   });
 
@@ -521,8 +536,13 @@ describe('Ordering payments (e2e)', () => {
       to: 'ready',
       expectedVersion: version,
     });
-    // Marking a paid order ready completes it automatically.
-    const completed = await owner.get(`/v1/branches/${branchId}/orders/${orderId}`);
+    const ready = await owner.get(`/v1/branches/${branchId}/orders/${orderId}`);
+    version = (ready.body as { version: number }).version;
+    const completed = await owner.post(`/v1/branches/${branchId}/orders/${orderId}/status`).send({
+      to: 'completed',
+      expectedVersion: version,
+    });
+    expect(completed.status).toBe(201);
     expect((completed.body as { status: string }).status).toBe('completed');
   });
 

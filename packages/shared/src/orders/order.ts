@@ -192,13 +192,21 @@ export const orderListQuerySchema = cursorListQuerySchema
 
 export type OrderListQuery = z.infer<typeof orderListQuerySchema>;
 
-export const orderListResponseSchema = cursorListResponseSchema(orderListItemSchema);
+export const orderListResponseSchema = cursorListResponseSchema(orderListItemSchema).extend({
+  /**
+   * Only on the first page of a "today only" list of open orders: how many open orders from earlier
+   * business days the filter hides. Lets the POS say "N older orders hidden".
+   */
+  hiddenOlderCount: z.number().int().min(0).optional(),
+});
 
 export const changeOrderStatusBodySchema = z.object({
   to: orderStatusSchema,
   expectedVersion: z.number().int().min(1),
   reason: z.string().trim().min(1).max(500).optional(),
   approval: orderApprovalSchema.optional(),
+  /** Takes back a status change just made by the same person (ready to preparing, completed to ready). */
+  undo: z.boolean().optional(),
 });
 
 export type ChangeOrderStatusBody = z.infer<typeof changeOrderStatusBodySchema>;

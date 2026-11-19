@@ -77,10 +77,9 @@ export function formatAge(ageMs: number): string {
 
 /** The status one tap moves the order to; ready -> completed is the cashier's job. */
 export function nextKitchenStatus(status: OrderStatus): 'preparing' | 'ready' | null {
-  if (status === 'placed') {
-    return 'preparing';
-  }
-  if (status === 'preparing') {
+  // A new order has no Start button. Ready is one tap even on a New order; ticking an item first
+  // also works and moves the order to preparing on the server.
+  if (status === 'placed' || status === 'preparing') {
     return 'ready';
   }
   return null;
@@ -161,6 +160,7 @@ export function withItemReady(
       const notReady = o.status === 'preparing' ? 'preparing' : 'pending';
       return {
         ...o,
+        status: o.status === 'placed' && ready ? 'preparing' : o.status,
         items: o.items.map((i) =>
           i.id === itemId ? { ...i, status: ready ? 'ready' : notReady } : i,
         ),

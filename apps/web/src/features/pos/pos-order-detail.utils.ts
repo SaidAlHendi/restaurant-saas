@@ -44,6 +44,17 @@ export function canVoidOrderItem(
   return true;
 }
 
+/** A ready order is handed over with one tap: "Picked up" (takeaway) or "Served" (dine-in). */
+export function canShowHandover(order: Pick<OrderDetail, 'status'>): boolean {
+  return order.status === 'ready';
+}
+
+export function handoverLabelKey(
+  type: OrderDetail['type'],
+): 'pos.handover.served' | 'pos.handover.pickedUp' {
+  return type === 'dine_in' ? 'pos.handover.served' : 'pos.handover.pickedUp';
+}
+
 export type NextStatusTarget = 'preparing' | 'ready' | 'completed';
 
 export function nextOrderStatusTarget(
@@ -58,7 +69,7 @@ export function nextOrderStatusTarget(
   if (order.status === 'preparing') {
     return 'ready';
   }
-  if (order.status === 'ready' && orderIsPaid(order)) {
+  if (order.status === 'ready') {
     return 'completed';
   }
   return null;

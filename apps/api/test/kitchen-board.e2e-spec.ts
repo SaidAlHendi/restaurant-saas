@@ -369,7 +369,7 @@ describe('Kitchen item status (e2e)', () => {
     expect(card?.items.filter((i) => i.isAddition)).toHaveLength(1);
   });
 
-  it('not_ready puts the item back to pending (placed) or preparing (preparing)', async () => {
+  it('not_ready puts the item back to pending (placed) or preparing (preparing); the first tick starts the order', async () => {
     const owner = await asDemoOwner(apiAgent(app));
     const clientOrderId = newUuidV7();
     const created = await postOrder(
@@ -395,13 +395,11 @@ describe('Kitchen item status (e2e)', () => {
     version = (res.body as Detail).version;
     res = await kitchen.post(itemUrl).send({ to: 'not_ready', expectedVersion: version });
     expect(res.status).toBe(201);
-    expect(statusOf(res.body)).toBe('pending');
+    // The first tick moved the order placed -> preparing, so un-ticking returns to preparing.
+    expect((res.body as { status: string }).status).toBe('preparing');
+    expect(statusOf(res.body)).toBe('preparing');
     version = (res.body as Detail).version;
 
-    const moved = await kitchen
-      .post(`/v1/branches/${branchId}/orders/${orderId}/status`)
-      .send({ to: 'preparing', expectedVersion: version });
-    version = (moved.body as Detail).version;
     res = await kitchen.post(itemUrl).send({ to: 'ready', expectedVersion: version });
     version = (res.body as Detail).version;
     res = await kitchen.post(itemUrl).send({ to: 'not_ready', expectedVersion: version });

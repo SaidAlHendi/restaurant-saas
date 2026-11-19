@@ -598,6 +598,24 @@
       "empty": "لا توجد طلبات في هذا العرض.",
       "error": "تعذر تحميل الطلبات.",
       "loadMore": "تحميل المزيد",
+      "todayOnly": "اليوم فقط",
+      "olderHidden_zero": "لا طلبات أقدم مخفية.",
+      "olderHidden_one": "طلب أقدم واحد مخفي.",
+      "olderHidden_two": "طلبان أقدم مخفيان.",
+      "olderHidden_few": "{{count}} طلبات أقدم مخفية.",
+      "olderHidden_many": "{{count}} طلباً أقدم مخفياً.",
+      "olderHidden_other": "{{count}} طلب أقدم مخفي.",
+      "showOlder": "إظهارها",
+      "columns": {
+        "order": "الطلب",
+        "time": "الوقت",
+        "typeTable": "الطاولة أو العميل",
+        "items": "الأصناف",
+        "total": "الإجمالي",
+        "status": "الحالة",
+        "payment": "الدفع",
+        "action": "إجراء"
+      },
       "tabs": {
         "active": "نشطة",
         "awaitingPayment": "بانتظار الدفع",
@@ -690,6 +708,12 @@
       "completed": "مكتمل",
       "cancelled": "ملغى",
       "refunded": "مسترد"
+    },
+    "handover": {
+      "pickedUp": "تم الاستلام",
+      "served": "تم التقديم",
+      "done": "تم تسليم الطلب #{{number}}",
+      "undo": "تراجع"
     },
     "orderDetail": {
       "title": "الطلب",
@@ -863,6 +887,7 @@
       "notFound": "الطلب غير موجود.",
       "forbidden": "ليس لديك صلاحية لهذا الإجراء.",
       "notPaid": "يجب دفع الطلب قبل إنهائه.",
+      "undoExpired": "لم يعد التراجع متاحاً.",
       "itemVoided": "هذا الصنف ملغى.",
       "paymentMethodNotAccepted": "هذا الفرع لا يقبل الدفع بالبطاقة.",
       "managerApprovalRequired": "يلزم موافقة المدير لهذا الإجراء.",
@@ -1098,6 +1123,10 @@
       "preparing": "قيد التحضير",
       "ready": "جاهز"
     },
+    "undo": {
+      "done": "{{number}} جاهز",
+      "action": "تراجع"
+    },
     "card": {
       "orderNumber": "#{{number}}",
       "table": "طاولة {{label}}",
@@ -1105,7 +1134,6 @@
       "round": "الجولة {{number}}",
       "added": "مُضاف",
       "voided": "ملغى",
-      "start": "ابدأ",
       "markReady": "جاهز",
       "awaitingPayment": "بانتظار الدفع",
       "readyForPickup": "جاهز — بانتظار الكاشير",
