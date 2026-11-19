@@ -51,6 +51,7 @@ export function usePosOrdersPage() {
   const branchId = useAppSelector(selectCurrentBranchId);
   const org = useAppSelector(selectSessionOrg);
   const canCancelOrders = useAppSelector(selectCan('orders.cancel'));
+  const canReopenOrders = useAppSelector(selectCan('orders.reopen'));
   const canCreateOrders = useAppSelector(selectCan('orders.create'));
 
   const tab = parsePosOrdersTab(searchParams.get('tab'));
@@ -161,6 +162,7 @@ export function usePosOrdersPage() {
     onAdditionsHeld: () => {},
     canCancelOrders,
     canCreateOrders,
+    canReopenOrders,
     onHandoverNeedsPayment: () => {
       const current = orderDetail.order;
       if (current) {

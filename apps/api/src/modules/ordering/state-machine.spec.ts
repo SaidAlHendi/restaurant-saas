@@ -2,6 +2,7 @@ import { BusinessRuleError } from '../../core/errors/app-errors';
 
 import {
   ALL_ORDER_STATUSES,
+  assertReopenTransition,
   assertTransition,
   assertUndoTransition,
   findTransition,
@@ -63,5 +64,15 @@ describe('undo transitions', () => {
   it('the reverse moves stay invalid without undo', () => {
     expect(findTransition('ready', 'preparing')).toBeUndefined();
     expect(findTransition('completed', 'ready')).toBeUndefined();
+  });
+});
+
+describe('reopen transition', () => {
+  it('is only completed -> ready and needs orders.reopen', () => {
+    expect(assertReopenTransition('completed', 'ready').permission).toBe('orders.reopen');
+    for (const from of ALL_ORDER_STATUSES.filter((s) => s !== 'completed')) {
+      expect(() => assertReopenTransition(from, 'ready')).toThrow(BusinessRuleError);
+    }
+    expect(() => assertReopenTransition('completed', 'preparing')).toThrow(BusinessRuleError);
   });
 });

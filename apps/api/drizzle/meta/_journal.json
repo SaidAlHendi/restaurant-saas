@@ -176,6 +176,13 @@
       "when": 1759677000000,
       "tag": "0025_item_awaiting_payment",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1759678000000,
+      "tag": "0026_orders_reopen_permission",
+      "breakpoints": true
     }
   ]
 }

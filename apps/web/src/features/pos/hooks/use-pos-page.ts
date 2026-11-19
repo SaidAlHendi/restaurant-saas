@@ -59,6 +59,7 @@ export function usePosPage() {
   const cart = useAppSelector((state) => state.cart);
   const hasCartLines = useAppSelector(cartHasUnsavedLines);
   const canCancelOrders = useAppSelector(selectCan('orders.cancel'));
+  const canReopenOrders = useAppSelector(selectCan('orders.reopen'));
   const canCreateOrders = useAppSelector(selectCan('orders.create'));
 
   const [activeCategoryId, setActiveCategoryId] = useState<string>(ALL_CATEGORIES);
@@ -388,6 +389,7 @@ export function usePosPage() {
     },
     canCancelOrders,
     canCreateOrders,
+    canReopenOrders,
     onHandoverNeedsPayment: () => {
       const current = orderDetail.order;
       if (current) {

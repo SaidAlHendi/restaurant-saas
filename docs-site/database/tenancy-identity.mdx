@@ -28,7 +28,7 @@ A location of a restaurant. Holds `timezone`, `currency`, tax (`tax_rate_bp` in 
 
 ### membership_permission_overrides
 
-Per-employee exceptions on top of the role. One row per membership and permission key, with `effect` set to `grant` (adds the key) or `deny` (removes it) and the restaurant's `org_id`. The effective permission list is the role's keys, plus grants, minus denies. Row-level security restricts rows to the current restaurant, and rows are deleted with their membership. `org.manage` and `billing.manage` cannot be overridden. The owner role also gets the `tables.rotate_qr` permission, which controls rotating table QR codes.
+Per-employee exceptions on top of the role. One row per membership and permission key, with `effect` set to `grant` (adds the key) or `deny` (removes it) and the restaurant's `org_id`. The effective permission list is the role's keys, plus grants, minus denies. Row-level security restricts rows to the current restaurant, and rows are deleted with their membership. `org.manage` and `billing.manage` cannot be overridden. The owner role also gets the `tables.rotate_qr` permission, which controls rotating table QR codes. Owner and manager roles get `orders.reopen`, which controls reopening completed orders.
 
 ### memberships
 

@@ -9,6 +9,8 @@ const KNOWN_CODES = [
   'ORDER_HAS_PAYMENTS',
   'ORDER_NOT_PAID',
   'ORDER_UNDO_EXPIRED',
+  'ORDER_UNDO_BILL_CLOSED',
+  'ORDER_REOPEN_BILL_CLOSED',
   'ITEM_VOIDED',
   'VALIDATION_ERROR',
   'NOT_FOUND',
@@ -81,6 +83,9 @@ export function ordersApiErrorMessage(t: OrdersErrorTranslator, code: OrdersApiE
       return t('orders.errors.notPaid');
     case 'ORDER_UNDO_EXPIRED':
       return t('orders.errors.undoExpired');
+    case 'ORDER_UNDO_BILL_CLOSED':
+    case 'ORDER_REOPEN_BILL_CLOSED':
+      return t('orders.errors.billClosed');
     case 'ITEM_VOIDED':
       return t('orders.errors.itemVoided');
     case 'VALIDATION_ERROR':

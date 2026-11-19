@@ -528,6 +528,7 @@
           "orders.read": "View orders",
           "orders.update_status": "Update order status",
           "orders.cancel": "Cancel orders",
+          "orders.reopen": "Reopen completed orders",
           "menu.read": "View menu",
           "menu.manage": "Manage menu",
           "reports.read": "View reports"
@@ -838,6 +839,14 @@
       "printTicket": "Print kitchen ticket",
       "closed": "This order can no longer take new items.",
       "payAndSend": "Pay & send additions ({{count}})"
+    },
+    "reopen": {
+      "action": "Reopen order",
+      "title": "Reopen this order?",
+      "body": "The order goes back to Ready. It shows on the kitchen and Ready screens again until it is handed over. Payment does not change.",
+      "reason": "Reason (optional)",
+      "confirm": "Reopen",
+      "done": "Order #{{number}} reopened"
     }
   },
   "orders": {
@@ -856,7 +865,8 @@
       "paymentMethodNotAccepted": "This branch does not accept card payments.",
       "managerApprovalRequired": "Manager approval is required for this action.",
       "pinInvalid": "Incorrect PIN. Try again.",
-      "pinLocked": "Too many attempts. Wait before trying again."
+      "pinLocked": "Too many attempts. Wait before trying again.",
+      "billClosed": "The table bill is already closed, so this order cannot be reopened."
     }
   },
   "menu": {

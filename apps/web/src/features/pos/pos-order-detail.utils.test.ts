@@ -4,6 +4,8 @@ import {
   canShowCancelOrder,
   canShowHandover,
   canShowPay,
+  canShowReopen,
+  reopenReasonValue,
   handoverLabelKey,
   canVoidOrderItem,
   nextOrderStatusTarget,
@@ -106,5 +108,21 @@ describe('pos order detail actions', () => {
     };
     expect(canVoidOrderItem(paid, false, true)).toBe(true);
     expect(canVoidOrderItem(paid, false, false)).toBe(false);
+  });
+});
+
+describe('reopen action', () => {
+  it('shows only for completed orders and people with orders.reopen', () => {
+    expect(canShowReopen(true, 'completed')).toBe(true);
+    expect(canShowReopen(false, 'completed')).toBe(false);
+    for (const status of ['draft', 'placed', 'preparing', 'ready', 'cancelled'] as const) {
+      expect(canShowReopen(true, status)).toBe(false);
+    }
+  });
+
+  it('treats a blank reason as none and caps it at 200 characters', () => {
+    expect(reopenReasonValue('   ')).toBeUndefined();
+    expect(reopenReasonValue(' wrong tap ')).toBe('wrong tap');
+    expect(reopenReasonValue('x'.repeat(300))).toHaveLength(200);
   });
 });
