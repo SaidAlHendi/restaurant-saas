@@ -45,8 +45,8 @@ export function OrderDetailsDocumentView({ model, labels, timelineLoading, actio
   const firstDate = model.facts.times[0]?.date ?? '';
   const sameDay = model.facts.times.every((row) => row.date === firstDate);
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_17rem]">
-      <article aria-label={labels.orderNumber} className="bg-card min-w-0 rounded-md border">
+    <div className="bg-card grid overflow-hidden rounded-md border lg:grid-cols-[minmax(0,1fr)_18rem]">
+      <article aria-label={labels.orderNumber} className="min-w-0">
         <header className="flex flex-col gap-5 p-5 sm:p-7">
           <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
             <div className="min-w-0">
@@ -195,7 +195,7 @@ export function OrderDetailsDocumentView({ model, labels, timelineLoading, actio
         {actions ? <div className="border-t p-3">{actions}</div> : null}
       </article>
 
-      <aside className="flex min-w-0 flex-col gap-8 lg:border-s lg:ps-7">
+      <aside className="bg-muted/50 flex min-w-0 flex-col gap-8 border-t p-5 sm:p-7 lg:border-s lg:border-t-0">
         <section aria-labelledby="doc-info">
           <h3 id="doc-info" className="mb-3 text-base font-semibold">{labels.info}</h3>
           <div className="flex flex-col gap-4 text-sm">
