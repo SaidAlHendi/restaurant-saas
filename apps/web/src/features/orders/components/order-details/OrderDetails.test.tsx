@@ -225,7 +225,7 @@ describe('POS sheet actions', () => {
     const dialog = { open: false, onOpenChange: noop } as never;
     const props = {
       open: true, onOpenChange: noop, order, orderLoadFailed: false, details: model, layout,
-      timeline: { loading: false, onToggle: noop }, startAddItems: noop,
+      timeline: { loading: false }, startAddItems: noop,
       reopen: { open: false, openDialog: noop, close: noop, reason: '', onReasonChange: noop, confirm: () => Promise.resolve(), submitting: false, reasonMax: 200, labels: { action: 'Reopen order', title: 't', body: 'b', reason: 'r', confirm: 'c', cancel: 'x' } },
       voidDialog: dialog, cancelDialog: dialog, openCancelDialog: noop, printReceipt: noop, printKitchenFull: noop,
       onStartPreparing: noop, onMarkReady: noop, onComplete: noop, statusChanging: false, labels, onPay: noop,
@@ -262,5 +262,46 @@ describe('POS sheet actions', () => {
     sheet(completed, false);
     fireEvent.keyDown(screen.getByRole('button', { name: 'More actions' }), { key: 'Enter' });
     expect(screen.queryByText('Reopen order')).toBeNull();
+  });
+});
+
+describe('order details model', () => {
+  it('shows the table label in the header and info card for dine-in orders', () => {
+    const model = build(makeOrder({ type: 'dine_in' }));
+    expect(model.header.whereLabel).toBe('T4');
+    expect(model.info.find((row) => row.key === 'table')?.value).toBe('T4');
+  });
+
+  it('keeps relative times in step with the supplied clock', () => {
+    const events: OrderEvent[] = [
+      {
+        id: `${ID}40`,
+        orderId: `${ID}01`,
+        actorMembershipId: `${ID}20`,
+        actorName: 'Alex',
+        approvedByMembershipId: null,
+        approverName: null,
+        fromStatus: null,
+        toStatus: 'placed',
+        type: 'order.status_changed',
+        payload: {},
+        createdAt: '2026-03-01T12:00:00.000Z',
+      },
+    ];
+    const at = (iso: string) =>
+      buildOrderDetailsModel({
+        order: makeOrder(),
+        events,
+        t: i18n.t.bind(i18n),
+        uiLocale: i18n.language,
+        intlLocale: 'en-US',
+        contentLocale: i18n.language,
+        defaultLocale: 'en',
+        formatMinor: moneyFormatter('USD', 'en', null),
+        tableLabel: null,
+        showVersion: false,
+        now: new Date(iso),
+      }).timeline.rows[0]?.relative;
+    expect(at('2026-03-01T12:05:00.000Z')).not.toBe(at('2026-03-01T12:30:00.000Z'));
   });
 });

@@ -33,6 +33,7 @@ import {
 } from '../pos-approval.utils.js';
 import { orderDetailsBodyLabels } from '../../orders/components/order-details/order-details.labels.js';
 import { buildOrderDetailsModel } from '../../orders/components/order-details/order-details.model.js';
+import { useNow } from '../../../lib/use-now.js';
 import { intlLocaleForUi } from '../../../lib/money.js';
 import {
   canShowCancelOrder,
@@ -74,7 +75,6 @@ export function usePosOrderDetail(input: {
   onHandoverNeedsPayment: () => void;
 }) {
   const { t } = useTranslation();
-  const [timelineOpen, setTimelineOpen] = useState(false);
   const [voidItemId, setVoidItemId] = useState<string | null>(null);
   const [cancelOpen, setCancelOpen] = useState(false);
 
@@ -93,11 +93,13 @@ export function usePosOrderDetail(input: {
     [input.menu?.branch.currency, input.uiLocale, order],
   );
 
-  // The timeline is fetched only once the cashier opens it.
+  // Fetched together with the order so "Created by" is there as soon as the sheet opens.
   const eventsQuery = useListOrderEventsQuery(
     { branchId: input.branchId ?? '', orderId: input.orderId ?? '' },
-    { skip: skip || !timelineOpen },
+    { skip },
   );
+  // Keeps "5 minutes ago" labels fresh.
+  const nowMs = useNow(60_000);
 
   const [changeStatus, changeState] = useChangeOrderStatusMutation();
   const [addItems, addState] = useAddOrderItemsMutation();
@@ -436,6 +438,7 @@ export function usePosOrderDetail(input: {
             defaultLocale: input.defaultLocale,
             formatMinor,
             tableLabel,
+            now: new Date(nowMs),
             showVersion: false,
             voidAction: {
               label: t('pos.orderDetail.voidItem'),
@@ -447,7 +450,7 @@ export function usePosOrderDetail(input: {
             },
           })
         : null,
-    [eventsQuery.data?.items, eventsQuery.isError, formatMinor, input.defaultLocale, input.locale, input.uiLocale, order, t, tableLabel],
+    [eventsQuery.data?.items, eventsQuery.isError, formatMinor, input.defaultLocale, input.locale, input.uiLocale, nowMs, order, t, tableLabel],
   );
 
   return {
@@ -464,7 +467,6 @@ export function usePosOrderDetail(input: {
     layout,
     timeline: {
       loading: eventsQuery.isFetching,
-      onToggle: setTimelineOpen,
     },
     onStartPreparing,
     onMarkReady,
