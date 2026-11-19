@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-import { Card, EmptyState, PageHeader } from '@app/ui';
+import { EmptyState } from '@app/ui';
 
 import type { DashboardOrderDetailPageViewModel } from '../hooks/use-dashboard-order-detail-page.js';
 import { PosOrderActionBarView } from '../../pos/components/PosOrderActionBarView.js';
@@ -10,8 +10,8 @@ import { PosPaymentDialogView } from '../../pos/components/PosPaymentDialogView.
 import { PosReopenDialogView } from '../../pos/components/PosReopenDialogView.js';
 import type { DashboardOrderActionsViewModel } from '../hooks/use-dashboard-order-actions.js';
 import { DashboardOrgSwitcherActions } from './DashboardOrgSwitcherActions.js';
-import { OrderDetailsBodyView, OrderDetailsSkeletonView } from './order-details/OrderDetailsBodyView.js';
-import { OrderDetailsHeaderView } from './order-details/OrderDetailsHeaderView.js';
+import { OrderDetailsSkeletonView } from './order-details/OrderDetailsBodyView.js';
+import { OrderDetailsDocumentView } from './order-details/OrderDetailsDocumentView.js';
 
 export type DashboardOrderDetailViewProps = DashboardOrderDetailPageViewModel & {
   actions?: DashboardOrderActionsViewModel;
@@ -45,46 +45,36 @@ export function DashboardOrderDetailView(props: DashboardOrderDetailViewProps) {
     );
   }
 
-  return (
-    <div className="flex flex-col gap-6">
-      {back}
-      <PageHeader title={labels.title} actions={<DashboardOrgSwitcherActions {...orgSwitcher} />} />
-      <Card className="gap-0 rounded-md p-4">
-        <OrderDetailsHeaderView
-          header={details.header}
-          stepper={details.stepper}
+  const actionBar =
+    actions?.visible && actions.layout ? (
+      <div role="group" aria-label={labels.actions} className="flex flex-col gap-2">
+        <PosOrderActionBarView
+          layout={actions.layout}
+          {...posActionMaps(actions.pos, actions.onPay)}
+          busy={actions.pos.statusChanging}
           labels={{
-            orderNumber: labels.orderNumber,
-            progress: labels.progress,
-            business: labels.business,
-            created: labels.created,
-            due: labels.dueLabel,
+            more: actions.pos.labels.more,
+            moreActions: actions.pos.labels.moreActions,
+            manager: actions.pos.labels.manager,
           }}
         />
-      </Card>
-      <OrderDetailsBodyView
+      </div>
+    ) : null;
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {back}
+        <DashboardOrgSwitcherActions {...orgSwitcher} />
+      </div>
+      <OrderDetailsDocumentView
         model={details}
-        labels={labels}
-        timeline={{ collapsible: false, loading: eventsLoading }}
+        labels={{ ...labels, due: labels.dueLabel }}
+        timelineLoading={eventsLoading}
+        actions={actionBar}
       />
-      {actions?.visible && actions.layout ? (
+      {actions && actionBar ? (
         <>
-          <div
-            role="group"
-            aria-label={labels.actions}
-            className="bg-card sticky bottom-0 z-20 -mx-1 flex flex-col gap-2 rounded-md border p-3 shadow-sm"
-          >
-            <PosOrderActionBarView
-              layout={actions.layout}
-              {...posActionMaps(actions.pos, actions.onPay)}
-              busy={actions.pos.statusChanging}
-              labels={{
-                more: actions.pos.labels.more,
-                moreActions: actions.pos.labels.moreActions,
-                manager: actions.pos.labels.manager,
-              }}
-            />
-          </div>
           <PosOrderActionDialogView {...actions.pos.voidDialog} />
           <PosOrderActionDialogView {...actions.pos.cancelDialog} />
           <PosReopenDialogView {...actions.pos.reopen} />

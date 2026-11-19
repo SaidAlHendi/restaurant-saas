@@ -81,7 +81,7 @@ export type OrderDetailsModel = {
   };
   stepper: {
     mode: StepperMode;
-    steps: { key: StepKey; label: string; state: StepState }[];
+    steps: { key: StepKey; label: string; state: StepState; time: string | null }[];
     note: string | null;
   };
   info: DetailsRow[];
@@ -267,6 +267,19 @@ export function buildOrderDetailsModel(input: BuildOrderDetailsInput): OrderDeta
   ];
 
   const stepper = orderStepper(order.status);
+  /** When each step happened: placed/completed are on the order, the others come from the events. */
+  const stepTime = (key: StepKey): string | null => {
+    if (key === 'placed') {
+      return order.placedAt ? timeOnly.format(new Date(order.placedAt)) : null;
+    }
+    if (key === 'completed') {
+      return order.completedAt ? timeOnly.format(new Date(order.completedAt)) : null;
+    }
+    const hit = [...sortedEvents]
+      .reverse()
+      .find((event) => event.toStatus === key && event.payload['undo'] !== true && event.payload['reopen'] !== true);
+    return hit ? timeOnly.format(new Date(hit.createdAt)) : null;
+  };
   const stepperNote =
     stepper.mode === 'draft'
       ? t('orderDetails.stepper.awaitingPayment')
@@ -296,6 +309,7 @@ export function buildOrderDetailsModel(input: BuildOrderDetailsInput): OrderDeta
       steps: stepper.steps.map((step) => ({
         ...step,
         label: t(`orderDetails.status.${step.key}`),
+        time: stepTime(step.key),
       })),
       note: stepperNote,
     },
