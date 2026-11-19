@@ -10,6 +10,7 @@ const labels: KdsCardLabels = {
   table: (label) => `Table ${label}`,
   added: 'ADDED',
   voided: 'VOID',
+  start: 'Start',
   ready: 'Ready',
   awaitingPayment: 'Awaiting payment',
   readyForPickup: 'Waiting for cashier',
@@ -66,15 +67,17 @@ describe('buildKdsCard', () => {
     const v = card.items.find((i) => i.isVoided);
     expect(v?.canToggle).toBe(false);
     expect(v?.voidReason).toBe('mistake');
-    // No Start button; a New card has the one-tap Ready action.
+    // A New card has the one-tap Ready action and a lighter Start action.
     expect(card.next).toBe('ready');
     expect(card.actionLabel).toBe('Ready');
+    expect(card.startLabel).toBe('Start');
   });
 
   it('preparing cards have a single Ready tap', () => {
     const card = buildKdsCard(boardOrder({ status: 'preparing' }), input);
     expect(card.next).toBe('ready');
     expect(card.actionLabel).toBe('Ready');
+    expect(card.startLabel).toBeNull();
   });
 
   it('ready cards have no action and say whether the order is paid', () => {

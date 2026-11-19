@@ -136,6 +136,7 @@ export function useKdsPage() {
       round: (n) => t('kds.card.round', { number: n }),
       added: t('kds.card.added'),
       voided: t('kds.card.voided'),
+      start: t('kds.card.start'),
       ready: t('kds.card.markReady'),
       awaitingPayment: t('kds.card.awaitingPayment'),
       readyForPickup: t('kds.card.readyForPickup'),
@@ -177,12 +178,12 @@ export function useKdsPage() {
   );
 
   const onAdvance = useCallback(
-    (card: KdsCardModel) => {
-      if (!branchId || !card.next || !canTap) {
+    (card: KdsCardModel, target?: 'preparing' | 'ready') => {
+      const to = target ?? card.next;
+      if (!branchId || !to || !canTap) {
         return;
       }
       markPending(card.id, true);
-      const to = card.next;
       moveOrder({ branchId, orderId: card.id, to, expectedVersion: card.version })
         .unwrap()
         .then((order) => {
@@ -290,6 +291,12 @@ export function useKdsPage() {
       onAction: card.next
         ? () => {
             onAdvance(card);
+          }
+        : undefined,
+      secondaryActionLabel: card.startLabel ?? undefined,
+      onSecondaryAction: card.startLabel
+        ? () => {
+            onAdvance(card, 'preparing');
           }
         : undefined,
       items: card.items.map((item) => ({

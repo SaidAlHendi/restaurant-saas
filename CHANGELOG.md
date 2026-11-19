@@ -6,7 +6,7 @@ All notable user-facing changes to Sahtain. Format follows [Keep a Changelog](ht
 
 ### Added
 - Handing over an order: tap **Picked up** (takeaway) or **Served** (dine-in) on a ready order, with a 10-second Undo. Ready orders now stay on the POS, kitchen and Ready screens until handed over, and an unpaid one opens payment first.
-- Kitchen: tap **Ready** with a 5-second Undo, also straight from a New order. Undo keeps the items you had ticked.
+- Kitchen: tap **Ready** with a 5-second Undo, also straight from a New order. A lighter **Start** button on a New order moves it to Preparing. Undo keeps the items you had ticked.
 - POS Orders: a **Today only** switch (off on Active, Awaiting payment and Ready, so open orders from earlier days stay visible) with a note when older open orders are hidden.
 - Display currency: show prices to staff and guests in a second currency, using an exchange rate you set yourself. Each order keeps the rate it was created with.
 - Add items to an order that was already sent to the kitchen, from the POS "add" mode. Only the new items are printed and sent.

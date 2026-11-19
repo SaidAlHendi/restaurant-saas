@@ -1083,6 +1083,7 @@
       "round": "Round {{number}}",
       "added": "ADDED",
       "voided": "VOID",
+      "start": "Start",
       "markReady": "Ready",
       "awaitingPayment": "Awaiting payment",
       "readyForPickup": "Ready — waiting for cashier",

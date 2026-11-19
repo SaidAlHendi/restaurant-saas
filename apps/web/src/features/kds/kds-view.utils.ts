@@ -18,6 +18,7 @@ export type KdsCardLabels = {
   round?: (n: number) => string;
   added: string;
   voided: string;
+  start: string;
   ready: string;
   awaitingPayment: string;
   readyForPickup: string;
@@ -53,6 +54,8 @@ export type KdsCardModel = {
   voidedLabel: string;
   next: 'preparing' | 'ready' | null;
   actionLabel: string | null;
+  /** A New order can also be marked as started (moves it to Preparing). */
+  startLabel: string | null;
   statusNote: string | null;
 };
 
@@ -123,6 +126,7 @@ export function buildKdsCard(order: KitchenBoardOrder, input: BuildCardInput): K
     }),
     next,
     actionLabel: next === 'ready' ? labels.ready : null,
+    startLabel: order.status === 'placed' ? labels.start : null,
     statusNote:
       order.status === 'ready'
         ? order.paymentStatus === 'paid'
