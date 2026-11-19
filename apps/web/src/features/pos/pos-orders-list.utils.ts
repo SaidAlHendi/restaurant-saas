@@ -72,7 +72,11 @@ export function showOlderOrdersHint(
   todayOnly: boolean,
   hiddenOlderCount: number | undefined,
 ): boolean {
-  return (tab === 'active' || tab === 'ready' || tab === 'awaitingPayment') && todayOnly && (hiddenOlderCount ?? 0) > 0;
+  return (
+    (tab === 'active' || tab === 'ready' || tab === 'awaitingPayment') &&
+    todayOnly &&
+    (hiddenOlderCount ?? 0) > 0
+  );
 }
 
 export function mergeListQueryWithSearch(
@@ -85,7 +89,6 @@ export function mergeListQueryWithSearch(
   }
   return { ...query, q: trimmed };
 }
-
 
 export function isDraftStatus(status: OrderStatus): boolean {
   return status === 'draft';
