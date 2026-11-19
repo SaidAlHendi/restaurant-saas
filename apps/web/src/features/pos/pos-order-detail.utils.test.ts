@@ -12,6 +12,8 @@ import {
   canVoidOrderItem,
   nextOrderStatusTarget,
   posDetailActionLayout,
+  dashboardActionLayout,
+  hasAnyDashboardAction,
 } from './pos-order-detail.utils.js';
 
 const baseOrder = {
@@ -177,5 +179,34 @@ describe('posDetailActionLayout', () => {
     expect(layout.destructive).toEqual(['cancel']);
     expect(layout.more).toEqual(['printReceipt', 'printKitchen']);
     expect(posDetailActionLayout({ ...base, order: order('placed') }).destructive).toEqual([]);
+  });
+});
+
+describe('dashboardActionLayout', () => {
+  const placed = {
+    status: 'placed' as const,
+    paymentStatus: 'unpaid' as const,
+    dueMinor: 500,
+  };
+  const full = posDetailActionLayout({ order: placed, canAddItems: true, canCancel: true, canReopen: false });
+
+  it('drops Add items and keeps everything else for a user with all permissions', () => {
+    const layout = dashboardActionLayout(full, { create: true, updateStatus: true });
+    expect(layout.primary).toBe('startPreparing');
+    expect(layout.secondary).toEqual(['markReady', 'pay']);
+    expect(layout.destructive).toEqual(['cancel']);
+  });
+
+  it('hides status buttons without orders.update_status and pay/print without orders.create', () => {
+    const layout = dashboardActionLayout(full, { create: false, updateStatus: false });
+    expect(layout.primary).toBeNull();
+    expect(layout.secondary).toEqual([]);
+    expect(layout.more).toEqual([]);
+    expect(layout.destructive).toEqual(['cancel']);
+  });
+
+  it('a read-only user has nothing to show', () => {
+    const readOnly = posDetailActionLayout({ order: placed, canAddItems: false, canCancel: false, canReopen: false });
+    expect(hasAnyDashboardAction(dashboardActionLayout(readOnly, { create: false, updateStatus: false }))).toBe(false);
   });
 });

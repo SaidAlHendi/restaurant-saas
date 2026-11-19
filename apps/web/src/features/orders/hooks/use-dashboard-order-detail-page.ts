@@ -6,13 +6,16 @@ import { useAppSelector } from '../../../app/hooks.js';
 import { intlLocaleForUi } from '../../../lib/money.js';
 import { selectCurrentBranchId, selectSessionOrg } from '../../session/session.selectors.js';
 import { orderDetailsBodyLabels } from '../components/order-details/order-details.labels.js';
-import { buildOrderDetailsModel } from '../components/order-details/order-details.model.js';
+import { buildOrderDetailsModel, type BuildOrderDetailsInput } from '../components/order-details/order-details.model.js';
 import { moneyFormatter } from '../../../lib/money.js';
 import { isOrderNotFoundError } from '../orders-api-errors.js';
 import { useGetOrderQuery, useListOrderEventsQuery } from '../orders.api.js';
 import { useOrgSwitcher } from './use-org-switcher.js';
 
-export function useDashboardOrderDetailPage() {
+export function useDashboardOrderDetailPage(extra: {
+  voidAction?: BuildOrderDetailsInput['voidAction'];
+  tableLabel?: string | null;
+} = {}) {
   const { t, i18n } = useTranslation();
   const { orderId = '' } = useParams();
   const location = useLocation();
@@ -64,11 +67,12 @@ export function useDashboardOrderDetailPage() {
             contentLocale,
             defaultLocale,
             formatMinor,
-            tableLabel: null,
+            tableLabel: extra.tableLabel ?? null,
             showVersion: true,
+            voidAction: extra.voidAction,
           })
         : null,
-    [contentLocale, defaultLocale, eventsQuery.data?.items, eventsQuery.isError, formatMinor, i18n.language, order, t, uiLocale],
+    [contentLocale, defaultLocale, eventsQuery.data?.items, eventsQuery.isError, extra.tableLabel, extra.voidAction, formatMinor, i18n.language, order, t, uiLocale],
   );
 
   const notFound = orderQuery.isError && isOrderNotFoundError(orderQuery.error);
@@ -89,6 +93,7 @@ export function useDashboardOrderDetailPage() {
       notFound: t('dashboard.orderDetail.notFound'),
       loading: t('common.loading'),
       orderNumber: order ? t('orderDetails.orderNumber', { number: order.orderNumber }) : '',
+      actions: t('orderDetails.actions'),
       progress: t('orderDetails.progress'),
       business: t('orderDetails.businessDate'),
       created: t('orderDetails.createdAt'),

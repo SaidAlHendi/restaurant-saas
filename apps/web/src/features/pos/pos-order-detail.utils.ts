@@ -159,3 +159,43 @@ export function posDetailActionLayout(input: {
     manager: input.canReopen ? ['reopen'] : [],
   };
 }
+
+/**
+ * The dashboard order page has no "add items" mode (that lives on the POS) and shows only what the
+ * user's permissions allow: Pay and print need `orders.create`, status buttons `orders.update_status`.
+ */
+export function dashboardActionLayout(
+  layout: PosDetailActionLayout,
+  can: { create: boolean; updateStatus: boolean },
+): PosDetailActionLayout {
+  const allowed = (action: PosDetailAction): boolean => {
+    switch (action) {
+      case 'addItems':
+        return false;
+      case 'pay':
+      case 'printReceipt':
+      case 'printKitchen':
+        return can.create;
+      case 'startPreparing':
+      case 'markReady':
+      case 'handover':
+        return can.updateStatus;
+      default:
+        return true;
+    }
+  };
+  return {
+    primary: layout.primary !== null && allowed(layout.primary) ? layout.primary : null,
+    secondary: layout.secondary.filter(allowed),
+    more: layout.more.filter(allowed),
+    destructive: layout.destructive.filter(allowed),
+    manager: layout.manager.filter(allowed),
+  };
+}
+
+export function hasAnyDashboardAction(layout: PosDetailActionLayout): boolean {
+  return (
+    layout.primary !== null ||
+    layout.secondary.length + layout.more.length + layout.destructive.length + layout.manager.length > 0
+  );
+}
