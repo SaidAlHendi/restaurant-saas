@@ -61,6 +61,7 @@ import { resolveCashAmounts } from './cash-amounts';
 import { OrderingRepository } from './ordering.repository';
 import {
   assertTransition,
+  assertUndoTransition,
   itemStatusForNotReady,
   itemStatusForOrderStatus,
   voidItemPermission,
@@ -75,6 +76,9 @@ export type CapturePaymentResult = {
   payment: Payment;
   created: boolean;
 };
+
+/** How long the person who changed an order's status may take it back. */
+const UNDO_WINDOW_MS = 15_000;
 
 @Injectable()
 export class OrderingService {
@@ -387,7 +391,10 @@ export class OrderingService {
       return { status: current.status };
     });
 
-    const transition = assertTransition(preflight.status, body.to);
+    const transition =
+      body.undo === true
+        ? assertUndoTransition(preflight.status, body.to)
+        : assertTransition(preflight.status, body.to);
     let approvedByMembershipId: string | null = null;
     if (!ctx.permissions.includes(transition.permission)) {
       if (transition.permission === 'orders.cancel') {
@@ -416,7 +423,15 @@ export class OrderingService {
         );
       }
 
-      if (body.to === 'completed' && current.paymentStatus !== 'paid') {
+      if (body.undo === true) {
+        await this.assertUndoWindow(tx, ctx, orderId, current.status);
+      }
+
+      if (
+        body.to === 'completed' &&
+        current.paymentStatus !== 'paid' &&
+        current.totalMinor !== 0
+      ) {
         throw new BusinessRuleError('ORDER_NOT_PAID', 'Order must be fully paid before completing', {
           orderId,
           paymentStatus: current.paymentStatus,
@@ -433,7 +448,7 @@ export class OrderingService {
 
       const patch: {
         status: OrderStatus;
-        completedAt?: Date;
+        completedAt?: Date | null;
         cancelledAt?: Date;
         cancelReason?: string | null;
       } = {
@@ -442,6 +457,9 @@ export class OrderingService {
       const now = this.clock.now();
       if (body.to === 'completed') {
         patch.completedAt = now;
+      }
+      if (body.undo === true && current.status === 'completed') {
+        patch.completedAt = null;
       }
       if (body.to === 'cancelled') {
         patch.cancelledAt = now;
@@ -465,7 +483,9 @@ export class OrderingService {
       }
 
       const itemTarget = itemStatusForOrderStatus(body.to);
-      if (itemTarget === 'preparing') {
+      if (body.undo === true && body.to === 'preparing') {
+        await this.repo.syncItemStatusesForOrder(tx, orderId, 'preparing', ['ready']);
+      } else if (itemTarget === 'preparing') {
         await this.repo.syncItemStatusesForOrder(tx, orderId, 'preparing', ['pending']);
       } else if (itemTarget === 'ready') {
         await this.repo.syncItemStatusesForOrder(tx, orderId, 'ready', ['preparing']);
@@ -481,19 +501,44 @@ export class OrderingService {
         type: eventType,
         fromStatus: current.status,
         toStatus: body.to,
-        payload: body.reason ? { reason: body.reason } : {},
+        payload: {
+          ...(body.reason ? { reason: body.reason } : {}),
+          ...(body.undo === true ? { undo: true } : {}),
+          ...(body.undo !== true && current.status === 'ready' && body.to === 'completed'
+            ? { handover: true }
+            : {}),
+        },
         actorMembershipId: ctx.membershipId,
         approvedByMembershipId,
       });
 
       await this.writeOutbox(tx, ctx.orgId, branchId, orderId, eventType, updated);
 
-      if (body.to === 'ready') {
-        await this.completeIfReadyAndPaid(tx, ctx, branchId, updated);
-      }
-
       return this.loadOrderDetailInTx(tx, branchId, orderId);
     });
+  }
+
+  /** Undo is for the person who just made the change, within a short window. */
+  private async assertUndoWindow(
+    tx: DrizzleTx,
+    ctx: RequestContext,
+    orderId: string,
+    currentStatus: OrderStatus,
+  ): Promise<void> {
+    const events = await this.repo.listOrderEvents(tx, orderId);
+    const last = [...events]
+      .reverse()
+      .find((event) => event.type === ORDER_EVENT_TYPES.statusChanged);
+    const fresh =
+      last !== undefined &&
+      last.toStatus === currentStatus &&
+      last.actorMembershipId === ctx.membershipId &&
+      this.clock.now().getTime() - last.createdAt.getTime() <= UNDO_WINDOW_MS;
+    if (!fresh) {
+      throw new BusinessRuleError('ORDER_UNDO_EXPIRED', 'Undo is no longer available', {
+        orderId,
+      });
+    }
   }
 
   async addItems(
@@ -981,47 +1026,8 @@ export class OrderingService {
         await this.writeOutbox(tx, ctx.orgId, branchId, orderId, ORDER_EVENT_TYPES.placed, updated);
       }
 
-      await this.completeIfReadyAndPaid(tx, ctx, branchId, updated);
-
       return { payment: mapPayment(inserted), created: true };
     });
-  }
-
-  /** A ready order that is fully paid has nothing left to do: complete it automatically. */
-  private async completeIfReadyAndPaid(
-    tx: DrizzleTx,
-    ctx: RequestContext,
-    branchId: string,
-    order: { id: string; status: OrderStatus; paymentStatus: string; version: number },
-  ): Promise<void> {
-    if (order.status !== 'ready' || order.paymentStatus !== 'paid') {
-      return;
-    }
-    const completed = await this.repo.updateOrderStatus(tx, order.id, 'ready', order.version, {
-      status: 'completed',
-      completedAt: this.clock.now(),
-    });
-    if (!completed) {
-      return;
-    }
-    await this.repo.insertOrderEvent(tx, {
-      id: newUuidV7(),
-      orgId: ctx.orgId,
-      orderId: order.id,
-      type: ORDER_EVENT_TYPES.statusChanged,
-      fromStatus: 'ready',
-      toStatus: 'completed',
-      payload: { auto: true },
-      actorMembershipId: ctx.membershipId,
-    });
-    await this.writeOutbox(
-      tx,
-      ctx.orgId,
-      branchId,
-      order.id,
-      ORDER_EVENT_TYPES.statusChanged,
-      completed,
-    );
   }
 
   async getKitchenBoard(ctx: RequestContext, branchId: string): Promise<KitchenBoardResponse> {
@@ -1092,7 +1098,13 @@ export class OrderingService {
       const targetStatus: OrderItemStatus =
         body.to === 'ready' ? 'ready' : itemStatusForNotReady(current.status);
 
-      const updated = await this.repo.bumpOrderVersion(tx, orderId, body.expectedVersion);
+      // First item ticked on a new order: the kitchen has started, so the order moves to preparing.
+      const startsPreparing = current.status === 'placed' && body.to === 'ready';
+      const updated = startsPreparing
+        ? await this.repo.updateOrderStatus(tx, orderId, 'placed', body.expectedVersion, {
+            status: 'preparing',
+          })
+        : await this.repo.bumpOrderVersion(tx, orderId, body.expectedVersion);
       if (!updated) {
         const detail = await this.loadOrderDetailInTx(tx, branchId, orderId);
         throw new ConflictError(
@@ -1103,6 +1115,27 @@ export class OrderingService {
       }
 
       const fromStatus = item.status;
+      if (startsPreparing) {
+        await this.repo.syncItemStatusesForOrder(tx, orderId, 'preparing', ['pending']);
+        await this.repo.insertOrderEvent(tx, {
+          id: newUuidV7(),
+          orgId: ctx.orgId,
+          orderId,
+          type: ORDER_EVENT_TYPES.statusChanged,
+          fromStatus: 'placed',
+          toStatus: 'preparing',
+          payload: { auto: true },
+          actorMembershipId: ctx.membershipId,
+        });
+        await this.writeOutbox(
+          tx,
+          ctx.orgId,
+          branchId,
+          orderId,
+          ORDER_EVENT_TYPES.statusChanged,
+          updated,
+        );
+      }
       await this.repo.updateOrderItemStatus(tx, orderId, itemId, targetStatus);
 
       await this.repo.insertOrderEvent(tx, {
@@ -1110,8 +1143,8 @@ export class OrderingService {
         orgId: ctx.orgId,
         orderId,
         type: ORDER_EVENT_TYPES.itemStatusChanged,
-        fromStatus: current.status,
-        toStatus: current.status,
+        fromStatus: startsPreparing ? 'preparing' : current.status,
+        toStatus: startsPreparing ? 'preparing' : current.status,
         payload: { itemId, from: fromStatus, to: targetStatus },
         actorMembershipId: ctx.membershipId,
       });

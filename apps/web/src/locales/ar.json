@@ -691,6 +691,12 @@
       "cancelled": "ملغى",
       "refunded": "مسترد"
     },
+    "handover": {
+      "pickedUp": "تم الاستلام",
+      "served": "تم التقديم",
+      "done": "تم تسليم الطلب #{{number}}",
+      "undo": "تراجع"
+    },
     "orderDetail": {
       "title": "الطلب",
       "pay": "دفع",
@@ -863,6 +869,7 @@
       "notFound": "الطلب غير موجود.",
       "forbidden": "ليس لديك صلاحية لهذا الإجراء.",
       "notPaid": "يجب دفع الطلب قبل إنهائه.",
+      "undoExpired": "لم يعد التراجع متاحاً.",
       "itemVoided": "هذا الصنف ملغى.",
       "paymentMethodNotAccepted": "هذا الفرع لا يقبل الدفع بالبطاقة.",
       "managerApprovalRequired": "يلزم موافقة المدير لهذا الإجراء.",
@@ -1098,6 +1105,10 @@
       "preparing": "قيد التحضير",
       "ready": "جاهز"
     },
+    "undo": {
+      "done": "{{number}} جاهز",
+      "action": "تراجع"
+    },
     "card": {
       "orderNumber": "#{{number}}",
       "table": "طاولة {{label}}",
@@ -1105,7 +1116,6 @@
       "round": "الجولة {{number}}",
       "added": "مُضاف",
       "voided": "ملغى",
-      "start": "ابدأ",
       "markReady": "جاهز",
       "awaitingPayment": "بانتظار الدفع",
       "readyForPickup": "جاهز — بانتظار الكاشير",

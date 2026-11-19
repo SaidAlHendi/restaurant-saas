@@ -3,14 +3,14 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { toast } from '@app/ui';
-import type { OrderListItem, OrderStatus } from '@app/shared';
+import type { OrderDetail, OrderListItem, OrderStatus } from '@app/shared';
 
 import { baseApi } from '../../../app/api/base-api.js';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks.js';
 import { readPrintAdditions } from '../pos-print-pref.js';
 import { intlLocaleForUi, orderMoneyFormatter } from '../../../lib/money.js';
 import type { RealtimeEvent } from '../../../lib/realtime.js';
-import { useListOrdersQuery } from '../../orders/orders.api.js';
+import { ordersApi, useListOrdersQuery } from '../../orders/orders.api.js';
 import { useBranchRealtime } from '../../realtime/use-branch-realtime.js';
 import {
   selectCan,
@@ -30,6 +30,9 @@ import { orderTypeTableLabel } from '../../orders/order-type-table-label.utils.j
 import { orderStatusBadgeTone } from '../../orders/orders-display.utils.js';
 import { shouldShowSentToKitchenToast } from '../pos-payment-toast.utils.js';
 import { useGetPosMenuQuery } from '../pos.api.js';
+import { handoverLabelKey, orderIsPaid } from '../pos-order-detail.utils.js';
+import { showOrdersApiError } from '../../orders/show-orders-api-error.js';
+import { usePosHandover } from './use-pos-handover.js';
 import { usePosOrderDetail } from './use-pos-order-detail.js';
 import { usePosPaymentDialog } from './use-pos-payment-dialog.js';
 import { usePosLockRequest } from '../pos-lock-context.js';
@@ -54,6 +57,7 @@ export function usePosOrdersPage() {
   const [accumulated, setAccumulated] = useState<OrderListItem[]>([]);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const beforePaymentStatusRef = useRef<OrderStatus | null>(null);
+  const handoverAfterPayRef = useRef<string | null>(null);
 
   const reloadFirstPage = useCallback(() => {
     setCursor(undefined);
@@ -152,18 +156,55 @@ export function usePosOrdersPage() {
     onAdditionsHeld: () => {},
     canCancelOrders,
     canCreateOrders,
+    onHandoverNeedsPayment: () => {
+      const current = orderDetail.order;
+      if (current) {
+        handoverAfterPayRef.current = current.id;
+        beforePaymentStatusRef.current = current.status;
+        paymentDialog.openForOrder(current);
+      }
+    },
   });
+
+  const rowHandover = usePosHandover(branchId);
 
   const paymentDialog = usePosPaymentDialog({
     branchId,
     order: orderDetail.order,
     acceptsCard: menu?.branch.acceptsCard ?? true,
+    onDismissUnpaid: () => {
+      handoverAfterPayRef.current = null;
+    },
     onPaymentCaptured: () => {
       const before = beforePaymentStatusRef.current;
       beforePaymentStatusRef.current = null;
+      const handoverId = handoverAfterPayRef.current;
+      handoverAfterPayRef.current = null;
       const paidOrderBefore = orderDetail.order;
+      const finishHandover = (updated: OrderDetail) => {
+        if (handoverId === updated.id && updated.status === 'ready' && orderIsPaid(updated)) {
+          void rowHandover.complete(updated).then((done) => {
+            if (done) {
+              setSelectedOrderId(null);
+            }
+          });
+        }
+      };
+      if (handoverId !== null && handoverId !== orderDetail.order?.id && branchId) {
+        // Started from a list row: the sheet is closed, so fetch the order by id.
+        void dispatch(
+          ordersApi.endpoints.getOrder.initiate({ branchId, orderId: handoverId }, { forceRefetch: true }),
+        )
+          .unwrap()
+          .then(finishHandover)
+          .catch(() => {});
+        return;
+      }
       void orderDetail.refetchOrder().then((result) => {
         const updated = result.data;
+        if (updated) {
+          finishHandover(updated);
+        }
         if (updated && shouldShowSentToKitchenToast(before, updated.status)) {
           toast.success(t('pos.toast.sentToKitchen', { number: updated.orderNumber }));
         }
@@ -174,6 +215,33 @@ export function usePosOrdersPage() {
     },
     uiLocale,
   });
+
+  /** Row button: paid -> complete at once; unpaid -> payment dialog first, then complete. */
+  const handoverRow = useCallback(
+    async (row: OrderListItem) => {
+      if (!branchId) {
+        return;
+      }
+      if (row.paymentStatus === 'paid' || row.totalMinor === 0) {
+        await rowHandover.complete(row);
+        return;
+      }
+      try {
+        const detail = await dispatch(
+          ordersApi.endpoints.getOrder.initiate(
+            { branchId, orderId: row.id },
+            { forceRefetch: true },
+          ),
+        ).unwrap();
+        handoverAfterPayRef.current = detail.id;
+        beforePaymentStatusRef.current = detail.status;
+        paymentDialog.openForOrder(detail);
+      } catch (error) {
+        showOrdersApiError(error, t);
+      }
+    },
+    [branchId, dispatch, paymentDialog, rowHandover, t],
+  );
 
   const setTab = useCallback(
     (next: PosOrdersTab) => {
@@ -210,8 +278,17 @@ export function usePosOrdersPage() {
       onSelect: () => {
         setSelectedOrderId(order.id);
       },
+      handover:
+        order.status === 'ready'
+          ? {
+              label: t(handoverLabelKey(order.type)),
+              onClick: () => {
+                void handoverRow(order);
+              },
+            }
+          : null,
     }));
-  }, [accumulated, menu?.branch.timezone, t, tableLabelById, uiLocale]);
+  }, [accumulated, handoverRow, menu?.branch.timezone, t, tableLabelById, uiLocale]);
 
   return {
     tab,

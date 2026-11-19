@@ -679,6 +679,12 @@
       "cancelled": "Cancelled",
       "refunded": "Refunded"
     },
+    "handover": {
+      "pickedUp": "Picked up",
+      "served": "Served",
+      "done": "Order #{{number}} handed over",
+      "undo": "Undo"
+    },
     "orderDetail": {
       "title": "Order",
       "pay": "Pay",
@@ -831,6 +837,7 @@
       "notFound": "Order not found.",
       "forbidden": "You do not have permission for this action.",
       "notPaid": "The order must be paid before it can be completed.",
+      "undoExpired": "Undo is no longer available.",
       "itemVoided": "This item was voided.",
       "paymentMethodNotAccepted": "This branch does not accept card payments.",
       "managerApprovalRequired": "Manager approval is required for this action.",
@@ -1051,6 +1058,10 @@
       "preparing": "Preparing",
       "ready": "Ready"
     },
+    "undo": {
+      "done": "{{number}} marked ready",
+      "action": "Undo"
+    },
     "card": {
       "orderNumber": "#{{number}}",
       "table": "Table {{label}}",
@@ -1058,7 +1069,6 @@
       "round": "Round {{number}}",
       "added": "ADDED",
       "voided": "VOID",
-      "start": "Start",
       "markReady": "Ready",
       "awaitingPayment": "Awaiting payment",
       "readyForPickup": "Ready — waiting for cashier",

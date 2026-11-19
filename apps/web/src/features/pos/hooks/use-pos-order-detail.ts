@@ -35,8 +35,11 @@ import {
   canShowCancelOrder,
   canShowPay,
   canVoidOrderItem,
+  handoverLabelKey,
   nextOrderStatusTarget,
+  orderIsPaid,
 } from '../pos-order-detail.utils.js';
+import { usePosHandover } from './use-pos-handover.js';
 import { usePosOrderActionDialog } from './use-pos-order-action-dialog.js';
 
 export function usePosOrderDetail(input: {
@@ -60,6 +63,8 @@ export function usePosOrderDetail(input: {
   onAdditionsHeld: (order: OrderDetail) => void;
   canCancelOrders: boolean;
   canCreateOrders: boolean;
+  /** Unpaid ready order: the page opens the payment dialog, then completes the handover. */
+  onHandoverNeedsPayment: () => void;
 }) {
   const { t } = useTranslation();
   const [voidItemId, setVoidItemId] = useState<string | null>(null);
@@ -118,16 +123,30 @@ export function usePosOrderDetail(input: {
         handleConflict(result.error);
         return;
       }
-      if (to === 'completed' || to === 'cancelled') {
+      if (to === 'cancelled') {
         input.onClose();
       }
     },
     [changeStatus, handleConflict, input, order],
   );
 
+  const handover = usePosHandover(input.branchId);
+  const { complete: completeHandover } = handover;
+
   const onComplete = useCallback(() => {
-    void runStatusChange('completed');
-  }, [runStatusChange]);
+    if (!order) {
+      return;
+    }
+    if (!orderIsPaid(order)) {
+      input.onHandoverNeedsPayment();
+      return;
+    }
+    void completeHandover(order).then((done) => {
+      if (done) {
+        input.onClose();
+      }
+    });
+  }, [completeHandover, input, order]);
 
   const onStartPreparing = useCallback(() => {
     void runStatusChange('preparing');
@@ -391,7 +410,7 @@ export function usePosOrderDetail(input: {
       return { label: t('pos.orderDetail.markReady'), onClick: onMarkReady };
     }
     if (target === 'completed') {
-      return { label: t('pos.orderDetail.complete'), onClick: onComplete };
+      return { label: t(handoverLabelKey(order.type)), onClick: onComplete };
     }
     return null;
   }, [onComplete, onMarkReady, onStartPreparing, order, t]);
@@ -443,7 +462,8 @@ export function usePosOrderDetail(input: {
       }
     },
     refetchOrder: () => refetch(),
-    statusChanging: changeState.isLoading,
+    completeHandover,
+    statusChanging: changeState.isLoading || handover.isLoading,
     formatMinor,
     labels: {
       title: t('pos.orderDetail.title'),

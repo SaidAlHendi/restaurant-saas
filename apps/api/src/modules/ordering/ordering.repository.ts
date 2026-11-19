@@ -470,7 +470,7 @@ export class OrderingRepository {
     tx: DrizzleTx,
     orderId: string,
     target: 'preparing' | 'ready',
-    fromStatuses: Array<'pending' | 'preparing'>,
+    fromStatuses: Array<'pending' | 'preparing' | 'ready'>,
   ) {
     await tx
       .update(orderItems)

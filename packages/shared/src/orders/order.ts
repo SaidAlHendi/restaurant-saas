@@ -199,6 +199,8 @@ export const changeOrderStatusBodySchema = z.object({
   expectedVersion: z.number().int().min(1),
   reason: z.string().trim().min(1).max(500).optional(),
   approval: orderApprovalSchema.optional(),
+  /** Takes back a status change just made by the same person (ready to preparing, completed to ready). */
+  undo: z.boolean().optional(),
 });
 
 export type ChangeOrderStatusBody = z.infer<typeof changeOrderStatusBodySchema>;

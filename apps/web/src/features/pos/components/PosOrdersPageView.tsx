@@ -106,6 +106,20 @@ export function PosOrdersPageView(props: PosOrdersPageViewModel) {
                         <td className="border-b px-4 py-3">
                           <Badge variant="outline">{row.paymentLabel}</Badge>
                         </td>
+                        <td className="border-b px-4 py-3 text-end">
+                          {row.handover ? (
+                            <Button
+                              type="button"
+                              size="sm"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                row.handover?.onClick();
+                              }}
+                            >
+                              {row.handover.label}
+                            </Button>
+                          ) : null}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -134,6 +148,16 @@ export function PosOrdersPageView(props: PosOrdersPageViewModel) {
                         <span className="ms-auto font-medium tabular-nums">{row.totalLabel}</span>
                       </div>
                     </button>
+                    {row.handover ? (
+                      <Button
+                        type="button"
+                        size="touch"
+                        className="mt-2 w-full"
+                        onClick={row.handover.onClick}
+                      >
+                        {row.handover.label}
+                      </Button>
+                    ) : null}
                   </li>
                 ))}
               </ul>

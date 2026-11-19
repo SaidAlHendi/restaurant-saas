@@ -21,12 +21,12 @@ export const kdsApi = baseApi.injectEndpoints({
     }),
     moveKitchenOrder: builder.mutation<
       OrderDetail,
-      { branchId: string; orderId: string; to: 'preparing' | 'ready'; expectedVersion: number }
+      { branchId: string; orderId: string; to: 'preparing' | 'ready'; expectedVersion: number; undo?: boolean }
     >({
-      query: ({ branchId, orderId, to, expectedVersion }) => ({
+      query: ({ branchId, orderId, to, expectedVersion, undo }) => ({
         url: `/v1/branches/${branchId}/orders/${orderId}/status`,
         method: 'POST',
-        body: changeOrderStatusBodySchema.parse({ to, expectedVersion }),
+        body: changeOrderStatusBodySchema.parse({ to, expectedVersion, ...(undo ? { undo } : {}) }),
       }),
       transformResponse: (response: unknown) => orderDetailSchema.parse(response),
       async onQueryStarted({ branchId, orderId, to }, { dispatch, queryFulfilled }) {

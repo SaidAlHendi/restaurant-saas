@@ -3,12 +3,12 @@
 ## Status
 Rewrite this section at the end of every session (max 30 lines).
 - **State:** Steps 1-9 done. 10a done; 10b (Sentry, uptime, backup restore test) open, staging deploy in progress (`docs/runbook-staging.md`). Step 12 (admin) 12a-12d merged.
-- **Last task:** Product form shows both prices (system in base currency, display in display currency) when a display currency is active; editing one updates the other (display input keeps what was typed until the system price changes).
-- **Changed files:** web menu `ProductFormSheetView.tsx`, `hooks/use-display-price.ts`, `use-products-screen.ts`, locales en/ar, `docs-site/roles/owner.mdx`.
-- **Verified:** tsc, eslint, menu tests green. Not clicked through in a browser; no unit test for `useDisplayPrice` yet. Form still needs `org.manage` (settings read) to show the display field.
-- **Next step:** staging deploy / Step 10b.
-- **Decisions:** read-only users get plain text ("ask a manager or the owner"), no button. Tables and QR check `branches.manage`, menu pages `menu.manage`, left as is.
-- **Gotchas:** display config comes from `GET /v1/org/settings` (`org.manage`), so `menu.manage`-only users see just the system price in the products table. `productDisplayCurrency` in `lib/money.ts` is now unused outside its test. QR empty state has no "Add tables" button (string `menu.qr.noTablesAction` exists, unused). A held addition on an order that reaches Ready/Completed is released as pending when paid (not handled). print() blocks a headless browser. `graphify-out/` is gitignored.
+- **Last task:** Order handover (branch `feat/order-handover`): removed auto-complete; cashier taps Picked up / Served (ready -> completed, needs paid, else payment opens first); KDS has no Start (first item tick -> preparing) and a 5 s Undo after Ready; POS 10 s Undo after handover.
+- **Changed files:** api `ordering.service.ts`, `state-machine.ts` (undo transitions), shared `changeOrderStatusBodySchema` (`undo`), e2e `ordering-handover`, `ordering-payments` (reverted edits), `kitchen-board`; web `use-pos-handover.ts`, POS detail/orders hooks and views, KDS hook/utils, locales en/ar; docs-site cashier/kitchen/owner, `docs/product.md`, `docs/data-model.md`, CHANGELOG.
+- **Verified:** api unit + ordering/kitchen/pager/public-menu e2e green; web tsc and vitest green. Not clicked through in a browser. Mintlify not published.
+- **Next step:** review/merge PR to dev, then staging deploy / Step 10b.
+- **Decisions:** reused `/status` + `orders.update_status` (body `undo: true`); handover event payload `handover: true`; undo window 15 s server-side (actor of last status event); error `ORDER_UNDO_EXPIRED` (422). Cashier sheet still has manual Start preparing / Mark ready.
+- **Gotchas:** Open review findings in `docs/order-handover.md`. Un-ticking an item never moves an order back to placed. Follow-ups: Reopen/Recall for old completed orders, optional 15-min auto-complete, permissions UI. The diagram `/mnt/project-files/diagrams/takeaway-order-example.png` was not available. Earlier gotchas still apply (display config needs `org.manage`; held additions on Ready/Completed orders; `graphify-out/` gitignored).
 
 - [x] 1. Monorepo scaffold, docker compose (Postgres, Redis), CI (lint, typecheck, test), deploy to staging
 - [x] 1b. UI kit in packages/ui: shadcn/ui + Tailwind v4, themes cupcake/forest, first batch of components, /dev/ui showcase, ESLint UI-only rule (docs/ui-kit.md)

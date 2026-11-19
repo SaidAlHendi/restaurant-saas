@@ -18,6 +18,24 @@ const ALLOWED: StatusTransition[] = [
   { from: 'ready', to: 'cancelled', permission: 'orders.cancel' },
 ];
 
+/** Reverse moves, only as a short "Undo" by the person who just made the change. */
+const UNDO_ALLOWED: StatusTransition[] = [
+  { from: 'ready', to: 'preparing', permission: 'orders.update_status' },
+  { from: 'completed', to: 'ready', permission: 'orders.update_status' },
+];
+
+export function assertUndoTransition(from: OrderStatus, to: OrderStatus): StatusTransition {
+  const transition = UNDO_ALLOWED.find((t) => t.from === from && t.to === to);
+  if (!transition) {
+    throw new BusinessRuleError(
+      'ORDER_INVALID_TRANSITION',
+      `Cannot undo from ${from} to ${to}`,
+      { from, to },
+    );
+  }
+  return transition;
+}
+
 export function findTransition(from: OrderStatus, to: OrderStatus): StatusTransition | undefined {
   return ALLOWED.find((t) => t.from === from && t.to === to);
 }

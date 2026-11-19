@@ -8,6 +8,7 @@ const KNOWN_CODES = [
   'ORDER_NOT_EDITABLE',
   'ORDER_HAS_PAYMENTS',
   'ORDER_NOT_PAID',
+  'ORDER_UNDO_EXPIRED',
   'ITEM_VOIDED',
   'VALIDATION_ERROR',
   'NOT_FOUND',
@@ -78,6 +79,8 @@ export function ordersApiErrorMessage(t: OrdersErrorTranslator, code: OrdersApiE
       return t('orders.errors.hasPayments');
     case 'ORDER_NOT_PAID':
       return t('orders.errors.notPaid');
+    case 'ORDER_UNDO_EXPIRED':
+      return t('orders.errors.undoExpired');
     case 'ITEM_VOIDED':
       return t('orders.errors.itemVoided');
     case 'VALIDATION_ERROR':

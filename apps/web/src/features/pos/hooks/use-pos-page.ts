@@ -40,6 +40,7 @@ import { useGetPosMenuQuery } from '../pos.api.js';
 import type { PosMenuProduct } from './use-pos-modifier-sheet.js';
 import { usePosModifierSheet } from './use-pos-modifier-sheet.js';
 import { isExchangeRateStale } from '../../settings/currency-settings-form.utils.js';
+import { orderIsPaid } from '../pos-order-detail.utils.js';
 import { usePosOrderDetail } from './use-pos-order-detail.js';
 import { readPrintAdditions, writePrintAdditions } from '../pos-print-pref.js';
 import { shouldShowSentToKitchenToast } from '../pos-payment-toast.utils.js';
@@ -92,6 +93,8 @@ export function usePosPage() {
   // Socket events are hints: refetch the open orders list / that order when it changed.
   const openOrdersRef = useRef<Array<{ id: string; version: number }>>([]);
   const beforePaymentStatusRef = useRef<OrderStatus | null>(null);
+  /** Unpaid ready order the cashier tapped "Picked up"/"Served" on: complete it once it is paid. */
+  const handoverAfterPayRef = useRef<string | null>(null);
   const onRealtimeEvent = useCallback(
     ({ payload }: RealtimeEvent) => {
       if (!branchId) {
@@ -385,6 +388,14 @@ export function usePosPage() {
     },
     canCancelOrders,
     canCreateOrders,
+    onHandoverNeedsPayment: () => {
+      const current = orderDetail.order;
+      if (current) {
+        handoverAfterPayRef.current = current.id;
+        beforePaymentStatusRef.current = current.status;
+        paymentDialog.openForOrder(current);
+      }
+    },
   });
 
   const paymentOrder = checkoutOrder ?? orderDetail.order;
@@ -396,6 +407,8 @@ export function usePosPage() {
     onPaymentCaptured: () => {
       const before = beforePaymentStatusRef.current;
       beforePaymentStatusRef.current = null;
+      const handoverId = handoverAfterPayRef.current;
+      handoverAfterPayRef.current = null;
       const paidOrderBefore = paymentOrder ?? undefined;
       const checkoutId = checkoutOrder?.id;
       const activeBranchId = branchId;
@@ -410,6 +423,14 @@ export function usePosPage() {
         }
         if (updated && selectedOrderId === updated.id) {
           orderDetail.printReceipt(updated);
+        }
+        // One flow: paying a ready order from "Picked up"/"Served" finishes the handover too.
+        if (updated && handoverId === updated.id && updated.status === 'ready' && orderIsPaid(updated)) {
+          void orderDetail.completeHandover(updated).then((done) => {
+            if (done) {
+              setSelectedOrderId(null);
+            }
+          });
         }
       };
 
@@ -434,6 +455,7 @@ export function usePosPage() {
       setCheckoutOrder(null);
     },
     onDismissUnpaid: () => {
+      handoverAfterPayRef.current = null;
       const checkoutId = checkoutOrder?.id;
       const activeBranchId = branchId;
       setCheckoutOrder(null);
