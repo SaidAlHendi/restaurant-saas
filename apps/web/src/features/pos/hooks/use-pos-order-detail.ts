@@ -314,25 +314,27 @@ export function usePosOrderDetail(input: {
     [input.printAdditions, printKitchenTicket, t],
   );
 
-  const printReceipt = useCallback(() => {
-    if (!order || !input.menu) {
+  // `override` lets the caller print a freshly fetched order (e.g. right after payment).
+  const printReceipt = useCallback((override?: OrderDetail) => {
+    const receiptOrder = override ?? order;
+    if (!receiptOrder || !input.menu) {
       return;
     }
     const html = renderReceiptHtml({
-      order,
+      order: receiptOrder,
       menu: input.menu,
       tableLabel,
       locale: input.locale,
       fallbackLocale: input.defaultLocale,
       formatMinor,
-      cashLabels: (payment) => paymentCashLabels(payment, order, input.uiLocale),
+      cashLabels: (payment) => paymentCashLabels(payment, receiptOrder, input.uiLocale),
       printedAt: new Date(),
       labels: {
         subtotal: t('pos.totals.subtotal'),
         tax: t('pos.totals.tax'),
         taxInclusiveSuffix: input.menu.branch.taxInclusive ? t('pos.print.taxInclSuffix') : '',
         total: t('pos.totals.total'),
-        orderNumber: t('pos.result.orderNumber', { number: order.orderNumber }),
+        orderNumber: t('pos.result.orderNumber', { number: receiptOrder.orderNumber }),
         dineIn: t('pos.orderType.dineIn'),
         takeaway: t('pos.orderType.takeaway'),
         pager: t('pos.print.pager'),

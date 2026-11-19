@@ -99,7 +99,8 @@ export function useCategoriesScreen(): {
     }
     if (category.branchIds.length === 1) {
       return (
-        branchNameById.get(category.branchIds[0] ?? '') ?? t('menu.availability.count', { count: 1 })
+        branchNameById.get(category.branchIds[0] ?? '') ??
+        t('menu.availability.count', { count: 1 })
       );
     }
     return t('menu.availability.count', { count: category.branchIds.length });

@@ -939,6 +939,8 @@
       "fields": {
         "category": "التصنيف",
         "price": "السعر",
+        "systemPrice": "سعر النظام",
+        "displayPrice": "سعر العرض",
         "modifierGroups": "مجموعات الإضافات"
       },
       "imageLabel": "صورة المنتج",

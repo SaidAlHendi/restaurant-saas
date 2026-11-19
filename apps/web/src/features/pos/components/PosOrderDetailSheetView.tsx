@@ -145,7 +145,7 @@ export function PosOrderDetailSheetView(props: PosOrderDetailSheetViewProps) {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={printReceipt}>
+                    <DropdownMenuItem onClick={() => { printReceipt(); }}>
                       {labels.printReceipt}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={printKitchenFull}>

@@ -28,9 +28,10 @@ import {
 import { PlusIcon } from 'lucide-react';
 import type { UseFormReturn } from 'react-hook-form';
 
-import type { ModifierGroup } from '@app/shared';
+import { isDisplayConversionActive, type ModifierGroup, type MoneyDisplay } from '@app/shared';
 
 import type { ProductFormOutput, ProductFormValues } from '../hooks/use-product-form.js';
+import { useDisplayPrice } from '../hooks/use-display-price.js';
 import { BranchAvailabilityFieldView } from './BranchAvailabilityFieldView.js';
 import { LocalizedFieldsView } from './LocalizedFieldsView.js';
 
@@ -54,6 +55,10 @@ export interface ProductFormSheetViewProps {
   categories: { id: string; label: string }[];
   categoryLabel: string;
   priceLabel: string;
+  systemPriceLabel: string;
+  displayPriceLabel: string;
+  /** Set when a display currency differs from the base one: the form then shows both prices. */
+  moneyDisplay: MoneyDisplay | null;
   activeLabel: string;
   modifierGroups: ModifierGroup[];
   modifierGroupsLabel: string;
@@ -113,6 +118,9 @@ export function ProductFormSheetView({
   categories,
   categoryLabel,
   priceLabel,
+  systemPriceLabel,
+  displayPriceLabel,
+  moneyDisplay,
   activeLabel,
   modifierGroups,
   modifierGroupsLabel,
@@ -203,18 +211,21 @@ export function ProductFormSheetView({
                 name="priceMinor"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{priceLabel}</FormLabel>
-                    <FormControl>
-                      <MoneyInput
-                        name={field.name}
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        onBlur={field.onBlur}
-                        currency={currency}
-                        locale={moneyLocale}
-                        disabled={!canManage}
-                      />
-                    </FormControl>
+                    <PriceFields
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      name={field.name}
+                      currency={currency}
+                      moneyLocale={moneyLocale}
+                      moneyDisplay={moneyDisplay}
+                      disabled={!canManage}
+                      labels={{
+                        price: priceLabel,
+                        system: systemPriceLabel,
+                        display: displayPriceLabel,
+                      }}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -347,5 +358,116 @@ export function ProductFormSheetView({
         </Form>
       </SheetContent>
     </Sheet>
+  );
+}
+
+interface PriceFieldsProps {
+  value: number | null;
+  onChange: (value: number | null) => void;
+  onBlur: () => void;
+  name: string;
+  currency: string;
+  moneyLocale: string;
+  moneyDisplay: MoneyDisplay | null;
+  disabled: boolean;
+  labels: { price: string; system: string; display: string };
+}
+
+/**
+ * The price is stored in the base currency. With a different display currency both amounts are
+ * shown and editing either one updates the other. What the person typed in the display field is
+ * kept as typed (not re-rounded) until the system price changes.
+ */
+function PriceFields({
+  value,
+  onChange,
+  onBlur,
+  name,
+  currency,
+  moneyLocale,
+  moneyDisplay,
+  disabled,
+  labels,
+}: PriceFieldsProps) {
+  if (!isDisplayConversionActive(currency, moneyDisplay)) {
+    return (
+      <>
+        <FormLabel>{labels.price}</FormLabel>
+        <FormControl>
+          <MoneyInput
+            name={name}
+            value={value}
+            onValueChange={onChange}
+            onBlur={onBlur}
+            currency={currency}
+            locale={moneyLocale}
+            disabled={disabled}
+          />
+        </FormControl>
+      </>
+    );
+  }
+
+  return (
+    <DualPriceFields
+      value={value}
+      onChange={onChange}
+      onBlur={onBlur}
+      name={name}
+      currency={currency}
+      moneyLocale={moneyLocale}
+      moneyDisplay={moneyDisplay}
+      disabled={disabled}
+      labels={labels}
+    />
+  );
+}
+
+function DualPriceFields({
+  value,
+  onChange,
+  onBlur,
+  name,
+  currency,
+  moneyLocale,
+  moneyDisplay,
+  disabled,
+  labels,
+}: PriceFieldsProps & { moneyDisplay: MoneyDisplay }) {
+  const { displayValue, onSystemChange, onDisplayChange } = useDisplayPrice(
+    value,
+    currency,
+    moneyDisplay,
+    onChange,
+  );
+
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-2">
+        <FormLabel>{labels.system}</FormLabel>
+        <FormControl>
+          <MoneyInput
+            name={name}
+            value={value}
+            onValueChange={onSystemChange}
+            onBlur={onBlur}
+            currency={currency}
+            locale={moneyLocale}
+            disabled={disabled}
+          />
+        </FormControl>
+      </div>
+      <div className="grid gap-2">
+        <span className="text-sm font-medium leading-none">{labels.display}</span>
+        <MoneyInput
+          value={displayValue}
+          onValueChange={onDisplayChange}
+          currency={moneyDisplay.currency}
+          locale={moneyLocale}
+          disabled={disabled}
+          aria-label={labels.display}
+        />
+      </div>
+    </div>
   );
 }

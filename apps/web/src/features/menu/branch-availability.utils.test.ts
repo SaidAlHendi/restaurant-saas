@@ -49,9 +49,9 @@ describe('branchAvailabilityDefaults', () => {
 
 describe('branchAvailabilityToApi', () => {
   it('sends only the flag for all branches', () => {
-    expect(
-      branchAvailabilityToApi({ availableInAllBranches: true, branchIds: [A] }, FULL),
-    ).toEqual({ availableInAllBranches: true });
+    expect(branchAvailabilityToApi({ availableInAllBranches: true, branchIds: [A] }, FULL)).toEqual(
+      { availableInAllBranches: true },
+    );
   });
 
   it('sends the list when specific branches are chosen', () => {

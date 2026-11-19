@@ -4,18 +4,12 @@ import type { Product } from '@app/shared';
 
 import { parseMenuApiErrorCode, type MenuApiErrorCode } from '../menu-api-errors.js';
 import { isMutationError } from '../menu-mutation-result.js';
-import {
-  useDeleteProductImageMutation,
-  useUploadProductImageMutation,
-} from '../menu.api.js';
+import { useDeleteProductImageMutation, useUploadProductImageMutation } from '../menu.api.js';
 import { productImagePreviewUrl } from '../menu.utils.js';
 
 const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
-export type ProductImageUploadError =
-  | 'local_unsupported_type'
-  | 'local_remove'
-  | MenuApiErrorCode;
+export type ProductImageUploadError = 'local_unsupported_type' | 'local_remove' | MenuApiErrorCode;
 
 export function useProductImageUpload(
   product: Product | undefined,

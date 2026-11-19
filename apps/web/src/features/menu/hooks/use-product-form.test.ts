@@ -24,11 +24,7 @@ const productBId = '01934567-89ab-7cde-b012-3456789abc02';
 const orgId = '01934567-89ab-7cde-b012-3456789abc99';
 const priceRequiredMessage = 'Enter a price';
 
-function productDetail(
-  id: string,
-  nameEn: string,
-  priceMinor: number,
-): ProductDetail {
+function productDetail(id: string, nameEn: string, priceMinor: number): ProductDetail {
   return {
     id,
     orgId,
@@ -49,10 +45,12 @@ function productDetail(
 const branchA = '01934567-89ab-7cde-b012-3456789abd01';
 const branchB = '01934567-89ab-7cde-b012-3456789abd02';
 
-function createTestStore(scope: { allBranches: boolean; branchIds: string[] } = {
-  allBranches: true,
-  branchIds: [branchA, branchB],
-}) {
+function createTestStore(
+  scope: { allBranches: boolean; branchIds: string[] } = {
+    allBranches: true,
+    branchIds: [branchA, branchB],
+  },
+) {
   const initialSession = sessionReducer(undefined, { type: 'init' });
   return configureStore({
     preloadedState: {
@@ -94,16 +92,19 @@ type ProductFormHookProps = {
 
 describe('buildProductFormSchema', () => {
   it('maps localized name fields to API body shape', () => {
-    const parsed = buildProductFormSchema(['en', 'ar'], 'en', [categoryId], priceRequiredMessage).parse(
-      {
-        categoryId,
-        name: { en: 'Burger', ar: 'برجر' },
-        description: { en: '', ar: '' },
-        priceMinor: 1500,
-        isActive: true,
-        modifierGroupIds: [],
-      },
-    );
+    const parsed = buildProductFormSchema(
+      ['en', 'ar'],
+      'en',
+      [categoryId],
+      priceRequiredMessage,
+    ).parse({
+      categoryId,
+      name: { en: 'Burger', ar: 'برجر' },
+      description: { en: '', ar: '' },
+      priceMinor: 1500,
+      isActive: true,
+      modifierGroupIds: [],
+    });
 
     const org = { defaultLocale: 'en', locales: ['en', 'ar'] as string[] };
     expect(localizedFormToApi(parsed.name, org)).toEqual({ en: 'Burger', ar: 'برجر' });

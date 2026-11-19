@@ -488,6 +488,10 @@ export class OrderingService {
 
       await this.writeOutbox(tx, ctx.orgId, branchId, orderId, eventType, updated);
 
+      if (body.to === 'ready') {
+        await this.completeIfReadyAndPaid(tx, ctx, branchId, updated);
+      }
+
       return this.loadOrderDetailInTx(tx, branchId, orderId);
     });
   }
@@ -977,8 +981,47 @@ export class OrderingService {
         await this.writeOutbox(tx, ctx.orgId, branchId, orderId, ORDER_EVENT_TYPES.placed, updated);
       }
 
+      await this.completeIfReadyAndPaid(tx, ctx, branchId, updated);
+
       return { payment: mapPayment(inserted), created: true };
     });
+  }
+
+  /** A ready order that is fully paid has nothing left to do: complete it automatically. */
+  private async completeIfReadyAndPaid(
+    tx: DrizzleTx,
+    ctx: RequestContext,
+    branchId: string,
+    order: { id: string; status: OrderStatus; paymentStatus: string; version: number },
+  ): Promise<void> {
+    if (order.status !== 'ready' || order.paymentStatus !== 'paid') {
+      return;
+    }
+    const completed = await this.repo.updateOrderStatus(tx, order.id, 'ready', order.version, {
+      status: 'completed',
+      completedAt: this.clock.now(),
+    });
+    if (!completed) {
+      return;
+    }
+    await this.repo.insertOrderEvent(tx, {
+      id: newUuidV7(),
+      orgId: ctx.orgId,
+      orderId: order.id,
+      type: ORDER_EVENT_TYPES.statusChanged,
+      fromStatus: 'ready',
+      toStatus: 'completed',
+      payload: { auto: true },
+      actorMembershipId: ctx.membershipId,
+    });
+    await this.writeOutbox(
+      tx,
+      ctx.orgId,
+      branchId,
+      order.id,
+      ORDER_EVENT_TYPES.statusChanged,
+      completed,
+    );
   }
 
   async getKitchenBoard(ctx: RequestContext, branchId: string): Promise<KitchenBoardResponse> {

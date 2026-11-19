@@ -1,10 +1,7 @@
 import { useMemo } from 'react';
 
 import { useAppSelector } from '../../../app/hooks.js';
-import {
-  selectAllBranchesScope,
-  selectSessionBranches,
-} from '../../session/session.selectors.js';
+import { selectAllBranchesScope, selectSessionBranches } from '../../session/session.selectors.js';
 import type { BranchAvailabilityScope } from '../branch-availability.utils.js';
 
 /** Which branches the current member can pick from when choosing where an item is shown. */

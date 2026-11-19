@@ -1,15 +1,7 @@
 import type { ComponentProps, CSSProperties, HTMLAttributes, ReactNode, Ref } from 'react';
 import { GripVerticalIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 
-import {
-  Badge,
-  Button,
-  ConfirmDialog,
-  EmptyState,
-  IconButton,
-  PageHeader,
-  Spinner,
-} from '@app/ui';
+import { Badge, Button, ConfirmDialog, EmptyState, IconButton, PageHeader, Spinner } from '@app/ui';
 
 import type { Category } from '@app/shared';
 
@@ -28,10 +20,7 @@ export interface CategoriesPageViewProps {
   formOpen: boolean;
   onFormOpenChange: (open: boolean) => void;
   formMode: 'create' | 'edit';
-  formProps: Omit<
-    ComponentProps<typeof CategoryFormDialogView>,
-    'open' | 'onOpenChange' | 'mode'
-  >;
+  formProps: Omit<ComponentProps<typeof CategoryFormDialogView>, 'open' | 'onOpenChange' | 'mode'>;
   confirmDeleteOpen: boolean;
   onConfirmDeleteOpenChange: (open: boolean) => void;
   onConfirmDelete: () => void;

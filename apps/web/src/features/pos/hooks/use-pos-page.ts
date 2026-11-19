@@ -409,7 +409,7 @@ export function usePosPage() {
           orderDetail.announceReleasedAdditions(paidOrderBefore, updated);
         }
         if (updated && selectedOrderId === updated.id) {
-          orderDetail.printReceipt();
+          orderDetail.printReceipt(updated);
         }
       };
 

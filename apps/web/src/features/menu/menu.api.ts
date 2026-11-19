@@ -149,13 +149,7 @@ export const menuApi = baseApi.injectEndpoints({
       invalidatesTags: [{ type: 'Product', id: 'LIST' }],
     }),
     setProductModifierGroups: builder.mutation({
-      query: ({
-        productId,
-        body,
-      }: {
-        productId: string;
-        body: SetProductModifierGroupsBody;
-      }) => ({
+      query: ({ productId, body }: { productId: string; body: SetProductModifierGroupsBody }) => ({
         url: `/v1/products/${productId}/modifier-groups`,
         method: 'PUT',
         body: setProductModifierGroupsBodySchema.parse(body),

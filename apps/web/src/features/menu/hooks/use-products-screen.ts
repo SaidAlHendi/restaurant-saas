@@ -297,9 +297,11 @@ export function useProductsScreen(): ProductsPageViewProps {
   // the converted price is shown next to it.
   const priceLabelFor = (product: Product) => {
     const systemPrice = formatMoney(product.priceMinor, org.defaultCurrency, org.uiLocale);
-    const displayPrice = moneyFormatter(org.defaultCurrency, org.uiLocale, moneyDisplay)(
-      product.priceMinor,
-    );
+    const displayPrice = moneyFormatter(
+      org.defaultCurrency,
+      org.uiLocale,
+      moneyDisplay,
+    )(product.priceMinor);
     return displayPrice === systemPrice ? systemPrice : `${systemPrice} · ${displayPrice}`;
   };
 
@@ -426,6 +428,9 @@ export function useProductsScreen(): ProductsPageViewProps {
       categories: categoryOptions,
       categoryLabel: t('menu.products.fields.category'),
       priceLabel: t('menu.products.fields.price'),
+      systemPriceLabel: t('menu.products.fields.systemPrice'),
+      displayPriceLabel: t('menu.products.fields.displayPrice'),
+      moneyDisplay,
       activeLabel: t('menu.status.active'),
       modifierGroups,
       modifierGroupsLabel: t('menu.products.fields.modifierGroups'),

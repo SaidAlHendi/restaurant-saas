@@ -3,9 +3,9 @@
 ## Status
 Rewrite this section at the end of every session (max 30 lines).
 - **State:** Steps 1-9 done. 10a done; 10b (Sentry, uptime, backup restore test) open, staging deploy in progress (`docs/runbook-staging.md`). Step 12 (admin) 12a-12d merged.
-- **Last task:** Notion "wrong price unit in adding product". Products table showed `product.currency` (e.g. USD) while the form showed the base currency (SAR). Table now shows the system price in `org.defaultCurrency`, plus the converted display price (`SAR 100 · $26.67`) when a display currency is active and differs. Empty states for dependent catalog pages were committed earlier (b8ae0d8).
-- **Changed files:** web menu `use-products-screen.ts`, `docs-site/roles/owner.mdx`.
-- **Verified:** typecheck, eslint, menu + money tests green. Not clicked through in a browser.
+- **Last task:** Product form shows both prices (system in base currency, display in display currency) when a display currency is active; editing one updates the other (display input keeps what was typed until the system price changes).
+- **Changed files:** web menu `ProductFormSheetView.tsx`, `hooks/use-display-price.ts`, `use-products-screen.ts`, locales en/ar, `docs-site/roles/owner.mdx`.
+- **Verified:** tsc, eslint, menu tests green. Not clicked through in a browser; no unit test for `useDisplayPrice` yet. Form still needs `org.manage` (settings read) to show the display field.
 - **Next step:** staging deploy / Step 10b.
 - **Decisions:** read-only users get plain text ("ask a manager or the owner"), no button. Tables and QR check `branches.manage`, menu pages `menu.manage`, left as is.
 - **Gotchas:** display config comes from `GET /v1/org/settings` (`org.manage`), so `menu.manage`-only users see just the system price in the products table. `productDisplayCurrency` in `lib/money.ts` is now unused outside its test. QR empty state has no "Add tables" button (string `menu.qr.noTablesAction` exists, unused). A held addition on an order that reaches Ready/Completed is released as pending when paid (not handled). print() blocks a headless browser. `graphify-out/` is gitignored.

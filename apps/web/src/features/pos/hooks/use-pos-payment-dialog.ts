@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -92,6 +92,17 @@ export function usePosPaymentDialog(input: {
     setClientPaymentId(null);
     input.onDiscarded?.();
   }, [activeOrder, canDiscard, changeStatus, input, t]);
+
+  // Nothing left to pay (paid elsewhere, version conflict after a captured payment, stale
+  // refetch): never leave an unpayable dialog stuck on screen.
+  const nothingDue = open && activeOrder !== undefined && activeOrder.dueMinor <= 0;
+  useEffect(() => {
+    if (nothingDue) {
+      setOpen(false);
+      setDialogOrder(undefined);
+      setClientPaymentId(null);
+    }
+  }, [nothingDue]);
 
   const quickAmounts = useMemo(() => quickTenderAmounts(cashDueMinor), [cashDueMinor]);
 

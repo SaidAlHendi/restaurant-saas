@@ -907,6 +907,8 @@
       "fields": {
         "category": "Category",
         "price": "Price",
+        "systemPrice": "System price",
+        "displayPrice": "Display price",
         "modifierGroups": "Modifier groups"
       },
       "imageLabel": "Product photo",

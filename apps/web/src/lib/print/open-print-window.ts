@@ -33,13 +33,19 @@ export function openPrintWindow(
       return;
     }
     win.addEventListener('afterprint', cleanup, { once: true });
-    win.focus();
-    win.print();
-    window.setTimeout(() => {
-      if (iframe.isConnected) {
-        cleanup();
-      }
-    }, 60_000);
+    // Some browsers (e.g. Opera) freeze the page while the preview is open: let the UI
+    // repaint first (dialogs closing) before handing control to the print preview.
+    window.requestAnimationFrame(() => {
+      window.setTimeout(() => {
+        if (!iframe.isConnected) {
+          return;
+        }
+        win.focus();
+        win.print();
+        // The page is usable again once print() returns; some browsers never fire afterprint.
+        window.setTimeout(cleanup, 1_000);
+      }, 150);
+    });
   };
 
   iframe.addEventListener('load', tryPrint, { once: true });
