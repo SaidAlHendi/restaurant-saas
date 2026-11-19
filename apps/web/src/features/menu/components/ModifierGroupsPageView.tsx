@@ -7,11 +7,12 @@ import {
   ConfirmDialog,
   EmptyState,
   IconButton,
+  InfoNote,
   PageHeader,
   Spinner,
 } from '@app/ui';
 
-import type { ModifierGroup } from '@app/shared';
+import type { ModifierGroup, ModifierGroupListItem } from '@app/shared';
 
 import { ModifierGroupFormDialogView } from './ModifierGroupFormDialogView.js';
 
@@ -20,7 +21,19 @@ export interface ModifierGroupsPageViewProps {
   subtitle: string;
   canManage: boolean;
   isLoading: boolean;
-  groups: ModifierGroup[];
+  groups: ModifierGroupListItem[];
+  /** "What are modifier groups?" explanation shown above the list. */
+  infoNote: {
+    title: string;
+    intro: string;
+    steps: string[];
+    example: string;
+    storageKey: string;
+    showLabel: string;
+    hideLabel: string;
+  };
+  /** e.g. "3 modifiers · used by 5 products". */
+  usageLabel: (group: ModifierGroupListItem) => string;
   labelFor: (group: ModifierGroup) => string;
   addLabel: string;
   emptyTitle: string;
@@ -52,6 +65,8 @@ export function ModifierGroupsPageView({
   canManage,
   isLoading,
   groups,
+  infoNote,
+  usageLabel,
   labelFor,
   addLabel,
   emptyTitle,
@@ -87,12 +102,37 @@ export function ModifierGroupsPageView({
           ) : null
         }
       />
+      <InfoNote
+        title={infoNote.title}
+        storageKey={infoNote.storageKey}
+        showLabel={infoNote.showLabel}
+        hideLabel={infoNote.hideLabel}
+      >
+        <p>{infoNote.intro}</p>
+        <ol className="list-decimal ps-5">
+          {infoNote.steps.map((step) => (
+            <li key={step}>{step}</li>
+          ))}
+        </ol>
+        <p>{infoNote.example}</p>
+      </InfoNote>
       {isLoading ? (
         <div className="flex justify-center p-8">
           <Spinner label={title} />
         </div>
       ) : groups.length === 0 ? (
-        <EmptyState title={emptyTitle} description={emptyDescription} />
+        <EmptyState
+          title={emptyTitle}
+          description={emptyDescription}
+          action={
+            canManage ? (
+              <Button type="button" onClick={onAdd}>
+                <PlusIcon className="size-4" aria-hidden />
+                {addLabel}
+              </Button>
+            ) : undefined
+          }
+        />
       ) : (
         <ul className="grid gap-3 md:grid-cols-2">
           {groups.map((group) => (
@@ -108,6 +148,7 @@ export function ModifierGroupsPageView({
                   >
                     <p className="font-medium">{labelFor(group)}</p>
                     <p className="text-muted-foreground text-sm">{minMaxLabel(group)}</p>
+                    <p className="text-muted-foreground text-sm">{usageLabel(group)}</p>
                   </button>
                   {canManage ? (
                     <div className="flex shrink-0 gap-1">

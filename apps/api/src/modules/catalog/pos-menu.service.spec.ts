@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing';
 import { DRIZZLE } from '../../core/db/db.module';
 import type { ObjectStorage } from '../../core/storage/object-storage';
 import { OBJECT_STORAGE } from '../../core/storage/storage.tokens';
+import { EntitlementsService } from '../billing/entitlements.service';
 import { TenancyRepository } from '../tenancy/tenancy.repository';
 
 import { CatalogRepository } from './catalog.repository';
@@ -41,6 +42,7 @@ describe('PosMenuService', () => {
         receiptHeader: null,
         receiptFooter: null,
         address: null,
+        pagerEnabled: true,
         isActive: true,
       }),
     );
@@ -55,6 +57,7 @@ describe('PosMenuService', () => {
     const moduleRef = await Test.createTestingModule({
       providers: [
         PosMenuService,
+        { provide: EntitlementsService, useValue: { can: () => Promise.resolve(false) } },
         {
           provide: DRIZZLE,
           useValue: {

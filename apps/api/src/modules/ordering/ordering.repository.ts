@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, lt, or, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, inArray, lt, or, sql } from 'drizzle-orm';
 import { Injectable } from '@nestjs/common';
 
 import type { OrderListCursor } from '../../lib/order-list-cursor';
@@ -9,6 +9,7 @@ import {
   diningTables,
   orderEvents,
   orderItemModifiers,
+  bills,
   orderItems,
   orders,
   payments,
@@ -25,12 +26,22 @@ function firstRow<T>(rows: T[]): T {
 
 @Injectable()
 export class OrderingRepository {
-  async listTables(tx: DrizzleTx, branchId: string) {
-    return tx
+  async listTables(tx: DrizzleTx, branchId: string, window?: { limit: number; offset: number } | null) {
+    const query = tx
       .select()
       .from(diningTables)
       .where(eq(diningTables.branchId, branchId))
-      .orderBy(diningTables.label);
+      .orderBy(diningTables.label, diningTables.id)
+      .$dynamic();
+    return window ? query.limit(window.limit).offset(window.offset) : query;
+  }
+
+  async countTables(tx: DrizzleTx, branchId: string): Promise<number> {
+    const [row] = await tx
+      .select({ total: count() })
+      .from(diningTables)
+      .where(eq(diningTables.branchId, branchId));
+    return row?.total ?? 0;
   }
 
   async findTableById(tx: DrizzleTx, branchId: string, tableId: string) {
@@ -162,6 +173,35 @@ export class OrderingRepository {
       .from(orderItems)
       .where(and(eq(orderItems.orderId, orderId), sql`${orderItems.status} <> 'voided'`));
     return result[0]?.count ?? 0;
+  }
+
+  /**
+   * Open orders (draft/placed/preparing/ready) from business days before `before`, for the
+   * "N older orders hidden" hint. Returns undefined when the list is not about open orders.
+   */
+  async countOlderOpenOrders(
+    tx: DrizzleTx,
+    branchId: string,
+    opts: { status?: OrderStatus; activeOnly?: boolean; before: string },
+  ): Promise<number | undefined> {
+    const open: OrderStatus[] = ['draft', 'placed', 'preparing', 'ready'];
+    if (opts.status !== undefined && !open.includes(opts.status)) {
+      return undefined;
+    }
+    if (opts.status === undefined && opts.activeOnly !== true) {
+      return undefined;
+    }
+    const rows = await tx
+      .select({ c: count() })
+      .from(orders)
+      .where(
+        and(
+          eq(orders.branchId, branchId),
+          opts.status !== undefined ? eq(orders.status, opts.status) : inArray(orders.status, open),
+          sql`${orders.businessDate} < ${opts.before}::date`,
+        ),
+      );
+    return rows[0]?.c ?? 0;
   }
 
   async listOrders(
@@ -460,7 +500,7 @@ export class OrderingRepository {
     tx: DrizzleTx,
     orderId: string,
     target: 'preparing' | 'ready',
-    fromStatuses: Array<'pending' | 'preparing'>,
+    fromStatuses: Array<'pending' | 'preparing' | 'ready'>,
   ) {
     await tx
       .update(orderItems)
@@ -471,6 +511,65 @@ export class OrderingRepository {
           inArray(orderItems.status, fromStatuses),
         ),
       );
+  }
+
+  /** Whole-order Ready: marks every open item ready; returns the items it changed. */
+  async markOpenItemsReady(tx: DrizzleTx, orderId: string) {
+    const open = await tx
+      .select({ id: orderItems.id, status: orderItems.status })
+      .from(orderItems)
+      .where(and(eq(orderItems.orderId, orderId), inArray(orderItems.status, ['pending', 'preparing'])));
+    if (open.length > 0) {
+      await tx
+        .update(orderItems)
+        .set({ status: 'ready' })
+        .where(
+          and(
+            eq(orderItems.orderId, orderId),
+            inArray(
+              orderItems.id,
+              open.map((item) => item.id),
+            ),
+          ),
+        );
+    }
+    return open.map((item) => ({ id: item.id, from: item.status as 'pending' | 'preparing' }));
+  }
+
+  /** Undo of Ready: the listed items are being cooked again. */
+  async restoreItemsToPreparing(tx: DrizzleTx, orderId: string, itemIds: string[]) {
+    if (itemIds.length === 0) {
+      return;
+    }
+    await tx
+      .update(orderItems)
+      .set({ status: 'preparing' })
+      .where(
+        and(
+          eq(orderItems.orderId, orderId),
+          inArray(orderItems.id, itemIds),
+          eq(orderItems.status, 'ready'),
+        ),
+      );
+  }
+
+  async findBillStatus(tx: DrizzleTx, billId: string): Promise<'open' | 'closed' | undefined> {
+    const rows = await tx.select({ status: bills.status }).from(bills).where(eq(bills.id, billId)).limit(1);
+    return rows[0]?.status;
+  }
+
+  /** Moves additions that waited for payment to the kitchen; returns the released item ids. */
+  async releaseHeldItems(
+    tx: DrizzleTx,
+    orderId: string,
+    target: 'pending' | 'preparing',
+  ): Promise<string[]> {
+    const rows = await tx
+      .update(orderItems)
+      .set({ status: target })
+      .where(and(eq(orderItems.orderId, orderId), eq(orderItems.status, 'awaiting_payment')))
+      .returning({ id: orderItems.id });
+    return rows.map((row) => row.id);
   }
 
   async findOrderItem(tx: DrizzleTx, orderId: string, itemId: string) {
@@ -536,6 +635,27 @@ export class OrderingRepository {
       (a, b) =>
         (a.placedAt?.getTime() ?? 0) - (b.placedAt?.getTime() ?? 0) || a.id.localeCompare(b.id),
     );
+  }
+
+  /** Round (1, 2, ...) of each order on its table bill, in the same order the bill shows them. */
+  async listBillRounds(tx: DrizzleTx, billIds: string[]): Promise<Map<string, number>> {
+    const rounds = new Map<string, number>();
+    if (billIds.length === 0) {
+      return rounds;
+    }
+    const rows = await tx
+      .select({ id: orders.id, billId: orders.billId })
+      .from(orders)
+      .where(inArray(orders.billId, billIds))
+      .orderBy(asc(orders.createdAt), asc(orders.id));
+    const counters = new Map<string, number>();
+    for (const row of rows) {
+      if (row.billId === null) continue;
+      const next = (counters.get(row.billId) ?? 0) + 1;
+      counters.set(row.billId, next);
+      rounds.set(row.id, next);
+    }
+    return rounds;
   }
 
   async listOrderItemsForOrderIds(tx: DrizzleTx, orderIds: string[]) {

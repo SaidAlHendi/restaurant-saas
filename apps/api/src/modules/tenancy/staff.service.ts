@@ -4,6 +4,9 @@ import * as argon2 from 'argon2';
 import {
   canInviteRole,
   canManageMember,
+  computeEffectivePermissions,
+  type PutStaffPermissionOverridesBody,
+  type StaffPermissionOverridesResponse,
   pinOnlyRoleKeySchema,
   type CreatePinOnlyStaffBody,
   type CreateStaffInviteBody,
@@ -12,6 +15,7 @@ import {
   type StaffRulesChange,
   type SystemRoleKey,
 } from '@app/shared';
+import { slicePage, type PageQuery } from '@app/shared';
 
 import { ENV, type Env } from '../../config/config.module';
 import { CLOCK, type Clock } from '../../core/clock/clock.tokens';
@@ -39,6 +43,7 @@ import {
   branchesForNewMember,
 } from './staff-seat-enforcement';
 import { TenancyRepository } from './tenancy.repository';
+import { filterStaffByActorBranches } from './staff-visibility';
 
 /**
  * The invite link lets its holder set the password of a password-less account. That is only
@@ -66,7 +71,7 @@ export class StaffService {
     private readonly realtimeKick: RealtimeKickService,
   ) {}
 
-  list(ctx: RequestContext) {
+  list(ctx: RequestContext, query: PageQuery = {}) {
     return withOrg(this.db, ctx.orgId, async (tx) => {
       const rows = await this.tenancyRepo.listStaffWithUsers(tx);
       const items = await Promise.all(
@@ -91,7 +96,15 @@ export class StaffService {
           };
         }),
       );
-      return { items };
+      const actorRole = await this.actorRoleKey(tx, ctx);
+      // Owners (and anyone with access to all branches) see every member.
+      // Other actors (managers) only see members who share at least one of
+      // their branches, plus themselves.
+      // Scoping happens in memory, so the page is cut after it.
+      if (actorRole === 'owner' || ctx.allBranches) {
+        return slicePage(items, query);
+      }
+      return slicePage(filterStaffByActorBranches(items, ctx.branchIds), query);
     });
   }
 
@@ -321,6 +334,58 @@ export class StaffService {
 
       return { membershipId, userId };
     });
+  }
+
+  async getPermissionOverrides(
+    ctx: RequestContext,
+    membershipId: string,
+  ): Promise<StaffPermissionOverridesResponse> {
+    return withOrg(this.db, ctx.orgId, (tx) => this.loadPermissionOverrides(tx, ctx, membershipId));
+  }
+
+  async putPermissionOverrides(
+    ctx: RequestContext,
+    membershipId: string,
+    body: PutStaffPermissionOverridesBody,
+  ): Promise<StaffPermissionOverridesResponse> {
+    const response = await withOrg(this.db, ctx.orgId, async (tx) => {
+      const row = await this.tenancyRepo.findMembershipWithUserRole(tx, membershipId);
+      if (!row || row.membership.orgId !== ctx.orgId) {
+        throw new NotFoundError();
+      }
+      if (row.role.key === 'owner') {
+        throw new ForbiddenError('Owner permissions cannot be customised');
+      }
+      await this.tenancyRepo.replacePermissionOverrides(
+        tx,
+        ctx.orgId,
+        membershipId,
+        [...new Set(body.grant)],
+        [...new Set(body.deny)],
+      );
+      return this.loadPermissionOverrides(tx, ctx, membershipId);
+    });
+    // Permissions are loaded per request, so the change applies on the employee's next call.
+    return response;
+  }
+
+  private async loadPermissionOverrides(
+    tx: DrizzleTx,
+    ctx: RequestContext,
+    membershipId: string,
+  ): Promise<StaffPermissionOverridesResponse> {
+    const row = await this.tenancyRepo.findMembershipWithUserRole(tx, membershipId);
+    if (!row || row.membership.orgId !== ctx.orgId) {
+      throw new NotFoundError();
+    }
+    const rolePermissions = await this.tenancyRepo.loadRolePermissions(tx, row.role.id);
+    const { grant, deny } = await this.tenancyRepo.listPermissionOverrides(tx, membershipId);
+    return {
+      rolePermissions,
+      grant,
+      deny,
+      effective: computeEffectivePermissions(rolePermissions, grant, deny),
+    };
   }
 
   async patchMembership(ctx: RequestContext, membershipId: string, body: PatchStaffMembershipBody) {

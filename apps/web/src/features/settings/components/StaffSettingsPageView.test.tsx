@@ -13,6 +13,7 @@ function row(
     actorMembershipId: 'owner',
     actorRoleKey: 'owner',
     hasStaffManage: true,
+    hasOrgManage: true,
     activeOwnerCount: 2,
     target: {
       id: overrides.id,
@@ -26,8 +27,10 @@ function row(
     roleLabel: 'Cashier',
     statusTone: 'secondary',
     pinLabel: 'No PIN',
+    branchLabel: 'All branches',
     actions,
     onEdit: null,
+    onPermissions: null,
     onSetPin: null,
     onRemovePin: null,
     onDisable: null,
@@ -38,7 +41,9 @@ function row(
   };
 }
 
-function minimalStaffVm(overrides: Partial<StaffSettingsPageViewModel> = {}): StaffSettingsPageViewModel {
+function minimalStaffVm(
+  overrides: Partial<StaffSettingsPageViewModel> = {},
+): StaffSettingsPageViewModel {
   const managerInviteRoles = [
     {
       value: 'cashier' as const,
@@ -55,6 +60,13 @@ function minimalStaffVm(overrides: Partial<StaffSettingsPageViewModel> = {}): St
     redirectTo: null,
     isLoading: false,
     isError: false,
+    permissionsMember: null,
+    onPermissionsClose: () => {},
+    searchQuery: '',
+    onSearchQueryChange: vi.fn(),
+    roleFilter: 'all',
+    onRoleFilterChange: vi.fn(),
+    roleFilterOptions: [],
     canAddStaff: true,
     branchOptions: [{ id: 'b1', name: 'Main' }],
     inviteRoleOptions: managerInviteRoles,
@@ -167,8 +179,13 @@ function minimalStaffVm(overrides: Partial<StaffSettingsPageViewModel> = {}): St
       columnRole: 'Role',
       columnStatus: 'Status',
       columnPin: 'PIN',
+      columnBranches: 'Branches',
+      searchPlaceholder: 'Search',
+      allRoles: 'All roles',
+      filterRole: 'Filter by role',
       actions: 'Actions',
       edit: 'Edit',
+      permissions: 'Permissions',
       setPin: 'Set PIN',
       removePin: 'Remove PIN',
       disable: 'Disable',
@@ -176,6 +193,8 @@ function minimalStaffVm(overrides: Partial<StaffSettingsPageViewModel> = {}): St
       regenerateInvite: 'Regenerate',
       revokeInvite: 'Revoke',
       inviteDialogTitle: 'Invite',
+      inviteDialogDescription: 'Invite a team member',
+      close: 'Close',
       pinOnlyDialogTitle: 'PIN only',
       editDialogTitle: 'Edit',
       pinDialogTitle: 'Set PIN',

@@ -1,0 +1,25 @@
+---
+title: "Platform admin and infrastructure"
+description: "Admin accounts, admin sessions, the audit log and the event outbox."
+icon: "shield"
+---
+
+## Platform admin
+
+These tables are separate from the restaurant tables: no tenant membership, no RLS, and only the `app_admin` database role can use them.
+
+| Table | Contains | Used by |
+| --- | --- | --- |
+| admin_users | Admin accounts: email, `password_hash`, name, `role` (`super`, `support`, `billing`), `is_active`, `last_login_at`. | admin auth |
+| admin_sessions | Admin refresh-token sessions, same rotation pattern as restaurant sessions. | admin auth |
+| audit_logs | One row per sensitive admin action: `admin_user_id`, `actor_role`, `action`, target type and id, `org_id`, `payload`, IP. Written when a super admin suspends or reactivates a restaurant. | admin orgs |
+
+See [Super admin](/roles/super) for who can write audited actions.
+
+## Infrastructure
+
+### outbox_events
+
+A transactional outbox. Changes that other parts must react to (for example a new order reaching the kitchen display) write a row in the **same transaction** as the change. A worker then publishes it. Columns: `org_id`, `type`, `aggregate_id`, `branch_id`, `payload`, `published_at`, `dead_at`, `attempts`, `last_error`, `next_attempt_at`.
+
+**Used by:** core/outbox, which feeds realtime updates.

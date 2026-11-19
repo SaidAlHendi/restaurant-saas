@@ -1,0 +1,72 @@
+---
+title: "Comparing similar tables"
+description: "Tables that look alike, how they differ, and whether they could be merged."
+icon: "git-compare"
+---
+
+Several tables share a shape on purpose. Each pair below has a different owner, lifetime or security boundary.
+
+## Sessions: auth_sessions vs admin_sessions
+
+|  | auth_sessions | admin_sessions |
+| --- | --- | --- |
+| Who | Restaurant staff (`users`) | Platform admins (`admin_users`) |
+| Scope | One restaurant (`org_id`) | Whole platform |
+| Columns | token hash, family id, expiry, revoke, replaced by, UA, IP | Same columns, no `org_id` |
+| Database role | Normal app role | `app_admin` only |
+
+**Verdict:** keep separate. The columns match, but merging would put admin tokens in a table the tenant role can reach.
+
+## Accounts: users vs admin_users
+
+|  | users | admin_users |
+| --- | --- | --- |
+| Sign-in | Email and password, or PIN via memberships | Email and password only |
+| Role | Per restaurant, in memberships | One platform `role` |
+| Active flag | Membership status | `is_active` |
+
+`users` also carries older `is_platform_admin` and `platform_role` columns. They duplicate `admin_users.role` and are a cleanup candidate.
+
+## Permissions: role_permissions vs plan_features
+
+|  | role_permissions | plan_features |
+| --- | --- | --- |
+| Question answered | What can this **person** do? | What does this **restaurant's plan** include? |
+| Key examples | `orders.cancel`, `staff.manage` | `pos.access`, `limit.products` |
+| Numeric limits | No | Yes (`limit_value`) |
+
+Both are "key to subject" tables, and a request must pass **both**: a cashier needs `orders.create` and the restaurant needs `pos.access`. Keep separate.
+
+## History logs: order_events vs audit_logs vs billing_events vs outbox_events
+
+| Table | Records | Written by | Append-only | Purpose |
+| --- | --- | --- | --- | --- |
+| order_events | Order status changes and approvals | Restaurant staff actions | Yes | Order timeline |
+| audit_logs | Sensitive admin actions | Platform admins | Yes | Accountability |
+| billing_events | Raw Paddle webhooks | Paddle | Yes, plus `processed_at` | Safe retry of billing updates |
+| outbox_events | Messages to publish | The API | No, rows are marked published | Reliable realtime delivery |
+
+All four store a `payload` jsonb and a time. They differ in author and in what reads them, so they stay separate. If a unified activity feed is wanted later, build it as a view over the first two.
+
+## Money lines: order_items vs order_item_modifiers vs payments
+
+`order_items` and `order_item_modifiers` are the **price side** and copy name and price at order time. `payments` is the **settlement side**. The order's `payment_status` tracks settlement, and totals are stored on the order rather than recomputed from the menu.
+
+## Catalog parents: categories, products, modifier_groups
+
+All three share `org_id`, a translated `name` jsonb, `sort_order` where relevant, and `deleted_at`. They differ in relationship: a product has one category, but products and modifier groups are many-to-many through `product_modifier_groups`. A generic "menu node" table would lose those constraints.
+
+## Settings: organizations vs branches
+
+|  | organizations | branches |
+| --- | --- | --- |
+| Currency | `default_currency` | `currency` (used for orders) |
+| Locale | `default_locale`, `locales` | none |
+| Tax and receipts | none | tax rate, inclusive flag, receipt text |
+| Business day | none | `day_start_hour`, timezone |
+
+Orders read tax and currency from the **branch**. The organization values are restaurant-wide defaults.
+
+## Order numbering: branch_counters vs orders
+
+`branch_counters` is the next-number source, and `orders` stores the number it received. The counter is a small separate row per branch and day, so the next number does not need a scan of orders.

@@ -40,7 +40,7 @@ export function StatCard({
     <div
       data-slot="stat-card"
       className={cn(
-        'flex flex-col gap-3 rounded-2xl border p-5 shadow-sm',
+        '@container flex flex-col gap-2 rounded-lg border p-4 shadow-xs',
         emphasis
           ? 'border-transparent bg-primary text-primary-foreground'
           : 'bg-card text-card-foreground',
@@ -48,18 +48,7 @@ export function StatCard({
       )}
       {...props}
     >
-      <div className="flex items-center gap-3">
-        {icon ? (
-          <span
-            className={cn(
-              'flex size-9 shrink-0 items-center justify-center rounded-xl [&_svg]:size-5',
-              emphasis ? 'bg-primary-foreground/15' : 'bg-accent-2/15 text-accent-2',
-            )}
-            aria-hidden
-          >
-            {icon}
-          </span>
-        ) : null}
+      <div className="flex items-center justify-between gap-3">
         <span
           className={cn(
             'text-sm font-medium',
@@ -68,8 +57,22 @@ export function StatCard({
         >
           {label}
         </span>
+        {icon ? (
+          <span
+            className={cn(
+              'flex shrink-0 items-center justify-center [&_svg]:size-[1.125rem]',
+              emphasis ? 'text-primary-foreground/85' : 'text-muted-foreground',
+            )}
+            aria-hidden
+          >
+            {icon}
+          </span>
+        ) : null}
       </div>
-      <div className="text-2xl font-bold tracking-tight whitespace-nowrap tabular-nums">{value}</div>
+      {/* Scales down in narrow cards so long amounts (large-number currencies) are not clipped. */}
+      <div className="text-[clamp(1rem,10.5cqi,1.5rem)] leading-8 font-bold tracking-tight whitespace-nowrap tabular-nums">
+        {value}
+      </div>
       {delta ? (
         <div className="flex flex-wrap items-center gap-1.5 text-xs">
           <span

@@ -44,6 +44,7 @@ const sampleMe: MeResponse = {
     },
   ],
   orgs: [{ id: '01932a1a-7b3e-7000-8000-000000000010', name: 'Demo', slug: 'demo' }],
+  allBranches: true,
   currentBranchId: '01932a1a-7b3e-7000-8000-000000000030',
   entitlements: testMeEntitlements,
 };

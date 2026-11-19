@@ -1,16 +1,50 @@
-import { and, asc, eq, gt, inArray, isNull, or, sql } from 'drizzle-orm';
+import { and, asc, count, eq, getTableColumns, gt, inArray, isNull, or, sql } from 'drizzle-orm';
 import { Injectable } from '@nestjs/common';
 
 import {
   categories,
+  categoryBranches,
   modifierGroups,
   modifiers,
+  productBranches,
   productModifierGroups,
   products,
 } from '../../core/db/schema/catalog';
 import type { DrizzleTx } from '../../core/db/with-org';
 import { escapeLikePattern } from '../../lib/sql-like';
 import type { ProductListCursor } from '../../lib/cursor';
+
+/** Product is shown in `branchId`: marked for all branches, or listed for that branch. */
+export function productInBranch(branchId: string) {
+  return sql`(${products.availableInAllBranches} or exists (
+    select 1 from ${productBranches}
+    where ${productBranches.productId} = ${products.id} and ${productBranches.branchId} = ${branchId}
+  ))`;
+}
+
+/** Category is shown in `branchId`: marked for all branches, or listed for that branch. */
+export function categoryInBranch(branchId: string) {
+  return sql`(${categories.availableInAllBranches} or exists (
+    select 1 from ${categoryBranches}
+    where ${categoryBranches.categoryId} = ${categories.id} and ${categoryBranches.branchId} = ${branchId}
+  ))`;
+}
+
+function groupBranchIds<K extends string>(
+  rows: Array<Record<K, string> & { branchId: string }>,
+  key: K,
+): Map<string, string[]> {
+  const out = new Map<string, string[]>();
+  for (const row of rows) {
+    const list = out.get(row[key]);
+    if (list) {
+      list.push(row.branchId);
+    } else {
+      out.set(row[key], [row.branchId]);
+    }
+  }
+  return out;
+}
 
 function firstRow<T>(rows: T[]): T {
   const row = rows[0];
@@ -22,12 +56,22 @@ function firstRow<T>(rows: T[]): T {
 
 @Injectable()
 export class CatalogRepository {
-  async listCategories(tx: DrizzleTx, orgId: string) {
-    return tx
+  async listCategories(tx: DrizzleTx, orgId: string, window?: { limit: number; offset: number } | null) {
+    const query = tx
       .select()
       .from(categories)
       .where(and(eq(categories.orgId, orgId), isNull(categories.deletedAt)))
-      .orderBy(asc(categories.sortOrder), asc(categories.id));
+      .orderBy(asc(categories.sortOrder), asc(categories.id))
+      .$dynamic();
+    return window ? query.limit(window.limit).offset(window.offset) : query;
+  }
+
+  async countCategories(tx: DrizzleTx, orgId: string): Promise<number> {
+    const [row] = await tx
+      .select({ total: count() })
+      .from(categories)
+      .where(and(eq(categories.orgId, orgId), isNull(categories.deletedAt)));
+    return row?.total ?? 0;
   }
 
   async findCategoryById(tx: DrizzleTx, categoryId: string, includeDeleted = false) {
@@ -47,7 +91,11 @@ export class CatalogRepository {
     return firstRow(await tx.insert(categories).values(row).returning());
   }
 
-  async updateCategory(tx: DrizzleTx, categoryId: string, patch: Partial<typeof categories.$inferInsert>) {
+  async updateCategory(
+    tx: DrizzleTx,
+    categoryId: string,
+    patch: Partial<typeof categories.$inferInsert>,
+  ) {
     const rows = await tx
       .update(categories)
       .set({ ...patch, updatedAt: new Date() })
@@ -112,6 +160,7 @@ export class CatalogRepository {
       categoryId?: string;
       isActive?: boolean;
       search?: string;
+      branchId?: string;
       cursor?: ProductListCursor;
       limit: number;
     },
@@ -122,6 +171,9 @@ export class CatalogRepository {
     }
     if (opts.isActive !== undefined) {
       conditions.push(eq(products.isActive, opts.isActive));
+    }
+    if (opts.branchId) {
+      conditions.push(productInBranch(opts.branchId));
     }
     if (opts.search) {
       const pattern = `%${escapeLikePattern(opts.search)}%`;
@@ -166,7 +218,11 @@ export class CatalogRepository {
     return firstRow(await tx.insert(products).values(row).returning());
   }
 
-  async updateProduct(tx: DrizzleTx, productId: string, patch: Partial<typeof products.$inferInsert>) {
+  async updateProduct(
+    tx: DrizzleTx,
+    productId: string,
+    patch: Partial<typeof products.$inferInsert>,
+  ) {
     const rows = await tx
       .update(products)
       .set({ ...patch, updatedAt: new Date() })
@@ -220,12 +276,38 @@ export class CatalogRepository {
     return (result[0]?.max ?? -1) + 1;
   }
 
-  async listModifierGroups(tx: DrizzleTx, orgId: string) {
-    return tx
-      .select()
+  /** Groups with how many modifiers they hold and how many (non-deleted) products use them. */
+  async listModifierGroups(tx: DrizzleTx, orgId: string, window?: { limit: number; offset: number } | null) {
+    // Inside the subqueries Drizzle would print a bare "id" (the inner table's), so the outer
+    // group id is written out qualified.
+    const outerGroupId = sql.raw('"modifier_groups"."id"');
+    const query = tx
+      .select({
+        ...getTableColumns(modifierGroups),
+        modifierCount: sql<number>`(
+          select count(*)::int from ${modifiers}
+          where ${modifiers.groupId} = ${outerGroupId} and ${modifiers.deletedAt} is null
+        )`,
+        productCount: sql<number>`(
+          select count(*)::int from ${productModifierGroups}
+          inner join ${products} on ${products.id} = ${productModifierGroups.productId}
+          where ${productModifierGroups.groupId} = ${outerGroupId}
+            and ${products.deletedAt} is null
+        )`,
+      })
       .from(modifierGroups)
       .where(and(eq(modifierGroups.orgId, orgId), isNull(modifierGroups.deletedAt)))
-      .orderBy(asc(modifierGroups.id));
+      .orderBy(asc(modifierGroups.id))
+      .$dynamic();
+    return window ? query.limit(window.limit).offset(window.offset) : query;
+  }
+
+  async countModifierGroups(tx: DrizzleTx, orgId: string): Promise<number> {
+    const [row] = await tx
+      .select({ total: count() })
+      .from(modifierGroups)
+      .where(and(eq(modifierGroups.orgId, orgId), isNull(modifierGroups.deletedAt)));
+    return row?.total ?? 0;
   }
 
   async findModifierGroupById(tx: DrizzleTx, groupId: string, includeDeleted = false) {
@@ -294,7 +376,11 @@ export class CatalogRepository {
     return firstRow(await tx.insert(modifiers).values(row).returning());
   }
 
-  async updateModifier(tx: DrizzleTx, modifierId: string, patch: Partial<typeof modifiers.$inferInsert>) {
+  async updateModifier(
+    tx: DrizzleTx,
+    modifierId: string,
+    patch: Partial<typeof modifiers.$inferInsert>,
+  ) {
     const rows = await tx
       .update(modifiers)
       .set({ ...patch, updatedAt: new Date() })
@@ -336,6 +422,29 @@ export class CatalogRepository {
     return (result[0]?.max ?? -1) + 1;
   }
 
+  /** productId → number of linked (non-deleted) modifier groups. */
+  async countModifierGroupsByProduct(tx: DrizzleTx, productIds: string[]) {
+    const counts = new Map<string, number>();
+    if (productIds.length === 0) {
+      return counts;
+    }
+    const rows = await tx
+      .select({
+        productId: productModifierGroups.productId,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(productModifierGroups)
+      .innerJoin(modifierGroups, eq(productModifierGroups.groupId, modifierGroups.id))
+      .where(
+        and(inArray(productModifierGroups.productId, productIds), isNull(modifierGroups.deletedAt)),
+      )
+      .groupBy(productModifierGroups.productId);
+    for (const row of rows) {
+      counts.set(row.productId, row.count);
+    }
+    return counts;
+  }
+
   async listProductModifierGroups(tx: DrizzleTx, productId: string) {
     return tx
       .select({
@@ -344,12 +453,7 @@ export class CatalogRepository {
       })
       .from(productModifierGroups)
       .innerJoin(modifierGroups, eq(productModifierGroups.groupId, modifierGroups.id))
-      .where(
-        and(
-          eq(productModifierGroups.productId, productId),
-          isNull(modifierGroups.deletedAt),
-        ),
-      )
+      .where(and(eq(productModifierGroups.productId, productId), isNull(modifierGroups.deletedAt)))
       .orderBy(asc(productModifierGroups.sortOrder), asc(modifierGroups.id));
   }
 
@@ -389,7 +493,7 @@ export class CatalogRepository {
       );
   }
 
-  async listActiveCategoriesForPosMenu(tx: DrizzleTx, orgId: string) {
+  async listActiveCategoriesForPosMenu(tx: DrizzleTx, orgId: string, branchId: string) {
     return tx
       .select()
       .from(categories)
@@ -398,12 +502,18 @@ export class CatalogRepository {
           eq(categories.orgId, orgId),
           eq(categories.isActive, true),
           isNull(categories.deletedAt),
+          categoryInBranch(branchId),
         ),
       )
       .orderBy(asc(categories.sortOrder), asc(categories.id));
   }
 
-  async listActiveProductsForCategoryIds(tx: DrizzleTx, orgId: string, categoryIds: string[]) {
+  async listActiveProductsForCategoryIds(
+    tx: DrizzleTx,
+    orgId: string,
+    categoryIds: string[],
+    branchId: string,
+  ) {
     if (categoryIds.length === 0) {
       return [];
     }
@@ -416,6 +526,7 @@ export class CatalogRepository {
           inArray(products.categoryId, categoryIds),
           eq(products.isActive, true),
           isNull(products.deletedAt),
+          productInBranch(branchId),
         ),
       )
       .orderBy(asc(products.categoryId), asc(products.sortOrder), asc(products.id));
@@ -433,10 +544,7 @@ export class CatalogRepository {
       .from(productModifierGroups)
       .innerJoin(modifierGroups, eq(productModifierGroups.groupId, modifierGroups.id))
       .where(
-        and(
-          inArray(productModifierGroups.productId, productIds),
-          isNull(modifierGroups.deletedAt),
-        ),
+        and(inArray(productModifierGroups.productId, productIds), isNull(modifierGroups.deletedAt)),
       )
       .orderBy(
         asc(productModifierGroups.productId),
@@ -460,5 +568,77 @@ export class CatalogRepository {
         ),
       )
       .orderBy(asc(modifiers.groupId), asc(modifiers.sortOrder), asc(modifiers.id));
+  }
+
+  async listProductBranchIds(tx: DrizzleTx, productIds: string[]): Promise<Map<string, string[]>> {
+    if (productIds.length === 0) {
+      return new Map();
+    }
+    const rows = await tx
+      .select({ productId: productBranches.productId, branchId: productBranches.branchId })
+      .from(productBranches)
+      .where(inArray(productBranches.productId, productIds))
+      .orderBy(asc(productBranches.branchId));
+    return groupBranchIds(rows, 'productId');
+  }
+
+  async replaceProductBranches(
+    tx: DrizzleTx,
+    productId: string,
+    orgId: string,
+    branchIds: string[],
+  ) {
+    await tx.delete(productBranches).where(eq(productBranches.productId, productId));
+    if (branchIds.length === 0) {
+      return;
+    }
+    await tx
+      .insert(productBranches)
+      .values(branchIds.map((branchId) => ({ productId, branchId, orgId })));
+  }
+
+  async listCategoryBranchIds(
+    tx: DrizzleTx,
+    categoryIds: string[],
+  ): Promise<Map<string, string[]>> {
+    if (categoryIds.length === 0) {
+      return new Map();
+    }
+    const rows = await tx
+      .select({ categoryId: categoryBranches.categoryId, branchId: categoryBranches.branchId })
+      .from(categoryBranches)
+      .where(inArray(categoryBranches.categoryId, categoryIds))
+      .orderBy(asc(categoryBranches.branchId));
+    return groupBranchIds(rows, 'categoryId');
+  }
+
+  async replaceCategoryBranches(
+    tx: DrizzleTx,
+    categoryId: string,
+    orgId: string,
+    branchIds: string[],
+  ) {
+    await tx.delete(categoryBranches).where(eq(categoryBranches.categoryId, categoryId));
+    if (branchIds.length === 0) {
+      return;
+    }
+    await tx
+      .insert(categoryBranches)
+      .values(branchIds.map((branchId) => ({ categoryId, branchId, orgId })));
+  }
+
+  /** Whether the product and its category are both shown in the branch. */
+  async isProductShownInBranch(
+    tx: DrizzleTx,
+    productId: string,
+    branchId: string,
+  ): Promise<boolean> {
+    const rows = await tx
+      .select({ id: products.id })
+      .from(products)
+      .innerJoin(categories, eq(categories.id, products.categoryId))
+      .where(and(eq(products.id, productId), productInBranch(branchId), categoryInBranch(branchId)))
+      .limit(1);
+    return rows.length > 0;
   }
 }

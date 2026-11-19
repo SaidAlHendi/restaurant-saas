@@ -1,5 +1,14 @@
 # Roadmap (MVP)
 
+## Status
+Rewrite this section at the end of every session (max 30 lines).
+- **State:** Steps 1-9 done. 10a done; 10b (Sentry, uptime, backup restore test) open, staging deploy in progress (`docs/runbook-staging.md`). Step 12 (admin) 12a-12d merged.
+- **Last task:** English digits everywhere (branch off `dev`). `intlLocaleForUi` now returns `ar-SA-u-ca-gregory-nu-latn` (Latin digits, Gregorian dates; other locales get `-u-nu-latn`); every direct `Intl.*` call in web/admin/site goes through it. `Input` (tel/number/numeric/decimal), `useMoneyInput`, `useNumberInput` convert Arabic-Indic digits and `٫` as you type (`toWesternDigits` in `packages/ui/src/lib/number.ts`). Arabic digits in `ar.json`, landing content, seed data, dev-ui copy replaced with 0-9.
+- **Verified:** lint, typecheck, test green. Not clicked in a browser.
+- **Next step:** review the PR; click the not-clicked cases above on staging.
+- **Decisions:** UI shows Mark ready next to Start preparing on a New order (server already allows placed -> ready). Add items stays as today (placed/preparing only). Timeline loads lazily in the POS sheet. Moving an order to a table lives on the Bills page, not the sheet, so it is untouched.
+- **Gotchas:** root `.env` has CRLF line endings (strip `\r` when reading values in scripts). Not in the API, so not shown: bill label, branch name on the detail, payment status (captured/refunded) and who took a payment, which items a payment covered.
+
 - [x] 1. Monorepo scaffold, docker compose (Postgres, Redis), CI (lint, typecheck, test), deploy to staging
 - [x] 1b. UI kit in packages/ui: shadcn/ui + Tailwind v4, themes cupcake/forest, first batch of components, /dev/ui showcase, ESLint UI-only rule (docs/ui-kit.md)
 - [x] 2. Auth, organizations, branches, memberships, roles, RLS, tenant-isolation test suite

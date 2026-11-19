@@ -1,0 +1,169 @@
+# Staging stack for the laptop (and the shape of production on a VPS).
+# Run through ./deploy.sh, which passes --env-file staging.env. See docs/runbook-staging.md.
+name: sahtain-staging
+
+x-api-env: &api-env
+  NODE_ENV: production
+  LOG_LEVEL: ${LOG_LEVEL:-info}
+  DATABASE_URL: postgresql://app_user:${APP_USER_PASSWORD}@postgres:5432/restaurant_saas
+  DATABASE_MIGRATION_URL: postgresql://app_owner:${APP_OWNER_PASSWORD}@postgres:5432/restaurant_saas
+  DATABASE_WORKER_URL: postgresql://app_worker:${APP_WORKER_PASSWORD}@postgres:5432/restaurant_saas
+  DATABASE_ADMIN_URL: postgresql://app_admin:${APP_ADMIN_PASSWORD}@postgres:5432/restaurant_saas
+  REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+  JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+  JWT_ADMIN_SECRET: ${JWT_ADMIN_SECRET}
+  COOKIE_SECURE: 'true'
+  CORS_ORIGINS: ${CORS_ORIGINS}
+  WEB_APP_URL: ${WEB_APP_URL}
+  STORAGE_DRIVER: s3
+  S3_ENDPOINT: ${S3_ENDPOINT}
+  S3_REGION: ${S3_REGION:-auto}
+  S3_BUCKET: ${S3_BUCKET}
+  S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID}
+  S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY}
+  S3_PUBLIC_BASE_URL: ${S3_PUBLIC_BASE_URL}
+  PADDLE_ENV: ${PADDLE_ENV:-sandbox}
+  PADDLE_API_KEY: ${PADDLE_API_KEY:-}
+  PADDLE_WEBHOOK_SECRET: ${PADDLE_WEBHOOK_SECRET:-}
+  PADDLE_PRICE_MENU: ${PADDLE_PRICE_MENU:-}
+  PADDLE_PRICE_RESTAURANT: ${PADDLE_PRICE_RESTAURANT:-}
+  PADDLE_PRICE_BUSINESS: ${PADDLE_PRICE_BUSINESS:-}
+  RESEND_API_KEY: ${RESEND_API_KEY:-}
+  LEADS_NOTIFY_EMAIL_TO: ${LEADS_NOTIFY_EMAIL_TO:-}
+  LEADS_NOTIFY_EMAIL_FROM: ${LEADS_NOTIFY_EMAIL_FROM:-Sahtain <onboarding@resend.dev>}
+  LEADS_NOTIFY_WEBHOOK_URL: ${LEADS_NOTIFY_WEBHOOK_URL:-}
+
+x-build: &build
+  context: ../..
+  dockerfile: Dockerfile
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: restaurant_saas
+      APP_OWNER_PASSWORD: ${APP_OWNER_PASSWORD}
+      APP_USER_PASSWORD: ${APP_USER_PASSWORD}
+      APP_WORKER_PASSWORD: ${APP_WORKER_PASSWORD}
+      APP_ADMIN_PASSWORD: ${APP_ADMIN_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d restaurant_saas']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    mem_limit: 1g
+    logging: &logging
+      driver: json-file
+      options: { max-size: '10m', max-file: '3' }
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ['redis-server', '--appendonly', 'yes', '--requirepass', '${REDIS_PASSWORD}']
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD-SHELL', 'redis-cli -a "$$REDIS_PASSWORD" ping | grep -q PONG']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    mem_limit: 256m
+    logging: *logging
+
+  # One-shot: applies pending database migrations as app_owner, then exits.
+  migrate:
+    build:
+      <<: *build
+      target: api
+    image: sahtain-api:staging
+    command: ['node', 'dist/scripts/migrate.js']
+    restart: 'no'
+    environment:
+      <<: *api-env
+      APP_ROLE: api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    logging: *logging
+
+  api:
+    image: sahtain-api:staging
+    restart: unless-stopped
+    environment:
+      <<: *api-env
+      APP_ROLE: api
+      PORT: '3000'
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', "node -e \"fetch('http://127.0.0.1:3000/v1/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    mem_limit: 768m
+    logging: *logging
+
+  worker:
+    image: sahtain-api:staging
+    command: ['node', 'dist/worker.js']
+    restart: unless-stopped
+    environment:
+      <<: *api-env
+      APP_ROLE: worker
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    mem_limit: 512m
+    logging: *logging
+
+  site:
+    build:
+      <<: *build
+      target: site
+    image: sahtain-site:staging
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: '3000'
+      PUBLIC_API_URL: http://api:3000
+      PUBLIC_SITE_URL: ${PUBLIC_SITE_URL}
+      PUBLIC_WHATSAPP_NUMBER: ${PUBLIC_WHATSAPP_NUMBER:-}
+      PUBLIC_INSTAGRAM_URL: ${PUBLIC_INSTAGRAM_URL:-}
+      PUBLIC_FACEBOOK_URL: ${PUBLIC_FACEBOOK_URL:-}
+    depends_on:
+      api:
+        condition: service_healthy
+    mem_limit: 512m
+    logging: *logging
+
+  # Cloudflare Tunnel: outbound connection to Cloudflare, no router ports needed.
+  # Hostname -> service routes are set in the Cloudflare dashboard (see the runbook).
+  cloudflared:
+    image: cloudflare/cloudflared:2025.11.1
+    restart: unless-stopped
+    command: ['tunnel', '--no-autoupdate', 'run']
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - api
+      - site
+    mem_limit: 128m
+    logging: *logging
+
+volumes:
+  postgres_data:
+  redis_data:

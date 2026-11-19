@@ -31,6 +31,7 @@ export function buildPrintDocumentHtml(input: {
   title: string;
   bodyHtml: string;
   locale: PrintDocumentLocale;
+  extraCss?: string;
 }): string {
   const title = escapeHtml(input.title);
   return `<!DOCTYPE html>
@@ -38,7 +39,7 @@ export function buildPrintDocumentHtml(input: {
 <head>
 <meta charset="utf-8" />
 <title>${title}</title>
-<style>${PRINT_80MM_STYLES}</style>
+<style>${PRINT_80MM_STYLES}${input.extraCss ?? ''}</style>
 </head>
 <body>${input.bodyHtml}</body>
 </html>`;

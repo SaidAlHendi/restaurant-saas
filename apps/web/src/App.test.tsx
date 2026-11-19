@@ -6,10 +6,7 @@ import { Provider } from 'react-redux';
 import { RouterProvider, createMemoryRouter } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import {
-  POS_DEVICE_LOCKED_STORAGE_KEY,
-  writePosDeviceLocked,
-} from './features/pos/pos-device-lock-storage.js';
+import { writePosDeviceLocked } from './features/pos/pos-device-lock-storage.js';
 
 import { appRoutes } from './app/router.js';
 import { baseApi } from './app/api/base-api.js';
@@ -61,9 +58,10 @@ const bootstrappedMe: MeResponse = {
     key: 'owner',
     name: 'Owner',
   },
-  permissions: ['branches.read', 'orders.create'],
+  permissions: ['branches.read', 'orders.create', 'org.manage'],
   branches: [{ id: branchId, name: 'Main', slug: 'main', isActive: true }],
   orgs: [{ id: orgId, name: 'Demo', slug: 'demo' }],
+  allBranches: true,
   currentBranchId: branchId,
   entitlements: testMeEntitlements,
 };
@@ -84,12 +82,12 @@ function createTestStore() {
 
 describe('App root', () => {
   afterEach(() => {
-    window.localStorage.removeItem(POS_DEVICE_LOCKED_STORAGE_KEY);
+    window.localStorage.clear();
   });
 
   it('redirects dashboard to POS when device lock flag is set', async () => {
     await initI18n();
-    writePosDeviceLocked(true);
+    writePosDeviceLocked(orgId, true);
     await import('./areas/pos/PosArea.js');
     await import('./areas/dashboard/DashboardArea.js');
     const memoryRouter = createMemoryRouter(appRoutes, { initialEntries: ['/dashboard'] });
@@ -104,10 +102,12 @@ describe('App root', () => {
     );
     expect(await screen.findByRole('heading', { name: /enter your pin/i })).toBeInTheDocument();
     expect(memoryRouter.state.location.pathname).toMatch(/^\/pos/);
-  });
+    // Loads two lazy areas; the 5 s default is too tight when CI runs the whole workspace in parallel.
+  }, 20_000);
 
   it('renders dashboard shell when session is bootstrapped', async () => {
-    window.localStorage.removeItem(POS_DEVICE_LOCKED_STORAGE_KEY);
+    window.localStorage.clear();
+    window.localStorage.setItem('app.lang', 'en');
     await initI18n();
     // DashboardArea is lazy and now pulls in the menu feature; load it before render so the
     // Suspense fallback does not outlast findByText's 1s window on a slow CI runner.

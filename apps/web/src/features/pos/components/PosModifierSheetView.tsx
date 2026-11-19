@@ -34,9 +34,12 @@ export function PosModifierSheetView({ sheet }: { sheet: ModifierSheetVm }) {
         <SheetBody className="gap-6">
           {product.modifierGroups.map((group) => (
             <div key={group.id} className="space-y-3">
-              <p className="font-medium">
-                {posLocalizedName(group.name, sheet.locale, sheet.defaultLocale)}
-              </p>
+              <div>
+                <p className="font-medium">
+                  {posLocalizedName(group.name, sheet.locale, sheet.defaultLocale)}
+                </p>
+                <p className="text-muted-foreground text-sm">{sheet.groupHint(group)}</p>
+              </div>
               {group.maxSelect === 1 ? (
                 <RadioGroup
                   value={

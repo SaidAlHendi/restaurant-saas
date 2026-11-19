@@ -26,6 +26,22 @@ const input = {
   labels,
 };
 
+describe('buildKdsCard round hint', () => {
+  it('marks a later round and stays quiet for the first one', () => {
+    const labelsWithRound = { ...labels, round: (n: number) => `Round ${String(n)}` };
+    const second = buildKdsCard(boardOrder({ type: 'dine_in', tableLabel: '5', round: 2 }), {
+      ...input,
+      labels: labelsWithRound,
+    });
+    expect(second.subtitle).toBe('Table 5 · Round 2');
+    const first = buildKdsCard(boardOrder({ type: 'dine_in', tableLabel: '5', round: 1 }), {
+      ...input,
+      labels: labelsWithRound,
+    });
+    expect(first.subtitle).toBe('Table 5');
+  });
+});
+
 describe('buildKdsCard', () => {
   it('shows table, Arabic names, modifiers, additions last and voided items', () => {
     const original = boardItem({
@@ -51,7 +67,17 @@ describe('buildKdsCard', () => {
     const v = card.items.find((i) => i.isVoided);
     expect(v?.canToggle).toBe(false);
     expect(v?.voidReason).toBe('mistake');
-    expect(card.actionLabel).toBe('Start');
+    // A New card has the one-tap Ready action and a lighter Start action.
+    expect(card.next).toBe('ready');
+    expect(card.actionLabel).toBe('Ready');
+    expect(card.startLabel).toBe('Start');
+  });
+
+  it('preparing cards have a single Ready tap', () => {
+    const card = buildKdsCard(boardOrder({ status: 'preparing' }), input);
+    expect(card.next).toBe('ready');
+    expect(card.actionLabel).toBe('Ready');
+    expect(card.startLabel).toBeNull();
   });
 
   it('ready cards have no action and say whether the order is paid', () => {

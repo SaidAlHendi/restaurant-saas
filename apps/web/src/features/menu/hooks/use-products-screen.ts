@@ -2,12 +2,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import type { Product, ProductListQuery } from '@app/shared';
+import type { Product, ProductListItem, ProductListQuery } from '@app/shared';
 
 import { useAppSelector } from '../../../app/hooks.js';
-import { formatMoney, intlLocaleForUi, productDisplayCurrency } from '../../../lib/money.js';
+import { formatMoney, intlLocaleForUi, moneyFormatter } from '../../../lib/money.js';
 import { planGateFromError, planLimitMessageKey } from '../../billing/plan-gate.utils.js';
 import { selectCan } from '../../session/session.selectors.js';
+import { useGetOrgSettingsQuery } from '../../settings/settings.api.js';
 import type { ProductsPageViewProps } from '../components/ProductsPageView.js';
 import {
   useCreateProductMutation,
@@ -19,11 +20,13 @@ import {
   usePatchProductMutation,
   useSetProductModifierGroupsMutation,
 } from '../menu.api.js';
+import { ALL_BRANCHES_FILTER, showBranchAvailability } from '../branch-availability.utils.js';
 import { categoryLabel, pickLocalizedName, productLabel } from '../menu.utils.js';
 import type { ProductActiveFilter } from '../product-list-filters.js';
 import { isMutationError } from '../menu-mutation-result.js';
 import { showMenuApiError } from '../show-menu-api-error.js';
 import { useCatalogOrg } from './use-catalog-org.js';
+import { useModifierGroupDialog } from './use-modifier-group-dialog.js';
 import { useProductForm, type ProductFormOutput } from './use-product-form.js';
 import { useProductImageUpload, type ProductImageUploadError } from './use-product-image-upload.js';
 
@@ -51,6 +54,20 @@ export function useProductsScreen(): ProductsPageViewProps {
   const canManage = useAppSelector(selectCan('menu.manage'));
   const org = useCatalogOrg();
   const moneyLocale = intlLocaleForUi(org.uiLocale);
+  const canReadOrgSettings = useAppSelector(selectCan('org.manage'));
+  const { data: orgSettings } = useGetOrgSettingsQuery(undefined, { skip: !canReadOrgSettings });
+  const moneyDisplay = useMemo(
+    () =>
+      orgSettings?.displayCurrency && orgSettings.exchangeRate
+        ? {
+            currency: orgSettings.displayCurrency,
+            rate: orgSettings.exchangeRate,
+            itemStep: orgSettings.displayItemStep,
+            totalStep: orgSettings.displayTotalStep,
+          }
+        : null,
+    [orgSettings],
+  );
 
   const { data: categoriesData } = useListCategoriesQuery(undefined);
   const categories = useMemo(() => categoriesData?.items ?? [], [categoriesData]);
@@ -66,14 +83,16 @@ export function useProductsScreen(): ProductsPageViewProps {
 
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [branchFilter, setBranchFilter] = useState(ALL_BRANCHES_FILTER);
   const [activeFilter, setActiveFilter] = useState<ProductActiveFilter>('all');
   const [cursor, setCursor] = useState<string | undefined>(undefined);
-  const [accumulated, setAccumulated] = useState<Product[]>([]);
+  const [accumulated, setAccumulated] = useState<ProductListItem[]>([]);
   const [togglingProductId, setTogglingProductId] = useState<string | null>(null);
 
   const resetList = useCallback(() => {
+    // Do not clear `accumulated`: the data effect below refills it from the (re)fetched first
+    // page. Clearing it raced with the refetch and left the list empty until reload.
     setCursor(undefined);
-    setAccumulated([]);
   }, []);
 
   const listArgs = useMemo((): ProductListQuery => {
@@ -85,6 +104,9 @@ export function useProductsScreen(): ProductsPageViewProps {
     if (categoryFilter !== 'all') {
       args.categoryId = categoryFilter;
     }
+    if (branchFilter !== ALL_BRANCHES_FILTER) {
+      args.branchId = branchFilter;
+    }
     if (debouncedSearch.length > 0) {
       args.search = debouncedSearch;
     }
@@ -94,7 +116,7 @@ export function useProductsScreen(): ProductsPageViewProps {
       args.isActive = false;
     }
     return args;
-  }, [activeFilter, categoryFilter, cursor, debouncedSearch]);
+  }, [activeFilter, branchFilter, categoryFilter, cursor, debouncedSearch]);
 
   const { data, isLoading, isFetching, error } = useListProductsQuery(listArgs);
   const { data: modifierGroupsData } = useListModifierGroupsQuery(undefined);
@@ -102,7 +124,7 @@ export function useProductsScreen(): ProductsPageViewProps {
 
   useEffect(() => {
     resetList();
-  }, [categoryFilter, debouncedSearch, activeFilter, resetList]);
+  }, [categoryFilter, branchFilter, debouncedSearch, activeFilter, resetList]);
 
   useEffect(() => {
     if (!data) {
@@ -133,6 +155,16 @@ export function useProductsScreen(): ProductsPageViewProps {
     product: productDetail,
     categoryIds,
     open: sheetOpen,
+  });
+
+  // "+ New group" inside the product form: create the group, then tick it on this product.
+  const groupDialog = useModifierGroupDialog({
+    onCreated: (group) => {
+      const current = productForm.form.getValues('modifierGroupIds');
+      productForm.form.setValue('modifierGroupIds', [...current, group.id], {
+        shouldDirty: true,
+      });
+    },
   });
 
   const imageUpload = useProductImageUpload(productDetail, {
@@ -215,8 +247,15 @@ export function useProductsScreen(): ProductsPageViewProps {
             return;
           }
         }
+        const uploaded = await imageUpload.uploadPending(created.id);
         resetList();
-        setEditingId(created.id);
+        if (uploaded) {
+          setSheetOpen(false);
+          setEditingId(undefined);
+        } else {
+          // Product exists but the photo failed: stay open in edit mode so they can retry.
+          setEditingId(created.id);
+        }
       }
     })();
   };
@@ -236,24 +275,72 @@ export function useProductsScreen(): ProductsPageViewProps {
     });
   };
 
-  const priceLabelFor = (product: Product) =>
-    formatMoney(
-      product.priceMinor,
-      productDisplayCurrency(product, org.defaultCurrency),
+  const { branchScope } = productForm;
+  const branchNameById = useMemo(
+    () => new Map(branchScope.branches.map((branch) => [branch.id, branch.name])),
+    [branchScope.branches],
+  );
+  const showBranches = showBranchAvailability(branchScope);
+  const availabilityLabelFor = (product: Product) => {
+    if (product.availableInAllBranches) {
+      return t('menu.availability.allBranches');
+    }
+    if (product.branchIds.length === 1) {
+      return (
+        branchNameById.get(product.branchIds[0] ?? '') ?? t('menu.availability.count', { count: 1 })
+      );
+    }
+    return t('menu.availability.count', { count: product.branchIds.length });
+  };
+
+  // Prices are stored in the base currency (the system price). When a display currency is active
+  // the converted price is shown next to it.
+  const priceLabelFor = (product: Product) => {
+    const systemPrice = formatMoney(product.priceMinor, org.defaultCurrency, org.uiLocale);
+    const displayPrice = moneyFormatter(
+      org.defaultCurrency,
       org.uiLocale,
-    );
+      moneyDisplay,
+    )(product.priceMinor);
+    return displayPrice === systemPrice ? systemPrice : `${systemPrice} · ${displayPrice}`;
+  };
 
   return {
     title: t('menu.products.title'),
     subtitle: t('menu.products.subtitle'),
     canManage,
     showAdd: canManage && categoryOptions.length > 0,
+    noCategories:
+      categoriesData && categoryOptions.length === 0
+        ? {
+            title: t('menu.products.noCategoriesTitle'),
+            description: t(
+              canManage
+                ? 'menu.products.noCategoriesDescription'
+                : 'menu.products.noCategoriesDescriptionReadOnly',
+            ),
+            actionLabel: canManage ? t('menu.products.noCategoriesAction') : null,
+            onAction: () => {
+              void navigate('/dashboard/menu/categories');
+            },
+          }
+        : null,
     searchDefault: '',
     onSearchChange: setDebouncedSearch,
     searchClearLabel: t('menu.products.searchClear'),
     searchPlaceholder: t('menu.products.searchPlaceholder'),
     categoryFilter,
     onCategoryFilterChange: setCategoryFilter,
+    branchFilter: showBranches
+      ? {
+          value: branchFilter,
+          onChange: setBranchFilter,
+          allLabel: t('menu.availability.filterAll'),
+          branches: branchScope.branches,
+        }
+      : null,
+    availabilityColumn: showBranches ? t('menu.availability.column') : null,
+    availabilityLabelFor,
     allCategoriesLabel: t('menu.products.allCategories'),
     activeFilter,
     onActiveFilterChange: setActiveFilter,
@@ -267,6 +354,17 @@ export function useProductsScreen(): ProductsPageViewProps {
     labelFor: (product) => productLabel(product, org.uiLocale, org.defaultLocale),
     categoryLabelFor: (product) => categoryNameById.get(product.categoryId) ?? '—',
     priceLabelFor,
+    optionsColumn: t('menu.products.optionsColumn'),
+    optionsLabelFor: (product) =>
+      product.modifierGroupCount > 0
+        ? t('menu.products.optionsBadge', { count: product.modifierGroupCount })
+        : null,
+    newGroupDialog: {
+      open: groupDialog.open,
+      onOpenChange: groupDialog.onOpenChange,
+      mode: groupDialog.mode,
+      ...groupDialog.formProps,
+    },
     activeLabel: t('menu.status.active'),
     inactiveLabel: t('menu.status.inactive'),
     priceColumn: t('menu.products.columns.price'),
@@ -290,6 +388,7 @@ export function useProductsScreen(): ProductsPageViewProps {
     isLoadingMore: isFetching && Boolean(cursor),
     onAdd: () => {
       setPlanLimitMessage(null);
+      imageUpload.reset();
       setEditingId(undefined);
       setSheetOpen(true);
     },
@@ -317,7 +416,7 @@ export function useProductsScreen(): ProductsPageViewProps {
       cancelLabel: t('menu.actions.cancel'),
       form: productForm.form,
       onSubmit,
-      isSaving: createState.isLoading || patchState.isLoading,
+      isSaving: createState.isLoading || patchState.isLoading || imageUpload.isUploading,
       canManage,
       locales: org.locales,
       localeLabels,
@@ -329,10 +428,30 @@ export function useProductsScreen(): ProductsPageViewProps {
       categories: categoryOptions,
       categoryLabel: t('menu.products.fields.category'),
       priceLabel: t('menu.products.fields.price'),
+      systemPriceLabel: t('menu.products.fields.systemPrice'),
+      displayPriceLabel: t('menu.products.fields.displayPrice'),
+      moneyDisplay,
       activeLabel: t('menu.status.active'),
       modifierGroups,
       modifierGroupsLabel: t('menu.products.fields.modifierGroups'),
       modifierGroupLabel: (group) => pickLocalizedName(group.name, org.uiLocale, org.defaultLocale),
+      newGroup: {
+        label: t('menu.products.newGroup'),
+        help: t('menu.products.modifierGroupsHelp'),
+        helpLabel: t('menu.help.whatIsThis'),
+        emptyHint: t('menu.products.modifierGroupsEmpty'),
+        onClick: groupDialog.openCreate,
+      },
+      branchAvailability: {
+        show: showBranches,
+        label: t('menu.availability.label'),
+        hint: branchScope.allBranchesScope
+          ? t('menu.availability.hint')
+          : t('menu.availability.hintScoped'),
+        allBranchesLabel: t('menu.availability.allBranches'),
+        branches: branchScope.branches,
+        canChooseAll: branchScope.allBranchesScope,
+      },
       imageUpload: {
         previewUrl: imageUpload.previewUrl,
         label: t('menu.products.imageLabel'),
@@ -345,7 +464,7 @@ export function useProductsScreen(): ProductsPageViewProps {
         isUploading: imageUpload.isUploading || imageUpload.isRemoving,
         onFileSelect: imageUpload.onFileSelect,
         onRemove: imageUpload.onRemove,
-        show: Boolean(editingId && productDetail),
+        show: !editingId || Boolean(productDetail),
       },
       planLimit:
         planLimitMessage === null

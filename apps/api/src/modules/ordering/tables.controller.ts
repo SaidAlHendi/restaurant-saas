@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, ParseUUIDPipe, Query } from '@nestjs/common';
 
 import { RequireFeature } from '../../core/permissions/require-feature.decorator';
 
@@ -10,6 +10,7 @@ import { RequirePermission } from '../../core/permissions/require-permission.dec
 import { CreateDiningTableBodyDto, PatchDiningTableBodyDto } from './dto/ordering.dto';
 import { OrderingPathIdPipe } from './pipes/ordering-path-id.pipe';
 import { TablesService } from './tables.service';
+import { PageQueryDto } from '../../core/validation/page-query.dto';
 
 @RequireBranchScope()
 @Controller('v1/branches/:branchId/tables')
@@ -18,17 +19,21 @@ export class TablesController {
 
   @RequirePermission('branches.read')
   @Get()
-  list(@Ctx() ctx: RequestContext, @Param('branchId') branchId: string) {
-    const wantsQrToken = ctx.permissions.includes('branches.manage');
-    return this.tables.list(ctx, branchId, wantsQrToken);
+  list(
+    @Ctx() ctx: RequestContext,
+    @Param('branchId', ParseUUIDPipe) branchId: string,
+    @Query() query: PageQueryDto,
+  ) {
+    const wantsQrToken = ctx.permissions.includes('tables.rotate_qr');
+    return this.tables.list(ctx, branchId, wantsQrToken, query);
   }
 
-  @RequirePermission('branches.manage')
+  @RequirePermission('tables.rotate_qr')
   @RequireFeature('menu.table_qr')
   @Post(':tableId/rotate-qr')
   rotateQr(
     @Ctx() ctx: RequestContext,
-    @Param('branchId') branchId: string,
+    @Param('branchId', ParseUUIDPipe) branchId: string,
     @Param('tableId', OrderingPathIdPipe) tableId: string,
   ) {
     return this.tables.rotateQr(ctx, branchId, tableId);
@@ -38,7 +43,7 @@ export class TablesController {
   @Post()
   create(
     @Ctx() ctx: RequestContext,
-    @Param('branchId') branchId: string,
+    @Param('branchId', ParseUUIDPipe) branchId: string,
     @Body() body: CreateDiningTableBodyDto,
   ) {
     return this.tables.create(ctx, branchId, body);
@@ -48,7 +53,7 @@ export class TablesController {
   @Patch(':tableId')
   patch(
     @Ctx() ctx: RequestContext,
-    @Param('branchId') branchId: string,
+    @Param('branchId', ParseUUIDPipe) branchId: string,
     @Param('tableId', OrderingPathIdPipe) tableId: string,
     @Body() body: PatchDiningTableBodyDto,
   ) {

@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
-    "start": "react-router-serve ./build/server/index.js"
+    "start": "react-router-serve ./build/server/index.js",
+    "media": "node scripts/build-landing-media.mjs"
   },
   "dependencies": {
     "@app/shared": "workspace:*",
@@ -33,6 +34,7 @@
     "@types/react-dom": "^19.1.6",
     "eslint": "^9.32.0",
     "jsdom": "^26.1.0",
+    "sharp": "^0.34.5",
     "tailwindcss": "catalog:",
     "typescript": "catalog:",
     "vite": "^7.0.6",

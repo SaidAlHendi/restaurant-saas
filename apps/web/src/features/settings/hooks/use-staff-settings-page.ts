@@ -7,7 +7,11 @@ import { toast } from '@app/ui';
 
 import { showApiError } from '../../../lib/show-api-error.js';
 import { useAppSelector } from '../../../app/hooks.js';
-import { selectCan, selectSessionBranches, selectSessionRole } from '../../session/session.selectors.js';
+import {
+  selectCan,
+  selectSessionBranches,
+  selectSessionRole,
+} from '../../session/session.selectors.js';
 import { validatePinForm } from '../staff-pin-form.utils.js';
 import {
   assignableRoleKeys,
@@ -23,6 +27,7 @@ import {
   toggleBranchInScope,
   type BranchScopeState,
 } from '../staff-scope-form.utils.js';
+import type { StaffPermissionsMember } from './use-staff-permissions-dialog.js';
 import { staffRowActions } from '../staff-row-actions.utils.js';
 import {
   useCreatePinOnlyStaffMutation,
@@ -34,7 +39,6 @@ import {
   useRegenerateStaffInviteMutation,
   useRevokeStaffInviteMutation,
 } from '../settings.api.js';
-import { useSettingsPageAccess } from './use-settings-page-access.js';
 
 export type StaffRoleOption = {
   value: SystemRoleKey;
@@ -55,8 +59,10 @@ export type StaffTableRow = {
   statusLabel: string;
   statusTone: 'default' | 'secondary' | 'destructive' | 'outline';
   pinLabel: string;
+  branchLabel: string;
   actions: ReturnType<typeof staffRowActions>;
   onEdit: (() => void) | null;
+  onPermissions: (() => void) | null;
   onSetPin: (() => void) | null;
   onRemovePin: (() => void) | null;
   onDisable: (() => void) | null;
@@ -79,11 +85,17 @@ function roleOptionsForKeys(
 
 export function useStaffSettingsPage() {
   const { t } = useTranslation();
-  const { allowed, redirectTo } = useSettingsPageAccess('staff.read');
+  const allowed = useAppSelector(selectCan('staff.read'));
+  const redirectTo = allowed ? null : '/dashboard';
   const role = useAppSelector(selectSessionRole);
   const sessionBranches = useAppSelector(selectSessionBranches);
   const hasStaffManage = useAppSelector(selectCan('staff.manage'));
-  const { data, isLoading, isError } = useListStaffQuery(undefined, { skip: !allowed });
+  const hasOrgManage = useAppSelector(selectCan('org.manage'));
+  const [permissionsMember, setPermissionsMember] = useState<StaffPermissionsMember | null>(null);
+  const { data, isLoading, isError } = useListStaffQuery(undefined, {
+    skip: !allowed,
+    refetchOnFocus: true,
+  });
 
   const actorRoleKey = useMemo(() => parseSystemRoleKey(role?.key), [role?.key]);
   const actorMembershipId = useMemo(
@@ -151,10 +163,7 @@ export function useStaffSettingsPage() {
     [sessionBranches],
   );
 
-  const roleLabel = useCallback(
-    (key: SystemRoleKey) => t(`settings.staff.roles.${key}`),
-    [t],
-  );
+  const roleLabel = useCallback((key: SystemRoleKey) => t(`settings.staff.roles.${key}`), [t]);
   const roleDescription = useCallback(
     (key: SystemRoleKey) => t(`settings.staff.roleDescriptions.${key}`),
     [t],
@@ -206,16 +215,19 @@ export function useStaffSettingsPage() {
     [t],
   );
 
-  const openInviteLinkDialog = useCallback((url: string | null) => {
-    if (url === null) {
-      // Existing account: the link was emailed to the invitee and is not shown here.
-      toast.success(t('settings.staff.inviteEmailed'));
-      return;
-    }
-    setInviteLinkUrl(url);
-    setInviteLinkCopyLabel(null);
-    setInviteLinkOpen(true);
-  }, [t]);
+  const openInviteLinkDialog = useCallback(
+    (url: string | null) => {
+      if (url === null) {
+        // Existing account: the link was emailed to the invitee and is not shown here.
+        toast.success(t('settings.staff.inviteEmailed'));
+        return;
+      }
+      setInviteLinkUrl(url);
+      setInviteLinkCopyLabel(null);
+      setInviteLinkOpen(true);
+    },
+    [t],
+  );
 
   const patchStatus = useCallback(
     async (membershipId: string, status: 'active' | 'disabled') => {
@@ -232,9 +244,7 @@ export function useStaffSettingsPage() {
 
   const openEditForMember = useCallback(
     (member: StaffListItem) => {
-      const activeBranchIds = new Set(
-        sessionBranches.filter((b) => b.isActive).map((b) => b.id),
-      );
+      const activeBranchIds = new Set(sessionBranches.filter((b) => b.isActive).map((b) => b.id));
       setEditMemberId(member.id);
       setEditMemberIsPinOnly(member.email === null);
       setEditRole(member.roleKey);
@@ -250,19 +260,48 @@ export function useStaffSettingsPage() {
     [sessionBranches],
   );
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const [roleFilter, setRoleFilter] = useState<'all' | SystemRoleKey>('all');
+
+  const branchNameById = useMemo(
+    () => new Map(sessionBranches.map((b) => [b.id, b.name])),
+    [sessionBranches],
+  );
+
+  const roleFilterOptions = useMemo(() => {
+    const keys = Array.from(new Set((data?.items ?? []).map((m) => m.roleKey)));
+    return keys.map((key) => ({ value: key, label: roleLabel(key) }));
+  }, [data?.items, roleLabel]);
+
   const rows: StaffTableRow[] = useMemo(() => {
-    return (data?.items ?? []).map((member) => {
+    const query = searchQuery.trim().toLowerCase();
+    const items = (data?.items ?? []).filter((member) => {
+      if (roleFilter !== 'all' && member.roleKey !== roleFilter) {
+        return false;
+      }
+      if (query === '') {
+        return true;
+      }
+      return (
+        member.name.toLowerCase().includes(query) ||
+        (member.email ?? '').toLowerCase().includes(query)
+      );
+    });
+    return items.map((member) => {
       const actions = staffRowActions({
         actorMembershipId,
         actorRoleKey,
         hasStaffManage,
+        hasOrgManage,
         activeOwnerCount,
         target: member,
       });
       const meta = statusMeta(member.status);
       const emailLabel =
         member.email ??
-        (member.status === 'invited' ? t('settings.staff.pendingEmail') : t('settings.staff.pinOnly'));
+        (member.status === 'invited'
+          ? t('settings.staff.pendingEmail')
+          : t('settings.staff.pinOnly'));
       return {
         id: member.id,
         name: member.name,
@@ -271,10 +310,20 @@ export function useStaffSettingsPage() {
         statusLabel: meta.label,
         statusTone: meta.tone,
         pinLabel: member.hasPin ? t('settings.staff.pinSet') : t('settings.staff.pinNone'),
+        branchLabel: member.allBranches
+          ? t('settings.staff.allBranchesLabel')
+          : member.branchIds.length > 2
+            ? t('settings.staff.branchCount', { n: member.branchIds.length })
+            : member.branchIds.map((id) => branchNameById.get(id) ?? '—').join(', ') || '—',
         actions,
         onEdit: actions.canEditMembership
           ? () => {
               openEditForMember(member);
+            }
+          : null,
+        onPermissions: actions.canEditPermissions
+          ? () => {
+              setPermissionsMember({ id: member.id, name: member.name });
             }
           : null,
         onSetPin: actions.canSetPin
@@ -330,7 +379,11 @@ export function useStaffSettingsPage() {
     activeOwnerCount,
     actorMembershipId,
     actorRoleKey,
+    branchNameById,
+    roleFilter,
+    searchQuery,
     data?.items,
+    hasOrgManage,
     hasStaffManage,
     openEditForMember,
     openInviteLinkDialog,
@@ -344,7 +397,8 @@ export function useStaffSettingsPage() {
   const canAddStaff =
     hasStaffManage &&
     actorRoleKey !== null &&
-    (invitableRoleKeys(actorRoleKey).length > 0 || pinOnlyInvitableRoleKeys(actorRoleKey).length > 0);
+    (invitableRoleKeys(actorRoleKey).length > 0 ||
+      pinOnlyInvitableRoleKeys(actorRoleKey).length > 0);
 
   const onSubmitInvite = useCallback(async () => {
     const emailParsed = z.email().safeParse(inviteEmail.trim());
@@ -512,6 +566,17 @@ export function useStaffSettingsPage() {
     isLoading,
     isError,
     rows,
+    permissionsMember,
+    onPermissionsClose: () => {
+      setPermissionsMember(null);
+    },
+    searchQuery,
+    onSearchQueryChange: setSearchQuery,
+    roleFilter,
+    onRoleFilterChange: (value: string) => {
+      setRoleFilter(value === 'all' ? 'all' : parseSystemRoleKey(value) ?? 'all');
+    },
+    roleFilterOptions,
     canAddStaff,
     branchOptions,
     inviteRoleOptions,
@@ -543,7 +608,9 @@ export function useStaffSettingsPage() {
       setInviteScopeError(null);
     },
     onInviteBranchToggle: (branchId: string, checked: boolean) => {
-      setInviteScope((prev) => toggleBranchInScope({ ...prev, allBranches: false }, branchId, checked));
+      setInviteScope((prev) =>
+        toggleBranchInScope({ ...prev, allBranches: false }, branchId, checked),
+      );
       setInviteScopeError(null);
     },
     inviteScopeError,
@@ -573,7 +640,9 @@ export function useStaffSettingsPage() {
       setPinOnlyScopeError(null);
     },
     onPinOnlyBranchToggle: (branchId: string, checked: boolean) => {
-      setPinOnlyScope((prev) => toggleBranchInScope({ ...prev, allBranches: false }, branchId, checked));
+      setPinOnlyScope((prev) =>
+        toggleBranchInScope({ ...prev, allBranches: false }, branchId, checked),
+      );
       setPinOnlyScopeError(null);
     },
     pinOnlyScopeError,
@@ -604,7 +673,9 @@ export function useStaffSettingsPage() {
       setEditScopeError(null);
     },
     onEditBranchToggle: (branchId: string, checked: boolean) => {
-      setEditScope((prev) => toggleBranchInScope({ ...prev, allBranches: false }, branchId, checked));
+      setEditScope((prev) =>
+        toggleBranchInScope({ ...prev, allBranches: false }, branchId, checked),
+      );
       setEditScopeError(null);
     },
     editScopeError,
@@ -664,8 +735,13 @@ export function useStaffSettingsPage() {
       columnRole: t('settings.staff.columnRole'),
       columnStatus: t('settings.staff.columnStatus'),
       columnPin: t('settings.staff.columnPin'),
+      columnBranches: t('settings.staff.columnBranches'),
+      searchPlaceholder: t('settings.staff.searchPlaceholder'),
+      allRoles: t('settings.staff.allRoles'),
+      filterRole: t('settings.staff.filterRole'),
       actions: t('settings.staff.actions'),
       edit: t('settings.staff.edit'),
+      permissions: t('settings.staff.permissions.action'),
       setPin: t('settings.staff.setPin'),
       removePin: t('settings.staff.removePin'),
       disable: t('settings.staff.disable'),
@@ -673,6 +749,8 @@ export function useStaffSettingsPage() {
       regenerateInvite: t('settings.staff.regenerateInvite'),
       revokeInvite: t('settings.staff.revokeInvite'),
       inviteDialogTitle: t('settings.staff.inviteDialogTitle'),
+      inviteDialogDescription: t('settings.staff.inviteDialogDescription'),
+      close: t('settings.staff.close'),
       pinOnlyDialogTitle: t('settings.staff.pinOnlyDialogTitle'),
       editDialogTitle: t('settings.staff.editDialogTitle'),
       pinDialogTitle: t('settings.staff.pinDialogTitle'),

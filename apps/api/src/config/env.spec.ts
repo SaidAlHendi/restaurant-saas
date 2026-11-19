@@ -8,6 +8,8 @@ describe('loadEnv', () => {
       'postgresql://app_owner:app_owner_dev@localhost:5432/restaurant_saas_test',
     REDIS_URL: 'redis://localhost:6379',
     JWT_ACCESS_SECRET: 'test-jwt-access-secret-min-32-chars!!',
+    JWT_ADMIN_SECRET: 'test-jwt-admin-secret-min-32-chars-long',
+    DATABASE_ADMIN_URL: 'postgresql://app_admin:app_admin_dev@localhost:5432/restaurant_saas_test',
   } as const;
 
   afterEach(() => {
@@ -49,5 +51,30 @@ describe('loadEnv', () => {
       CORS_ORIGINS: 'https://app.example.com',
     });
     expect(env.CORS_ORIGINS).toBe('https://app.example.com');
+  });
+
+  it('requires admin settings for the API and rejects a shared admin secret', () => {
+    resetEnvCacheForTests();
+    expect(() =>
+      loadEnv({ ...base, APP_ROLE: 'api', DATABASE_ADMIN_URL: undefined }),
+    ).toThrow(/DATABASE_ADMIN_URL/);
+    resetEnvCacheForTests();
+    expect(() =>
+      loadEnv({ ...base, APP_ROLE: 'api', JWT_ADMIN_SECRET: undefined }),
+    ).toThrow(/JWT_ADMIN_SECRET/);
+    resetEnvCacheForTests();
+    expect(() =>
+      loadEnv({ ...base, APP_ROLE: 'api', JWT_ADMIN_SECRET: base.JWT_ACCESS_SECRET }),
+    ).toThrow(/must differ/);
+    resetEnvCacheForTests();
+    expect(
+      loadEnv({
+        ...base,
+        APP_ROLE: 'worker',
+        DATABASE_WORKER_URL: 'postgresql://app_worker:x@localhost:5432/db',
+        DATABASE_ADMIN_URL: undefined,
+        JWT_ADMIN_SECRET: undefined,
+      }).APP_ROLE,
+    ).toBe('worker');
   });
 });

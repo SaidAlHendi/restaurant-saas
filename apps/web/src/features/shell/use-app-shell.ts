@@ -3,28 +3,34 @@ import {
   ClipboardListIcon,
   CreditCardIcon,
   LayoutDashboardIcon,
+  MonitorSmartphoneIcon,
   SettingsIcon,
+  StoreIcon,
+  UsersIcon,
   ShoppingBagIcon,
   UtensilsIcon,
   type LucideIcon,
 } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useDisclosure, useTheme } from '@app/ui';
 
+import { baseApi } from '../../app/api/base-api.js';
 import { useAppDispatch, useAppSelector } from '../../app/hooks.js';
 import { setAppLanguage } from '../../lib/i18n.js';
 import { localizedName } from '../../lib/localized-name.js';
 import { useLogoutMutation } from '../auth/auth.api.js';
-import { isNavItemLocked } from '../billing/billing.utils.js';
+import { writePosDeviceLocked } from '../pos/pos-device-lock-storage.js';
+import { daysUntil, isNavItemLocked } from '../billing/billing.utils.js';
 import { useBillingBanner } from '../billing/hooks/use-billing-banner.js';
 import { clearSession } from '../session/session.slice.js';
 import {
   selectCan,
   selectEntitlements,
   selectSessionOrg,
+  selectSessionRole,
   selectSessionUser,
 } from '../session/session.selectors.js';
 import { activeNavItemId, readSidebarCollapsed, writeSidebarCollapsed } from './app-shell.utils.js';
@@ -38,15 +44,19 @@ export function useAppShell() {
   const dispatch = useAppDispatch();
   const user = useAppSelector(selectSessionUser);
   const org = useAppSelector(selectSessionOrg);
+  const role = useAppSelector(selectSessionRole);
   const canReadMenu = useAppSelector(selectCan('menu.read'));
   const canManageBranches = useAppSelector(selectCan('branches.manage'));
   const canManageOrg = useAppSelector(selectCan('org.manage'));
   const canReadStaff = useAppSelector(selectCan('staff.read'));
-  const canOpenSettings = canManageOrg || canManageBranches || canReadStaff;
+  const canManageStaff = useAppSelector(selectCan('staff.manage'));
+  const canOpenSettings = canManageOrg;
   const canUsePos = useAppSelector(selectCan('orders.create'));
   const canUseKds = useAppSelector(selectCan('orders.update_status'));
   const canReports = useAppSelector(selectCan('reports.read'));
   const canManageBilling = useAppSelector(selectCan('billing.manage'));
+  const canUseDashboard =
+    canReports || canReadStaff || canManageBranches || canManageOrg || canManageBilling;
   const entitlements = useAppSelector(selectEntitlements);
   const banner = useBillingBanner();
   const { theme, toggleTheme } = useTheme();
@@ -76,7 +86,7 @@ export function useAppShell() {
           end: false,
         },
       );
-    } else {
+    } else if (canUseDashboard) {
       items.push({
         id: 'home',
         to: '/dashboard',
@@ -85,7 +95,8 @@ export function useAppShell() {
         end: true,
       });
     }
-    if (canReadMenu) {
+    // The dashboard menu editor is for people with dashboard access; cashiers use the menu inside the POS.
+    if (canReadMenu && canUseDashboard) {
       items.push({
         id: 'menu',
         to: '/dashboard/menu',
@@ -112,6 +123,33 @@ export function useAppShell() {
         end: false,
       });
     }
+    if (canManageBranches) {
+      items.push({
+        id: 'branches',
+        to: '/dashboard/branches',
+        icon: StoreIcon,
+        label: t('dashboard.nav.branches'),
+        end: false,
+      });
+    }
+    if (canReadStaff) {
+      items.push({
+        id: 'staff',
+        to: '/dashboard/staff',
+        icon: UsersIcon,
+        label: t('dashboard.nav.staff'),
+        end: false,
+      });
+    }
+    if (canManageStaff) {
+      items.push({
+        id: 'devices',
+        to: '/dashboard/devices',
+        icon: MonitorSmartphoneIcon,
+        label: t('dashboard.nav.devices'),
+        end: false,
+      });
+    }
     if (canManageBilling) {
       items.push({
         id: 'billing',
@@ -131,9 +169,63 @@ export function useAppShell() {
       });
     }
     return items;
-  }, [canManageBilling, canOpenSettings, canReadMenu, canReports, canUsePos, canUseKds, t]);
+  }, [
+    canManageBilling,
+    canManageStaff,
+    canReadStaff,
+    canManageBranches,
+    canOpenSettings,
+    canReadMenu,
+    canUseDashboard,
+    canReports,
+    canUsePos,
+    canUseKds,
+    t,
+  ]);
 
   const activeId = activeNavItemId(navItems, location.pathname);
+
+  const areaId = location.pathname.startsWith('/pos')
+    ? 'pos'
+    : location.pathname.startsWith('/kds')
+      ? 'kds'
+      : 'dashboard';
+  const areas = [
+    {
+      id: 'dashboard',
+      to: '/dashboard',
+      icon: LayoutDashboardIcon,
+      label: t('shell.dashboardArea'),
+      allowed: canUseDashboard,
+    },
+    {
+      id: 'pos',
+      to: '/pos',
+      icon: ShoppingBagIcon,
+      label: t('dashboard.nav.cashier'),
+      allowed: canUsePos,
+    },
+    {
+      id: 'kds',
+      to: '/kds',
+      icon: ChefHatIcon,
+      label: t('dashboard.nav.kitchen'),
+      allowed: canUseKds,
+    },
+  ].filter((area) => area.allowed);
+  const currentArea = areas.find((area) => area.id === areaId) ?? areas[0];
+  const planCard = entitlements
+    ? {
+        eyebrow: t('shell.planEyebrow'),
+        name: t(`billing.plans.${entitlements.planKey}`),
+        detail:
+          entitlements.reason === 'trial' && entitlements.trialEndsAt !== null
+            ? t('billing.banner.trialEnding', {
+                count: Math.max(0, daysUntil(entitlements.trialEndsAt, new Date())),
+              })
+            : undefined,
+      }
+    : null;
 
   const menuSubNav = useMemo(
     () =>
@@ -154,7 +246,9 @@ export function useAppShell() {
       canUsePos && location.pathname.startsWith('/pos')
         ? [
             { to: '/pos', label: t('pos.nav.newOrder'), end: true },
+            { to: '/pos/tables', label: t('pos.nav.tables'), end: true },
             { to: '/pos/orders', label: t('pos.nav.orders'), end: true },
+            { to: '/pos/bills', label: t('pos.nav.bills'), end: true },
           ].map((item) => ({
             ...item,
             active: item.end
@@ -178,14 +272,74 @@ export function useAppShell() {
     } catch {
       // Sign out locally even when the server call fails (offline, expired session).
     } finally {
+      writePosDeviceLocked(org?.id, false);
       dispatch(clearSession());
+      dispatch(baseApi.util.resetApiState());
       void navigate('/login', { replace: true });
     }
-  }, [dispatch, logout, navigate]);
+  }, [dispatch, logout, navigate, org?.id]);
 
   const isArabic = i18n.language.startsWith('ar');
+  const roleTabLabel = role
+    ? t(`settings.staff.roles.${role.key}`, { defaultValue: role.name })
+    : null;
+  useEffect(() => {
+    document.title = roleTabLabel ? `${roleTabLabel} – ${t('app.title')}` : t('app.title');
+  }, [roleTabLabel, t]);
+
   const brandName = org ? localizedName(org.name, i18n.language) : t('app.title');
   const isDark = theme === 'forest';
+
+  const toSubItems = (items: { to: string; label: string; active: boolean }[]) =>
+    items.map((item) => ({
+      id: item.to,
+      icon: null,
+      label: item.label,
+      active: item.active,
+      locked: false,
+      onSelect: () => {
+        void navigate(item.to);
+      },
+    }));
+
+  const navGroups = [
+    {
+      id: 'main',
+      label: undefined as string | undefined,
+      nested: false,
+      items: navItems.map((item) => ({
+        id: item.id,
+        icon: item.icon as LucideIcon | null,
+        label: item.label,
+        active: item.id === activeId,
+        // Still navigable: the screen explains which plan unlocks it.
+        locked: isNavItemLocked(item.id, entitlements),
+        onSelect: () => {
+          void navigate(item.to);
+        },
+      })),
+    },
+    ...(menuSubNav.length > 0
+      ? [
+          {
+            id: 'menu',
+            label: t('menu.nav.section') as string | undefined,
+            nested: true,
+            items: toSubItems(menuSubNav),
+          },
+        ]
+      : []),
+    ...(posSubNav.length > 0
+      ? [
+          {
+            id: 'pos',
+            label: t('pos.nav.section') as string | undefined,
+            nested: true,
+            items: toSubItems(posSubNav),
+          },
+        ]
+      : []),
+  ];
 
   return {
     banner,
@@ -196,35 +350,34 @@ export function useAppShell() {
     mobileOpen: mobile.open,
     onMobileOpenChange: mobile.setOpen,
     onOpenMobile: mobile.onOpen,
-    navItems: navItems.map((item) => ({
-      id: item.id,
-      icon: item.icon,
-      label: item.label,
-      active: item.id === activeId,
-      // Still navigable: the screen explains which plan unlocks it.
-      locked: isNavItemLocked(item.id, entitlements),
-      onSelect: () => {
-        void navigate(item.to);
-      },
-    })),
-    menuSubNav: menuSubNav.map((item) => ({
-      ...item,
-      onSelect: () => {
-        void navigate(item.to);
-      },
-    })),
-    posSubNav: posSubNav.map((item) => ({
-      ...item,
-      onSelect: () => {
-        void navigate(item.to);
-      },
-    })),
+    moduleSwitch:
+      areas.length > 1 && currentArea
+        ? {
+            label: t('shell.modules'),
+            currentLabel: currentArea.label,
+            currentIcon: currentArea.icon,
+            options: areas
+              .filter((area) => area.id !== currentArea.id)
+              .map((area) => ({
+                id: area.id,
+                label: area.label,
+                icon: area.icon,
+                onSelect: () => {
+                  void navigate(area.to);
+                },
+              })),
+          }
+        : null,
+    planCard,
+    navGroups,
     user: user ? { name: user.name, detail: user.email } : null,
     isDark,
     onToggleTheme: toggleTheme,
     onToggleLanguage: () => {
       void setAppLanguage(isArabic ? 'en' : 'ar');
     },
+    loadingLabel: t('common.loading'),
+    lockedLabel: t('billing.upgrade.lockedNav'),
     loggingOut,
     onLogout: () => {
       void onLogout();
@@ -233,16 +386,10 @@ export function useAppShell() {
       sidebar: t('dashboard.nav.sidebar'),
       closeSidebar: t('dashboard.nav.closeSidebar'),
       toggleSidebar: t('shell.toggleSidebar'),
-      menuSection: t('menu.nav.section'),
-      posSection: t('pos.nav.section'),
       theme: isDark ? t('shell.lightMode') : t('shell.darkMode'),
       // Always shown in the language it switches to, so it can be found in either language.
       language: isArabic ? 'English' : 'العربية',
       logout: t('auth.logout'),
-      loading: t('common.loading'),
-      locked: t('billing.upgrade.lockedNav'),
     },
   };
 }
-
-export type AppShellViewModel = ReturnType<typeof useAppShell>;

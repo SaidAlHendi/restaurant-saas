@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
-import { formatMoney } from '@app/shared';
+import { formatMoneyForDisplay } from '@app/shared';
 import {
   Sheet,
   SheetContent,
@@ -85,7 +85,12 @@ export function MenuHydration({ locale, menu, orgSlug, branchSlug, products }: M
               <SheetHeader>
                 <SheetTitle>{openProduct.name}</SheetTitle>
                 <SheetDescription>
-                  {formatMoney(openProduct.priceMinor, openProduct.currency, locale)}
+                  {formatMoneyForDisplay(
+                    openProduct.priceMinor,
+                    openProduct.currency,
+                    locale,
+                    menu.org.display,
+                  )}
                 </SheetDescription>
               </SheetHeader>
               {openProduct.description ? (
@@ -101,7 +106,7 @@ export function MenuHydration({ locale, menu, orgSlug, branchSlug, products }: M
                           <li key={`${group.name}-${mod.name}-${String(mod.sortOrder)}`}>
                             {mod.name}
                             {mod.priceDeltaMinor > 0
-                              ? ` (+${formatMoney(mod.priceDeltaMinor, openProduct.currency, locale)})`
+                              ? ` (+${formatMoneyForDisplay(mod.priceDeltaMinor, openProduct.currency, locale, menu.org.display)})`
                               : null}
                           </li>
                         ))}

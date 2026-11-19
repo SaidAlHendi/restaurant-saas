@@ -1,0 +1,384 @@
+{
+  "common": {
+    "cancel": "إلغاء",
+    "retry": "حاول مرة أخرى",
+    "loading": "جارٍ التحميل",
+    "clearSearch": "مسح البحث",
+    "actions": "الإجراءات",
+    "sortBy": "ترتيب حسب",
+    "previous": "السابق",
+    "next": "التالي",
+    "page": "الصفحة {{page}}"
+  },
+  "app": {
+    "title": "إدارة صحتين"
+  },
+  "roles": {
+    "super": "مشرف عام",
+    "support": "الدعم",
+    "billing": "الفوترة"
+  },
+  "auth": {
+    "aside": {
+      "title": "لوحة تحكم المنصة",
+      "body": "المطاعم والخطط والدعم في مكان واحد.",
+      "live": {
+        "default": "منصة صحتين",
+        "lines": [
+          "دخول الفريق",
+          "الجلسات مسجّلة"
+        ],
+        "status": "آمن",
+        "meta": "الآن"
+      },
+      "tickets": [
+        {
+          "title": "مطعم جديد",
+          "meta": "09:12",
+          "lines": [
+            "مشاوي النور",
+            "الرياض"
+          ],
+          "status": "بانتظار المراجعة"
+        },
+        {
+          "title": "تفعيل خطة",
+          "meta": "09:30",
+          "lines": [
+            "الملعقة الذهبية",
+            "خطة شهرية"
+          ],
+          "status": "تم"
+        },
+        {
+          "title": "طلب دعم",
+          "meta": "10:05",
+          "lines": [
+            "الطابعة لا تقترن",
+            "فرع العليا"
+          ],
+          "status": "مفتوح"
+        },
+        {
+          "title": "مطعم جديد",
+          "meta": "10:41",
+          "lines": [
+            "بيت الأرز",
+            "جدة"
+          ],
+          "status": "بانتظار المراجعة"
+        },
+        {
+          "title": "خطة تنتهي قريباً",
+          "meta": "11:00",
+          "lines": [
+            "ركن الطعم",
+            "باقي يومان"
+          ],
+          "status": "تنبيه"
+        }
+      ]
+    },
+    "logout": "تسجيل الخروج",
+    "fields": {
+      "email": "البريد الإلكتروني",
+      "password": "كلمة المرور"
+    },
+    "login": {
+      "title": "تسجيل دخول المنصة",
+      "subtitle": "لفريق صحتين فقط.",
+      "submit": "تسجيل الدخول"
+    },
+    "errors": {
+      "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة."
+    }
+  },
+  "shell": {
+    "sidebar": "القائمة الرئيسية",
+    "closeSidebar": "إغلاق القائمة",
+    "toggleSidebar": "طي القائمة أو توسيعها",
+    "darkMode": "الوضع الداكن",
+    "lightMode": "الوضع الفاتح"
+  },
+  "adminNav": {
+    "overview": "نظرة عامة على المنصة",
+    "restaurants": "المطاعم",
+    "users": "المستخدمون",
+    "subscriptions": "الاشتراكات",
+    "plans": "الباقات والأسعار",
+    "payments": "المدفوعات",
+    "invoices": "الفواتير",
+    "revenue": "تحليلات الإيرادات",
+    "posActivity": "نشاط نقاط البيع",
+    "kdsActivity": "نشاط شاشات المطبخ",
+    "usage": "الاستخدام والإحصاءات",
+    "integrations": "التكاملات",
+    "support": "تذاكر الدعم",
+    "feedback": "ملاحظات العملاء",
+    "announcements": "الإعلانات",
+    "adminUsers": "مستخدمو الإدارة والأدوار",
+    "audit": "سجل التدقيق",
+    "settings": "إعدادات النظام"
+  },
+  "overview": {
+    "title": "نظرة عامة على المنصة",
+    "welcome": "مرحبًا، {{name}}.",
+    "loadError": "تعذّر تحميل أرقام المنصة.",
+    "kpi": {
+      "mrr": "الإيراد الشهري المتكرر",
+      "restaurants": "المطاعم",
+      "restaurantsActive": "{{formatted}} نشط",
+      "subscriptions": "الاشتراكات النشطة",
+      "trials": "التجارب",
+      "churn": "معدل الإلغاء",
+      "churnCount": "{{formatted}} ملغى",
+      "last30d": "آخر 30 يومًا"
+    },
+    "planMix": {
+      "title": "توزيع الباقات",
+      "description": "الاشتراكات الفعّالة والإيراد الشهري لكل باقة.",
+      "empty": "لا توجد اشتراكات فعّالة بعد.",
+      "subscriptions": "{{formatted}} اشتراك"
+    },
+    "activity": {
+      "title": "آخر 24 ساعة",
+      "description": "نشاط المطاعم على المنصة.",
+      "orders": "الطلبات المسجّلة",
+      "ordersHint": "في جميع المطاعم",
+      "activeOrgs": "المطاعم النشطة",
+      "activeOrgsHint": "سجّلت طلبًا واحدًا على الأقل",
+      "suspended": "المطاعم الموقوفة",
+      "suspendedHint": "ممنوعة حاليًا من تسجيل الدخول"
+    }
+  },
+  "comingSoon": {
+    "unknown": "الصفحة غير موجودة",
+    "heading": "قريبًا",
+    "body": "لم يتم بناء هذه الصفحة بعد."
+  },
+  "restaurants": {
+    "title": "المطاعم",
+    "description_zero": "لا توجد مطاعم على المنصة",
+    "description_one": "مطعم واحد على المنصة",
+    "description_two": "مطعمان على المنصة",
+    "description_few": "{{count}} مطاعم على المنصة",
+    "description_many": "{{count}} مطعمًا على المنصة",
+    "description_other": "{{count}} مطعم على المنصة",
+    "searchPlaceholder": "ابحث بالاسم أو المعرّف",
+    "clearSearch": "مسح البحث",
+    "allStatuses": "كل الحالات",
+    "none": "لا يوجد",
+    "sortBy": "ترتيب حسب",
+    "loadError": "تعذّر تحميل المطاعم.",
+    "loadErrorTitle": "حدث خطأ ما",
+    "emptyTitle": "لا توجد مطاعم بعد",
+    "emptyBody": "تظهر المطاعم هنا بعد تسجيلها.",
+    "emptyFilteredTitle": "لا توجد مطاعم مطابقة",
+    "emptyFilteredBody": "جرّب بحثًا أو حالة مختلفة.",
+    "notFoundTitle": "المطعم غير موجود",
+    "notFoundBody": "قد يكون حُذف أو أن الرابط غير صحيح.",
+    "backToList": "العودة إلى المطاعم",
+    "breadcrumb": "مسار التنقل",
+    "suspend": "تعليق",
+    "reactivate": "إعادة التفعيل",
+    "superOnly": "يمكن للمسؤول الأعلى فقط تغيير حالة المطعم",
+    "suspendTitle": "تعليق {{name}}؟",
+    "suspendBody": "سيفقد الموظفون الوصول فورًا وتتوقف القائمة العامة عن العمل إلى أن تتم إعادة تفعيل المطعم.",
+    "reactivateTitle": "إعادة تفعيل {{name}}؟",
+    "reactivateBody": "يستطيع الموظفون تسجيل الدخول مجددًا وتعود القائمة العامة للعمل.",
+    "suspended": "تم تعليق المطعم",
+    "reactivated": "تمت إعادة تفعيل المطعم",
+    "statusChangeError": "تعذّر تغيير الحالة. ربما تغيّر المطعم، لذلك تم تحديث الصفحة.",
+    "branchesCount_zero": "لا توجد فروع",
+    "branchesCount_one": "فرع واحد",
+    "branchesCount_two": "فرعان",
+    "branchesCount_few": "{{count}} فروع",
+    "branchesCount_many": "{{count}} فرعًا",
+    "branchesCount_other": "{{count}} فرع",
+    "branchActive": "نشط",
+    "branchInactive": "غير نشط",
+    "status": {
+      "trial": "تجريبي",
+      "active": "نشط",
+      "past_due": "متأخر السداد",
+      "suspended": "معلّق",
+      "cancelled": "ملغى"
+    },
+    "columns": {
+      "name": "المطعم",
+      "owner": "المالك",
+      "plan": "الباقة",
+      "status": "الحالة",
+      "branches": "الفروع",
+      "created": "تاريخ الإنشاء",
+      "actions": "إجراءات"
+    },
+    "sections": {
+      "restaurant": "المطعم",
+      "owner": "المالك",
+      "plan": "الباقة والاشتراك",
+      "branches": "الفروع"
+    },
+    "fields": {
+      "country": "الدولة",
+      "currency": "العملة",
+      "locale": "اللغة الافتراضية",
+      "created": "تاريخ الإنشاء",
+      "members": "أعضاء الفريق",
+      "ownerName": "الاسم",
+      "ownerEmail": "البريد الإلكتروني",
+      "subscription": "الاشتراك",
+      "trialEnds": "انتهاء الفترة التجريبية",
+      "periodEnd": "انتهاء الفترة الحالية",
+      "manualPaid": "الدفع اليدوي",
+      "manualAmount": "المبلغ المستلم",
+      "manualNote": "ملاحظة الدفع"
+    },
+    "pagination": {
+      "navigation": "التنقل بين الصفحات",
+      "previous": "السابق",
+      "next": "التالي",
+      "page": "الصفحة {{page}}",
+      "more": "صفحات أخرى"
+    },
+    "activate": "تفعيل الباقة",
+    "activateTitle": "تفعيل {{name}}",
+    "activateBody": "استخدم هذا عندما يدفع المطعم خارج Paddle. تبقى الباقة فعّالة حتى التاريخ المحدد، ثم يعود المطعم إلى الباقة المجانية.",
+    "activatePlan": "الباقة",
+    "activateUntil": "فعّالة حتى",
+    "activated": "تم تفعيل الباقة",
+    "activateError": "تعذّر تفعيل الباقة. تحقق من التاريخ، أو قد يكون المطعم مفوتراً عبر Paddle.",
+    "billingOnly": "يمكن لمسؤول الفوترة أو المسؤول الأعلى فقط تفعيل الباقة",
+    "activatePaid": "تم استلام الدفعة",
+    "activateAmount": "المبلغ المستلم",
+    "activateNote": "ملاحظة (اختيارية)",
+    "paidYes": "مدفوع",
+    "paidNo": "غير مدفوع"
+  },
+  "users": {
+    "title": "المستخدمون",
+    "description": "الأشخاص الذين لديهم وصول إلى أي مطعم على المنصة.",
+    "searchPlaceholder": "ابحث بالاسم أو البريد",
+    "none": "لا يوجد",
+    "never": "أبدًا",
+    "loadError": "تعذّر تحميل المستخدمين.",
+    "emptyTitle": "لا يوجد مستخدمون بعد",
+    "emptyBody": "يظهر المستخدمون هنا بعد تسجيلهم.",
+    "emptyFilteredTitle": "لا يوجد مستخدمون مطابقون",
+    "emptyFilteredBody": "جرّب اسمًا أو بريدًا آخر.",
+    "columns": {
+      "name": "الاسم",
+      "email": "البريد الإلكتروني",
+      "restaurants": "المطعم",
+      "role": "الدور",
+      "lastLogin": "آخر تسجيل دخول"
+    }
+  },
+  "subscriptions": {
+    "title": "الاشتراكات",
+    "description": "حالة الفوترة لكل مطعم.",
+    "allStatuses": "كل الحالات",
+    "allPlans": "كل الباقات",
+    "trialEnding": "تجربة تنتهي قريبًا (7 أيام)",
+    "loadError": "تعذّر تحميل الاشتراكات.",
+    "emptyTitle": "لا توجد اشتراكات بعد",
+    "emptyBody": "تظهر الاشتراكات هنا بعد تسجيل المطاعم.",
+    "emptyFilteredTitle": "لا توجد اشتراكات مطابقة",
+    "emptyFilteredBody": "جرّب حالة أو باقة أخرى.",
+    "status": {
+      "trialing": "تجريبي",
+      "active": "نشط",
+      "past_due": "متأخر السداد",
+      "canceled": "ملغى"
+    },
+    "columns": {
+      "restaurant": "المطعم",
+      "plan": "الباقة",
+      "status": "الحالة",
+      "trialEnds": "انتهاء التجربة",
+      "periodEnd": "انتهاء الفترة",
+      "providerId": "معرّف المزوّد"
+    }
+  },
+  "plans": {
+    "title": "الباقات والأسعار",
+    "description": "للعرض فقط. تُغيَّر الباقات عبر الترحيلات.",
+    "loadError": "تعذّر تحميل الباقات.",
+    "emptyTitle": "لا توجد باقات",
+    "emptyBody": "لم تُعرَّف أي باقة.",
+    "private": "خاصة",
+    "perMonth": "/ شهر",
+    "perBranchMonth": "/ فرع / شهر",
+    "unlimited": "غير محدود",
+    "feature": {
+      "menu_multilang": "منيو بالعربية والإنجليزية",
+      "menu_branding": "هوية المنيو",
+      "menu_table_qr": "رمز QR لكل طاولة",
+      "pos_access": "الوصول إلى الكاشير",
+      "kds_access": "شاشة المطبخ",
+      "reports_basic": "التقارير الأساسية",
+      "reports_advanced": "التقارير المتقدمة",
+      "reports_export": "تصدير التقارير",
+      "branches_multi": "فروع متعددة",
+      "roles_custom": "أدوار مخصصة",
+      "ordering_table_qr": "الطلب من الطاولة",
+      "ordering_pager": "أرقام الاستلام وشاشة «جاهز»",
+      "api_access": "الوصول إلى API",
+      "limit_products": "حد المنتجات",
+      "limit_users_per_branch": "الموظفون لكل فرع",
+      "limit_devices_per_branch": "الأجهزة لكل فرع"
+    },
+    "columns": {
+      "plan": "الباقة",
+      "price": "السعر"
+    }
+  },
+  "audit": {
+    "title": "سجل التدقيق",
+    "description": "كل تغيير أجراه مشرفو المنصة.",
+    "actorPlaceholder": "تصفية باسم المشرف أو بريده",
+    "actionPlaceholder": "تصفية بالإجراء، مثل org.suspend",
+    "loadError": "تعذّر تحميل سجل التدقيق.",
+    "emptyTitle": "لا توجد سجلات بعد",
+    "emptyBody": "تُسجَّل هنا التغييرات التي يجريها المشرفون.",
+    "emptyFilteredTitle": "لا توجد سجلات مطابقة",
+    "emptyFilteredBody": "جرّب مشرفًا أو إجراءً آخر.",
+    "viewRestaurant": "عرض المطعم",
+    "roles": {
+      "super": "مشرف عام",
+      "support": "الدعم",
+      "billing": "الفوترة"
+    },
+    "columns": {
+      "when": "الوقت",
+      "actor": "المشرف",
+      "role": "الدور",
+      "action": "الإجراء",
+      "target": "الهدف",
+      "ip": "عنوان IP"
+    }
+  },
+  "validation": {
+    "required": "هذا الحقل مطلوب.",
+    "email": "أدخل بريدًا إلكترونيًا صحيحًا، مثل name@example.com.",
+    "tooShort_zero": "يجب ألا يقل عن {{count}} حرف.",
+    "tooShort_one": "يجب ألا يقل عن حرف واحد.",
+    "tooShort_two": "يجب ألا يقل عن حرفين.",
+    "tooShort_few": "يجب ألا يقل عن {{count}} أحرف.",
+    "tooShort_many": "يجب ألا يقل عن {{count}} حرفًا.",
+    "tooShort_other": "يجب ألا يقل عن {{count}} حرف.",
+    "tooLong_zero": "يجب ألا يزيد على {{count}} حرف.",
+    "tooLong_one": "يجب ألا يزيد على حرف واحد.",
+    "tooLong_two": "يجب ألا يزيد على حرفين.",
+    "tooLong_few": "يجب ألا يزيد على {{count}} أحرف.",
+    "tooLong_many": "يجب ألا يزيد على {{count}} حرفًا.",
+    "tooLong_other": "يجب ألا يزيد على {{count}} حرف.",
+    "tooFewItems_other": "اختر {{count}} عناصر على الأقل.",
+    "tooManyItems_other": "اختر {{count}} عناصر كحد أقصى.",
+    "tooSmall": "يجب ألا تقل القيمة عن {{min}}.",
+    "tooBig": "يجب ألا تزيد القيمة على {{max}}.",
+    "invalidType": "أدخل قيمة صحيحة.",
+    "invalidFormat": "صيغة هذه القيمة غير صحيحة.",
+    "invalidValue": "اختر أحد الخيارات المتاحة."
+  }
+}

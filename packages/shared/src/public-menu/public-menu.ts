@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { moneyMinorSchema } from '../i18n/localized-text.js';
+import { moneyDisplaySchema } from '../money/display-currency.js';
 import { productImageUrlsSchema } from '../catalog/product.js';
 
 export const publicMenuLocaleSchema = z.enum(['ar', 'en']);
@@ -55,6 +56,11 @@ export const publicMenuOrgSchema = z.object({
   defaultLocale: z.string(),
   locales: z.array(z.string()),
   currency: z.string().length(3),
+  /**
+   * Set when the restaurant shows prices in another currency; prices stay in `currency`.
+   * Defaults to null so menus cached at the CDN from before this field still parse.
+   */
+  display: moneyDisplaySchema.nullable().default(null),
   logoUrl: z.url().nullable(),
 });
 

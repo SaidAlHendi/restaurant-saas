@@ -4,6 +4,7 @@ import {
   type ExceptionFilter,
   HttpException,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { MulterError } from 'multer';
@@ -84,6 +85,8 @@ function detailsFromHttpBody(body: string | object): Record<string, unknown> {
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger(HttpExceptionFilter.name);
+
   catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
@@ -147,9 +150,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
       return;
     }
 
-    if (process.env['NODE_ENV'] === 'development') {
-      console.error(exception);
-    }
+    // Unexpected error (the response below hides the cause), so log it, otherwise it is invisible in production.
+    this.logger.error(
+      exception instanceof Error ? `${exception.name}: ${exception.message}` : String(exception),
+      exception instanceof Error ? exception.stack : undefined,
+    );
 
     const exposeCause =
       process.env['NODE_ENV'] === 'development' || process.env['NODE_ENV'] === 'test';

@@ -1,10 +1,17 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import type { OrderDetail, PaymentMethod } from '@app/shared';
+import {
+  convertMinorToDisplay,
+  formatDisplayMinor,
+  formatMoney,
+  isDisplayConversionActive,
+  type OrderDetail,
+  type PaymentMethod,
+} from '@app/shared';
 
 import { randomUuid } from '../../../lib/uuid.js';
-import { useCapturePaymentMutation } from '../../orders/orders.api.js';
+import { useCapturePaymentMutation, useChangeOrderStatusMutation } from '../../orders/orders.api.js';
 import { parseOrdersApiErrorCode } from '../../orders/orders-api-errors.js';
 import { showOrdersApiError } from '../../orders/show-orders-api-error.js';
 import { cashChangeMinor, quickTenderAmounts } from '../pos-payment.utils.js';
@@ -15,8 +22,7 @@ export function usePosPaymentDialog(input: {
   acceptsCard: boolean;
   onPaymentCaptured: () => void;
   onDismissUnpaid?: () => void;
-  formatMinor: (minor: number) => string;
-  currency: string;
+  onDiscarded?: () => void;
   uiLocale: string;
 }) {
   const { t } = useTranslation();
@@ -26,9 +32,16 @@ export function usePosPaymentDialog(input: {
   const [tenderedMinor, setTenderedMinor] = useState<number | null>(null);
   const [clientPaymentId, setClientPaymentId] = useState<string | null>(null);
   const [capturePayment, captureState] = useCapturePaymentMutation();
+  const [changeStatus, discardState] = useChangeOrderStatusMutation();
 
   const activeOrder = dialogOrder ?? input.order;
+  // Only a brand-new, unpaid draft can be thrown away here (needs no manager approval).
+  const canDiscard = activeOrder?.status === 'draft' && activeOrder.payments.length === 0;
   const dueMinor = activeOrder?.dueMinor ?? 0;
+
+  // With a display currency the cashier counts that currency: the dialog works in it throughout.
+  const cash = useMemo(() => cashCurrencyFor(activeOrder, input.uiLocale), [activeOrder, input.uiLocale]);
+  const cashDueMinor = cash.toCash(dueMinor);
 
   const openForOrder = useCallback(
     (order?: OrderDetail) => {
@@ -38,11 +51,13 @@ export function usePosPaymentDialog(input: {
       }
       setDialogOrder(target);
       setMethod('cash');
-      setTenderedMinor(target.dueMinor > 0 ? target.dueMinor : null);
+      setTenderedMinor(
+        target.dueMinor > 0 ? cashCurrencyFor(target, input.uiLocale).toCash(target.dueMinor) : null,
+      );
       setClientPaymentId(randomUuid());
       setOpen(true);
     },
-    [input.order],
+    [input.order, input.uiLocale],
   );
 
   const dismiss = useCallback(() => {
@@ -55,21 +70,55 @@ export function usePosPaymentDialog(input: {
     setClientPaymentId(null);
   }, [dialogOrder, input]);
 
-  const quickAmounts = useMemo(() => quickTenderAmounts(dueMinor), [dueMinor]);
+  const discard = useCallback(async () => {
+    if (!input.branchId || !activeOrder || !canDiscard) {
+      return;
+    }
+    const result = await changeStatus({
+      branchId: input.branchId,
+      orderId: activeOrder.id,
+      body: {
+        to: 'cancelled',
+        expectedVersion: activeOrder.version,
+        reason: t('pos.payment.discardReason'),
+      },
+    });
+    if ('error' in result) {
+      showOrdersApiError(result.error, t);
+      return;
+    }
+    setOpen(false);
+    setDialogOrder(undefined);
+    setClientPaymentId(null);
+    input.onDiscarded?.();
+  }, [activeOrder, canDiscard, changeStatus, input, t]);
+
+  // Nothing left to pay (paid elsewhere, version conflict after a captured payment, stale
+  // refetch): never leave an unpayable dialog stuck on screen.
+  const nothingDue = open && activeOrder !== undefined && activeOrder.dueMinor <= 0;
+  useEffect(() => {
+    if (nothingDue) {
+      setOpen(false);
+      setDialogOrder(undefined);
+      setClientPaymentId(null);
+    }
+  }, [nothingDue]);
+
+  const quickAmounts = useMemo(() => quickTenderAmounts(cashDueMinor), [cashDueMinor]);
 
   const changeMinor = useMemo(() => {
     if (method !== 'cash' || tenderedMinor === null) {
       return null;
     }
-    return cashChangeMinor(tenderedMinor, dueMinor);
-  }, [dueMinor, method, tenderedMinor]);
+    return cashChangeMinor(tenderedMinor, cashDueMinor);
+  }, [cashDueMinor, method, tenderedMinor]);
 
   const canSubmit =
     input.branchId !== null &&
     activeOrder !== undefined &&
     dueMinor > 0 &&
     !captureState.isLoading &&
-    (method === 'card' || (tenderedMinor !== null && tenderedMinor >= dueMinor));
+    (method === 'card' || (tenderedMinor !== null && tenderedMinor >= cashDueMinor));
 
   const submit = useCallback(async () => {
     if (!input.branchId || !activeOrder || !canSubmit || clientPaymentId === null) {
@@ -82,7 +131,9 @@ export function usePosPaymentDialog(input: {
             expectedVersion: activeOrder.version,
             method: 'cash' as const,
             amountMinor: dueMinor,
-            tenderedMinor: tenderedMinor ?? dueMinor,
+            ...(cash.converted
+              ? { displayTenderedMinor: tenderedMinor ?? cashDueMinor }
+              : { tenderedMinor: tenderedMinor ?? dueMinor }),
           }
         : {
             clientPaymentId,
@@ -114,6 +165,8 @@ export function usePosPaymentDialog(input: {
     activeOrder,
     canSubmit,
     capturePayment,
+    cash.converted,
+    cashDueMinor,
     dueMinor,
     input,
     method,
@@ -135,14 +188,18 @@ export function usePosPaymentDialog(input: {
     setTenderedMinor,
     quickAmounts,
     changeMinor,
-    dueLabel: formatMinorLabel(input.formatMinor, dueMinor),
-    changeLabel: changeMinor === null ? null : input.formatMinor(changeMinor),
+    dueLabel: cash.format(cashDueMinor),
+    changeLabel: changeMinor === null ? null : cash.format(changeMinor),
     canSubmit,
     submitting: captureState.isLoading,
     submit,
-    currency: input.currency,
+    canDiscard,
+    discarding: discardState.isLoading,
+    discard,
+    /** Currency the cash fields are in (the display currency when the order has one). */
+    currency: cash.currency,
     uiLocale: input.uiLocale,
-    formatMinorLabel: input.formatMinor,
+    formatMinorLabel: cash.format,
     labels: {
       title: t('pos.payment.title'),
       due: t('pos.payment.due'),
@@ -152,10 +209,34 @@ export function usePosPaymentDialog(input: {
       change: t('pos.payment.change'),
       confirm: t('pos.payment.confirm'),
       cancel: t('pos.actions.cancel'),
+      discard: t('pos.payment.discard'),
     },
   };
 }
 
-function formatMinorLabel(formatMinor: (minor: number) => string, minor: number): string {
-  return formatMinor(minor);
+type CashCurrency = {
+  currency: string;
+  converted: boolean;
+  /** Order-currency minor units -> minor units of the currency the cashier counts. */
+  toCash: (orderMinor: number) => number;
+  format: (cashMinor: number) => string;
+};
+
+function cashCurrencyFor(order: OrderDetail | undefined, uiLocale: string): CashCurrency {
+  const currency = order?.currency ?? 'USD';
+  const display = order?.display;
+  if (!isDisplayConversionActive(currency, display)) {
+    return {
+      currency,
+      converted: false,
+      toCash: (orderMinor) => orderMinor,
+      format: (cashMinor) => formatMoney(cashMinor, currency, uiLocale),
+    };
+  }
+  return {
+    currency: display.currency,
+    converted: true,
+    toCash: (orderMinor) => convertMinorToDisplay(orderMinor, currency, display, 'total'),
+    format: (cashMinor) => formatDisplayMinor(cashMinor, display, uiLocale, 'total'),
+  };
 }

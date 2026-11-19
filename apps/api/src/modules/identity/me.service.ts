@@ -28,7 +28,7 @@ export class MeService {
       this.tenancyRepo.findOrganizationById(tx, ctx.orgId),
     );
 
-    const { role, branches } = await withOrg(this.db, ctx.orgId, async (tx) => {
+    const { role, branches, allBranches } = await withOrg(this.db, ctx.orgId, async (tx) => {
       const membership = await this.identityRepo.findMembershipForUserOrg(tx, ctx.userId, ctx.orgId);
       const roleRow = membership
         ? await this.tenancyRepo.findRoleById(tx, membership.roleId)
@@ -41,6 +41,7 @@ export class MeService {
       return {
         role: roleRow,
         branches: visible,
+        allBranches: membership?.allBranches ?? false,
       };
     });
 
@@ -84,6 +85,7 @@ export class MeService {
         isActive: b.isActive,
       })),
       orgs,
+      allBranches,
       currentBranchId: ctx.currentBranchId ?? null,
       entitlements,
     };

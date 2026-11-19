@@ -8,9 +8,11 @@ import {
   productModifierGroups,
   products,
 } from '../../core/db/schema/catalog';
+import { orders } from '../../core/db/schema/ordering';
 import { branches, organizations } from '../../core/db/schema/tenancy';
 import { DRIZZLE, type DrizzleDb } from '../../core/db/db.module';
 import type { DrizzleTx } from '../../core/db/with-org';
+import { categoryInBranch, productInBranch } from '../catalog/catalog.repository';
 
 export type PublicResolveOrgRow = {
   org_id: string;
@@ -24,6 +26,12 @@ export type PublicResolveTableRow = {
   branch_id: string;
   table_id: string;
   label: string;
+};
+
+export type PublicResolveDisplayRow = {
+  org_id: string;
+  branch_id: string;
+  org_status: string;
 };
 
 export type PublicSitemapRow = {
@@ -68,6 +76,10 @@ export class PublicMenuRepository {
         defaultLocale: organizations.defaultLocale,
         locales: organizations.locales,
         defaultCurrency: organizations.defaultCurrency,
+        displayCurrency: organizations.displayCurrency,
+        exchangeRate: organizations.exchangeRate,
+        displayItemStep: organizations.displayItemStep,
+        displayTotalStep: organizations.displayTotalStep,
         logoKey: organizations.logoKey,
       })
       .from(organizations)
@@ -91,6 +103,7 @@ export class PublicMenuRepository {
   async findActiveBranchBySlug(tx: DrizzleTx, orgId: string, branchSlug: string) {
     const rows = await tx
       .select({
+        id: branches.id,
         name: branches.name,
         slug: branches.slug,
         address: branches.address,
@@ -107,6 +120,35 @@ export class PublicMenuRepository {
     return rows[0];
   }
 
+  async resolveDisplay(token: string): Promise<PublicResolveDisplayRow | undefined> {
+    const result = await this.db.execute(
+      sql`SELECT org_id, branch_id, org_status FROM public.public_resolve_display(${token})`,
+    );
+    return result.rows[0] as PublicResolveDisplayRow | undefined;
+  }
+
+  async findBranchForDisplay(tx: DrizzleTx, orgId: string, branchId: string) {
+    const rows = await tx
+      .select({
+        name: branches.name,
+        isActive: branches.isActive,
+        pagerEnabled: branches.pagerEnabled,
+      })
+      .from(branches)
+      .where(and(eq(branches.orgId, orgId), eq(branches.id, branchId)))
+      .limit(1);
+    return rows[0];
+  }
+
+  async listReadyOrders(tx: DrizzleTx, branchId: string) {
+    return tx
+      .select({ orderNumber: orders.orderNumber, pagerNumber: orders.pagerNumber })
+      .from(orders)
+      .where(and(eq(orders.branchId, branchId), eq(orders.status, 'ready')))
+      .orderBy(asc(orders.updatedAt), asc(orders.id))
+      .limit(60);
+  }
+
   async findBranchSlugs(tx: DrizzleTx, orgId: string, branchId: string) {
     const rows = await tx
       .select({
@@ -121,7 +163,8 @@ export class PublicMenuRepository {
     return rows[0];
   }
 
-  async listActiveCategories(tx: DrizzleTx, orgId: string) {
+  /** `branchId` set: only categories shown in that branch. Unset: the whole organization menu. */
+  async listActiveCategories(tx: DrizzleTx, orgId: string, branchId?: string) {
     return tx
       .select()
       .from(categories)
@@ -130,12 +173,18 @@ export class PublicMenuRepository {
           eq(categories.orgId, orgId),
           eq(categories.isActive, true),
           isNull(categories.deletedAt),
+          branchId ? categoryInBranch(branchId) : undefined,
         ),
       )
       .orderBy(asc(categories.sortOrder), asc(categories.id));
   }
 
-  async listActiveProductsForCategoryIds(tx: DrizzleTx, orgId: string, categoryIds: string[]) {
+  async listActiveProductsForCategoryIds(
+    tx: DrizzleTx,
+    orgId: string,
+    categoryIds: string[],
+    branchId?: string,
+  ) {
     if (categoryIds.length === 0) {
       return [];
     }
@@ -148,6 +197,7 @@ export class PublicMenuRepository {
           inArray(products.categoryId, categoryIds),
           eq(products.isActive, true),
           isNull(products.deletedAt),
+          branchId ? productInBranch(branchId) : undefined,
         ),
       )
       .orderBy(asc(products.categoryId), asc(products.sortOrder), asc(products.id));

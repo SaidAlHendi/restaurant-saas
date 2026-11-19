@@ -8,8 +8,6 @@ export const DARK_THEME: Theme = 'forest';
 /** localStorage key; apps/web/index.html reads the same key before React loads. */
 export const THEME_STORAGE_KEY = 'app.theme';
 
-const DARK_QUERY = '(prefers-color-scheme: dark)';
-
 function isTheme(value: unknown): value is Theme {
   return typeof value === 'string' && (THEMES as readonly string[]).includes(value);
 }
@@ -31,13 +29,9 @@ function writeStoredTheme(theme: Theme): void {
   }
 }
 
-function systemTheme(): Theme {
-  return window.matchMedia(DARK_QUERY).matches ? DARK_THEME : LIGHT_THEME;
-}
-
-/** Saved choice first, otherwise the OS preference. */
+/** Saved choice first, otherwise light (the OS preference is ignored). */
 export function resolveInitialTheme(): Theme {
-  return readStoredTheme() ?? systemTheme();
+  return readStoredTheme() ?? LIGHT_THEME;
 }
 
 let currentTheme: Theme | null = null;
@@ -60,20 +54,13 @@ function getTheme(): Theme {
 
 function subscribe(listener: () => void): () => void {
   listeners.add(listener);
-  const media = window.matchMedia(DARK_QUERY);
-  // Follow the OS only while the user has not chosen a theme.
-  const onSystemChange = () => {
-    if (readStoredTheme() === null) applyTheme(systemTheme());
-  };
   // Keep tabs in sync.
   const onStorage = (event: StorageEvent) => {
     if (event.key === THEME_STORAGE_KEY && isTheme(event.newValue)) applyTheme(event.newValue);
   };
-  media.addEventListener('change', onSystemChange);
   window.addEventListener('storage', onStorage);
   return () => {
     listeners.delete(listener);
-    media.removeEventListener('change', onSystemChange);
     window.removeEventListener('storage', onStorage);
   };
 }

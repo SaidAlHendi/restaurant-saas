@@ -7,6 +7,7 @@ import { formatOrderMetaLine, renderKitchenItemLinesHtml } from './print-label.u
 export type KitchenPrintLabels = {
   dineIn: string;
   takeaway: string;
+  pager?: string;
   additionHeader: string;
 };
 

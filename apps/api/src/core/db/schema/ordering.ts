@@ -7,6 +7,7 @@ import {
   foreignKey,
   integer,
   jsonb,
+  numeric,
   pgEnum,
   pgTable,
   primaryKey,
@@ -33,6 +34,7 @@ export const orderStatusEnum = pgEnum('order_status', [
 export const paymentStatusEnum = pgEnum('payment_status', ['unpaid', 'partial', 'paid', 'refunded']);
 
 export const orderItemStatusEnum = pgEnum('order_item_status', [
+  'awaiting_payment',
   'pending',
   'preparing',
   'ready',
@@ -89,6 +91,46 @@ export const branchCounters = pgTable(
   ],
 );
 
+export const billStatusEnum = pgEnum('bill_status', ['open', 'closed']);
+
+/** A table visit: groups the dine-in orders ("rounds") that are paid together. */
+export const bills = pgTable(
+  'bills',
+  {
+    id: uuid('id').primaryKey(),
+    orgId: uuid('org_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    branchId: uuid('branch_id').notNull(),
+    tableId: uuid('table_id').notNull(),
+    /** Optional name when two groups share a table ("Group B"). */
+    label: text('label'),
+    status: billStatusEnum('status').notNull().default('open'),
+    openedBy: uuid('opened_by').notNull(),
+    openedAt: timestamp('opened_at', { withTimezone: true }).notNull().defaultNow(),
+    closedAt: timestamp('closed_at', { withTimezone: true }),
+    version: integer('version').notNull().default(1),
+  },
+  (t) => [
+    unique('bills_id_org_id_unique').on(t.id, t.orgId),
+    foreignKey({
+      name: 'bills_branch_id_org_id_branches_id_org_id_fk',
+      columns: [t.branchId, t.orgId],
+      foreignColumns: [branches.id, branches.orgId],
+    }).onDelete('restrict'),
+    foreignKey({
+      name: 'bills_table_id_org_id_tables_id_org_id_fk',
+      columns: [t.tableId, t.orgId],
+      foreignColumns: [diningTables.id, diningTables.orgId],
+    }).onDelete('restrict'),
+    foreignKey({
+      name: 'bills_opened_by_memberships_id_fk',
+      columns: [t.openedBy],
+      foreignColumns: [memberships.id],
+    }).onDelete('restrict'),
+  ],
+);
+
 export const orders = pgTable(
   'orders',
   {
@@ -104,13 +146,21 @@ export const orders = pgTable(
     status: orderStatusEnum('status').notNull(),
     paymentStatus: paymentStatusEnum('payment_status').notNull().default('unpaid'),
     tableId: uuid('table_id'),
+    /** Set for dine-in orders at a table; null for takeaway and orders from before bills. */
+    billId: uuid('bill_id'),
     customerName: text('customer_name'),
+    pagerNumber: integer('pager_number'),
     notes: text('notes'),
     subtotalMinor: bigint('subtotal_minor', { mode: 'number' }).notNull(),
     discountMinor: bigint('discount_minor', { mode: 'number' }).notNull().default(0),
     taxMinor: bigint('tax_minor', { mode: 'number' }).notNull(),
     totalMinor: bigint('total_minor', { mode: 'number' }).notNull(),
     currency: text('currency').notNull(),
+    /** Display currency frozen at creation (all four set, or all four null). */
+    displayCurrency: text('display_currency'),
+    exchangeRate: numeric('exchange_rate', { precision: 18, scale: 6, mode: 'number' }),
+    displayItemStep: integer('display_item_step'),
+    displayTotalStep: integer('display_total_step'),
     cancelReason: text('cancel_reason'),
     version: integer('version').notNull().default(1),
     placedAt: timestamp('placed_at', { withTimezone: true }),
@@ -138,6 +188,11 @@ export const orders = pgTable(
       columns: [t.tableId, t.orgId],
       foreignColumns: [diningTables.id, diningTables.orgId],
     }).onDelete('restrict'),
+    foreignKey({
+      name: 'orders_bill_id_org_id_bills_id_org_id_fk',
+      columns: [t.billId, t.orgId],
+      foreignColumns: [bills.id, bills.orgId],
+    }).onDelete('restrict'),
   ],
 );
 
@@ -155,6 +210,8 @@ export const orderItems = pgTable(
     quantity: integer('quantity').notNull(),
     lineTotalMinor: bigint('line_total_minor', { mode: 'number' }).notNull(),
     notes: text('notes'),
+    /** Guest label on a shared bill ("Guest 1"), used to pay per person. */
+    seat: text('seat'),
     status: orderItemStatusEnum('status').notNull().default('pending'),
     isAddition: boolean('is_addition').notNull().default(false),
     voidedAt: timestamp('voided_at', { withTimezone: true }),
@@ -206,6 +263,8 @@ export const payments = pgTable(
     amountMinor: bigint('amount_minor', { mode: 'number' }).notNull(),
     tenderedMinor: bigint('tendered_minor', { mode: 'number' }),
     changeMinor: bigint('change_minor', { mode: 'number' }),
+    displayTenderedMinor: bigint('display_tendered_minor', { mode: 'number' }),
+    displayChangeMinor: bigint('display_change_minor', { mode: 'number' }),
     status: paymentRecordStatusEnum('status').notNull().default('captured'),
     createdBy: uuid('created_by').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -228,6 +287,33 @@ export const payments = pgTable(
       name: 'payments_created_by_memberships_id_fk',
       columns: [t.createdBy],
       foreignColumns: [memberships.id],
+    }).onDelete('restrict'),
+  ],
+);
+
+/** Which order items a payment covered, so an item is never paid twice. */
+export const paymentItems = pgTable(
+  'payment_items',
+  {
+    id: uuid('id').primaryKey(),
+    orgId: uuid('org_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    paymentId: uuid('payment_id').notNull(),
+    orderItemId: uuid('order_item_id').notNull(),
+    amountMinor: bigint('amount_minor', { mode: 'number' }).notNull(),
+  },
+  (t) => [
+    check('payment_items_amount_positive', sql`${t.amountMinor} > 0`),
+    foreignKey({
+      name: 'payment_items_payment_id_org_id_payments_id_org_id_fk',
+      columns: [t.paymentId, t.orgId],
+      foreignColumns: [payments.id, payments.orgId],
+    }).onDelete('restrict'),
+    foreignKey({
+      name: 'payment_items_order_item_id_org_id_order_items_id_org_id_fk',
+      columns: [t.orderItemId, t.orgId],
+      foreignColumns: [orderItems.id, orderItems.orgId],
     }).onDelete('restrict'),
   ],
 );

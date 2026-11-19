@@ -11,7 +11,8 @@ const typedFiles = [
 ];
 
 export default [
-  { ignores: ['build/**', '.react-router/**'] },
+  // scripts/ holds plain Node build tools (no types, no browser); they are not part of the app.
+  { ignores: ['build/**', '.react-router/**', 'scripts/**'] },
   ...react,
   {
     files: ['app/root.tsx', 'app/routes/**/*.{ts,tsx}', 'app/lib/**/*.ts'],

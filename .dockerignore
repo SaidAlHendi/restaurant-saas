@@ -1,0 +1,16 @@
+**/node_modules
+**/dist
+**/build
+**/.turbo
+**/.react-router
+**/coverage
+.git
+.github
+.env
+.env.*
+!.env.example
+apps/api/.storage
+apps/api/.seed-cache
+infra/staging/*.env
+docs
+*.log

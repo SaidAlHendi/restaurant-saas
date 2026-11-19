@@ -7,6 +7,7 @@ import { DRIZZLE, type DrizzleDb } from '../../core/db/db.module';
 import { authSessions } from '../../core/db/schema/identity';
 import { setOrgLocal } from '../../core/db/with-org';
 import type { RequestContext } from '../../core/context/request-context';
+import { assertOrgActive } from '../tenancy/org-status';
 import { TenancyRepository } from '../tenancy/tenancy.repository';
 import { IdentityRepository } from './identity.repository';
 
@@ -42,11 +43,21 @@ export class AuthContextService {
 
     return this.db.transaction(async (tx) => {
       await tx.execute(setOrgLocal(payload.org));
+      const org = await this.tenancyRepo.findOrganizationById(tx, payload.org);
+      if (!org) {
+        throw new UnauthorizedError('SESSION_INVALID', 'Session is not active');
+      }
+      // Suspension takes effect on the next request, not when the access token expires.
+      assertOrgActive(org.status);
       const membership = await this.identityRepo.findMembershipForUserOrg(tx, payload.sub, payload.org);
       if (!membership || membership.status !== 'active') {
         throw new UnauthorizedError('MEMBERSHIP_DISABLED', 'Membership is not active');
       }
-      const permissions = await this.tenancyRepo.loadRolePermissions(tx, membership.roleId);
+      const permissions = await this.tenancyRepo.loadEffectivePermissions(
+        tx,
+        membership.id,
+        membership.roleId,
+      );
       const branchRows = await this.tenancyRepo.listBranches(tx, payload.org);
       const activeBranchIds = branchRows.filter((b) => b.isActive).map((b) => b.id);
       let branchIds: string[] = activeBranchIds;

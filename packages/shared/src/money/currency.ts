@@ -10,8 +10,20 @@ export function currencyDigits(currency: string): number {
   }
 }
 
+/**
+ * Symbols Intl gets wrong for our users: SYP comes back as a bare "£", which reads as British pounds.
+ * `null` means "show the currency code".
+ */
+const SYMBOL_OVERRIDES: Record<string, { ar: string | null; other: string | null }> = {
+  SYP: { ar: 'ل.س', other: null },
+};
+
 /** Short currency symbol for a locale, e.g. "SAR" -> "ر.س.‏" in ar-SA, "$" for USD in en. */
 export function currencySymbol(currency: string, locale: string): string {
+  const override = SYMBOL_OVERRIDES[currency];
+  if (override) {
+    return (locale.startsWith('ar') ? override.ar : override.other) ?? currency;
+  }
   try {
     const part = new Intl.NumberFormat(locale, {
       style: 'currency',

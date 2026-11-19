@@ -12,9 +12,15 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  HelpTip,
+  IconButton,
+  Input,
+  MoneyInput,
   NumberInput,
+  Switch,
 } from '@app/ui';
-import type { UseFormReturn } from 'react-hook-form';
+import { PlusIcon, Trash2Icon } from 'lucide-react';
+import type { UseFieldArrayReturn, UseFormReturn } from 'react-hook-form';
 
 import type { ModifierGroupFormValues } from '../hooks/use-modifier-group-form.js';
 import { LocalizedFieldsView } from './LocalizedFieldsView.js';
@@ -28,8 +34,6 @@ export interface ModifierGroupFormDialogViewProps {
   submitLabel: string;
   cancelLabel: string;
   deleteHint?: string;
-  minLabel: string;
-  maxLabel: string;
   decreaseLabel: string;
   increaseLabel: string;
   locales: string[];
@@ -37,9 +41,32 @@ export interface ModifierGroupFormDialogViewProps {
   fieldLabels: { name: string; description: string };
   tabLabel: (locale: string) => string;
   defaultLocale: string;
+  currency: string;
+  moneyLocale: string;
   form: UseFormReturn<ModifierGroupFormValues>;
+  modifierRows: Pick<
+    UseFieldArrayReturn<ModifierGroupFormValues, 'modifiers'>,
+    'fields' | 'append' | 'remove'
+  >;
+  emptyModifierRow: { name: Record<string, string>; priceDeltaMinor: number };
   onSubmit: () => void;
   isSaving: boolean;
+  requiredLabel: string;
+  requiredHelp: string;
+  maxLabel: string;
+  maxHelp: string;
+  /** One sentence describing what the cashier/customer will see for the current choices. */
+  summaryFor: (values: Pick<ModifierGroupFormValues, 'isRequired' | 'maxSelect'>) => string;
+  modifiersTitle: string;
+  modifiersHelp: string;
+  /** Placeholder for the name field of one language, e.g. "Choice name (English)". */
+  modifierNameLabel: (locale: string) => string;
+  modifierPriceLabel: string;
+  addRowLabel: string;
+  removeRowLabel: string;
+  /** Shown in edit mode: modifiers are managed from the group card. */
+  modifiersLaterHint: string;
+  helpLabel: string;
 }
 
 export function ModifierGroupFormDialogView({
@@ -50,8 +77,6 @@ export function ModifierGroupFormDialogView({
   titleEdit,
   submitLabel,
   cancelLabel,
-  minLabel,
-  maxLabel,
   decreaseLabel,
   increaseLabel,
   locales,
@@ -59,10 +84,29 @@ export function ModifierGroupFormDialogView({
   fieldLabels,
   tabLabel,
   defaultLocale,
+  currency,
+  moneyLocale,
   form,
+  modifierRows,
+  emptyModifierRow,
   onSubmit,
   isSaving,
+  requiredLabel,
+  requiredHelp,
+  maxLabel,
+  maxHelp,
+  summaryFor,
+  modifiersTitle,
+  modifiersHelp,
+  modifierNameLabel,
+  modifierPriceLabel,
+  addRowLabel,
+  removeRowLabel,
+  modifiersLaterHint,
+  helpLabel,
 }: ModifierGroupFormDialogViewProps) {
+  const watched = form.watch(['isRequired', 'maxSelect']);
+  const summary = summaryFor({ isRequired: watched[0], maxSelect: watched[1] });
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -90,21 +134,16 @@ export function ModifierGroupFormDialogView({
               <div className="grid gap-4 sm:grid-cols-2">
                 <FormField
                   control={form.control}
-                  name="minSelect"
+                  name="isRequired"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{minLabel}</FormLabel>
+                      <div className="flex items-center gap-1">
+                        <FormLabel>{requiredLabel}</FormLabel>
+                        <HelpTip label={helpLabel}>{requiredHelp}</HelpTip>
+                      </div>
                       <FormControl>
-                        <NumberInput
-                          name={field.name}
-                          value={field.value}
-                          onValueChange={field.onChange}
-                          min={0}
-                          decrementLabel={decreaseLabel}
-                          incrementLabel={increaseLabel}
-                        />
+                        <Switch checked={field.value} onCheckedChange={field.onChange} />
                       </FormControl>
-                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -113,7 +152,10 @@ export function ModifierGroupFormDialogView({
                   name="maxSelect"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{maxLabel}</FormLabel>
+                      <div className="flex items-center gap-1">
+                        <FormLabel>{maxLabel}</FormLabel>
+                        <HelpTip label={helpLabel}>{maxHelp}</HelpTip>
+                      </div>
                       <FormControl>
                         <NumberInput
                           name={field.name}
@@ -129,6 +171,89 @@ export function ModifierGroupFormDialogView({
                   )}
                 />
               </div>
+              <p className="text-muted-foreground text-sm" aria-live="polite">
+                {summary}
+              </p>
+              {mode === 'create' ? (
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-1">
+                    <p className="text-sm font-medium">{modifiersTitle}</p>
+                    <HelpTip label={helpLabel}>{modifiersHelp}</HelpTip>
+                  </div>
+                  {modifierRows.fields.map((row, index) => (
+                    <div key={row.id} className="grid grid-cols-[1fr_8rem_auto] items-start gap-2">
+                      <div className="flex flex-col gap-2">
+                        {locales.map((locale) => (
+                          <FormField
+                            key={locale}
+                            control={form.control}
+                            name={
+                              `modifiers.${index.toString()}.name.${locale}` as `modifiers.${number}.name.${string}`
+                            }
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Input
+                                    {...field}
+                                    value={typeof field.value === 'string' ? field.value : ''}
+                                    aria-label={modifierNameLabel(locale)}
+                                    placeholder={modifierNameLabel(locale)}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        ))}
+                      </div>
+                      <FormField
+                        control={form.control}
+                        name={
+                          `modifiers.${index.toString()}.priceDeltaMinor` as `modifiers.${number}.priceDeltaMinor`
+                        }
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <MoneyInput
+                                name={field.name}
+                                aria-label={modifierPriceLabel}
+                                value={field.value}
+                                onValueChange={field.onChange}
+                                onBlur={field.onBlur}
+                                currency={currency}
+                                locale={moneyLocale}
+                                allowNegative
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <IconButton
+                        icon={<Trash2Icon />}
+                        label={removeRowLabel}
+                        variant="ghost"
+                        onClick={() => {
+                          modifierRows.remove(index);
+                        }}
+                      />
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="self-start"
+                    onClick={() => {
+                      modifierRows.append({ ...emptyModifierRow });
+                    }}
+                  >
+                    <PlusIcon className="size-4" aria-hidden />
+                    {addRowLabel}
+                  </Button>
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-sm">{modifiersLaterHint}</p>
+              )}
             </DialogBody>
             <DialogFooter>
               <Button

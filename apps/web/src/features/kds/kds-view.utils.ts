@@ -14,6 +14,8 @@ export type KdsCardLabels = {
   orderNumber: (n: number) => string;
   type: (type: KitchenBoardOrder['type']) => string;
   table: (label: string) => string;
+  pager?: (n: number) => string;
+  round?: (n: number) => string;
   added: string;
   voided: string;
   start: string;
@@ -52,6 +54,8 @@ export type KdsCardModel = {
   voidedLabel: string;
   next: 'preparing' | 'ready' | null;
   actionLabel: string | null;
+  /** A New order can also be marked as started (moves it to Preparing). */
+  startLabel: string | null;
   statusNote: string | null;
 };
 
@@ -78,6 +82,16 @@ export function buildKdsCard(order: KitchenBoardOrder, input: BuildCardInput): K
     subtitle = labels.table(order.tableLabel);
   } else if (order.customerName) {
     subtitle = order.customerName;
+  }
+  if (order.pagerNumber !== null && labels.pager) {
+    const pagerText = labels.pager(order.pagerNumber);
+    subtitle = subtitle === null ? pagerText : `${subtitle} · ${pagerText}`;
+  }
+
+  // A second or later round means the table ordered again; the kitchen should know it is not a new table.
+  if (order.round !== null && order.round > 1 && labels.round) {
+    const roundText = labels.round(order.round);
+    subtitle = subtitle === null ? roundText : `${subtitle} · ${roundText}`;
   }
 
   return {
@@ -111,7 +125,8 @@ export function buildKdsCard(order: KitchenBoardOrder, input: BuildCardInput): K
       };
     }),
     next,
-    actionLabel: next === 'preparing' ? labels.start : next === 'ready' ? labels.ready : null,
+    actionLabel: next === 'ready' ? labels.ready : null,
+    startLabel: order.status === 'placed' ? labels.start : null,
     statusNote:
       order.status === 'ready'
         ? order.paymentStatus === 'paid'

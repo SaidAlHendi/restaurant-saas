@@ -45,7 +45,7 @@ export function ProductTile({
       data-slot="product-tile"
       data-in-cart={inCart}
       className={cn(
-        'flex flex-col overflow-hidden rounded-xl border bg-card text-card-foreground shadow-xs transition-colors',
+        'relative flex flex-col overflow-hidden rounded-lg border bg-card text-card-foreground shadow-xs transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-md',
         'data-[in-cart=true]:border-primary',
         className,
       )}
@@ -80,6 +80,14 @@ export function ProductTile({
             {priceLabel}
           </span>
         </span>
+        {stepper ? null : (
+          <span
+            aria-hidden
+            className="absolute bottom-3 end-3 flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground"
+          >
+            <PlusIcon className="size-4" />
+          </span>
+        )}
       </button>
       {stepper ? (
         <div className="flex items-center justify-between gap-2 px-2.5 pb-2.5">

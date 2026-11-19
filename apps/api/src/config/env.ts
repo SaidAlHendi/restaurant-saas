@@ -18,12 +18,15 @@ const envSchema = z.object({
   DATABASE_URL: z.url(),
   DATABASE_MIGRATION_URL: z.url(),
   DATABASE_WORKER_URL: optionalUrl,
+  DATABASE_ADMIN_URL: optionalUrl,
   OUTBOX_PUBLISHER_INTERVAL_MS: z.coerce.number().int().positive().default(500),
   OUTBOX_SHUTDOWN_TIMEOUT_MS: z.coerce.number().int().positive().default(10_000),
   REDIS_URL: z.url(),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
   JWT_ACCESS_SECRET: z.string().min(32),
   JWT_ACCESS_TTL: z.string().default('15m'),
+  JWT_ADMIN_SECRET: z.preprocess(emptyStringToUndefined, z.string().min(32).optional()),
+  JWT_ADMIN_TTL: z.string().default('10m'),
   COOKIE_SECURE: z
     .enum(['true', 'false', '1', '0'])
     .default('true')
@@ -40,6 +43,19 @@ const envSchema = z.object({
   S3_SECRET_ACCESS_KEY: z.preprocess(emptyStringToUndefined, z.string().optional()),
   S3_PUBLIC_BASE_URL: optionalUrl,
   UNSPLASH_ACCESS_KEY: z.preprocess(emptyStringToUndefined, z.string().optional()),
+  PIXABAY_API_KEY: z.preprocess(emptyStringToUndefined, z.string().optional()),
+  /** Chat webhook (Slack, Discord, Mattermost or any relay) told about each new marketing lead. */
+  LEADS_NOTIFY_WEBHOOK_URL: optionalUrl,
+  /**
+   * Email for each new marketing lead, sent through Resend. Needs the key and at least one recipient
+   * (comma separated); the sender must be an address on a domain verified in Resend.
+   */
+  RESEND_API_KEY: z.preprocess(emptyStringToUndefined, z.string().optional()),
+  LEADS_NOTIFY_EMAIL_TO: z.preprocess(emptyStringToUndefined, z.string().optional()),
+  LEADS_NOTIFY_EMAIL_FROM: z.preprocess(
+    emptyStringToUndefined,
+    z.string().default('Sahtain <onboarding@resend.dev>'),
+  ),
   WEB_APP_URL: z.preprocess(emptyStringToUndefined, z.url().default('http://localhost:5173')),
   PADDLE_ENV: z.enum(['sandbox', 'production']).default('sandbox'),
   PADDLE_API_KEY: z.preprocess(emptyStringToUndefined, z.string().min(1).optional()),
@@ -69,6 +85,30 @@ const envSchema = z.object({
       code: 'custom',
       message: 'DATABASE_WORKER_URL is required when APP_ROLE is worker or all',
       path: ['DATABASE_WORKER_URL'],
+    });
+  }
+  if (data.APP_ROLE === 'api' || data.APP_ROLE === 'all') {
+    if (!data.DATABASE_ADMIN_URL) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'DATABASE_ADMIN_URL is required when APP_ROLE is api or all',
+        path: ['DATABASE_ADMIN_URL'],
+      });
+    }
+    if (!data.JWT_ADMIN_SECRET) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'JWT_ADMIN_SECRET is required (min 32 chars) when APP_ROLE is api or all',
+        path: ['JWT_ADMIN_SECRET'],
+      });
+    }
+  }
+  // A shared secret would let a tenant access token verify as an admin token (and the reverse).
+  if (data.JWT_ADMIN_SECRET && data.JWT_ADMIN_SECRET === data.JWT_ACCESS_SECRET) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'JWT_ADMIN_SECRET must differ from JWT_ACCESS_SECRET',
+      path: ['JWT_ADMIN_SECRET'],
     });
   }
   if (data.STORAGE_DRIVER === 's3') {

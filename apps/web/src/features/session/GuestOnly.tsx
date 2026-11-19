@@ -1,10 +1,9 @@
 import { type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Navigate } from 'react-router-dom';
-
 import { Spinner } from '@app/ui';
 
 import { useAppSelector } from '../../app/hooks.js';
+import { LandingRedirect } from './LandingRedirect.js';
 import { selectAccessToken, selectBootstrapDone } from './session.selectors.js';
 
 export function GuestOnly({ children }: { children: ReactNode }) {
@@ -21,7 +20,7 @@ export function GuestOnly({ children }: { children: ReactNode }) {
   }
 
   if (accessToken) {
-    return <Navigate to="/dashboard" replace />;
+    return <LandingRedirect />;
   }
 
   return children;

@@ -7,6 +7,7 @@ import type {
   PatchModifierGroupBody,
   ReorderModifiersBody,
 } from '@app/shared';
+import { pageMeta, pageWindow, type PageQuery } from '@app/shared';
 
 import { NotFoundError, ValidationError } from '../../core/errors/app-errors';
 import { DRIZZLE, type DrizzleDb } from '../../core/db/db.module';
@@ -30,10 +31,18 @@ export class ModifierGroupsService {
     private readonly menuCache: CatalogMenuCacheNotifier,
   ) {}
 
-  list(ctx: RequestContext) {
+  list(ctx: RequestContext, query: PageQuery = {}) {
     return withOrg(this.db, ctx.orgId, async (tx) => {
-      const rows = await this.repo.listModifierGroups(tx, ctx.orgId);
-      return { items: rows.map((row) => mapModifierGroup(row)) };
+      const rows = await this.repo.listModifierGroups(tx, ctx.orgId, pageWindow(query));
+      const total = await this.repo.countModifierGroups(tx, ctx.orgId);
+      return {
+        items: rows.map((row) => ({
+          ...mapModifierGroup(row),
+          modifierCount: row.modifierCount,
+          productCount: row.productCount,
+        })),
+        ...pageMeta(query, total),
+      };
     });
   }
 
@@ -65,7 +74,7 @@ export class ModifierGroupsService {
       });
       return mapModifierGroup(row);
     });
-    this.menuCache.afterCatalogChange(ctx.orgId);
+    await this.menuCache.afterCatalogChange(ctx.orgId);
     return result;
   }
 
@@ -92,7 +101,7 @@ export class ModifierGroupsService {
       }
       return mapModifierGroup(updated);
     });
-    this.menuCache.afterCatalogChange(ctx.orgId);
+    await this.menuCache.afterCatalogChange(ctx.orgId);
     return result;
   }
 
@@ -104,7 +113,7 @@ export class ModifierGroupsService {
       }
       return mapModifierGroup(deleted);
     });
-    this.menuCache.afterCatalogChange(ctx.orgId);
+    await this.menuCache.afterCatalogChange(ctx.orgId);
     return result;
   }
 
@@ -128,7 +137,7 @@ export class ModifierGroupsService {
       });
       return mapModifier(row, org.defaultCurrency);
     });
-    this.menuCache.afterCatalogChange(ctx.orgId);
+    await this.menuCache.afterCatalogChange(ctx.orgId);
     return result;
   }
 
@@ -155,7 +164,7 @@ export class ModifierGroupsService {
       }
       return mapModifier(updated, org.defaultCurrency);
     });
-    this.menuCache.afterCatalogChange(ctx.orgId);
+    await this.menuCache.afterCatalogChange(ctx.orgId);
     return result;
   }
 
@@ -172,7 +181,7 @@ export class ModifierGroupsService {
       }
       return mapModifier(deleted, org.defaultCurrency);
     });
-    this.menuCache.afterCatalogChange(ctx.orgId);
+    await this.menuCache.afterCatalogChange(ctx.orgId);
     return result;
   }
 
@@ -184,7 +193,10 @@ export class ModifierGroupsService {
         throw new NotFoundError();
       }
       const locked = await this.repo.lockActiveModifiersInGroupForUpdate(tx, groupId);
-      validateReorderIds(body.orderedIds, locked.map((r) => r.id));
+      validateReorderIds(
+        body.orderedIds,
+        locked.map((r) => r.id),
+      );
       for (let i = 0; i < body.orderedIds.length; i += 1) {
         const id = body.orderedIds[i];
         if (id) {
@@ -194,7 +206,7 @@ export class ModifierGroupsService {
       const rows = await this.repo.listModifiersInGroup(tx, groupId);
       return { items: rows.map((m) => mapModifier(m, org.defaultCurrency)) };
     });
-    this.menuCache.afterCatalogChange(ctx.orgId);
+    await this.menuCache.afterCatalogChange(ctx.orgId);
     return result;
   }
 }

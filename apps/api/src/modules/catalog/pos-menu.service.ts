@@ -8,6 +8,8 @@ import { NotFoundError } from '../../core/errors/app-errors';
 import type { ObjectStorage } from '../../core/storage/object-storage';
 import { OBJECT_STORAGE } from '../../core/storage/storage.tokens';
 import type { RequestContext } from '../../core/context/request-context';
+import { EntitlementsService } from '../billing/entitlements.service';
+import { moneyDisplayForOrg } from '../tenancy/org-settings.service';
 import { TenancyRepository } from '../tenancy/tenancy.repository';
 
 import { assemblePosMenuCategories } from './pos-menu.assemble';
@@ -20,6 +22,7 @@ export class PosMenuService {
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly catalogRepo: CatalogRepository,
     private readonly tenancyRepo: TenancyRepository,
+    private readonly entitlements: EntitlementsService,
     @Inject(OBJECT_STORAGE) private readonly storage: ObjectStorage,
   ) {}
 
@@ -35,12 +38,19 @@ export class PosMenuService {
         throw new NotFoundError();
       }
 
-      const categoryRows = await this.catalogRepo.listActiveCategoriesForPosMenu(tx, ctx.orgId);
+      const pagerPlanOk = await this.entitlements.can(ctx.orgId, 'ordering.pager', tx);
+
+      const categoryRows = await this.catalogRepo.listActiveCategoriesForPosMenu(
+        tx,
+        ctx.orgId,
+        branchId,
+      );
       const categoryIds = categoryRows.map((c) => c.id);
       const productRows = await this.catalogRepo.listActiveProductsForCategoryIds(
         tx,
         ctx.orgId,
         categoryIds,
+        branchId,
       );
       const productIds = productRows.map((p) => p.id);
       const groupLinkRows = await this.catalogRepo.listProductModifierGroupsForProductIds(
@@ -61,6 +71,8 @@ export class PosMenuService {
         storage: this.storage,
       });
 
+      const display = moneyDisplayForOrg(org);
+
       return {
         branch: {
           id: branch.id,
@@ -74,12 +86,16 @@ export class PosMenuService {
           address: branch.address,
           payBeforeSend: branch.payBeforeSend,
           acceptsCard: branch.acceptsCard,
+          pagerEnabled: branch.pagerEnabled && pagerPlanOk,
         },
         org: {
           name: org.name,
           logoUrl: logoUrlFromKey(this.storage, org.logoKey),
         },
         categories,
+        display,
+        displayRateUpdatedAt:
+          display !== null ? (org.exchangeRateUpdatedAt?.toISOString() ?? null) : null,
       };
     });
   }

@@ -1,6 +1,6 @@
 import { PrinterIcon } from 'lucide-react';
 
-import { Alert, Button, EmptyState, PageHeader, QrCard, Spinner } from '@app/ui';
+import { Alert, AlertDescription, Button, EmptyState, PageHeader, QrCard, Spinner } from '@app/ui';
 
 export type QrCodesCardViewModel = {
   id: string;
@@ -22,6 +22,8 @@ export type QrCodesPageViewProps = {
   cards: QrCodesCardViewModel[];
   tableQrAvailable: boolean;
   tableQrUpsell: string;
+  emptyTitle: string;
+  emptyDescription: string;
   showTableQrHint: boolean;
   printLabel: string;
   downloadLabel: string;
@@ -41,6 +43,8 @@ export function QrCodesPageView({
   cards,
   showTableQrHint,
   tableQrUpsell,
+  emptyTitle,
+  emptyDescription,
   printLabel,
   downloadLabel,
   loadingQrLabel,
@@ -65,11 +69,15 @@ export function QrCodesPageView({
           ) : null
         }
       />
-      {showTableQrHint ? <Alert>{tableQrUpsell}</Alert> : null}
+      {showTableQrHint ? (
+        <Alert role="status" variant="info">
+          <AlertDescription className="text-foreground">{tableQrUpsell}</AlertDescription>
+        </Alert>
+      ) : null}
       {isLoading ? (
         <Spinner label={title} />
       ) : cards.length === 0 ? (
-        <EmptyState title={title} description={subtitle} />
+        <EmptyState title={emptyTitle} description={emptyDescription} />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {cards.map((card) => (

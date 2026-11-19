@@ -8,19 +8,22 @@ Translatable text = `jsonb` like `{"ar":"…","en":"…"}`. Tax in basis points 
 ## Platform & identity
 - **users**: id, email (unique, nullable for PIN-only staff), password_hash, name, locale, is_platform_admin, platform_role (`super`|`support`|`billing`|null), last_login_at, **last_org_id** (nullable FK → organizations — login/switch-org preference)
 - **auth_sessions**: id, user_id, **org_id** (FK → organizations — active org for this refresh session), token_hash (SHA-256 of refresh cookie), family_id, expires_at, revoked_at, replaced_by, user_agent, ip, created_at — refresh rotation + reuse detection; login/signup/switch-org set org_id; refresh inherits org_id on rotate
-- **organizations**: id, name, slug (unique), country, default_currency, default_locale, locales text[], logo_key, status (`trial`|`active`|`past_due`|`suspended`|`cancelled` — **app writes only** `active`|`suspended`; billing/trial state lives on `subscriptions`), created_at
-- **branches**: id, org_id, name, slug, timezone, currency, tax_rate_bp int, tax_inclusive bool, day_start_hour smallint default 4, pay_before_send bool default false, accepts_card bool default true, address jsonb, receipt_header, receipt_footer, is_active
+- **organizations**: id, name, slug (unique), country, default_currency (base currency: all stored amounts; the owner may change it only while the org has no orders, and branches follow), **display_currency** (nullable; currency shown to staff and guests), **exchange_rate** numeric(18,6) (display units for 1 base unit), exchange_rate_updated_at, display_item_step / display_total_step (rounding in whole display units, 0 = none), default_locale, locales text[], logo_key, status (`trial`|`active`|`past_due`|`suspended`|`cancelled` — **app writes only** `active`|`suspended`; billing/trial state lives on `subscriptions`), created_at
+- **branches**: id, org_id, name, slug, timezone, currency, tax_rate_bp int, tax_inclusive bool, day_start_hour smallint default 4, pay_before_send bool default false, accepts_card bool default true, pager_enabled bool default false, address jsonb, receipt_header, receipt_footer, is_active
 - **roles**: id, org_id (null = system role), key (`owner`|`manager`|`cashier`|`kitchen`|custom), name, is_system
 - **role_permissions**: role_id, permission_key, **org_id** (nullable; mirrors `roles.org_id`, set by `BEFORE INSERT/UPDATE` trigger `sync_role_permissions_org_id`) — PK(role_id, permission_key)
 - **memberships**: id, org_id, user_id, role_id, pin_hash, pin_failed_attempts, pin_locked_until, invite_token_hash, invite_expires_at, invited_by_membership_id, all_branches bool, status (`active`|`invited`|`disabled`) — UNIQUE(org_id, user_id); partial unique on invite_token_hash when not null
+- **membership_permission_overrides**: membership_id, permission_key, effect (`grant`|`deny`), org_id — PK(membership_id, permission_key). Effective permissions = role permissions + grants − denies; owner-managed, never applies to owners
 - **membership_branches**: membership_id, branch_id, org_id — PK(membership_id, branch_id)
 - **devices**: id, org_id, branch_id, type (`pos`|`kds`), name, token_hash, paired_at, last_seen_at, revoked_at
 - **device_pairing_codes**: code (6 digits), org_id, branch_id, type, expires_at, used_at
 - **tables**: id, org_id, branch_id, label, qr_token (unique), is_active
 
 ## Catalog
-- **categories**: id, org_id, name jsonb, sort_order int, is_active, deleted_at
-- **products**: id, org_id, category_id, name jsonb, description jsonb, price_minor bigint, image_key, is_active, sort_order, deleted_at
+- **categories**: id, org_id, name jsonb, sort_order int, is_active, available_in_all_branches (default true), deleted_at
+- **category_branches**: category_id, branch_id, org_id (PK category_id+branch_id). Rows only matter when `available_in_all_branches` is false: the category is shown in exactly those branches.
+- **products**: id, org_id, category_id, name jsonb, description jsonb, price_minor bigint, image_key, is_active, available_in_all_branches (default true), sort_order, deleted_at
+- **product_branches**: product_id, branch_id, org_id (PK product_id+branch_id). Same rule as `category_branches`. A product is shown in a branch when it is active, its category is active, and both the product and the category are available in that branch (all-branches flag or a row for that branch).
 - **modifier_groups**: id, org_id, name jsonb, min_select smallint, max_select smallint, deleted_at
 - **modifiers**: id, org_id, group_id, name jsonb, price_delta_minor bigint default 0, is_active, sort_order, deleted_at
 - **product_modifier_groups**: product_id, group_id, org_id, sort_order — PK(product_id, group_id)
@@ -30,12 +33,12 @@ Translatable text = `jsonb` like `{"ar":"…","en":"…"}`. Tax in basis points 
 ## Orders
 - **branch_counters**: branch_id, business_date date, last_order_number int, org_id — PK(branch_id, business_date)
 - **shifts**: id, org_id, branch_id, opened_by, opened_at, opening_cash_minor, closed_by, closed_at, counted_cash_minor, expected_cash_minor
-- **orders**: id, org_id, branch_id, client_order_id uuid, order_number int, business_date date, type (`dine_in`|`takeaway`), status (`draft`|`placed`|`preparing`|`ready`|`completed`|`cancelled`|`refunded`) — no DB default; API sets `placed` on create unless branch `pay_before_send` and total &gt; 0 (`draft`, `placed_at` null until fully paid); zero-total orders are always `placed` and paid; **`shift_id` and `device_id` deferred** until shift/device tables exist (later nullable columns), customer_name, notes, subtotal_minor, discount_minor, tax_minor, total_minor, currency, created_by (membership), cancel_reason, version int default 1, placed_at, completed_at, cancelled_at, created_at, updated_at
+- **orders**: id, org_id, branch_id, client_order_id uuid, order_number int, business_date date, type (`dine_in`|`takeaway`), status (`draft`|`placed`|`preparing`|`ready`|`completed`|`cancelled`|`refunded`) — no DB default; API sets `placed` on create unless branch `pay_before_send` and total &gt; 0 (`draft`, `placed_at` null until fully paid); zero-total orders are always `placed` and paid; `completed` means handed over (cashier tap on a `ready` order, never automatic) and fully paid (`422 ORDER_NOT_PAID` otherwise); undo moves `ready`→`preparing` and `completed`→`ready` are allowed only for the same actor within 15 s and are logged as order events with `undo: true`; a manager/owner reopen (`completed`→`ready`, permission `orders.reopen`, no time limit, not after the bill closes) is logged with payload `{ reopen: true, reason? }` and clears `completed_at`; **`shift_id` and `device_id` deferred** until shift/device tables exist (later nullable columns), customer_name, notes, subtotal_minor, discount_minor, tax_minor, total_minor, currency, **display_currency, exchange_rate, display_item_step, display_total_step** (all null, or the display currency frozen at creation; never updated), created_by (membership), cancel_reason, version int default 1, placed_at, completed_at, cancelled_at, created_at, updated_at
   - UNIQUE(branch_id, client_order_id); UNIQUE(branch_id, business_date, order_number)
   - INDEX(org_id, branch_id, created_at desc); INDEX(branch_id, status) WHERE status in active states; INDEX(org_id, business_date)
-- **order_items**: id, org_id, order_id, product_id, product_name_snapshot jsonb, unit_price_minor, quantity int, line_total_minor, notes, status (`pending`|`preparing`|`ready`|`voided`), is_addition bool, voided_at, void_reason, voided_by, created_at — INDEX(order_id)
+- **order_items**: id, org_id, order_id, product_id, product_name_snapshot jsonb, unit_price_minor, quantity int, line_total_minor, notes, status (`awaiting_payment`|`pending`|`preparing`|`ready`|`voided`; `awaiting_payment` = addition to a sent order on a pay-before-send branch, hidden from the kitchen until the order is paid in full), is_addition bool, voided_at, void_reason, voided_by, created_at — INDEX(order_id)
 - **order_item_modifiers**: id, org_id, order_item_id, modifier_id, name_snapshot jsonb, price_delta_minor
-- **payments**: id, org_id, order_id, method (`cash`|`card`|`other`), amount_minor, tendered_minor, change_minor, status (`captured`|`refunded`), created_by, created_at
+- **payments**: id, org_id, order_id, method (`cash`|`card`|`other`), amount_minor, tendered_minor, change_minor, display_tendered_minor, display_change_minor (cash counted in the order's display currency; null without one), status (`captured`|`refunded`), created_by, created_at
 - **order_events** (append-only): id, org_id, order_id, type, from_status, to_status, payload jsonb, actor_membership_id, approved_by_membership_id (nullable FK → memberships — set when cancel/void used manager PIN approval), created_at — `device_id` deferred; `app_user` has INSERT+SELECT only (no UPDATE/DELETE); INDEX(order_id, created_at)
 
 ## Billing (migration 0012)
@@ -43,6 +46,9 @@ Translatable text = `jsonb` like `{"ar":"…","en":"…"}`. Tax in basis points 
 - **plan_features**: plan_id, feature_key, limit_value int null — PK(plan_id, feature_key); missing limit row = unlimited
 - **subscriptions**: id, org_id (unique, RLS), plan_id, status (`trialing`|`active`|`past_due`|`canceled`), branch_quantity, provider (`paddle`|null), provider_customer_id, provider_subscription_id, trial_ends_at, current_period_end, canceled_at, scheduled_change jsonb, provider_event_at, updated_at
 - **billing_events**: id, provider, provider_event_id (unique), type, occurred_at, payload jsonb, processed_at, error — webhook idempotency (global, no RLS)
+
+## Marketing (migration 0017)
+- **leads**: id (UUIDv7), created_at, status (`new`|`contacted`|`won`|`lost`), name, restaurant_name, phone, email, country (ISO alpha-2, `ZZ` = other), branches, locale (`ar`|`en`), message null, utm_source/medium/campaign/term/content null, gclid null, fbclid null, referrer null, landing_path null — written by the public contact form. Platform-level (no `org_id`, no RLS); `app_user` has INSERT only (no SELECT), so request handlers cannot read leads back. Not seeded (runtime data).
 
 ## Reporting
 - **MVP dashboards (roadmap 8):** computed live from `orders`, `payments`, and `order_items` per branch and

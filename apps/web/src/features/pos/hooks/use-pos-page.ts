@@ -1,15 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 
 import { toast } from '@app/ui';
-import type { OrderDetail, OrderStatus } from '@app/shared';
+import type { CatalogRealtimePayload, OrderDetail, OrderStatus } from '@app/shared';
 
 import { baseApi } from '../../../app/api/base-api.js';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks.js';
 import type { RealtimeEvent } from '../../../lib/realtime.js';
 import { localizedName } from '../../../lib/localized-name.js';
-import { formatMoney, intlLocaleForUi } from '../../../lib/money.js';
+import { intlLocaleForUi, moneyFormatter, orderMoneyFormatter } from '../../../lib/money.js';
 import { randomUuid } from '../../../lib/uuid.js';
+import { useListBillsQuery } from '../../bills/bills.api.js';
 import { cartActions, cartHasUnsavedLines } from '../../cart/cart.slice.js';
 import type { CartLine, CartLineInput, CartOrderType } from '../../cart/cart.types.js';
 import { cartTotalsPreview, mergeCartLine } from '../../cart/cart.utils.js';
@@ -22,15 +24,12 @@ import {
   selectSessionOrg,
 } from '../../session/session.selectors.js';
 import { useListDiningTablesQuery } from '../../tables/tables.api.js';
-import {
-  ordersApi,
-  useCreateOrderMutation,
-  useListOrdersQuery,
-} from '../../orders/orders.api.js';
+import { ordersApi, useCreateOrderMutation, useListOrdersQuery } from '../../orders/orders.api.js';
 import {
   ALL_CATEGORIES,
   lastLineOfProduct,
   quantityByProduct,
+  unavailableProductIds,
   visiblePosProducts,
 } from '../pos-catalog.utils.js';
 import { orderStatusBadgeTone } from '../../orders/orders-display.utils.js';
@@ -40,10 +39,15 @@ import { posOrderTagsForEvent } from '../pos-realtime.utils.js';
 import { useGetPosMenuQuery } from '../pos.api.js';
 import type { PosMenuProduct } from './use-pos-modifier-sheet.js';
 import { usePosModifierSheet } from './use-pos-modifier-sheet.js';
+import { isExchangeRateStale } from '../../settings/currency-settings-form.utils.js';
+import { orderIsPaid } from '../pos-order-detail.utils.js';
 import { usePosOrderDetail } from './use-pos-order-detail.js';
+import { readPrintAdditions, writePrintAdditions } from '../pos-print-pref.js';
 import { shouldShowSentToKitchenToast } from '../pos-payment-toast.utils.js';
 import { usePosPaymentDialog } from './use-pos-payment-dialog.js';
 import { usePosLockRequest } from '../pos-lock-context.js';
+
+const MENU_REFETCH_DEBOUNCE_MS = 500;
 
 export function usePosPage() {
   const { t, i18n } = useTranslation();
@@ -55,6 +59,7 @@ export function usePosPage() {
   const cart = useAppSelector((state) => state.cart);
   const hasCartLines = useAppSelector(cartHasUnsavedLines);
   const canCancelOrders = useAppSelector(selectCan('orders.cancel'));
+  const canReopenOrders = useAppSelector(selectCan('orders.reopen'));
   const canCreateOrders = useAppSelector(selectCan('orders.create'));
 
   const [activeCategoryId, setActiveCategoryId] = useState<string>(ALL_CATEGORIES);
@@ -66,7 +71,11 @@ export function usePosPage() {
   const [checkoutOrder, setCheckoutOrder] = useState<OrderDetail | null>(null);
   const [pendingBranchId, setPendingBranchId] = useState<string | null>(null);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-  const [isAddingItems, setIsAddingItems] = useState(false);
+  // Add mode is part of the URL (`/pos?addTo=<orderId>`) so the Orders page can send the cashier here.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const addToOrderId = searchParams.get('addTo');
+  const isAddingItems = addToOrderId !== null;
+  const [printAdditions, setPrintAdditionsState] = useState(readPrintAdditions);
   const [additionLines, setAdditionLines] = useState<CartLine[]>([]);
 
   const locale = i18n.language.startsWith('ar') ? 'ar' : 'en';
@@ -85,6 +94,8 @@ export function usePosPage() {
   // Socket events are hints: refetch the open orders list / that order when it changed.
   const openOrdersRef = useRef<Array<{ id: string; version: number }>>([]);
   const beforePaymentStatusRef = useRef<OrderStatus | null>(null);
+  /** Unpaid ready order the cashier tapped "Picked up"/"Served" on: complete it once it is paid. */
+  const handoverAfterPayRef = useRef<string | null>(null);
   const onRealtimeEvent = useCallback(
     ({ payload }: RealtimeEvent) => {
       if (!branchId) {
@@ -98,12 +109,42 @@ export function usePosPage() {
     [branchId, dispatch],
   );
   const onRealtimeResync = useCallback(() => {
-    dispatch(baseApi.util.invalidateTags(['Order']));
-  }, [dispatch]);
+    dispatch(
+      baseApi.util.invalidateTags(
+        branchId ? ['Order', { type: 'PosMenu', id: branchId }] : ['Order'],
+      ),
+    );
+  }, [branchId, dispatch]);
+  // A burst of catalog edits refetches the menu once.
+  const menuRefetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onCatalogUpdated = useCallback(
+    (payload: CatalogRealtimePayload) => {
+      if (payload.branchId !== branchId) {
+        return;
+      }
+      if (menuRefetchTimerRef.current !== null) {
+        clearTimeout(menuRefetchTimerRef.current);
+      }
+      menuRefetchTimerRef.current = setTimeout(() => {
+        menuRefetchTimerRef.current = null;
+        dispatch(baseApi.util.invalidateTags([{ type: 'PosMenu', id: payload.branchId }]));
+      }, MENU_REFETCH_DEBOUNCE_MS);
+    },
+    [branchId, dispatch],
+  );
+  useEffect(
+    () => () => {
+      if (menuRefetchTimerRef.current !== null) {
+        clearTimeout(menuRefetchTimerRef.current);
+      }
+    },
+    [],
+  );
   const realtime = useBranchRealtime({
     branchId,
     onEvent: onRealtimeEvent,
     onResync: onRealtimeResync,
+    onCatalogUpdated,
   });
 
   const { data: openOrdersData, isLoading: openOrdersLoading } = useListOrdersQuery(
@@ -126,6 +167,19 @@ export function usePosPage() {
     setAdditionLines([]);
   }, []);
 
+  // Items being added to a sent order that left the menu are dropped (the server would reject them).
+  useEffect(() => {
+    if (!menu || additionLines.length === 0) {
+      return;
+    }
+    const gone = unavailableProductIds(additionLines, menu.categories);
+    if (gone.size === 0) {
+      return;
+    }
+    setAdditionLines((prev) => prev.filter((line) => !gone.has(line.productId)));
+    toast.info(t('pos.cart.unavailableRemoved'));
+  }, [menu, additionLines, t]);
+
   const modifierSheet = usePosModifierSheet({
     locale,
     defaultLocale,
@@ -137,6 +191,20 @@ export function usePosPage() {
       dispatch(cartActions.initCartForBranch(branchId));
     }
   }, [branchId, dispatch]);
+
+  // Coming from the tables page: the chosen table is already selected (a busy one gets a new round).
+  const presetTableId = searchParams.get('table');
+  useEffect(() => {
+    if (!branchId || presetTableId === null || tablesData === undefined) {
+      return;
+    }
+    if (tablesData.items.some((table) => table.id === presetTableId && table.isActive)) {
+      dispatch(cartActions.setOrderType('dine_in'));
+      dispatch(cartActions.setTableId(presetTableId));
+      dispatch(cartActions.setSeat(''));
+    }
+    setSearchParams({}, { replace: true });
+  }, [branchId, dispatch, presetTableId, setSearchParams, tablesData]);
 
   useEffect(() => {
     const onOnline = () => {
@@ -174,6 +242,16 @@ export function usePosPage() {
     return map;
   }, [menu]);
 
+  const productById = useMemo(() => {
+    const map = new Map<string, PosMenuProduct>();
+    for (const category of menu?.categories ?? []) {
+      for (const product of category.products) {
+        map.set(product.id, product);
+      }
+    }
+    return map;
+  }, [menu]);
+
   const currency = menu?.branch.currency ?? org?.defaultCurrency ?? 'USD';
 
   const totals = useMemo(() => {
@@ -187,9 +265,9 @@ export function usePosPage() {
     });
   }, [cart.lines, menu]);
 
-  const formatMinor = useCallback(
-    (minor: number) => formatMoney(minor, currency, uiLocale),
-    [currency, uiLocale],
+  const formatMinor = useMemo(
+    () => moneyFormatter(currency, uiLocale, menu?.display),
+    [currency, menu?.display, uiLocale],
   );
 
   const onProductPress = useCallback(
@@ -275,9 +353,15 @@ export function usePosPage() {
     return map;
   }, [tableOptions]);
 
+  const exitAddMode = useCallback(() => {
+    setAdditionLines([]);
+    setSearchParams({}, { replace: true });
+  }, [setSearchParams]);
+
   const orderDetail = usePosOrderDetail({
     branchId,
-    orderId: selectedOrderId,
+    // In add mode the target order is fixed by the URL; picking another open order must not retarget it.
+    orderId: addToOrderId ?? selectedOrderId,
     onClose: () => {
       setSelectedOrderId(null);
     },
@@ -285,13 +369,35 @@ export function usePosPage() {
     tableLabelById,
     locale,
     defaultLocale,
-    formatMinor,
+    uiLocale,
     additionLines,
     clearAdditionLines,
     isAddingItems,
-    setIsAddingItems,
+    onStartAddItems: (orderId: string) => {
+      setSelectedOrderId(null);
+      setAdditionLines([]);
+      setSearchParams({ addTo: orderId });
+    },
+    onExitAddItems: exitAddMode,
+    printAdditions,
+    payBeforeSend: menu?.branch.payBeforeSend ?? false,
+    onAdditionsHeld: (held: OrderDetail) => {
+      // Pay-before-send: the additions wait for payment, so take it now.
+      beforePaymentStatusRef.current = held.status;
+      setCheckoutOrder(held);
+      paymentDialog.openForOrder(held);
+    },
     canCancelOrders,
     canCreateOrders,
+    canReopenOrders,
+    onHandoverNeedsPayment: () => {
+      const current = orderDetail.order;
+      if (current) {
+        handoverAfterPayRef.current = current.id;
+        beforePaymentStatusRef.current = current.status;
+        paymentDialog.openForOrder(current);
+      }
+    },
   });
 
   const paymentOrder = checkoutOrder ?? orderDetail.order;
@@ -303,6 +409,9 @@ export function usePosPage() {
     onPaymentCaptured: () => {
       const before = beforePaymentStatusRef.current;
       beforePaymentStatusRef.current = null;
+      const handoverId = handoverAfterPayRef.current;
+      handoverAfterPayRef.current = null;
+      const paidOrderBefore = paymentOrder ?? undefined;
       const checkoutId = checkoutOrder?.id;
       const activeBranchId = branchId;
       setCheckoutOrder(null);
@@ -311,8 +420,19 @@ export function usePosPage() {
         if (updated && shouldShowSentToKitchenToast(before, updated.status)) {
           toast.success(t('pos.toast.sentToKitchen', { number: updated.orderNumber }));
         }
+        if (updated) {
+          orderDetail.announceReleasedAdditions(paidOrderBefore, updated);
+        }
         if (updated && selectedOrderId === updated.id) {
-          orderDetail.printReceipt();
+          orderDetail.printReceipt(updated);
+        }
+        // One flow: paying a ready order from "Picked up"/"Served" finishes the handover too.
+        if (updated && handoverId === updated.id && updated.status === 'ready' && orderIsPaid(updated)) {
+          void orderDetail.completeHandover(updated).then((done) => {
+            if (done) {
+              setSelectedOrderId(null);
+            }
+          });
         }
       };
 
@@ -332,7 +452,12 @@ export function usePosPage() {
         finish(result.data);
       });
     },
+    onDiscarded: () => {
+      beforePaymentStatusRef.current = null;
+      setCheckoutOrder(null);
+    },
     onDismissUnpaid: () => {
+      handoverAfterPayRef.current = null;
       const checkoutId = checkoutOrder?.id;
       const activeBranchId = branchId;
       setCheckoutOrder(null);
@@ -347,6 +472,8 @@ export function usePosPage() {
           .then((updated) => {
             if (updated.status === 'draft') {
               toast.info(t('pos.toast.awaitingPayment', { number: updated.orderNumber }));
+            } else if (updated.items.some((item) => item.status === 'awaiting_payment')) {
+              toast.info(t('pos.toast.additionsAwaitingPayment', { number: updated.orderNumber }));
             }
           })
           .catch(() => {});
@@ -359,8 +486,6 @@ export function usePosPage() {
         }
       });
     },
-    formatMinor,
-    currency,
     uiLocale,
   });
 
@@ -369,7 +494,7 @@ export function usePosPage() {
       return;
     }
     setSendError(false);
-    const body = buildCreateOrderBody(cart);
+    const body = buildCreateOrderBody(cart, menu.branch.pagerEnabled);
     if (!body) {
       return;
     }
@@ -401,35 +526,65 @@ export function usePosPage() {
     void onSendToKitchen();
   }, [onSendToKitchen]);
 
-  const cartLines = cart.lines.map((line) => ({
-    localId: line.localId,
-    imageUrl: imageByProductId.get(line.productId) ?? null,
-    name: posLocalizedName(line.nameSnapshot, locale, defaultLocale),
-    unitPriceLabel: formatMinor(line.unitPriceMinor),
-    lineTotalLabel: formatMinor(line.unitPriceMinor * line.quantity),
-    quantity: line.quantity,
-    modifiers: line.modifierIds.map((id) => ({
-      id,
-      label: posLocalizedName(line.modifierNames[id] ?? { en: id }, locale, defaultLocale),
-    })),
-    note: line.note,
-    onIncrease: () => {
-      dispatch(
-        cartActions.updateLineQuantity({ localId: line.localId, quantity: line.quantity + 1 }),
+  // A product that left the menu while it sat in the cart must be removed before sending.
+  const unavailableIds = menu
+    ? unavailableProductIds(cart.lines, menu.categories)
+    : new Set<string>();
+
+  // While adding to a sent order the panel lists only the new lines, not the normal cart.
+  const activeLines = isAddingItems ? additionLines : cart.lines;
+  const setLineQuantity = (localId: string, quantity: number) => {
+    if (isAddingItems) {
+      setAdditionLines((prev) =>
+        prev
+          .map((row) => (row.localId === localId ? { ...row, quantity } : row))
+          .filter((row) => row.quantity > 0),
       );
-    },
-    onDecrease: () => {
-      dispatch(
-        cartActions.updateLineQuantity({ localId: line.localId, quantity: line.quantity - 1 }),
-      );
-    },
-    onRemove: () => {
-      dispatch(cartActions.removeLine(line.localId));
-    },
-    decreaseLabel: t('pos.cart.decreaseQty'),
-    increaseLabel: t('pos.cart.increaseQty'),
-    removeLabel: t('pos.cart.removeLine'),
-  }));
+      return;
+    }
+    dispatch(cartActions.updateLineQuantity({ localId, quantity }));
+  };
+
+  const cartLines = activeLines.map((line) => {
+    const menuProduct = productById.get(line.productId);
+    const canEdit =
+      !isAddingItems && menuProduct !== undefined && menuProduct.modifierGroups.length > 0;
+    return {
+      localId: line.localId,
+      onEdit: canEdit
+        ? () => {
+            modifierSheet.openForLine(menuProduct, line);
+          }
+        : undefined,
+      editLabel: t('pos.cart.editLine'),
+      warning: unavailableIds.has(line.productId) ? t('pos.cart.unavailable') : undefined,
+      imageUrl: imageByProductId.get(line.productId) ?? null,
+      name: posLocalizedName(line.nameSnapshot, locale, defaultLocale),
+      unitPriceLabel: formatMinor(line.unitPriceMinor),
+      lineTotalLabel: formatMinor(line.unitPriceMinor * line.quantity),
+      quantity: line.quantity,
+      modifiers: [
+        ...(line.seat ? [{ id: `seat-${line.localId}`, label: line.seat }] : []),
+        ...line.modifierIds.map((id) => ({
+          id,
+          label: posLocalizedName(line.modifierNames[id] ?? { en: id }, locale, defaultLocale),
+        })),
+      ],
+      note: line.note,
+      onIncrease: () => {
+        setLineQuantity(line.localId, line.quantity + 1);
+      },
+      onDecrease: () => {
+        setLineQuantity(line.localId, line.quantity - 1);
+      },
+      onRemove: () => {
+        setLineQuantity(line.localId, 0);
+      },
+      decreaseLabel: t('pos.cart.decreaseQty'),
+      increaseLabel: t('pos.cart.increaseQty'),
+      removeLabel: t('pos.cart.removeLine'),
+    };
+  });
 
   // While adding items to a sent order, the cards count the additions, not the cart.
   const stepperLines = isAddingItems ? additionLines : cart.lines;
@@ -501,7 +656,72 @@ export function usePosPage() {
 
   const sending = createState.isLoading;
   const showOfflineBanner = !isOnline || sendError;
-  const canSend = buildCreateOrderBody(cart) !== null;
+  const { data: tableBills } = useListBillsQuery(
+    { branchId: branchId ?? '', tableId: cart.tableId ?? undefined },
+    { skip: !branchId || cart.orderType !== 'dine_in' || cart.tableId === null },
+  );
+  const openTableBills = cart.orderType === 'dine_in' ? (tableBills ?? []) : [];
+  // With two open bills at the table the cashier must say which one this order joins.
+  const billNeedsChoice = openTableBills.length > 1 && cart.billChoice === '';
+  const billOptions =
+    openTableBills.length === 0
+      ? []
+      : [
+          ...(openTableBills.length === 1 ? [{ value: '', label: t('pos.bills.tableBill') }] : []),
+          ...openTableBills.map((b, index) => ({
+            value: b.id,
+            label: `${b.label ?? t('pos.bills.billNumber', { number: index + 1 })} · ${formatMinor(b.dueMinor, 'total')}`,
+          })),
+          { value: 'new', label: t('pos.bills.newBill') },
+        ];
+  const seatOptions = [
+    { value: '', label: t('pos.bills.noSeat') },
+    ...Array.from({ length: 8 }, (_, index) => {
+      const label = t('pos.bills.guest', { number: index + 1 });
+      return { value: label, label };
+    }),
+  ];
+  const addOrder = orderDetail.order;
+  const addMode = {
+    title: addOrder
+      ? t('pos.addMode.title', { number: addOrder.orderNumber })
+      : t('common.loading'),
+    subtitle: addOrder
+      ? [
+          orderDetail.tableLabel,
+          t('pos.addMode.alreadySent', {
+            count: addOrder.items.filter((item) => item.status !== 'voided').length,
+          }),
+        ]
+          .filter((part): part is string => part !== null)
+          .join(' · ')
+      : '',
+    backLabel: t('pos.addMode.back'),
+    onBack: orderDetail.cancelAddItems,
+    printLabel: t('pos.addMode.printTicket'),
+    printChecked: printAdditions,
+    onPrintChange: (value: boolean) => {
+      setPrintAdditionsState(value);
+      writePrintAdditions(value);
+    },
+  };
+
+  // An order that can no longer take additions (paid out, cancelled, gone) ends add mode.
+  const addTargetClosed =
+    isAddingItems &&
+    (orderDetail.orderLoadFailed ||
+      (addOrder !== undefined && addOrder.status !== 'placed' && addOrder.status !== 'preparing'));
+  useEffect(() => {
+    if (addTargetClosed) {
+      toast.info(t('pos.addMode.closed'));
+      exitAddMode();
+    }
+  }, [addTargetClosed, exitAddMode, t]);
+
+  const canSend =
+    buildCreateOrderBody(cart, menu?.branch.pagerEnabled ?? false) !== null &&
+    unavailableIds.size === 0 &&
+    !billNeedsChoice;
 
   return {
     branchName,
@@ -535,9 +755,25 @@ export function usePosPage() {
     onOrderTypeChange: (type: CartOrderType) => {
       dispatch(cartActions.setOrderType(type));
     },
+    seat: cart.seat,
+    seatOptions,
+    onSeatChange: (value: string) => {
+      dispatch(cartActions.setSeat(value));
+    },
+    billOptions,
+    billChoice: cart.billChoice,
+    billNeedsChoice,
+    onBillChoiceChange: (value: string) => {
+      dispatch(cartActions.setBillChoice(value));
+    },
     tableId: cart.tableId,
     onTableChange: (id: string | null) => {
       dispatch(cartActions.setTableId(id));
+    },
+    pagerEnabled: menu?.branch.pagerEnabled ?? false,
+    pagerNumber: cart.pagerNumber,
+    onPagerNumberChange: (value: string) => {
+      dispatch(cartActions.setPagerNumber(value));
     },
     customerName: cart.customerName,
     onCustomerNameChange: (value: string) => {
@@ -552,7 +788,6 @@ export function usePosPage() {
       label: busyTableIds.has(table.id)
         ? t('pos.tableBusyLabel', { label: table.label })
         : table.label,
-      disabled: busyTableIds.has(table.id),
     })),
     openOrders: {
       isLoading: openOrdersLoading,
@@ -565,13 +800,16 @@ export function usePosPage() {
             tableLabel !== undefined
               ? t('pos.result.orderNumber', { number: order.orderNumber })
               : (order.customerName ?? t('pos.result.orderNumber', { number: order.orderNumber })),
-          detail: `${t('pos.catalog.items', { count: order.itemCount })} · ${formatMinor(order.totalMinor)}`,
+          detail: `${t('pos.catalog.items', { count: order.itemCount })} · ${orderMoneyFormatter(order, uiLocale)(order.totalMinor, 'total')}`,
           status: orderStatusBadgeTone(order.status),
           statusLabel:
             order.status === 'draft'
               ? t('pos.awaitingPaymentBadge')
               : t(`pos.orderStatus.${order.status}`),
           onSelect: () => {
+            if (isAddingItems) {
+              return;
+            }
             setSelectedOrderId(order.id);
           },
         };
@@ -593,15 +831,21 @@ export function usePosPage() {
     },
     paymentDialog,
     isAddingItems,
-    addingItemsHint: isAddingItems ? t('pos.orderDetail.addItemsHint') : null,
+    addMode: isAddingItems ? addMode : null,
     cartLines,
-    cartEmpty: cart.lines.length === 0,
-    totals,
+    cartEmpty: activeLines.length === 0,
+    totals: isAddingItems ? null : totals,
     taxInclusive: menu?.branch.taxInclusive ?? false,
     formatMinor,
-    onSendToKitchen,
-    sending,
-    sendDisabled: sending || !canSend,
+    onSendToKitchen: isAddingItems ? orderDetail.submitAdditions : onSendToKitchen,
+    sending: isAddingItems ? orderDetail.addingItems : sending,
+    sendDisabled: isAddingItems
+      ? orderDetail.addingItems || additionLines.length === 0 || !orderDetail.order
+      : sending || !canSend,
+    rateStaleMessage:
+      menu?.display && isExchangeRateStale(menu.displayRateUpdatedAt, new Date())
+        ? t('pos.rateStale')
+        : null,
     showOfflineBanner,
     offlineMessage: !isOnline ? t('pos.offline') : t('pos.sendFailed'),
     onRetrySend,
@@ -611,7 +855,23 @@ export function usePosPage() {
       locale,
       defaultLocale,
       validationMessage: t('pos.modifiers.invalid'),
-      addLabel: t('pos.modifiers.addToCart'),
+      groupHint: (group: { minSelect: number; maxSelect: number }) => {
+        if (group.minSelect >= 1 && group.maxSelect === 1) {
+          return t('pos.modifiers.hintRequiredOne');
+        }
+        if (group.minSelect >= 1) {
+          return t('pos.modifiers.hintRequiredRange', {
+            min: group.minSelect,
+            max: group.maxSelect,
+          });
+        }
+        return group.maxSelect === 1
+          ? t('pos.modifiers.hintOptionalOne')
+          : t('pos.modifiers.hintOptionalUpTo', { max: group.maxSelect });
+      },
+      addLabel: modifierSheet.isEditing
+        ? t('pos.modifiers.saveChanges')
+        : t('pos.modifiers.addToCart'),
       quantityLabel: t('pos.modifiers.quantity'),
       noteLabel: t('pos.modifiers.note'),
       notePlaceholder: t('pos.modifiers.notePlaceholder'),
@@ -628,19 +888,31 @@ export function usePosPage() {
       onCancel: cancelBranchSwitch,
     },
     labels: {
+      cartEyebrow: t('pos.cart.eyebrow'),
+      orderType: t('pos.cart.orderType'),
       cartTitle: t('pos.cart.title'),
       cartCount: t('pos.catalog.items', {
-        count: cart.lines.reduce((sum: number, row) => sum + row.quantity, 0),
+        count: activeLines.reduce((sum: number, row) => sum + row.quantity, 0),
       }),
-      sendToKitchen: sending
+      sendToKitchen: (isAddingItems ? orderDetail.addingItems : sending)
         ? t('pos.sending')
-        : menu?.branch.payBeforeSend
+        : isAddingItems
+          ? t(menu?.branch.payBeforeSend ? 'pos.addMode.payAndSend' : 'pos.addMode.send', {
+              count: additionLines.reduce((sum: number, line) => sum + line.quantity, 0),
+            })
+          : menu?.branch.payBeforeSend
           ? t('pos.payAndSend')
           : t('pos.sendToKitchen'),
       orderTypeDineIn: t('pos.orderType.dineIn'),
       orderTypeTakeaway: t('pos.orderType.takeaway'),
       table: t('pos.table'),
+      bill: t('pos.bills.billLabel'),
+      billPlaceholder: t('pos.bills.billPlaceholder'),
+      billNeedsChoice: t('pos.bills.billNeedsChoice'),
+      guest: t('pos.bills.guestLabel'),
       customer: t('pos.customer'),
+      pagerNumber: t('pos.pagerNumber'),
+      pagerNumberHint: t('pos.pagerNumberHint'),
       orderNote: t('pos.orderNote'),
       subtotal: t('pos.totals.subtotal'),
       tax: menu?.branch.taxInclusive ? t('pos.totals.taxIncl') : t('pos.totals.tax'),

@@ -5,7 +5,13 @@ import {
   KdsColumn,
   KdsOrderCard,
   OpenOrderChip,
+  OpsRow,
+  Panel,
+  PanelHeader,
   ProductTile,
+  RankedRow,
+  SegmentedControl,
+  StatCard,
 } from '@app/ui';
 
 import type { PosComponentsDemo } from '../pos-components-demo.js';
@@ -32,6 +38,25 @@ export function PosComponentsSection({
         <div className="max-w-xs">
           <ProductTile {...demo.productTile} />
         </div>
+      </div>
+      <div className="grid max-w-3xl gap-3 md:grid-cols-2">
+        <StatCard label="Sales" value="SAR 1,240.00" delta="+12%" trend="up" deltaHint="vs previous day" />
+        <Panel>
+          <PanelHeader title="Popular products" description="Top sellers" />
+          <RankedRow rank={1} title="Cappuccino" count="76" amount="SAR 266.00" />
+          <OpsRow icon={<span>!</span>} title="Open orders" hint="Placed, preparing or ready" value="4" />
+          <SegmentedControl
+            label="Order type"
+            value="dine_in"
+            onValueChange={() => {
+              /* demo */
+            }}
+            options={[
+              { value: 'dine_in', label: 'Dine in' },
+              { value: 'takeaway', label: 'Takeaway' },
+            ]}
+          />
+        </Panel>
       </div>
       <div className="flex flex-wrap gap-3">
         {demo.categoryTiles.map(({ id, ...tile }) => (

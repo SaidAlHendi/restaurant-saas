@@ -17,5 +17,5 @@ export type OrderStatus = z.infer<typeof orderStatusSchema>;
 export const paymentStatusSchema = z.enum(['unpaid', 'partial', 'paid', 'refunded']);
 export type PaymentStatus = z.infer<typeof paymentStatusSchema>;
 
-export const orderItemStatusSchema = z.enum(['pending', 'preparing', 'ready', 'voided']);
+export const orderItemStatusSchema = z.enum(['awaiting_payment', 'pending', 'preparing', 'ready', 'voided']);
 export type OrderItemStatus = z.infer<typeof orderItemStatusSchema>;

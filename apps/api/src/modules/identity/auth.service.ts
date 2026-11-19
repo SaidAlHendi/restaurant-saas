@@ -20,14 +20,20 @@ import { isPgUniqueViolation } from '../../lib/pg-errors';
 import { slugifyBase, slugWithSuffix } from '../../lib/slug';
 import type {
   AcceptInviteBody,
+  DevicePinLoginBody,
+  DevicePinUsersBody,
+  DevicePinUsersResponse,
   LoginBody,
+  PairPosDeviceBody,
+  PairPosDeviceResponse,
   PinLoginBody,
+  PinUserListItem,
   SignupBody,
   SwitchOrgBody,
   SystemRoleKey,
 } from '@app/shared';
 import type { RequestContext } from '../../core/context/request-context';
-import { hashInviteToken } from '../../lib/invite-token';
+import { generateInviteToken, hashInviteToken } from '../../lib/invite-token';
 
 import {
   LOGIN_INVALID_MESSAGE,
@@ -37,6 +43,7 @@ import { IdentityRepository } from './identity.repository';
 import { IdentityService } from './identity.service';
 import { EntitlementsService } from '../billing/entitlements.service';
 import { SubscriptionService } from '../billing/subscription.service';
+import { assertOrgActive, isOrgBlocked, orgBlockedError } from '../tenancy/org-status';
 import { assertUsersPerBranchSeats, branchesForNewMember } from '../tenancy/staff-seat-enforcement';
 import { TenancyRepository } from '../tenancy/tenancy.repository';
 
@@ -89,7 +96,7 @@ export class AuthService implements OnModuleInit {
     const result = await this.db.transaction(async (tx) => {
       const existing = await this.identityRepo.findUserByEmail(tx, email);
       if (existing) {
-        throw new ValidationError('Email already registered');
+        throw new ValidationError('Email already registered', {}, 'EMAIL_TAKEN');
       }
 
       await this.identityRepo.insertUser(tx, {
@@ -298,6 +305,14 @@ export class AuthService implements OnModuleInit {
     if (!membership || membership.status !== 'active') {
       throw new ForbiddenError('Not a member of this organization');
     }
+    const targetOrg = await this.db.transaction(async (tx) => {
+      await tx.execute(setOrgLocal(body.orgId));
+      return this.tenancyRepo.findOrganizationById(tx, body.orgId);
+    });
+    if (!targetOrg) {
+      throw new NotFoundError('Organization not found');
+    }
+    assertOrgActive(targetOrg.status);
 
     const session = await this.db.transaction(async (tx) =>
       this.identityRepo.findSessionById(tx, currentSessionId),
@@ -435,9 +450,11 @@ export class AuthService implements OnModuleInit {
   ): Promise<string> {
     const activeForSessionOrg = await this.db.transaction(async (tx) => {
       await tx.execute(setOrgLocal(sessionOrgId));
-      return this.identityRepo.findMembershipForUserOrg(tx, userId, sessionOrgId);
+      const membership = await this.identityRepo.findMembershipForUserOrg(tx, userId, sessionOrgId);
+      const org = await this.tenancyRepo.findOrganizationById(tx, sessionOrgId);
+      return membership?.status === 'active' && org && !isOrgBlocked(org.status);
     });
-    if (activeForSessionOrg?.status === 'active') {
+    if (activeForSessionOrg) {
       return sessionOrgId;
     }
     return this.resolveLoginOrgId(userId, lastOrgId);
@@ -488,6 +505,11 @@ export class AuthService implements OnModuleInit {
 
     return this.db.transaction(async (tx) => {
       await tx.execute(setOrgLocal(resolved.orgId));
+      const inviteOrg = await this.tenancyRepo.findOrganizationById(tx, resolved.orgId);
+      if (!inviteOrg) {
+        throw new NotFoundError();
+      }
+      assertOrgActive(inviteOrg.status);
       const membership = await this.tenancyRepo.findMembershipById(tx, resolved.membershipId);
       if (!membership || membership.status !== 'invited') {
         throw new NotFoundError();
@@ -572,17 +594,118 @@ export class AuthService implements OnModuleInit {
     if (ctx.currentBranchId === undefined) {
       throw new ValidationError('X-Branch-Id header is required');
     }
-    const branchId = ctx.currentBranchId;
-    const orgId = ctx.orgId;
+    return this.pinLoginCore(
+      {
+        orgId: ctx.orgId,
+        branchId: ctx.currentBranchId,
+        membershipId: body.membershipId,
+        pin: body.pin,
+        revokeSessionId: ctx.sessionId,
+      },
+      req,
+      res,
+    );
+  }
 
+  /** Public: link a cashier device with the one-time code an owner or manager created. */
+  async pairDevice(body: PairPosDeviceBody): Promise<PairPosDeviceResponse> {
+    const key = generateInviteToken();
+    const paired = await this.db.transaction(async (tx) =>
+      this.tenancyRepo.pairPosDevice(tx, hashInviteToken(body.code), key.hash, this.clock.now()),
+    );
+    if (!paired) {
+      throw new AppError('PAIRING_CODE_INVALID', 'Pairing code is invalid or has expired', 404);
+    }
+    const names = await this.deviceDisplayNames(paired.orgId, paired.branchId);
+    return {
+      deviceKey: key.raw,
+      device: { id: paired.deviceId, name: paired.deviceName, ...names },
+    };
+  }
+
+  /** Public: the staff who can sign in with a PIN on this linked device's branch. */
+  async devicePinUsers(body: DevicePinUsersBody): Promise<DevicePinUsersResponse> {
+    const device = await this.resolveDevice(body.deviceKey);
+    const names = await this.deviceDisplayNames(device.orgId, device.branchId);
+    const rows = await this.db.transaction(async (tx) => {
+      await tx.execute(setOrgLocal(device.orgId));
+      return this.tenancyRepo.listPinUsersForBranch(tx, device.branchId);
+    });
+    return {
+      device: { id: device.deviceId, name: device.deviceName, ...names },
+      items: rows.map((row) => ({
+        membershipId: row.membership_id,
+        name: row.name,
+        roleKey: row.role_key as PinUserListItem['roleKey'],
+      })),
+    };
+  }
+
+  /** Public: PIN sign-in on a linked device, without an existing session. */
+  async devicePinLogin(body: DevicePinLoginBody, req: Request, res: Response) {
+    const device = await this.resolveDevice(body.deviceKey);
+    return this.pinLoginCore(
+      {
+        orgId: device.orgId,
+        branchId: device.branchId,
+        membershipId: body.membershipId,
+        pin: body.pin,
+        deviceId: device.deviceId,
+      },
+      req,
+      res,
+    );
+  }
+
+  private async resolveDevice(deviceKey: string) {
+    const device = await this.db.transaction(async (tx) =>
+      this.tenancyRepo.resolvePosDevice(tx, hashInviteToken(deviceKey)),
+    );
+    if (!device) {
+      throw new UnauthorizedError('DEVICE_INVALID', 'This device is not linked or was removed');
+    }
+    return device;
+  }
+
+  private async deviceDisplayNames(orgId: string, branchId: string) {
+    return this.db.transaction(async (tx) => {
+      await tx.execute(setOrgLocal(orgId));
+      const org = await this.tenancyRepo.findOrganizationById(tx, orgId);
+      const branch = await this.tenancyRepo.findBranchById(tx, branchId);
+      if (!org || !branch) {
+        throw new NotFoundError();
+      }
+      assertOrgActive(org.status);
+      return { orgName: org.name, branchName: branch.name };
+    });
+  }
+
+  private async pinLoginCore(
+    input: {
+      orgId: string;
+      branchId: string;
+      membershipId: string;
+      pin: string;
+      revokeSessionId?: string;
+      deviceId?: string;
+    },
+    req: Request,
+    res: Response,
+  ) {
+    const { orgId, branchId } = input;
     const sessionId = newUuidV7();
     const familyId = newUuidV7();
 
     return this.db.transaction(async (tx) => {
       await tx.execute(setOrgLocal(orgId));
-      await this.identity.verifyMembershipPin(tx, orgId, branchId, body.membershipId, body.pin);
+      const org = await this.tenancyRepo.findOrganizationById(tx, orgId);
+      if (!org) {
+        throw new NotFoundError();
+      }
+      assertOrgActive(org.status);
+      await this.identity.verifyMembershipPin(tx, orgId, branchId, input.membershipId, input.pin);
 
-      const target = await this.tenancyRepo.findMembershipWithUserRole(tx, body.membershipId);
+      const target = await this.tenancyRepo.findMembershipWithUserRole(tx, input.membershipId);
       if (!target) {
         throw new NotFoundError();
       }
@@ -591,7 +714,9 @@ export class AuthService implements OnModuleInit {
         throw new NotFoundError();
       }
 
-      await this.identityRepo.revokeSession(tx, ctx.sessionId);
+      if (input.revokeSessionId !== undefined) {
+        await this.identityRepo.revokeSession(tx, input.revokeSessionId);
+      }
 
       const { accessToken } = await this.createSession(tx, {
         userId: user.id,
@@ -603,10 +728,8 @@ export class AuthService implements OnModuleInit {
       });
 
       await this.identityRepo.updateUserLastLogin(tx, user.id);
-
-      const org = await this.tenancyRepo.findOrganizationById(tx, orgId);
-      if (!org) {
-        throw new NotFoundError();
+      if (input.deviceId !== undefined) {
+        await this.tenancyRepo.touchPosDevice(tx, input.deviceId, this.clock.now());
       }
 
       return {
@@ -628,13 +751,19 @@ export class AuthService implements OnModuleInit {
       if (memberships.length === 0) {
         throw new ForbiddenError('No active organization membership', {}, 'NO_ACTIVE_MEMBERSHIP');
       }
+      // Prefer orgs that are not suspended/cancelled; if every org is blocked, say so clearly.
+      const usable = memberships.filter((m) => !isOrgBlocked(m.org.status));
+      if (usable.length === 0) {
+        const lastBlocked = memberships.find((m) => m.org.id === lastOrgId) ?? memberships[0];
+        throw orgBlockedError(lastBlocked?.org.status ?? 'suspended');
+      }
       if (lastOrgId) {
-        const still = memberships.find((m) => m.org.id === lastOrgId);
+        const still = usable.find((m) => m.org.id === lastOrgId);
         if (still) {
           return lastOrgId;
         }
       }
-      const first = memberships[0];
+      const first = usable[0];
       if (!first) {
         throw new ForbiddenError('No active organization membership', {}, 'NO_ACTIVE_MEMBERSHIP');
       }

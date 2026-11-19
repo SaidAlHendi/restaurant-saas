@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { businessDateSchema, inclusiveBusinessDaySpan } from '../dates/business-date.js';
 import { moneyMinorSchema } from '../i18n/localized-text.js';
+import { moneyDisplaySchema } from '../money/display-currency.js';
 import { cursorListQuerySchema, cursorListResponseSchema } from '../catalog/pagination.js';
 
 import {
@@ -19,7 +20,13 @@ export const createOrderBodySchema = z
     clientOrderId: z.uuid(),
     type: orderTypeSchema,
     tableId: z.uuid().optional(),
+    /** Dine-in only: join this open bill of the table instead of the default one. */
+    billId: z.uuid().optional(),
+    /** Dine-in only: open a separate bill for this table (two groups at one table). */
+    newBill: z.boolean().optional(),
+    billLabel: z.string().trim().min(1).max(60).optional(),
     customerName: z.string().trim().min(1).max(200).optional(),
+    pagerNumber: z.number().int().min(1).max(9999).optional(),
     notes: z.string().trim().max(1000).optional(),
     items: z.array(orderLineInputSchema).min(1).max(100),
   })
@@ -29,6 +36,20 @@ export const createOrderBodySchema = z
         code: 'custom',
         message: 'tableId is required for dine_in',
         path: ['tableId'],
+      });
+    }
+    if (body.type === 'takeaway' && (body.billId !== undefined || body.newBill === true)) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'bills are only for dine_in',
+        path: ['billId'],
+      });
+    }
+    if (body.billId !== undefined && body.newBill === true) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'billId and newBill cannot be combined',
+        path: ['newBill'],
       });
     }
     if (body.type === 'takeaway' && body.tableId !== undefined) {
@@ -59,6 +80,7 @@ export const orderItemSchema = z.object({
   notes: z.string().nullable(),
   status: orderItemStatusSchema,
   isAddition: z.boolean(),
+  seat: z.string().nullable().default(null),
   voidedAt: z.iso.datetime().nullable(),
   voidReason: z.string().nullable(),
   modifiers: z.array(orderItemModifierSchema),
@@ -72,6 +94,12 @@ export const orderMoneySchema = z.object({
   taxMinor: moneyMinorSchema,
   totalMinor: moneyMinorSchema,
   currency: z.string().length(3),
+  /**
+   * Display currency frozen when the order was created (rate and rounding never change afterwards).
+   * `null` = the order is shown in `currency`. Amounts on the order stay in `currency`.
+   * Defaults to null so payloads from before this field still parse.
+   */
+  display: moneyDisplaySchema.nullable().default(null),
 });
 
 export const orderPaymentSummarySchema = z.object({
@@ -92,7 +120,9 @@ export const orderSchema = orderMoneySchema.extend({
   paidMinor: moneyMinorSchema,
   dueMinor: moneyMinorSchema,
   tableId: z.uuid().nullable(),
+  billId: z.uuid().nullable().default(null),
   customerName: z.string().nullable(),
+  pagerNumber: z.number().int().nullable(),
   notes: z.string().nullable(),
   version: z.number().int().min(1),
   placedAt: z.iso.datetime().nullable(),
@@ -162,13 +192,29 @@ export const orderListQuerySchema = cursorListQuerySchema
 
 export type OrderListQuery = z.infer<typeof orderListQuerySchema>;
 
-export const orderListResponseSchema = cursorListResponseSchema(orderListItemSchema);
+export const orderListResponseSchema = cursorListResponseSchema(orderListItemSchema).extend({
+  /**
+   * Only on the first page of a "today only" list of open orders: how many open orders from earlier
+   * business days the filter hides. Lets the POS say "N older orders hidden".
+   */
+  hiddenOlderCount: z.number().int().min(0).optional(),
+});
 
 export const changeOrderStatusBodySchema = z.object({
   to: orderStatusSchema,
   expectedVersion: z.number().int().min(1),
   reason: z.string().trim().min(1).max(500).optional(),
   approval: orderApprovalSchema.optional(),
+  /** Takes back a status change just made by the same person (ready to preparing, completed to ready). */
+  undo: z.boolean().optional(),
+  /** Manager/owner moves a completed order back to ready (`orders.reopen`, no time limit). */
+  reopen: z.boolean().optional(),
+}).refine((body) => body.reopen !== true || body.undo !== true, {
+  message: 'reopen and undo cannot be combined',
+  path: ['reopen'],
+}).refine((body) => body.reopen !== true || (body.reason ?? '').length <= 200, {
+  message: 'Reopen reason is at most 200 characters',
+  path: ['reason'],
 });
 
 export type ChangeOrderStatusBody = z.infer<typeof changeOrderStatusBodySchema>;
@@ -179,6 +225,18 @@ export const addOrderItemsBodySchema = z.object({
 });
 
 export type AddOrderItemsBody = z.infer<typeof addOrderItemsBodySchema>;
+
+/** Moves a whole order (rounds included) to another table, e.g. when the cashier picked the wrong one. */
+export const moveOrderTableBodySchema = z.object({
+  expectedVersion: z.number().int().min(1),
+  tableId: z.uuid(),
+  /** Join this open bill of the target table (needed when it has several). */
+  billId: z.uuid().optional(),
+  /** Start a separate bill on the target table instead of joining its open bill. */
+  newBill: z.boolean().default(false),
+});
+
+export type MoveOrderTableBody = z.infer<typeof moveOrderTableBodySchema>;
 
 export const voidOrderItemBodySchema = z.object({
   expectedVersion: z.number().int().min(1),

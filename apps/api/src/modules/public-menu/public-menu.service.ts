@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 
-import type { PublicMenuPayload, PublicMenuQuery, PublicSitemapResponse, PublicTablePayload } from '@app/shared';
-import { publicMenuLocaleSchema } from '@app/shared';
+import type { PublicDisplayPayload, PublicMenuPayload, PublicMenuQuery, PublicSitemapResponse, PublicTablePayload } from '@app/shared';
+import { publicDisplayTokenSchema, publicMenuLocaleSchema } from '@app/shared';
 
 import { GoneError, NotFoundError } from '../../core/errors/app-errors';
 import { DRIZZLE, type DrizzleDb } from '../../core/db/db.module';
@@ -12,6 +12,7 @@ import { EntitlementsService } from '../billing/entitlements.service';
 
 import { assemblePublicMenuCategories } from './public-menu.assemble';
 import { logoUrlFromKey } from './public-menu.mapper';
+import { moneyDisplayForOrg } from '../tenancy/org-settings.service';
 import { PublicMenuRepository } from './public-menu.repository';
 
 @Injectable()
@@ -33,6 +34,35 @@ export class PublicMenuService {
     query: PublicMenuQuery,
   ): Promise<PublicMenuPayload> {
     return this.buildMenu(orgSlug, query, branchSlug);
+  }
+
+  async getReadyDisplay(token: string): Promise<PublicDisplayPayload> {
+    if (!publicDisplayTokenSchema.safeParse(token).success) {
+      throw new NotFoundError();
+    }
+    const resolved = await this.repo.resolveDisplay(token);
+    if (!resolved) {
+      throw new NotFoundError();
+    }
+    if (resolved.org_status === 'cancelled' || resolved.org_status === 'suspended') {
+      throw new GoneError();
+    }
+    const orgId = resolved.org_id;
+    if (!(await this.entitlements.can(orgId, 'ordering.pager'))) {
+      throw new NotFoundError();
+    }
+    return withOrg(this.db, orgId, async (tx) => {
+      const branch = await this.repo.findBranchForDisplay(tx, orgId, resolved.branch_id);
+      if (!branch?.isActive || !branch.pagerEnabled) {
+        throw new NotFoundError();
+      }
+      const orgRow = await this.repo.findOrganization(tx, orgId);
+      if (!orgRow) {
+        throw new NotFoundError();
+      }
+      const ready = await this.repo.listReadyOrders(tx, resolved.branch_id);
+      return { branchName: branch.name, orgName: orgRow.name, ready };
+    });
   }
 
   async resolveTable(token: string): Promise<PublicTablePayload> {
@@ -106,12 +136,14 @@ export class PublicMenuService {
       const productCurrency = orgRow.defaultCurrency;
 
       let branchField: PublicMenuPayload['branch'];
+      let menuBranchId: string | undefined;
 
       if (branchSlug !== undefined) {
         const branch = await this.repo.findActiveBranchBySlug(tx, orgId, branchSlug);
         if (!branch) {
           throw new NotFoundError();
         }
+        menuBranchId = branch.id;
         branchField = {
           name: branch.name,
           slug: branch.slug,
@@ -119,12 +151,13 @@ export class PublicMenuService {
         };
       }
 
-      const categoryRows = await this.repo.listActiveCategories(tx, orgId);
+      const categoryRows = await this.repo.listActiveCategories(tx, orgId, menuBranchId);
       const categoryIds = categoryRows.map((c) => c.id);
       const productRows = await this.repo.listActiveProductsForCategoryIds(
         tx,
         orgId,
         categoryIds,
+        menuBranchId,
       );
       const productIds = productRows.map((p) => p.id);
       const groupLinkRows = await this.repo.listProductModifierGroupsForProductIds(
@@ -154,6 +187,7 @@ export class PublicMenuService {
           defaultLocale: orgRow.defaultLocale,
           locales: localesForPayload,
           currency: orgRow.defaultCurrency,
+          display: moneyDisplayForOrg(orgRow),
           logoUrl: logoUrlFromKey(this.storage, orgRow.logoKey),
         },
         branches: branchRows.map((b) => ({

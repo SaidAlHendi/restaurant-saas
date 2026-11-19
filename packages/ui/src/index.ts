@@ -30,6 +30,8 @@ export * from './components/card/index.js';
 export * from './components/tabs/index.js';
 export * from './components/spinner/index.js';
 export * from './components/empty-state/index.js';
+export * from './components/help-tip/index.js';
+export * from './components/info-note/index.js';
 export * from './components/alert/index.js';
 export * from './components/stat-card/index.js';
 export * from './components/toast/index.js';
@@ -43,6 +45,17 @@ export * from './components/category-tile/index.js';
 export * from './components/open-order-chip/index.js';
 export * from './components/cart-line/index.js';
 export * from './components/kds/index.js';
+export * from './components/panel/index.js';
+export * from './components/ranked-row/index.js';
+export * from './components/ops-row/index.js';
+export * from './components/app-topbar/index.js';
+export * from './components/segmented-control/index.js';
+export * from './components/app-shell/index.js';
+export * from './components/auth-layout/index.js';
+export * from './components/ticket-rail/index.js';
+export * from './components/banner-alert/index.js';
+export * from './components/calendar/index.js';
+export * from './components/date-picker/index.js';
 
 // Hooks
 export * from './hooks/use-theme.js';
@@ -66,6 +79,7 @@ export {
   formatMinor,
   minorToText,
   normalizeDigits,
+  toWesternDigits,
   parseMinor,
 } from './lib/number.js';
 export * from './lib/direction.js';

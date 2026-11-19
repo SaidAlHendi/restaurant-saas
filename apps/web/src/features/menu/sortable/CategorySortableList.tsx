@@ -16,6 +16,7 @@ function SortableCategoryRow({
   deleteLabel,
   activeLabel,
   inactiveLabel,
+  availabilityLabel,
   onEdit,
   onDelete,
 }: {
@@ -27,6 +28,7 @@ function SortableCategoryRow({
   deleteLabel: string;
   activeLabel: string;
   inactiveLabel: string;
+  availabilityLabel: string | undefined;
   onEdit: () => void;
   onDelete: () => void;
 }) {
@@ -48,6 +50,7 @@ function SortableCategoryRow({
       deleteLabel={deleteLabel}
       activeLabel={activeLabel}
       inactiveLabel={inactiveLabel}
+      availabilityLabel={availabilityLabel}
       dragHandleProps={{ ...attributes, ...listeners }}
       rowProps={{ ref: setNodeRef }}
       style={style}
@@ -70,6 +73,7 @@ export function CategorySortableList({
   deleteLabel,
   activeLabel,
   inactiveLabel,
+  availabilityLabelFor,
   onEdit,
   onDelete,
 }: CategorySortableListProps) {
@@ -88,6 +92,7 @@ export function CategorySortableList({
               deleteLabel={deleteLabel}
               activeLabel={activeLabel}
               inactiveLabel={inactiveLabel}
+              availabilityLabel={availabilityLabelFor?.(category)}
               onEdit={() => {
                 onEdit(category);
               }}

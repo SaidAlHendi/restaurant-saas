@@ -1,12 +1,17 @@
-import { and, asc, eq, gt, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gt, sql } from 'drizzle-orm';
 import { Injectable } from '@nestjs/common';
 
+import { computeEffectivePermissions } from '@app/shared';
+
 import { users } from '../../core/db/schema/identity';
+import { orders } from '../../core/db/schema/ordering';
 import {
   branches,
   membershipBranches,
   memberships,
   organizations,
+  posDevices,
+  membershipPermissionOverrides,
   rolePermissions,
   roles,
 } from '../../core/db/schema/tenancy';
@@ -22,8 +27,22 @@ function firstInsertedRow<T>(rows: T[]): T {
 
 @Injectable()
 export class TenancyRepository {
-  async listBranches(tx: DrizzleTx, orgId: string) {
-    return tx.select().from(branches).where(eq(branches.orgId, orgId)).orderBy(branches.name);
+  async listBranches(tx: DrizzleTx, orgId: string, window?: { limit: number; offset: number } | null) {
+    const query = tx
+      .select()
+      .from(branches)
+      .where(eq(branches.orgId, orgId))
+      .orderBy(branches.name, branches.id)
+      .$dynamic();
+    return window ? query.limit(window.limit).offset(window.offset) : query;
+  }
+
+  async countBranches(tx: DrizzleTx, orgId: string): Promise<number> {
+    const [row] = await tx
+      .select({ total: count() })
+      .from(branches)
+      .where(eq(branches.orgId, orgId));
+    return row?.total ?? 0;
   }
 
   async findBranchById(tx: DrizzleTx, branchId: string) {
@@ -54,8 +73,13 @@ export class TenancyRepository {
     return rows.length > 0;
   }
 
-  async listMembershipsWithUsers(tx: DrizzleTx) {
-    return tx
+  async countMemberships(tx: DrizzleTx): Promise<number> {
+    const [row] = await tx.select({ total: count() }).from(memberships);
+    return row?.total ?? 0;
+  }
+
+  async listMembershipsWithUsers(tx: DrizzleTx, window?: { limit: number; offset: number } | null) {
+    const query = tx
       .select({
         membership: memberships,
         user: users,
@@ -64,7 +88,9 @@ export class TenancyRepository {
       .from(memberships)
       .innerJoin(users, eq(memberships.userId, users.id))
       .innerJoin(roles, eq(memberships.roleId, roles.id))
-      .orderBy(asc(users.name), asc(users.id));
+      .orderBy(asc(users.name), asc(users.id))
+      .$dynamic();
+    return window ? query.limit(window.limit).offset(window.offset) : query;
   }
 
   async listMembershipBranchIds(tx: DrizzleTx, membershipId: string): Promise<string[]> {
@@ -81,6 +107,48 @@ export class TenancyRepository {
       .from(rolePermissions)
       .where(eq(rolePermissions.roleId, roleId));
     return rows.map((r) => r.key);
+  }
+
+  async listPermissionOverrides(tx: DrizzleTx, membershipId: string) {
+    const rows = await tx
+      .select({
+        key: membershipPermissionOverrides.permissionKey,
+        effect: membershipPermissionOverrides.effect,
+      })
+      .from(membershipPermissionOverrides)
+      .where(eq(membershipPermissionOverrides.membershipId, membershipId));
+    return {
+      grant: rows.filter((r) => r.effect === 'grant').map((r) => r.key),
+      deny: rows.filter((r) => r.effect === 'deny').map((r) => r.key),
+    };
+  }
+
+  /** Role permissions plus the employee's grants, minus their denies. */
+  async loadEffectivePermissions(tx: DrizzleTx, membershipId: string, roleId: string): Promise<string[]> {
+    const [rolePerms, overrides] = await Promise.all([
+      this.loadRolePermissions(tx, roleId),
+      this.listPermissionOverrides(tx, membershipId),
+    ]);
+    return computeEffectivePermissions(rolePerms, overrides.grant, overrides.deny);
+  }
+
+  async replacePermissionOverrides(
+    tx: DrizzleTx,
+    orgId: string,
+    membershipId: string,
+    grant: readonly string[],
+    deny: readonly string[],
+  ) {
+    await tx
+      .delete(membershipPermissionOverrides)
+      .where(eq(membershipPermissionOverrides.membershipId, membershipId));
+    const values = [
+      ...grant.map((permissionKey) => ({ membershipId, orgId, permissionKey, effect: 'grant' as const })),
+      ...deny.map((permissionKey) => ({ membershipId, orgId, permissionKey, effect: 'deny' as const })),
+    ];
+    if (values.length > 0) {
+      await tx.insert(membershipPermissionOverrides).values(values);
+    }
   }
 
   async findRoleById(tx: DrizzleTx, roleId: string) {
@@ -110,6 +178,16 @@ export class TenancyRepository {
       .where(eq(organizations.id, orgId))
       .returning();
     return updated[0];
+  }
+
+  /** True when the org has any order row (drafts and cancelled ones count: they carry a currency). */
+  async orgHasOrders(tx: DrizzleTx, orgId: string): Promise<boolean> {
+    const rows = await tx.select({ id: orders.id }).from(orders).where(eq(orders.orgId, orgId)).limit(1);
+    return rows.length > 0;
+  }
+
+  async setBranchesCurrency(tx: DrizzleTx, orgId: string, currency: string): Promise<void> {
+    await tx.update(branches).set({ currency }).where(eq(branches.orgId, orgId));
   }
 
   async findMembershipById(tx: DrizzleTx, membershipId: string) {
@@ -390,5 +468,78 @@ export class TenancyRepository {
       .from(branches)
       .where(and(eq(branches.orgId, orgId), eq(branches.isActive, true)));
     return rows.map((r) => r.id);
+  }
+
+  async pairPosDevice(tx: DrizzleTx, codeHash: string, keyHash: string, now: Date) {
+    const result = await tx.execute(
+      sql`SELECT device_id, org_id, branch_id, device_name FROM public.pair_pos_device(${codeHash}, ${keyHash}, ${now.toISOString()}::timestamptz)`,
+    );
+    const row = result.rows[0] as
+      | { device_id: string; org_id: string; branch_id: string; device_name: string }
+      | undefined;
+    return row
+      ? {
+          deviceId: row.device_id,
+          orgId: row.org_id,
+          branchId: row.branch_id,
+          deviceName: row.device_name,
+        }
+      : undefined;
+  }
+
+  async resolvePosDevice(tx: DrizzleTx, keyHash: string) {
+    const result = await tx.execute(
+      sql`SELECT device_id, org_id, branch_id, device_name FROM public.resolve_pos_device(${keyHash})`,
+    );
+    const row = result.rows[0] as
+      | { device_id: string; org_id: string; branch_id: string; device_name: string }
+      | undefined;
+    return row
+      ? {
+          deviceId: row.device_id,
+          orgId: row.org_id,
+          branchId: row.branch_id,
+          deviceName: row.device_name,
+        }
+      : undefined;
+  }
+
+  async touchPosDevice(tx: DrizzleTx, deviceId: string, now: Date) {
+    await tx.update(posDevices).set({ lastUsedAt: now }).where(eq(posDevices.id, deviceId));
+  }
+
+  async insertPosDevice(tx: DrizzleTx, row: typeof posDevices.$inferInsert) {
+    const inserted = await tx.insert(posDevices).values(row).returning();
+    return firstInsertedRow(inserted);
+  }
+
+  async listPosDevices(tx: DrizzleTx) {
+    return tx
+      .select({ device: posDevices, branchName: branches.name })
+      .from(posDevices)
+      .innerJoin(
+        branches,
+        and(eq(branches.id, posDevices.branchId), eq(branches.orgId, posDevices.orgId)),
+      )
+      .where(sql`${posDevices.status} <> 'revoked'`)
+      .orderBy(desc(posDevices.createdAt));
+  }
+
+  async findPosDeviceById(tx: DrizzleTx, deviceId: string) {
+    const rows = await tx.select().from(posDevices).where(eq(posDevices.id, deviceId)).limit(1);
+    return rows[0];
+  }
+
+  async revokePosDevice(tx: DrizzleTx, deviceId: string, now: Date) {
+    await tx
+      .update(posDevices)
+      .set({
+        status: 'revoked',
+        revokedAt: now,
+        deviceKeyHash: null,
+        pairingCodeHash: null,
+        pairingExpiresAt: null,
+      })
+      .where(eq(posDevices.id, deviceId));
   }
 }

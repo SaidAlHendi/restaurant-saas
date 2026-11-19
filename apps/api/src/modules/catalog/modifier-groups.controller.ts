@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query } from '@nestjs/common';
 
 import { Ctx } from '../../core/context/context.decorator';
 import type { RequestContext } from '../../core/context/request-context';
@@ -13,6 +13,7 @@ import {
   ReorderModifiersBodyDto,
 } from './dto/catalog.dto';
 import { CatalogPathIdPipe } from './pipes/catalog-path-id.pipe';
+import { PageQueryDto } from '../../core/validation/page-query.dto';
 
 @Controller('v1/modifier-groups')
 export class ModifierGroupsController {
@@ -20,8 +21,8 @@ export class ModifierGroupsController {
 
   @RequirePermission('menu.read')
   @Get()
-  list(@Ctx() ctx: RequestContext) {
-    return this.groups.list(ctx);
+  list(@Ctx() ctx: RequestContext, @Query() query: PageQueryDto) {
+    return this.groups.list(ctx, query);
   }
 
   @RequirePermission('menu.read')

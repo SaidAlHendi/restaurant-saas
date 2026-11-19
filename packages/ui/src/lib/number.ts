@@ -5,6 +5,16 @@ export { currencyDigits, currencySymbol, formatMinor } from '@app/shared';
 const ARABIC_INDIC = '٠١٢٣٤٥٦٧٨٩';
 const PERSIAN = '۰۱۲۳۴۵۶۷۸۹';
 
+/** Swaps Arabic-Indic and Persian digits for 0-9 and the Arabic decimal mark for ".". */
+export function toWesternDigits(text: string): string {
+  let out = '';
+  for (const ch of text) {
+    const i = ARABIC_INDIC.indexOf(ch) >= 0 ? ARABIC_INDIC.indexOf(ch) : PERSIAN.indexOf(ch);
+    out += i >= 0 ? String(i) : ch === '٫' ? '.' : ch;
+  }
+  return out;
+}
+
 /** Converts Arabic-Indic / Persian digits and separators to ASCII ("١٢٫٥" -> "12.5"). */
 export function normalizeDigits(text: string): string {
   let out = '';

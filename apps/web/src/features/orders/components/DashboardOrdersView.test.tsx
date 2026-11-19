@@ -4,7 +4,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DashboardOrdersView } from './DashboardOrdersView.js';
 import type { DashboardOrdersPageViewModel } from '../hooks/use-dashboard-orders-page.js';
 
-function minimalOrdersVm(overrides: Partial<DashboardOrdersPageViewModel> = {}): DashboardOrdersPageViewModel {
+function minimalOrdersVm(
+  overrides: Partial<DashboardOrdersPageViewModel> = {},
+): DashboardOrdersPageViewModel {
   return {
     searchInputKey: 'branch-1',
     orgSwitcher: {
@@ -41,6 +43,7 @@ function minimalOrdersVm(overrides: Partial<DashboardOrdersPageViewModel> = {}):
     statusOptions: [{ value: 'all', label: 'All' }],
     typeOptions: [{ value: 'all', label: 'All' }],
     paymentMethodOptions: [{ value: 'all', label: 'All' }],
+    dateLocale: 'en',
     period: {
       value: 'today',
       onChange: () => {},
@@ -69,9 +72,15 @@ function minimalOrdersVm(overrides: Partial<DashboardOrdersPageViewModel> = {}):
     isError: false,
     isFetching: false,
     loadMore: null,
+    pagination: { page: 1, pageCount: 1 },
     onRetry: () => {},
     labels: {
       title: 'Orders',
+      paginationNav: 'Pagination',
+      paginationPrevious: 'Previous',
+      paginationNext: 'Next',
+      paginationPage: 'Page',
+      showingRecords: 'Showing 0 records',
       loading: 'Loading',
       retry: 'Retry',
       empty: 'Empty',

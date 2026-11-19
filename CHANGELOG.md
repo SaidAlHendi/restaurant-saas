@@ -1,5 +1,81 @@
 # Changelog
 
+All notable user-facing changes to Sahtain. Format follows [Keep a Changelog](https://keepachangelog.com/): entries are grouped under Added, Changed, Fixed and Security. Older entries below are more technical.
+
+## Unreleased
+
+### Added
+- Reopen a completed order: managers and owners (and anyone the owner grants **Reopen completed orders**) can send a wrongly handed-over order back to Ready from the order sheet. Payment is unchanged; not possible once the table bill is closed.
+- Handing over an order: tap **Picked up** (takeaway) or **Served** (dine-in) on a ready order, with a 10-second Undo. Ready orders now stay on the POS, kitchen and Ready screens until handed over, and an unpaid one opens payment first.
+- Kitchen: tap **Ready** with a 5-second Undo, also straight from a New order. A lighter **Start** button on a New order moves it to Preparing. Undo keeps the items you had ticked.
+- POS Orders: a **Today only** switch (off on Active, Awaiting payment and Ready, so open orders from earlier days stay visible) with a note when older open orders are hidden.
+- Display currency: show prices to staff and guests in a second currency, using an exchange rate you set yourself. Each order keeps the rate it was created with.
+- Add items to an order that was already sent to the kitchen, from the POS "add" mode. Only the new items are printed and sent.
+- Modifier groups: create a group and its options in one step, right from the product form.
+- Edit the modifiers of a line already in the cart.
+
+### Changed
+- Numbers always use English digits (0-9), also in Arabic: prices, totals, dates, times, counts, and any number you type (Arabic-Indic digits are converted as you type).
+- Order details redesigned: one clear, colour-coded layout on the POS and the dashboard, with a progress bar, items grouped by guest seat, totals with the display-currency rate, payments, a timeline (including reopen and undo) and one big action button per status. Works in English and Arabic. The dashboard order page now has the same action buttons as the POS (except Add items), shown only for what you are allowed to do.
+- The kitchen display no longer has a Start button: ticking the first item starts the order.
+- "Pay before send" now also applies to items added to an order that was already sent.
+- The POS menu and kitchen display refresh on their own when the menu changes.
+
+## 2026-11-12 - Base currency changeable before the first order
+
+### Added
+- `PATCH /v1/org/settings` accepts `defaultCurrency` while the restaurant has no orders. Price numbers stay as typed, every branch's `currency` follows, and a saved display currency is switched off unless the same save sets a new one with a rate. Once any order exists the change is refused with `409 BASE_CURRENCY_LOCKED`.
+- `baseCurrencyLocked` on the org settings response; Settings shows a base currency picker until it is true.
+
+### Changed
+- A newly picked display currency starts with rounding that suits it (`defaultDisplaySteps` in `@app/shared`): 100 / 500 for large-number currencies such as SYP, LBP and IQD, no rounding for the others. An owner's own choice still wins.
+
+## 2026-11-11 - Display currency
+
+### Added
+- A restaurant can keep prices in its base currency (`organizations.default_currency`) and show another currency to staff and guests: `display_currency`, `exchange_rate`, `exchange_rate_updated_at`, `display_item_step`, `display_total_step` on `organizations` (migration 0020). The owner types the rate by hand in Settings, Restaurant, Currency.
+- Each order freezes the display currency, rate and rounding it was created with (`orders.display_currency`, `exchange_rate`, `display_item_step`, `display_total_step`), so a later rate change never changes past orders. Cash payments store the exact display-currency cash and change (`payments.display_tendered_minor`, `display_change_minor`).
+- `display` (currency, rate, itemStep, totalStep, or null) on order responses, the POS menu and the public menu org; `displayRateUpdatedAt` on the POS menu; `displayTenderedMinor` on the payment body.
+- One convert-and-round helper in `@app/shared` (`money/display-currency.ts`): prices round to the item step, totals to the total step, half up, integer math only.
+
+### Changed
+- Stored amounts and API amounts stay in the base currency. The POS, receipts, order pages and the public menu (including its JSON-LD prices) convert for display.
+- `GET /v1/branches/:branchId/reports/daily` returns amounts already converted (each order at its frozen rate) with `currency` set to the display currency and `display` set, when a display currency is on.
+- SYP is shown as `SYP` / `ل.س` instead of a bare `£`. Dashboard stat cards shrink long amounts to fit.
+
+## 2026-11-09 - Per-branch availability for products and categories
+
+### Added
+- Products and categories stay shared across the organization, but each can be shown in all branches (default) or only in chosen branches: `available_in_all_branches` columns plus `product_branches` and `category_branches` (migration 0016). Existing items stay in all branches.
+- `availableInAllBranches` and `branchIds` on product and category create, patch and responses; `GET /v1/products?branchId=` filters the list.
+- Branch availability field in the product and category forms, a branch filter and an availability column on the products page.
+- `GET /v1/me` now returns `allBranches` (the member can work in every branch).
+
+### Changed
+- POS menu, public branch menu and order creation only include products whose category and product are available in the branch (order lines for hidden products fail with `ORDER_PRODUCT_UNAVAILABLE`).
+- Staff limited to some branches can only pick their own branches. They can hide an all-branches item from their branches, which turns it into an explicit list of the other branches. Only staff with access to every branch can choose "All branches".
+
+## 2026-11-04 - Step 12a: admin API foundations
+
+### Added
+- `app_admin` Postgres role, `admin_users`, `admin_sessions`, `audit_logs` (migration 0013), `DATABASE_ADMIN_URL`, `JWT_ADMIN_SECRET`.
+- `POST /v1/admin/auth/login|refresh|logout`, `GET /v1/admin/me`, `AdminAuthGuard`, `@RequireAdminRole`, `WithAdminService`.
+- `pnpm --filter @app/api admin:create` to create the first platform admin.
+
+### Changed
+- Tenant auth now rejects suspended or cancelled organizations (`ORG_SUSPENDED`, `ORG_CANCELLED`).
+- Local and CI setups must re-run `infra/postgres/init/01-roles.sql` (adds `app_admin`) before `db:migrate`.
+
+## 2026-11-04 — Sahtain colors
+
+### Changed
+- Replaced the warm paprika palette with the Sahtain design colors (from the `sahtain-design` repo) in `packages/ui/src/styles/themes.css`.
+  - Light: off-white canvas (`#f8f9f5`), white cards, deep forest-green primary (`#173f32`), pale-green secondary and active states (`#e8efe9`), amber accent and warning, muted text `#737a74`. The olive `accent-2` is now Sahtain green (`#285b46`).
+  - Dark (`forest`): deep green surfaces, pale-green primary actions, amber timers.
+  - New `--canvas` token for the page background, separate from card and sidebar surfaces.
+  - New `data-surface="kds"` scope: the kitchen display renders on the dark green surface in either theme.
+- Layout and shapes from the earlier rounded restyle (floating sidebar and headers, rounded cards, KDS tabs) are unchanged.
+
 Work done while Said was away (2026-10-24). One section per branch/PR, newest first.
 
 ## `claude/project-thread-tx2tyq` — polish, warm restyle, canonical URLs
@@ -59,3 +135,7 @@ You did not list the four issues in writing, so these are my best reading of the
 - Added an olive `accent-2` token (`--brand-accent-2` in `themes.css`, exposed as `bg-accent-2` / `text-accent-2`).
 - Toned down: olive only on stat-card icon chips, secondary badges (soft tint) and KDS column panels (15% tint). Active sidebar item and avatar use the primary-tinted secondary again.
 - To remove: delete the token lines in `themes.css` and swap those three usages back (`bg-secondary text-secondary-foreground`, `text-muted-foreground/80`, `bg-foreground/5`).
+
+---
+
+When promoting `dev` to `staging`, rename `## Unreleased` to the promotion date (for example `## 2026-11-18`) and add a fresh empty `## Unreleased` above it.

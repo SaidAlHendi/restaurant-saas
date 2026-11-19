@@ -6,6 +6,8 @@ import { CatalogModule } from '../catalog/catalog.module';
 import { IdentityModule } from '../identity/identity.module';
 import { TenancyModule } from '../tenancy/tenancy.module';
 
+import { BillsController } from './bills.controller';
+import { BillsService } from './bills.service';
 import { OrdersController } from './orders.controller';
 import { OrderingRepository } from './ordering.repository';
 import { OrderingService } from './ordering.service';
@@ -20,8 +22,8 @@ import { TablesService } from './tables.service';
     forwardRef(() => BillingModule),
     forwardRef(() => IdentityModule),
   ],
-  controllers: [TablesController, OrdersController],
-  providers: [OrderingRepository, OrderingService, TablesService],
+  controllers: [TablesController, OrdersController, BillsController],
+  providers: [OrderingRepository, OrderingService, BillsService, TablesService],
   exports: [OrderingService],
 })
 export class OrderingModule {}

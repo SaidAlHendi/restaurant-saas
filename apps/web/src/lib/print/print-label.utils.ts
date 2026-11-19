@@ -1,5 +1,7 @@
 import type { OrderDetail, OrderItem } from '@app/shared';
 
+import type { MoneyFormatter } from '../money.js';
+
 import { escapeHtml } from './escape-html.js';
 
 export function localizedPrintName(
@@ -13,7 +15,7 @@ export function localizedPrintName(
 export function formatOrderMetaLine(
   order: OrderDetail,
   tableLabel: string | null,
-  typeLabels: { dineIn: string; takeaway: string },
+  typeLabels: { dineIn: string; takeaway: string; pager?: string },
 ): string {
   const typeLabel = order.type === 'dine_in' ? typeLabels.dineIn : typeLabels.takeaway;
   const parts: string[] = [typeLabel];
@@ -22,6 +24,9 @@ export function formatOrderMetaLine(
   }
   if (order.type === 'takeaway' && order.customerName) {
     parts.push(order.customerName);
+  }
+  if (order.pagerNumber !== null && typeLabels.pager) {
+    parts.push(`${typeLabels.pager} ${String(order.pagerNumber)}`);
   }
   return parts.join(' · ');
 }
@@ -53,7 +58,7 @@ export function renderReceiptItemLinesHtml(
   items: OrderItem[],
   locale: string,
   fallbackLocale: string,
-  formatMinor: (minor: number) => string,
+  formatMinor: MoneyFormatter,
 ): string {
   return items
     .map((item) => {

@@ -3,6 +3,7 @@ import {
   createPinOnlyStaffBodySchema,
   createStaffInviteBodySchema,
   patchStaffMembershipBodySchema,
+  putStaffPermissionOverridesBodySchema,
   putStaffPinBodySchema,
 } from '@app/shared';
 
@@ -10,3 +11,6 @@ export class CreateStaffInviteBodyDto extends createZodDto(createStaffInviteBody
 export class CreatePinOnlyStaffBodyDto extends createZodDto(createPinOnlyStaffBodySchema) {}
 export class PatchStaffMembershipBodyDto extends createZodDto(patchStaffMembershipBodySchema) {}
 export class PutStaffPinBodyDto extends createZodDto(putStaffPinBodySchema) {}
+export class PutStaffPermissionOverridesBodyDto extends createZodDto(
+  putStaffPermissionOverridesBodySchema,
+) {}

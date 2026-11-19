@@ -149,3 +149,77 @@ export function NumberedPagination({
     </nav>
   );
 }
+
+export interface BoxedPaginationProps {
+  /** 1-based. */
+  page: number;
+  pageCount: number;
+  onPageChange: (page: number) => void;
+  labels: Pick<NavLabels, 'navigation' | 'previous' | 'next'> & {
+    page: (page: number) => string;
+  };
+  formatNumber?: (value: number) => string;
+  className?: string;
+}
+
+const boxClass =
+  'inline-flex size-8 items-center justify-center border-s text-sm tabular-nums transition-colors first:border-s-0 hover:bg-muted disabled:pointer-events-none disabled:opacity-40';
+
+/** Compact bordered page switcher: ← 1 2 → with the current page filled in the primary color. */
+export function BoxedPagination({
+  page,
+  pageCount,
+  onPageChange,
+  labels,
+  formatNumber = String,
+  className,
+}: BoxedPaginationProps) {
+  const pages = Array.from({ length: Math.max(pageCount, 1) }, (_, i) => i + 1);
+  return (
+    <nav
+      data-slot="boxed-pagination"
+      aria-label={labels.navigation}
+      className={cn('inline-flex overflow-hidden rounded-md border bg-card', className)}
+    >
+      <button
+        type="button"
+        className={boxClass}
+        aria-label={labels.previous}
+        disabled={page <= 1}
+        onClick={() => {
+          onPageChange(page - 1);
+        }}
+      >
+        <ChevronLeftIcon className="size-4 rtl:rotate-180" aria-hidden />
+      </button>
+      {pages.map((n) => (
+        <button
+          key={n}
+          type="button"
+          className={cn(
+            boxClass,
+            n === page && 'bg-primary text-primary-foreground hover:bg-primary',
+          )}
+          aria-label={labels.page(n)}
+          aria-current={n === page ? 'page' : undefined}
+          onClick={() => {
+            onPageChange(n);
+          }}
+        >
+          {formatNumber(n)}
+        </button>
+      ))}
+      <button
+        type="button"
+        className={boxClass}
+        aria-label={labels.next}
+        disabled={page >= pageCount}
+        onClick={() => {
+          onPageChange(page + 1);
+        }}
+      >
+        <ChevronRightIcon className="size-4 rtl:rotate-180" aria-hidden />
+      </button>
+    </nav>
+  );
+}

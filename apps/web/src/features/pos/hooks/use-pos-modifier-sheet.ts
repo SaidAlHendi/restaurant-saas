@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 
 import type { PosMenuPayload } from '@app/shared';
 
-import type { CartLineInput } from '../../cart/cart.types.js';
+import type { CartLine, CartLineInput } from '../../cart/cart.types.js';
 import { cartActions } from '../../cart/cart.slice.js';
 import { validateModifierSelection } from '../../cart/cart.utils.js';
 import { useAppDispatch } from '../../../app/hooks.js';
@@ -22,6 +22,7 @@ export function usePosModifierSheet(input: {
   const [quantity, setQuantity] = useState(1);
   const [note, setNote] = useState('');
   const [validationError, setValidationError] = useState(false);
+  const [editingLocalId, setEditingLocalId] = useState<string | null>(null);
 
   const openForProduct = useCallback((next: PosMenuProduct) => {
     setProduct(next);
@@ -29,12 +30,26 @@ export function usePosModifierSheet(input: {
     setQuantity(1);
     setNote('');
     setValidationError(false);
+    setEditingLocalId(null);
+    setOpen(true);
+  }, []);
+
+  /** Reopens the sheet for a cart line, pre-filled with its current choices. */
+  const openForLine = useCallback((next: PosMenuProduct, line: CartLine) => {
+    const available = new Set(next.modifierGroups.flatMap((g) => g.modifiers.map((m) => m.id)));
+    setProduct(next);
+    setSelectedModifierIds(line.modifierIds.filter((id) => available.has(id)));
+    setQuantity(line.quantity);
+    setNote(line.note);
+    setValidationError(false);
+    setEditingLocalId(line.localId);
     setOpen(true);
   }, []);
 
   const close = useCallback(() => {
     setOpen(false);
     setProduct(null);
+    setEditingLocalId(null);
   }, []);
 
   const toggleModifier = useCallback(
@@ -103,7 +118,9 @@ export function usePosModifierSheet(input: {
       quantity,
       note,
     };
-    if (input.onAddLine) {
+    if (editingLocalId !== null) {
+      dispatch(cartActions.replaceLine({ localId: editingLocalId, line }));
+    } else if (input.onAddLine) {
       input.onAddLine(line);
     } else {
       dispatch(cartActions.addLine(line));
@@ -112,6 +129,7 @@ export function usePosModifierSheet(input: {
   }, [
     close,
     dispatch,
+    editingLocalId,
     groupsForValidation,
     input,
     note,
@@ -121,9 +139,7 @@ export function usePosModifierSheet(input: {
   ]);
 
   const productName =
-    product === null
-      ? ''
-      : posLocalizedName(product.name, input.locale, input.defaultLocale);
+    product === null ? '' : posLocalizedName(product.name, input.locale, input.defaultLocale);
 
   return {
     open,
@@ -133,7 +149,9 @@ export function usePosModifierSheet(input: {
     quantity,
     note,
     validationError,
+    isEditing: editingLocalId !== null,
     openForProduct,
+    openForLine,
     close,
     setQuantity,
     setNote,

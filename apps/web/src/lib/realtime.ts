@@ -1,6 +1,12 @@
 import { io, type ManagerOptions, type Socket, type SocketOptions } from 'socket.io-client';
 
-import { orderRealtimeClientPayloadSchema, type OrderRealtimeClientPayload } from '@app/shared';
+import {
+  CATALOG_UPDATED_EVENT,
+  catalogRealtimePayloadSchema,
+  orderRealtimeClientPayloadSchema,
+  type CatalogRealtimePayload,
+  type OrderRealtimeClientPayload,
+} from '@app/shared';
 
 /** Socket events the server emits on namespace /rt (docs/api-conventions.md). */
 export const REALTIME_EVENT_NAMES = [
@@ -30,6 +36,8 @@ export type RealtimeClientOptions = {
   refreshToken: () => Promise<string | null>;
   onState: (state: RealtimeState) => void;
   onEvent: (event: RealtimeEvent) => void;
+  /** The branch menu changed: the screen refetches it (the payload is only a hint). */
+  onCatalogUpdated?: (payload: CatalogRealtimePayload) => void;
   /** Called on every connect after the first: the screen must refetch (events may be missed). */
   onResync: () => void;
   socketFactory?: SocketFactory;
@@ -104,6 +112,13 @@ export function createRealtimeClient(options: RealtimeClientOptions): RealtimeCl
       }
     });
   }
+
+  socket.on(CATALOG_UPDATED_EVENT, (raw: unknown) => {
+    const parsed = catalogRealtimePayloadSchema.safeParse(raw);
+    if (parsed.success) {
+      options.onCatalogUpdated?.(parsed.data);
+    }
+  });
 
   return {
     close: () => {

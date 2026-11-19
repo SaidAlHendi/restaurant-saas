@@ -13,12 +13,14 @@ import {
   Label,
   ProductTile,
   SearchInput,
+  SegmentedControl,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
   Spinner,
+  Switch,
   Textarea,
 } from '@app/ui';
 
@@ -42,8 +44,18 @@ export function PosPageView(props: PosPageViewModel) {
     onOrderTypeChange,
     tableId,
     onTableChange,
+    seat,
+    seatOptions,
+    onSeatChange,
+    billOptions,
+    billChoice,
+    billNeedsChoice,
+    onBillChoiceChange,
     customerName,
     onCustomerNameChange,
+    pagerEnabled,
+    pagerNumber,
+    onPagerNumberChange,
     orderNote,
     onOrderNoteChange,
     tableOptions,
@@ -54,6 +66,7 @@ export function PosPageView(props: PosPageViewModel) {
     onSendToKitchen,
     sending,
     sendDisabled,
+    rateStaleMessage,
     showOfflineBanner,
     offlineMessage,
     onRetrySend,
@@ -62,7 +75,7 @@ export function PosPageView(props: PosPageViewModel) {
     openOrders,
     orderDetail,
     paymentDialog,
-    addingItemsHint,
+    addMode,
     lock,
     labels,
   } = props;
@@ -82,7 +95,7 @@ export function PosPageView(props: PosPageViewModel) {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <ConnectionBanner {...realtimeBanner} />
-      <header className="flex min-h-16 shrink-0 flex-wrap items-center gap-3 mx-3 mt-3 rounded-2xl border bg-background shadow-sm md:mx-0 md:mt-0 px-4 py-2 md:px-6">
+      <header className="flex min-h-16 shrink-0 flex-wrap items-center gap-3 border-b bg-background px-4 py-2 md:px-7">
         <SearchInput
           className="min-w-48 max-w-xl flex-1"
           defaultValue={search.value}
@@ -100,10 +113,10 @@ export function PosPageView(props: PosPageViewModel) {
         </div>
       </header>
 
-      {addingItemsHint ? (
-        <p className="bg-secondary text-secondary-foreground shrink-0 px-4 py-2 text-sm font-medium">
-          {addingItemsHint}
-        </p>
+      {rateStaleMessage ? (
+        <Alert variant="warning" role="status" className="mx-4 mt-3 w-auto shrink-0">
+          {rateStaleMessage}
+        </Alert>
       ) : null}
 
       {showOfflineBanner ? (
@@ -120,7 +133,7 @@ export function PosPageView(props: PosPageViewModel) {
 
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto lg:flex-row lg:overflow-hidden">
         <section className="flex min-h-0 min-w-0 flex-1 flex-col">
-          <div className="flex shrink-0 gap-3 overflow-x-auto px-4 pb-2 pt-4">
+          <div className="flex shrink-0 gap-2 overflow-x-auto px-4 pb-2 pt-4 md:px-7">
             {categoryTabs.map((tab) => (
               <CategoryTile
                 key={tab.id}
@@ -131,11 +144,11 @@ export function PosPageView(props: PosPageViewModel) {
               />
             ))}
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-2">
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-2 md:px-7">
             {productTiles.length === 0 ? (
               <EmptyState title={search.noResults} className="py-16" />
             ) : (
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 2xl:grid-cols-4">
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
                 {productTiles.map((tile) => (
                   <ProductTile
                     key={tile.id}
@@ -153,38 +166,55 @@ export function PosPageView(props: PosPageViewModel) {
           <PosOpenOrdersStripView {...openOrders} />
         </section>
 
-        <aside className="mx-3 mb-3 flex min-h-0 shrink-0 flex-col overflow-hidden rounded-3xl border bg-background shadow-sm lg:mt-3 lg:ms-0 lg:mb-0 lg:w-96">
+        <aside className="flex min-h-0 shrink-0 flex-col overflow-hidden border-t bg-background lg:w-[24.375rem] lg:border-s lg:border-t-0">
+          {addMode ? (
+            <div className="flex shrink-0 flex-col gap-3 border-b px-5 py-4">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex flex-col gap-0.5">
+                  <h2 className="text-lg font-semibold">{addMode.title}</h2>
+                  <span className="text-muted-foreground text-sm">{addMode.subtitle}</span>
+                </div>
+                <span className="text-muted-foreground text-sm tabular-nums">
+                  {labels.cartCount}
+                </span>
+              </div>
+              <div className="flex items-center justify-between gap-2">
+                <Label htmlFor="pos-print-additions">{addMode.printLabel}</Label>
+                <Switch
+                  id="pos-print-additions"
+                  checked={addMode.printChecked}
+                  onCheckedChange={addMode.onPrintChange}
+                />
+              </div>
+            </div>
+          ) : (
           <div className="flex shrink-0 flex-col gap-4 border-b px-5 py-4">
-            <div className="flex items-baseline justify-between gap-2">
-              <h2 className="text-lg font-semibold">{labels.cartTitle}</h2>
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-muted-foreground text-[11px] font-semibold tracking-widest uppercase">
+                  {labels.cartEyebrow}
+                </span>
+                <h2 className="text-lg font-semibold">{labels.cartTitle}</h2>
+              </div>
               <span className="text-muted-foreground text-sm tabular-nums">{labels.cartCount}</span>
             </div>
-            <div className="bg-muted grid grid-cols-2 gap-1 rounded-full p-1">
-              <Button
-                type="button"
-                className="rounded-full"
-                variant={orderType === 'dine_in' ? 'default' : 'ghost'}
-                aria-pressed={orderType === 'dine_in'}
-                onClick={() => {
-                  onOrderTypeChange('dine_in');
-                }}
-              >
-                <UtensilsIcon aria-hidden />
-                {labels.orderTypeDineIn}
-              </Button>
-              <Button
-                type="button"
-                className="rounded-full"
-                variant={orderType === 'takeaway' ? 'default' : 'ghost'}
-                aria-pressed={orderType === 'takeaway'}
-                onClick={() => {
-                  onOrderTypeChange('takeaway');
-                }}
-              >
-                <ShoppingBagIcon aria-hidden />
-                {labels.orderTypeTakeaway}
-              </Button>
-            </div>
+            <SegmentedControl
+              label={labels.orderType}
+              value={orderType}
+              onValueChange={onOrderTypeChange}
+              options={[
+                {
+                  value: 'dine_in',
+                  label: labels.orderTypeDineIn,
+                  icon: <UtensilsIcon aria-hidden />,
+                },
+                {
+                  value: 'takeaway',
+                  label: labels.orderTypeTakeaway,
+                  icon: <ShoppingBagIcon aria-hidden />,
+                },
+              ]}
+            />
             {orderType === 'dine_in' ? (
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="pos-table">{labels.table}</Label>
@@ -199,12 +229,66 @@ export function PosPageView(props: PosPageViewModel) {
                   </SelectTrigger>
                   <SelectContent>
                     {tableOptions.map((table) => (
-                      <SelectItem key={table.id} value={table.id} disabled={table.disabled}>
+                      <SelectItem key={table.id} value={table.id}>
                         {table.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                {tableId !== null && billOptions.length > 0 ? (
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="pos-bill">{labels.bill}</Label>
+                    <Select
+                      value={
+                        billChoice === ''
+                          ? billOptions.some((o) => o.value === '')
+                            ? 'table-bill'
+                            : undefined
+                          : billChoice
+                      }
+                      onValueChange={(value) => {
+                        onBillChoiceChange(value === 'table-bill' ? '' : value);
+                      }}
+                    >
+                      <SelectTrigger id="pos-bill" size="touch">
+                        <SelectValue placeholder={labels.billPlaceholder} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {billOptions.map((option) => (
+                          <SelectItem
+                            key={option.value || 'table-bill'}
+                            value={option.value || 'table-bill'}
+                          >
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {billNeedsChoice ? (
+                      <p className="text-warning text-sm">{labels.billNeedsChoice}</p>
+                    ) : null}
+                  </div>
+                ) : null}
+                {tableId !== null ? (
+                  <div className="flex flex-col gap-1.5">
+                    <Label>{labels.guest}</Label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {seatOptions.map((option) => (
+                        <Button
+                          key={option.value || 'none'}
+                          type="button"
+                          size="sm"
+                          variant={seat === option.value ? 'default' : 'outline'}
+                          onClick={() => {
+                            onSeatChange(option.value);
+                          }}
+                        >
+                          {option.value === '' ? option.label : option.label.replace(/\D+/g, '')}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
               </div>
             ) : (
               <div className="flex flex-col gap-1.5">
@@ -219,7 +303,25 @@ export function PosPageView(props: PosPageViewModel) {
                 />
               </div>
             )}
+            {pagerEnabled ? (
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="pos-pager">{labels.pagerNumber}</Label>
+                <Input
+                  id="pos-pager"
+                  className="h-12"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  maxLength={4}
+                  placeholder={labels.pagerNumberHint}
+                  value={pagerNumber}
+                  onChange={(event) => {
+                    onPagerNumberChange(event.target.value);
+                  }}
+                />
+              </div>
+            ) : null}
           </div>
+          )}
 
           <div className="min-h-40 flex-1 overflow-y-auto px-5">
             {cartEmpty ? (
@@ -230,6 +332,7 @@ export function PosPageView(props: PosPageViewModel) {
           </div>
 
           <div className="flex shrink-0 flex-col gap-3 border-t px-5 py-4">
+            {addMode ? null : (
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="pos-note">{labels.orderNote}</Label>
               <Textarea
@@ -242,6 +345,7 @@ export function PosPageView(props: PosPageViewModel) {
                 className="min-h-10"
               />
             </div>
+            )}
             {totals ? (
               <dl className="flex flex-col gap-1.5 text-sm">
                 <div className="flex justify-between">
@@ -254,13 +358,13 @@ export function PosPageView(props: PosPageViewModel) {
                 </div>
                 <div className="flex justify-between border-t pt-2 text-base font-bold">
                   <dt>{labels.total}</dt>
-                  <dd className="tabular-nums">{formatMinor(totals.totalMinor)}</dd>
+                  <dd className="tabular-nums">{formatMinor(totals.totalMinor, 'total')}</dd>
                 </div>
               </dl>
             ) : null}
             <Button
               type="button"
-              className="h-14 w-full rounded-xl text-base"
+              className="h-14 w-full text-base"
               size="touch"
               disabled={sendDisabled}
               isLoading={sending}
@@ -270,6 +374,11 @@ export function PosPageView(props: PosPageViewModel) {
             >
               {labels.sendToKitchen}
             </Button>
+            {addMode ? (
+              <Button type="button" size="touch" variant="outline" onClick={addMode.onBack}>
+                {addMode.backLabel}
+              </Button>
+            ) : null}
           </div>
         </aside>
       </div>

@@ -1,6 +1,8 @@
+import type { OrderItemStatus } from '../orders/enums.js';
+
 export type OrderLineForTotals = {
   lineTotalMinor: number;
-  status: 'pending' | 'preparing' | 'ready' | 'voided';
+  status: OrderItemStatus;
 };
 
 export type OrderTotalsInput = {

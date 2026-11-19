@@ -40,6 +40,8 @@ export const meResponseSchema = z.object({
       slug: z.string(),
     }),
   ),
+  /** True when the member can work in every branch, including ones added later. */
+  allBranches: z.boolean(),
   currentBranchId: z.uuid().nullable(),
   entitlements: entitlementsSnapshotSchema,
 });

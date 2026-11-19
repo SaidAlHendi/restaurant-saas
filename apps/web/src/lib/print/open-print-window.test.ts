@@ -4,10 +4,16 @@ import { openPrintWindow } from './open-print-window.js';
 
 describe('openPrintWindow', () => {
   afterEach(() => {
+    vi.useRealTimers();
     vi.restoreAllMocks();
   });
 
-  it('creates a hidden iframe and calls print on load', () => {
+  it('creates a hidden iframe and calls print on load, after the UI repaints', () => {
+    vi.useFakeTimers();
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
+      cb(0);
+      return 0;
+    });
     const printMock = vi.fn();
     const iframe = {
       style: {} as CSSStyleDeclaration,
@@ -35,6 +41,10 @@ describe('openPrintWindow', () => {
     openPrintWindow('Receipt', '<p>Test</p>', { lang: 'en', dir: 'ltr' });
 
     expect(createElementSpy).toHaveBeenCalledWith('iframe');
+    expect(printMock).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(200);
     expect(printMock).toHaveBeenCalledTimes(1);
+    vi.advanceTimersByTime(1_000);
+    expect(iframe.remove).toHaveBeenCalled();
   });
 });

@@ -21,6 +21,7 @@ import { useTableForm } from './use-table-form.js';
 export function useTablesScreen(): TablesPageViewProps {
   const { t } = useTranslation();
   const canManage = useAppSelector(selectCan('branches.manage'));
+  const canRotateQr = useAppSelector(selectCan('tables.rotate_qr'));
   const branchId = useAppSelector(selectCurrentBranchId);
   const branches = useAppSelector(selectSessionBranches);
 
@@ -91,8 +92,11 @@ export function useTablesScreen(): TablesPageViewProps {
 
   return {
     title: t('menu.tables.title'),
-    subtitle: branchMissing ? t('menu.tables.subtitle') : t('menu.tables.subtitleBranch', { branch: branchName }),
+    subtitle: branchMissing
+      ? t('menu.tables.subtitle')
+      : t('menu.tables.subtitleBranch', { branch: branchName }),
     canManage,
+    canRotateQr,
     isLoading: !branchMissing && isLoading,
     branchMissing,
     branchMissingTitle: t('menu.tables.noBranchTitle'),
@@ -100,7 +104,9 @@ export function useTablesScreen(): TablesPageViewProps {
     items,
     addLabel: t('menu.tables.add'),
     emptyTitle: t('menu.tables.emptyTitle'),
-    emptyDescription: t('menu.tables.emptyDescription'),
+    emptyDescription: t(
+      canManage ? 'menu.tables.emptyDescription' : 'menu.tables.emptyDescriptionReadOnly',
+    ),
     tableLabelHeader: t('menu.tables.labelColumn'),
     statusHeader: t('menu.tables.statusColumn'),
     activeLabel: t('menu.status.active'),

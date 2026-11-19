@@ -8,6 +8,7 @@ import { OrgSettingsService } from '../tenancy/org-settings.service';
 import { TenancyRepository } from '../tenancy/tenancy.repository';
 import { IdentityService } from '../identity/identity.service';
 import { OrderingRepository } from '../ordering/ordering.repository';
+import { BillsService } from '../ordering/bills.service';
 import { OrderingService } from '../ordering/ordering.service';
 
 describe('OrderingService kitchen board', () => {
@@ -23,6 +24,7 @@ describe('OrderingService kitchen board', () => {
         status: 'placed' as const,
         version: 1,
         customerName: null,
+        pagerNumber: null,
         notes: null,
         paymentStatus: 'unpaid' as const,
       }));
@@ -72,11 +74,13 @@ describe('OrderingService kitchen board', () => {
             listOrderItemsForOrderIds,
             listOrderItemModifiersForItemIds,
             listTableLabelsForBranch,
+            listBillRounds: jest.fn(() => Promise.resolve(new Map())),
           },
         },
         { provide: TenancyRepository, useValue: { findBranchById } },
         { provide: CatalogOrderingService, useValue: {} },
         { provide: OrgSettingsService, useValue: {} },
+        { provide: BillsService, useValue: {} },
         { provide: OutboxService, useValue: { write: jest.fn() } },
         { provide: CLOCK, useValue: { now: () => new Date('2026-01-01T12:30:00.000Z') } },
         {
@@ -109,6 +113,7 @@ describe('OrderingService kitchen board', () => {
           status: 'placed' as const,
           version: 1,
           customerName: null,
+          pagerNumber: null,
           notes: null,
           paymentStatus: 'unpaid' as const,
         },

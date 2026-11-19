@@ -1,0 +1,358 @@
+import type { INestApplication } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
+import * as argon2 from 'argon2';
+import cookieParser from 'cookie-parser';
+import { and, eq } from 'drizzle-orm';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import pg from 'pg';
+
+import { loadEnv, resetEnvCacheForTests } from '../src/config/env';
+import { ADMIN_DRIZZLE, type AdminDrizzleDb } from '../src/core/db/admin-db.tokens';
+import { adminUsers, auditLogs } from '../src/core/db/schema/admin';
+import { subscriptions } from '../src/core/db/schema/billing';
+import { organizations } from '../src/core/db/schema/tenancy';
+import { newUuidV7 } from '../src/lib/uuid';
+import { AppModule } from '../src/app.module';
+
+import { apiAgent, withBearer } from './http';
+
+const PASSWORD = 'correct-horse-battery-staple';
+const runId = String(Date.now());
+
+interface ListBody {
+  items: {
+    id: string;
+    name: string;
+    status: string;
+    ownerEmail: string | null;
+    planKey: string | null;
+    branchCount: number;
+  }[];
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
+interface Org {
+  id: string;
+  email: string;
+  name: string;
+  token: string;
+}
+
+describe('Admin restaurants list and detail (e2e)', () => {
+  let app: INestApplication;
+  let adminDb: AdminDrizzleDb;
+  let ownerPool: pg.Pool;
+  let adminToken: string;
+  let superToken: string;
+  const adminId = newUuidV7();
+  const adminEmail = `orgs-admin-${runId}@admin.test`;
+  let orgA: Org;
+  let orgB: Org;
+
+  async function signup(tag: string) {
+    const email = `orgs-${tag}-${runId}@example.com`;
+    const name = `Orgs Cafe ${tag} ${runId}`;
+    const res = await apiAgent(app)
+      .post('/v1/auth/signup')
+      .send({
+        name: `Owner ${tag}`,
+        email,
+        password: 'password-1234',
+        restaurantName: name,
+        country: 'SA',
+        timezone: 'Asia/Riyadh',
+        currency: 'SAR',
+        defaultLocale: 'en',
+      });
+    expect(res.status).toBe(201);
+    const body = res.body as { accessToken: string; org: { id: string } };
+    return { id: body.org.id, email, name, token: body.accessToken };
+  }
+
+  beforeAll(async () => {
+    resetEnvCacheForTests();
+    const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+    app = moduleRef.createNestApplication({ rawBody: true });
+    app.use(cookieParser());
+    await app.init();
+    adminDb = app.get<AdminDrizzleDb>(ADMIN_DRIZZLE);
+
+    ownerPool = new pg.Pool({ connectionString: loadEnv().DATABASE_MIGRATION_URL });
+    await drizzle(ownerPool)
+      .insert(adminUsers)
+      .values({
+        id: adminId,
+        email: adminEmail,
+        passwordHash: await argon2.hash(PASSWORD, { type: argon2.argon2id }),
+        name: 'Support',
+        role: 'support',
+      });
+    const superEmail = `orgs-super-${runId}@admin.test`;
+    await drizzle(ownerPool)
+      .insert(adminUsers)
+      .values({
+        id: newUuidV7(),
+        email: superEmail,
+        passwordHash: await argon2.hash(PASSWORD, { type: argon2.argon2id }),
+        name: 'Super',
+        role: 'super',
+      });
+    const superLogin = await apiAgent(app)
+      .post('/v1/admin/auth/login')
+      .send({ email: superEmail, password: PASSWORD });
+    superToken = (superLogin.body as { accessToken: string }).accessToken;
+    const login = await apiAgent(app)
+      .post('/v1/admin/auth/login')
+      .send({ email: adminEmail, password: PASSWORD });
+    adminToken = (login.body as { accessToken: string }).accessToken;
+
+    orgA = await signup('a');
+    orgB = await signup('b');
+    await adminDb
+      .update(organizations)
+      .set({ status: 'suspended' })
+      .where(eq(organizations.id, orgB.id));
+  });
+
+  afterAll(async () => {
+    await ownerPool.end();
+    await app.close();
+  });
+
+  const admin = () => withBearer(apiAgent(app), adminToken);
+
+  it('requires an admin token; tenant tokens are rejected', async () => {
+    expect((await apiAgent(app).get('/v1/admin/orgs')).status).toBe(401);
+    expect((await withBearer(apiAgent(app), orgA.token).get('/v1/admin/orgs')).status).toBe(401);
+    expect((await apiAgent(app).get(`/v1/admin/orgs/${orgA.id}`)).status).toBe(401);
+  });
+
+  it('lists organizations across tenants with owner, plan and branch count', async () => {
+    const res = await admin().get('/v1/admin/orgs').query({ q: runId });
+    expect(res.status).toBe(200);
+    const body = res.body as ListBody;
+    expect(body.total).toBe(2);
+    expect(body.page).toBe(1);
+    const a = body.items.find((i) => i.id === orgA.id);
+    expect(a).toMatchObject({ ownerEmail: orgA.email, branchCount: 1, status: 'active' });
+    expect(a?.planKey).toEqual(expect.any(String));
+  });
+
+  it('filters by status, searches by name and slug, and escapes wildcards', async () => {
+    const suspended = await admin().get('/v1/admin/orgs').query({ q: runId, status: 'suspended' });
+    expect((suspended.body as ListBody).items.map((i) => i.id)).toEqual([orgB.id]);
+
+    const byName = await admin().get('/v1/admin/orgs').query({ q: orgA.name.toUpperCase() });
+    expect((byName.body as ListBody).items.map((i) => i.id)).toEqual([orgA.id]);
+
+    const wildcard = await admin().get('/v1/admin/orgs').query({ q: '%' });
+    expect((wildcard.body as ListBody).total).toBe(0);
+  });
+
+  it('paginates', async () => {
+    const p1 = await admin().get('/v1/admin/orgs').query({ q: runId, pageSize: 1, page: 1 });
+    const p2 = await admin().get('/v1/admin/orgs').query({ q: runId, pageSize: 1, page: 2 });
+    const b1 = p1.body as ListBody;
+    const b2 = p2.body as ListBody;
+    expect(b1.items).toHaveLength(1);
+    expect(b2.items).toHaveLength(1);
+    expect(b1.items[0]?.id).not.toBe(b2.items[0]?.id);
+    expect(b1.total).toBe(2);
+    expect((await admin().get('/v1/admin/orgs').query({ pageSize: 1000 })).status).toBe(400);
+    expect((await admin().get('/v1/admin/orgs').query({ status: 'nope' })).status).toBe(400);
+  });
+
+  it('returns org detail, 404 for unknown and 400 for malformed ids', async () => {
+    const res = await admin().get(`/v1/admin/orgs/${orgA.id}`);
+    expect(res.status).toBe(200);
+    const body = res.body as {
+      id: string;
+      ownerEmail: string;
+      memberCount: number;
+      branches: unknown[];
+      subscription: { status: string } | null;
+      defaultCurrency: string;
+    };
+    expect(body).toMatchObject({ id: orgA.id, ownerEmail: orgA.email, memberCount: 1 });
+    expect(body.branches).toHaveLength(1);
+    expect(body.subscription).not.toBeNull();
+    expect(body.defaultCurrency).toBe('SAR');
+    expect(JSON.stringify(body)).not.toMatch(/password/i);
+
+    expect((await admin().get(`/v1/admin/orgs/${newUuidV7()}`)).status).toBe(404);
+    expect((await admin().get('/v1/admin/orgs/not-a-uuid')).status).toBe(400);
+  });
+
+  describe('suspend and reactivate', () => {
+    const superAdmin = () => withBearer(apiAgent(app), superToken);
+    const auditCount = async (action: string, orgId: string) =>
+      (
+        await adminDb
+          .select({ id: auditLogs.id })
+          .from(auditLogs)
+          .where(and(eq(auditLogs.action, action), eq(auditLogs.orgId, orgId)))
+      ).length;
+
+    it('requires the super role and a valid id', async () => {
+      expect((await apiAgent(app).post(`/v1/admin/orgs/${orgA.id}/suspend`)).status).toBe(401);
+      const denied = await admin().post(`/v1/admin/orgs/${orgA.id}/suspend`);
+      expect(denied.status).toBe(403);
+      expect((denied.body as { code?: string }).code ?? JSON.stringify(denied.body)).toContain(
+        'ADMIN_FORBIDDEN',
+      );
+      expect((await superAdmin().post('/v1/admin/orgs/not-a-uuid/suspend')).status).toBe(400);
+      expect((await superAdmin().post(`/v1/admin/orgs/${newUuidV7()}/suspend`)).status).toBe(404);
+    });
+
+    it('suspends, blocks tenant login, audits, then reactivates', async () => {
+      const suspended = await superAdmin().post(`/v1/admin/orgs/${orgA.id}/suspend`);
+      expect(suspended.status).toBe(200);
+      expect(suspended.body).toEqual({ id: orgA.id, status: 'suspended' });
+      expect(await auditCount('org.suspend', orgA.id)).toBe(1);
+
+      const login = await apiAgent(app)
+        .post('/v1/auth/login')
+        .send({ email: orgA.email, password: 'password-1234' });
+      expect(login.status).toBe(403);
+
+      const again = await superAdmin().post(`/v1/admin/orgs/${orgA.id}/suspend`);
+      expect(again.status).toBe(409);
+      expect(await auditCount('org.suspend', orgA.id)).toBe(1);
+
+      const reactivated = await superAdmin().post(`/v1/admin/orgs/${orgA.id}/reactivate`);
+      expect(reactivated.status).toBe(200);
+      expect(reactivated.body).toEqual({ id: orgA.id, status: 'active' });
+      expect(await auditCount('org.reactivate', orgA.id)).toBe(1);
+
+      const notSuspended = await superAdmin().post(`/v1/admin/orgs/${orgA.id}/reactivate`);
+      expect(notSuspended.status).toBe(409);
+    });
+
+    it('does not suspend a cancelled restaurant', async () => {
+      await adminDb
+        .update(organizations)
+        .set({ status: 'cancelled' })
+        .where(eq(organizations.id, orgB.id));
+      expect((await superAdmin().post(`/v1/admin/orgs/${orgB.id}/suspend`)).status).toBe(409);
+      expect((await superAdmin().post(`/v1/admin/orgs/${orgB.id}/reactivate`)).status).toBe(409);
+    });
+  });
+
+  describe('activate', () => {
+    const billingAdmin = () => withBearer(apiAgent(app), adminToken);
+    const until = () => new Date(Date.now() + 30 * 86_400_000).toISOString();
+
+    it('rejects support admins, bad dates and unknown restaurants', async () => {
+      const body = { planKey: 'restaurant', until: until(), paid: false };
+      expect(
+        (await apiAgent(app).post(`/v1/admin/orgs/${orgA.id}/activate`).send(body)).status,
+      ).toBe(401);
+      expect(
+        (await billingAdmin().post(`/v1/admin/orgs/${orgA.id}/activate`).send(body)).status,
+      ).toBe(403);
+      const superAdmin = withBearer(apiAgent(app), superToken);
+      expect(
+        (
+          await superAdmin.post(`/v1/admin/orgs/${orgA.id}/activate`).send({
+            planKey: 'restaurant',
+            until: new Date(Date.now() - 1000).toISOString(),
+            paid: false,
+          })
+        ).status,
+      ).toBe(409);
+      expect(
+        (
+          await superAdmin
+            .post(`/v1/admin/orgs/${orgA.id}/activate`)
+            .send({ planKey: 'free', until: until(), paid: false })
+        ).status,
+      ).toBe(400);
+      expect(
+        (await superAdmin.post(`/v1/admin/orgs/${newUuidV7()}/activate`).send(body)).status,
+      ).toBe(404);
+    });
+
+    it('rejects a payment record that does not add up', async () => {
+      const superAdmin = withBearer(apiAgent(app), superToken);
+      const post = (extra: Record<string, unknown>) =>
+        superAdmin
+          .post(`/v1/admin/orgs/${orgA.id}/activate`)
+          .send({ planKey: 'restaurant', until: until(), ...extra });
+      expect((await post({})).status).toBe(400);
+      expect((await post({ paid: true })).status).toBe(400);
+      expect((await post({ paid: true, amountMinor: -1 })).status).toBe(400);
+      expect((await post({ paid: false, amountMinor: 500 })).status).toBe(400);
+      expect((await post({ paid: false, note: 'x'.repeat(201) })).status).toBe(400);
+    });
+
+    it('activates the plan unpaid, without an amount', async () => {
+      const end = until();
+      const res = await withBearer(apiAgent(app), superToken)
+        .post(`/v1/admin/orgs/${orgA.id}/activate`)
+        .send({ planKey: 'business', until: end, paid: false });
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({ id: orgA.id, planKey: 'business', currentPeriodEnd: end });
+
+      const [sub] = await adminDb
+        .select({
+          status: subscriptions.status,
+          provider: subscriptions.provider,
+          manualPaid: subscriptions.manualPaid,
+          manualAmountMinor: subscriptions.manualAmountMinor,
+          manualNote: subscriptions.manualNote,
+        })
+        .from(subscriptions)
+        .where(eq(subscriptions.orgId, orgA.id));
+      expect(sub).toEqual({
+        status: 'active',
+        provider: null,
+        manualPaid: false,
+        manualAmountMinor: 0,
+        manualNote: null,
+      });
+      const audits = await adminDb
+        .select({ payload: auditLogs.payload })
+        .from(auditLogs)
+        .where(and(eq(auditLogs.action, 'org.activate'), eq(auditLogs.orgId, orgA.id)));
+      expect(audits).toHaveLength(1);
+      expect(audits[0]?.payload).toMatchObject({ paid: false, amountMinor: 0, note: null });
+    });
+
+    it('records a payment with its amount and note, and shows it on the detail', async () => {
+      const end = until();
+      const res = await withBearer(apiAgent(app), superToken)
+        .post(`/v1/admin/orgs/${orgA.id}/activate`)
+        .send({
+          planKey: 'restaurant',
+          until: end,
+          paid: true,
+          amountMinor: 3900,
+          note: 'Bank transfer, ref 123',
+        });
+      expect(res.status).toBe(200);
+
+      const detail = await withBearer(apiAgent(app), superToken).get(`/v1/admin/orgs/${orgA.id}`);
+      expect(detail.status).toBe(200);
+      const body = detail.body as {
+        subscription: { manualPaid: boolean; manualAmountMinor: number; manualNote: string };
+        grantablePlans: { key: string; currency: string }[];
+      };
+      expect(body.subscription).toMatchObject({
+        manualPaid: true,
+        manualAmountMinor: 3900,
+        manualNote: 'Bank transfer, ref 123',
+      });
+      expect(body.grantablePlans.map((p) => p.key)).toEqual(['menu', 'restaurant', 'business']);
+
+      const audits = await adminDb
+        .select({ payload: auditLogs.payload })
+        .from(auditLogs)
+        .where(and(eq(auditLogs.action, 'org.activate'), eq(auditLogs.orgId, orgA.id)));
+      expect(audits.map((a) => a.payload)).toContainEqual(
+        expect.objectContaining({ paid: true, amountMinor: 3900, note: 'Bank transfer, ref 123' }),
+      );
+    });
+  });
+});

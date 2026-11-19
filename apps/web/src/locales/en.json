@@ -1,4 +1,17 @@
 {
+  "notFoundPage": {
+    "table": "TABLE 404",
+    "order": "Order #404",
+    "line1": "1× The page you asked for",
+    "line2": "1× A little patience",
+    "line3": "1× Way back home",
+    "served": "served",
+    "onUs": "on us",
+    "stamp": "86'd",
+    "title": "Sorry, we ran out of this page",
+    "body": "The kitchen is out of what you ordered. It may have moved, or it was never on the menu.",
+    "home": "Back to home"
+  },
   "common": {
     "loading": "Loading",
     "cancel": "Cancel",
@@ -26,6 +39,65 @@
     "admin": "Admin"
   },
   "auth": {
+    "aside": {
+      "title": "Welcome back to the kitchen",
+      "body": "Orders, kitchen and cashier, all in one place.",
+      "live": {
+        "default": "Your restaurant",
+        "lines": [
+          "New account",
+          "Ready for service"
+        ],
+        "status": "Ready",
+        "meta": "now"
+      },
+      "tickets": [
+        {
+          "title": "Table 4",
+          "meta": "12:40",
+          "lines": [
+            "2 × Chicken shawarma",
+            "1 × Fattoush"
+          ],
+          "status": "Ready"
+        },
+        {
+          "title": "Takeaway 17",
+          "meta": "12:43",
+          "lines": [
+            "1 × Mixed grill",
+            "3 × Pita"
+          ],
+          "status": "Preparing"
+        },
+        {
+          "title": "Table 9",
+          "meta": "12:46",
+          "lines": [
+            "4 × Lentil soup",
+            "2 × Hummus"
+          ],
+          "status": "New"
+        },
+        {
+          "title": "Table 2",
+          "meta": "12:51",
+          "lines": [
+            "1 × Kabsa",
+            "1 × Lemon mint"
+          ],
+          "status": "Preparing"
+        },
+        {
+          "title": "Delivery 31",
+          "meta": "12:55",
+          "lines": [
+            "2 × Falafel wrap"
+          ],
+          "status": "New"
+        }
+      ]
+    },
     "login": {
       "title": "Sign in",
       "submit": "Sign in",
@@ -52,7 +124,9 @@
       "ar": "Arabic"
     },
     "errors": {
-      "generic": "Something went wrong. Please try again."
+      "generic": "Something went wrong. Please try again.",
+      "invalidCredentials": "Invalid email or password.",
+      "emailTaken": "This email is already registered. Try signing in instead."
     },
     "validation": {
       "nameRequired": "Enter your name."
@@ -89,7 +163,10 @@
       "kitchen": "Kitchen",
       "branchSettings": "Branch settings",
       "settings": "Settings",
-      "billing": "Billing"
+      "billing": "Billing",
+      "branches": "Branches",
+      "staff": "Staff",
+      "devices": "Devices"
     },
     "today": {
       "title": "Today",
@@ -127,6 +204,13 @@
       "empty": "No orders match your filters.",
       "error": "Could not load orders.",
       "branchDateError": "Could not load the branch business date.",
+      "pagination": {
+        "navigation": "Pagination",
+        "previous": "Previous page",
+        "next": "Next page",
+        "page": "Page"
+      },
+      "showingRecords": "Showing {{n}} records",
       "loadMore": "Load more",
       "filters": {
         "status": "Status",
@@ -194,6 +278,39 @@
       "total": "Total",
       "paid": "Paid",
       "due": "Due"
+    },
+    "overview": {
+      "vsPrevious": "vs previous day",
+      "salesBreakdown": "Sales breakdown",
+      "salesBreakdownHint": "Where today's money came from",
+      "liveOps": "Live operations",
+      "liveOpsHint": "Right now at this branch",
+      "live": "Live",
+      "openOrders": "Open orders",
+      "openOrdersHint": "Placed, preparing or ready",
+      "waiting": "Waiting for the kitchen",
+      "waitingHint": "Not started yet",
+      "readyOrders": "Ready for pickup",
+      "readyHint": "Waiting for the cashier",
+      "oldest": "Oldest open order",
+      "oldestHint": "Time since it was created",
+      "openKitchen": "Open kitchen screen",
+      "recent": "Recent orders",
+      "recentHint": "Latest activity from today",
+      "viewAll": "View all",
+      "colOrder": "Order",
+      "colTime": "Time",
+      "colWhere": "Table or customer",
+      "colItems": "Items",
+      "colAmount": "Amount",
+      "colStatus": "Status",
+      "noRecent": "No orders yet today.",
+      "popular": "Popular products",
+      "popularHint": "Top sellers for this day",
+      "minutes_one": "{{count}} min",
+      "minutes_other": "{{count}} min",
+      "items_one": "{{count}} item",
+      "items_other": "{{count}} items"
     }
   },
   "order": {
@@ -202,14 +319,18 @@
       "placed": "Sent to kitchen",
       "statusChanged": "Status {{from}} → {{to}}",
       "itemsAdded": "{{count}} items added",
-      "itemVoided": "Voided {{name}} ({{reason}})",
+      "itemVoided": "Removed {{name}}",
       "itemStatusChanged": "{{name}}: {{status}}",
-      "cancelled": "Cancelled ({{reason}})",
+      "cancelled": "Order cancelled",
       "paymentCaptured": "Payment {{method}} ({{amountMinor}})",
-      "unknown": "Event: {{type}}"
+      "unknown": "Event: {{type}}",
+      "reopened": "Order reopened: {{from}} → {{to}}",
+      "undone": "Undone: back to {{to}}",
+      "handedOver": "Handed over"
     }
   },
   "settings": {
+    "unsavedChanges": "You have unsaved changes. Click \"Save changes\" for them to take effect.",
     "title": "Settings",
     "description": "Restaurant, branch and team configuration.",
     "tabs": {
@@ -222,7 +343,6 @@
       "description": "Name, logo and languages shown on menus and receipts.",
       "name": "Restaurant name",
       "slug": "Public slug",
-      "currency": "Default currency",
       "locales": "Menu languages",
       "localeEn": "English",
       "localeAr": "Arabic",
@@ -241,19 +361,33 @@
     },
     "branch": {
       "title": "Branch settings",
-      "description": "Tax, receipts, business day and cashier payment options for the current branch.",
+      "description": "Name, address, tax, payments and receipts for this branch.",
       "payBeforeSend": "Pay before send",
-      "payBeforeSendHint": "Orders stay as drafts until fully paid, then go to the kitchen.",
+      "payBeforeSendHint": "On: an order goes to the kitchen only after it is paid. Off: it goes to the kitchen first and is paid later.",
       "acceptsCard": "Accept card payments",
-      "acceptsCardHint": "When off, the cashier can only record cash payments.",
+      "acceptsCardHint": "Off: the cashier can only record cash payments.",
+      "pager": "Pickup numbers / pagers",
+      "pagerHint": "On: the cashier can enter a pager number on each order. It shows on kitchen tickets and receipts, and on the customer \"Ready\" screen.",
+      "pagerPlanHint": "Available on the Restaurant plan and above.",
+      "pagerDisplayLink": "Customer \"Ready\" screen address",
+      "pagerLinkHint": "Open this private address on the TV or tablet facing customers. Anyone with the link can see it, so don't post it publicly.",
+      "pagerLinkCreate": "Create link",
+      "pagerLinkCopy": "Copy link",
+      "pagerLinkRegenerate": "Make a new link",
+      "pagerLinkCopied": "Link copied",
+      "pagerLinkRegenerateConfirm": "The old link will stop working and the screen must be opened again with the new one. Continue?",
       "taxPercent": "Tax rate (%)",
-      "taxPercentHint": "Enter 0–100, up to two decimal places.",
+      "taxPercentHint": "For example 15 for 15%. Use 0 if you don't charge tax.",
       "taxInvalid": "Enter a valid tax rate between 0 and 100.",
       "taxInclusive": "Tax inclusive prices",
-      "taxInclusiveHint": "Menu prices already include tax.",
-      "dayStartHour": "Business day starts at (hour)",
-      "dayStartHourHint": "0–23 in the branch timezone; reports use this cutoff.",
+      "taxInclusiveHint": "On: the menu price already includes tax. Off: tax is added on top at checkout.",
+      "dayStartHour": "When does your business day start?",
+      "dayStartHourHint": "Orders placed before this time count toward the previous day in your reports. Example: if you close after midnight, pick 4:00 AM so a 1:00 AM sale is counted in the day it belongs to.",
       "dayStartInvalid": "Enter an hour between 0 and 23.",
+      "dayPartEvening": "Evening",
+      "dayPartAfternoon": "Afternoon",
+      "dayPartMorning": "Morning",
+      "dayPartNight": "Night",
       "timezone": "Timezone",
       "address": "Address on receipt",
       "receiptHeader": "Receipt header",
@@ -266,10 +400,26 @@
       "receiptOther": "Other",
       "receiptTendered": "Tendered",
       "receiptChange": "Change",
-      "taxDayNote": "Tax rate and business day start apply to new orders; open cashier screens refresh when settings change.",
+      "taxDayNote": "Changes apply to new orders. Open cashier screens refresh automatically.",
       "save": "Save changes",
       "saved": "Settings saved.",
-      "loadError": "Could not load branch settings."
+      "loadError": "Could not load branch settings.",
+      "taxSection": "Tax",
+      "taxSectionHint": "How tax is added to orders at this branch.",
+      "paymentsSection": "Cashier payments",
+      "paymentsSectionHint": "How the cashier takes payment.",
+      "advancedTitle": "Advanced settings",
+      "advancedHint": "Business day, timezone and printed receipt. The defaults work for most restaurants.",
+      "businessDaySection": "Business day and timezone",
+      "receiptSection": "Printed receipt",
+      "receiptSectionHint": "Optional text printed at the top and bottom of the customer receipt, for example your tax number or a thank-you.",
+      "generalSection": "General",
+      "nameLabel": "Branch name",
+      "activeLabel": "Branch is active",
+      "activeHint": "Turn off to stop this branch taking orders. Its history is kept.",
+      "back": "All branches",
+      "notFound": "This branch could not be found.",
+      "nameRequired": "Enter a branch name."
     },
     "staff": {
       "title": "Staff & roles",
@@ -282,12 +432,20 @@
       "columnRole": "Role",
       "columnStatus": "Status",
       "columnPin": "PIN",
+      "columnBranches": "Branches",
+      "branchCount": "{{n}} branches",
+      "allBranchesLabel": "All branches",
+      "searchPlaceholder": "Search by name or email",
+      "allRoles": "All roles",
+      "filterRole": "Filter by role",
       "actions": "Actions",
       "disable": "Disable",
       "enable": "Enable",
       "regenerateInvite": "Copy new invite link",
       "revokeInvite": "Revoke invite",
       "inviteDialogTitle": "Invite by email",
+      "inviteDialogDescription": "Send a sign-in link to a team member. The link is valid for 7 days.",
+      "close": "Close",
       "inviteEmail": "Email",
       "inviteRole": "Role",
       "inviteSubmit": "Send invite",
@@ -354,7 +512,52 @@
         "too_long": "PIN must be at most 6 digits.",
         "not_digits": "PIN must contain digits only.",
         "mismatch": "PINs do not match."
+      },
+      "permissions": {
+        "action": "Permissions",
+        "title": "Permissions for {{name}}",
+        "description": "Turn permissions on or off for this person only. Other staff with the same role are not affected.",
+        "overridden": "Custom",
+        "reset": "Reset to role",
+        "saved": "Permissions updated.",
+        "loadError": "Could not load permissions.",
+        "keys": {
+          "branches.read": "View branches",
+          "branches.manage": "Manage branches and tables",
+          "tables.rotate_qr": "Regenerate table QR codes",
+          "staff.read": "View staff",
+          "staff.manage": "Manage staff",
+          "orders.create": "Create orders",
+          "orders.read": "View orders",
+          "orders.update_status": "Update order status",
+          "orders.cancel": "Cancel orders",
+          "orders.reopen": "Reopen completed orders",
+          "menu.read": "View menu",
+          "menu.manage": "Manage menu",
+          "reports.read": "View reports"
+        }
       }
+    },
+    "currency": {
+      "title": "Currency",
+      "description": "Keep prices in one currency and show another to staff and guests.",
+      "baseCurrency": "Base currency",
+      "baseCurrencyHint": "Prices are saved in this currency. You can change it until the restaurant takes its first order. Price numbers stay as typed.",
+      "baseCurrencyLockedHint": "Prices are saved in this currency. It can no longer be changed because the restaurant already has orders.",
+      "displayCurrency": "Display currency",
+      "displayCurrencyHint": "Shown on the cashier screen, receipts, the public menu and reports.",
+      "sameAsBase": "Same as base currency ({{currency}})",
+      "rate": "Exchange rate: 1 {{base}} in {{display}}",
+      "rateHint": "Type today's rate. Orders already made keep the rate they were made with.",
+      "rateInvalid": "Enter the exchange rate as a number greater than 0.",
+      "rateUpdated": "Last updated {{date}}",
+      "rateStale": "The exchange rate has not been updated for more than 7 days. Check that it is still correct.",
+      "itemStep": "Round prices to",
+      "itemStepHint": "Used for menu prices and order lines.",
+      "totalStep": "Round totals to",
+      "totalStepHint": "Used for the amount the customer pays.",
+      "noRounding": "No rounding",
+      "preview": "Example: an item saved at {{base}} shows as {{price}}. An order total of {{base}} is charged as {{total}}."
     }
   },
   "pos": {
@@ -369,12 +572,17 @@
     "awaitingPaymentBadge": "Awaiting payment",
     "toast": {
       "sentToKitchen": "Order #{{number}} sent to kitchen",
-      "awaitingPayment": "Order #{{number}} is waiting for payment"
+      "awaitingPayment": "Order #{{number}} is waiting for payment",
+      "additionsSent_one": "{{count}} item sent to the kitchen for order #{{number}}",
+      "additionsSent_other": "{{count}} items sent to the kitchen for order #{{number}}",
+      "additionsAwaitingPayment": "Additions to order #{{number}} are saved and wait for payment before going to the kitchen"
     },
     "nav": {
       "section": "Cashier",
       "newOrder": "New order",
-      "orders": "Orders"
+      "orders": "Orders",
+      "bills": "Bills",
+      "tables": "Tables"
     },
     "orders": {
       "title": "Orders",
@@ -382,6 +590,20 @@
       "empty": "No orders match this view.",
       "error": "Could not load orders.",
       "loadMore": "Load more",
+      "todayOnly": "Today only",
+      "olderHidden_one": "{{count}} older order hidden.",
+      "olderHidden_other": "{{count}} older orders hidden.",
+      "showOlder": "Show them",
+      "columns": {
+        "order": "Order",
+        "time": "Time",
+        "typeTable": "Table or customer",
+        "items": "Items",
+        "total": "Total",
+        "status": "Status",
+        "payment": "Payment",
+        "action": "Action"
+      },
       "tabs": {
         "active": "Active",
         "awaitingPayment": "Awaiting payment",
@@ -397,6 +619,8 @@
     },
     "table": "Table",
     "customer": "Customer name",
+    "pagerNumber": "Pager no.",
+    "pagerNumberHint": "Optional",
     "orderNote": "Order note",
     "totals": {
       "subtotal": "Subtotal",
@@ -407,16 +631,26 @@
     "cart": {
       "title": "Cart",
       "empty": "Add products from the menu.",
+      "unavailable": "No longer available. Remove it to send the order.",
+      "unavailableRemoved": "Some items are no longer available and were removed.",
       "decreaseQty": "Decrease quantity",
       "increaseQty": "Increase quantity",
-      "removeLine": "Remove line"
+      "removeLine": "Remove line",
+      "editLine": "Edit options",
+      "eyebrow": "CURRENT ORDER",
+      "orderType": "Order type"
     },
     "modifiers": {
       "invalid": "Choose the required options.",
       "addToCart": "Add to cart",
+      "saveChanges": "Save changes",
       "quantity": "Quantity",
       "note": "Line note",
-      "notePlaceholder": "Optional note for the kitchen"
+      "notePlaceholder": "Optional note for the kitchen",
+      "hintRequiredOne": "Choose 1 (required)",
+      "hintRequiredRange": "Choose {{min}} to {{max}} (required)",
+      "hintOptionalOne": "Choose 1 (optional)",
+      "hintOptionalUpTo": "Choose up to {{max}} (optional)"
     },
     "result": {
       "orderNumber": "Order #{{number}}"
@@ -444,7 +678,9 @@
       "methodCash": "Cash",
       "methodCard": "Card",
       "methodOther": "Other",
-      "confirm": "Record payment"
+      "confirm": "Record payment",
+      "discard": "Discard order",
+      "discardReason": "Customer left before paying"
     },
     "paymentStatus": {
       "unpaid": "Unpaid",
@@ -461,12 +697,16 @@
       "cancelled": "Cancelled",
       "refunded": "Refunded"
     },
+    "handover": {
+      "pickedUp": "Picked up",
+      "served": "Served",
+      "done": "Order #{{number}} handed over",
+      "undo": "Undo"
+    },
     "orderDetail": {
       "title": "Order",
       "pay": "Pay",
       "addItems": "Add items",
-      "addItemsHint": "Tap products to add items to this order.",
-      "sendAdditions": "Send additions",
       "complete": "Complete",
       "markPreparing": "Start preparing",
       "markReady": "Mark ready",
@@ -474,15 +714,17 @@
       "cancelTitle": "Cancel this order?",
       "cancelReason": "Reason for cancellation",
       "cancelConfirm": "Cancel order",
-      "voidItem": "Void",
-      "voidTitle": "Void item?",
-      "voidReason": "Reason for void",
-      "voidConfirm": "Void item",
+      "voidItem": "Remove item",
+      "voidTitle": "Remove this item?",
+      "voidReason": "Reason for removing it",
+      "voidConfirm": "Remove item",
       "approvalTitle": "Manager approval",
       "approvalHint": "A manager or owner must enter their PIN to confirm.",
       "approvalNext": "Continue",
       "pickApprover": "Choose approver",
-      "emptyApprovers": "No managers with a PIN are available at this branch."
+      "emptyApprovers": "No managers with a PIN are available at this branch.",
+      "more": "More",
+      "itemAwaitingPayment": "Awaiting payment"
     },
     "lock": {
       "button": "Lock",
@@ -494,18 +736,19 @@
       "submit": "Unlock",
       "lockedCountdown": "Try again in",
       "switchUser": "Switch user",
+      "signOut": "Sign out (sign in as owner)",
       "pinDigits": "PIN, {{count}} digits"
     },
     "print": {
       "receipt": "Receipt",
       "kitchen": "Kitchen ticket",
-      "kitchenAddition": "Kitchen additions",
       "receiptTitle": "Receipt",
       "kitchenTitle": "Kitchen",
       "kitchenAdditionTitle": "Additions",
       "paid": "Paid",
       "due": "Due",
-      "taxInclSuffix": "(incl.)"
+      "taxInclSuffix": "(incl.)",
+      "pager": "Pager"
     },
     "noAccess": {
       "title": "Cashier not available",
@@ -521,6 +764,92 @@
       "searchPlaceholder": "Search products",
       "searchClear": "Clear search",
       "noResults": "No products match your search."
+    },
+    "rateStale": "The exchange rate has not been updated for more than 7 days. Ask the owner to check it.",
+    "bills": {
+      "title": "Table bills",
+      "description": "Open tables. Pick items or a guest and take the payment.",
+      "loadError": "Could not load the bills.",
+      "empty": "No open bills",
+      "emptyHint": "A bill opens with the first order at a table.",
+      "table": "Table",
+      "open": "Open",
+      "settled": "Settled",
+      "rounds_one": "{{count}} round",
+      "rounds_other": "{{count}} rounds",
+      "round": "Round {{round}}",
+      "due": "Due",
+      "total": "Total",
+      "paidSoFar": "Paid",
+      "noSeat": "No guest",
+      "selectAll": "Select all",
+      "clear": "Clear",
+      "voided": "Voided",
+      "itemPaid": "Paid",
+      "paySelected": "Pay {{amount}}",
+      "selectToPay": "Select items to pay",
+      "payTitle": "Pay selected items",
+      "paid": "Payment recorded",
+      "payError": "Could not record the payment. The bill was refreshed.",
+      "closeTable": "Close table",
+      "closed": "Table closed",
+      "closeError": "Could not close the table.",
+      "dismiss": "Close",
+      "billLabel": "Bill",
+      "billPlaceholder": "Choose a bill",
+      "billNeedsChoice": "This table has several open bills. Choose one.",
+      "guestLabel": "Guest (to pay separately)",
+      "tableBill": "The table's bill",
+      "billNumber": "Bill {{number}}",
+      "newBill": "New separate bill",
+      "guest": "Guest {{number}}",
+      "moveTable": "Move table to another table",
+      "moveRound": "Move",
+      "moveTitle_one": "Move {{count}} order to another table",
+      "moveTitle_other": "Move {{count}} orders to another table",
+      "moveTo": "New table",
+      "moveHint": "The order joins the bill of the new table. Orders that already have a payment stay where they are.",
+      "moveCancel": "Cancel",
+      "moveConfirm": "Move",
+      "moved": "Moved to the new table",
+      "moveError": "Could not move the order. The bills were refreshed.",
+      "moveAmbiguous": "That table has several open bills. Pay or close one first."
+    },
+    "tables": {
+      "title": "Tables",
+      "description": "Pick a table to take an order or add a round. Busy tables show what is due.",
+      "loadError": "Could not load the tables.",
+      "empty": "No tables yet",
+      "emptyHint": "Ask the owner to add tables in the settings.",
+      "free": "Free",
+      "busy": "Busy",
+      "settled": "Settled",
+      "freeHint": "Tap to take an order",
+      "bills_one": "{{count}} bill",
+      "bills_other": "{{count}} bills",
+      "pager": "Pager {{numbers}}",
+      "pagerOne": "Pager {{number}}",
+      "newOrder": "New order",
+      "addRound": "Add round",
+      "bill": "Bill"
+    },
+    "addMode": {
+      "title": "Adding to order #{{number}}",
+      "alreadySent_one": "{{count}} item already sent",
+      "alreadySent_other": "{{count}} items already sent",
+      "send": "Send to kitchen ({{count}})",
+      "back": "Back",
+      "printTicket": "Print kitchen ticket",
+      "closed": "This order can no longer take new items.",
+      "payAndSend": "Pay & send additions ({{count}})"
+    },
+    "reopen": {
+      "action": "Reopen order",
+      "title": "Reopen this order?",
+      "body": "The order goes back to Ready. It shows on the kitchen and Ready screens again until it is handed over. Payment does not change.",
+      "reason": "Reason (optional)",
+      "confirm": "Reopen",
+      "done": "Order #{{number}} reopened"
     }
   },
   "orders": {
@@ -534,11 +863,13 @@
       "notFound": "Order not found.",
       "forbidden": "You do not have permission for this action.",
       "notPaid": "The order must be paid before it can be completed.",
+      "undoExpired": "Undo is no longer available.",
       "itemVoided": "This item was voided.",
       "paymentMethodNotAccepted": "This branch does not accept card payments.",
       "managerApprovalRequired": "Manager approval is required for this action.",
       "pinInvalid": "Incorrect PIN. Try again.",
-      "pinLocked": "Too many attempts. Wait before trying again."
+      "pinLocked": "Too many attempts. Wait before trying again.",
+      "billClosed": "The table bill is already closed, so this order cannot be reopened."
     }
   },
   "menu": {
@@ -588,6 +919,10 @@
       "editTitle": "Edit product",
       "emptyTitle": "No products yet",
       "emptyDescription": "Add a product or change filters.",
+      "noCategoriesTitle": "Create a category first",
+      "noCategoriesDescription": "Every product belongs to a category, and the category sets which units you can pick. Create at least one category, then come back to add products.",
+      "noCategoriesDescriptionReadOnly": "Products need a category. Ask a manager to create one.",
+      "noCategoriesAction": "Create a category",
       "searchPlaceholder": "Search products",
       "searchClear": "Clear search",
       "allCategories": "All categories",
@@ -606,6 +941,8 @@
       "fields": {
         "category": "Category",
         "price": "Price",
+        "systemPrice": "System price",
+        "displayPrice": "Display price",
         "modifierGroups": "Modifier groups"
       },
       "imageLabel": "Product photo",
@@ -615,7 +952,13 @@
       "imageRemove": "Remove image",
       "imagePreviewAlt": "Product preview",
       "imageUploadError": "Upload failed. Try another file.",
-      "imageRemoveError": "Could not remove the image."
+      "imageRemoveError": "Could not remove the image.",
+      "newGroup": "New group",
+      "modifierGroupsHelp": "Modifier groups are choices the customer picks for this product, such as size or extras. Tick the groups that apply.",
+      "modifierGroupsEmpty": "No modifier groups yet. Create one to offer sizes or extras.",
+      "optionsBadge_one": "{{count}} modifier group",
+      "optionsBadge_other": "{{count}} modifier groups",
+      "optionsColumn": "Options"
     },
     "modifierGroups": {
       "title": "Modifier groups",
@@ -624,16 +967,43 @@
       "createTitle": "New modifier group",
       "editTitle": "Edit modifier group",
       "emptyTitle": "No modifier groups",
-      "emptyDescription": "Create groups for sizes, extras, or sides.",
-      "minMax": "Select {{min}}–{{max}}",
+      "emptyDescription": "Add groups for sizes, extras, or sides, then attach them to products.",
+      "emptyDescriptionReadOnly": "No modifier groups yet. Ask a manager or the owner to add them.",
       "manageModifiers": "Manage modifiers",
       "detailTitle": "Modifier group",
       "deleteConfirm": "This group will be unlinked from products.",
       "decrease": "Decrease",
       "increase": "Increase",
-      "fields": {
-        "minSelect": "Minimum choices",
-        "maxSelect": "Maximum choices"
+      "summary": {
+        "requiredOne": "Customer must pick 1 choice",
+        "requiredRange": "Customer must pick {{min}} to {{max}} choices",
+        "optionalOne": "Customer may pick 1 choice (optional)",
+        "optionalUpTo": "Customer may pick up to {{max}} choices (optional)"
+      },
+      "usage": "{{modifiers}} · {{products}}",
+      "modifierCount_one": "{{count}} modifier",
+      "modifierCount_other": "{{count}} modifiers",
+      "productCount_one": "used by {{count}} product",
+      "productCount_other": "used by {{count}} products",
+      "info": {
+        "title": "How modifier groups work",
+        "intro": "A modifier group is a question you ask the customer. The modifiers are the answers they can pick from.",
+        "step1": "Create a group and set its rule: required or optional, and how many choices.",
+        "step2": "Add the choices (modifiers), each with an optional price change.",
+        "step3": "Open a product and tick the group to attach it.",
+        "example": "Example: the group “Size” (required, pick 1) holds Small, Medium and Large. Tick it on every pizza."
+      },
+      "form": {
+        "requiredLabel": "Customer must choose",
+        "requiredHelp": "On: the customer has to pick at least one choice before ordering (for example a size). Off: the choices are optional extras.",
+        "maxLabel": "Choose up to",
+        "maxHelp": "The most choices the customer can pick from this group. Use 1 for “pick one”, or a higher number for extras.",
+        "modifiersTitle": "Choices (modifiers)",
+        "modifiersHelp": "The options the customer picks from, such as Small, Medium, Large. The price change is added to the product price (leave 0 for free).",
+        "modifierName": "Choice name ({{language}})",
+        "addRow": "Add another choice",
+        "removeRow": "Remove choice",
+        "modifiersLaterHint": "To change the choices, use “Manage modifiers” on the group card."
       }
     },
     "modifiers": {
@@ -655,6 +1025,7 @@
       "statusColumn": "Status",
       "emptyTitle": "No tables yet",
       "emptyDescription": "Add tables to generate table QR codes.",
+      "emptyDescriptionReadOnly": "No tables yet. Ask a manager or the owner to add them.",
       "noBranchTitle": "Select a branch",
       "noBranchDescription": "Choose a branch from the toolbar above to manage its tables.",
       "rotateQr": "Rotate QR"
@@ -666,12 +1037,43 @@
       "print": "Print",
       "printTitle": "QR codes",
       "back": "Back to QR codes",
-      "tableQrUpsell": "Table QR codes appear when your plan includes table QR and you have active tables."
+      "tableQrUpsell": "Table QR codes appear when your plan includes table QR and you have active tables.",
+      "tableQrUpsellReadOnly": "Table QR codes are not available yet. Ask a manager or the owner to add tables or check the plan.",
+      "noTablesTitle": "No QR codes yet",
+      "noTablesDescription": "QR codes are created from your tables. Add a table first.",
+      "noTablesDescriptionReadOnly": "QR codes are created from tables. Ask a manager or the owner to add them.",
+      "noTablesAction": "Add tables"
     },
     "fields": {
       "name": "Name",
       "description": "Description"
+    },
+    "availability": {
+      "label": "Availability",
+      "allBranches": "All branches",
+      "hint": "Choose where this product is shown. \"All branches\" also covers branches you add later.",
+      "hintCategory": "Choose where this category is shown. Its products follow it. \"All branches\" also covers branches you add later.",
+      "hintScoped": "Choose which of your branches show this product. Other branches are not changed.",
+      "hintScopedCategory": "Choose which of your branches show this category. Other branches are not changed.",
+      "pickOne": "Choose at least one branch.",
+      "column": "Branches",
+      "filterAll": "All branches",
+      "count_one": "{{count}} branch",
+      "count_other": "{{count}} branches"
+    },
+    "help": {
+      "whatIsThis": "What does this mean?",
+      "showNote": "Show explanation",
+      "hideNote": "Hide explanation"
     }
+  },
+  "pickupDisplay": {
+    "heading": "Ready for pickup",
+    "empty": "No orders ready yet",
+    "enableSound": "Turn on sound",
+    "soundOn": "Sound on",
+    "notFound": "This screen is not available.",
+    "error": "Can't load orders. Retrying…"
   },
   "kds": {
     "title": "Kitchen",
@@ -683,9 +1085,15 @@
       "preparing": "Preparing",
       "ready": "Ready"
     },
+    "undo": {
+      "done": "{{number}} marked ready",
+      "action": "Undo"
+    },
     "card": {
       "orderNumber": "#{{number}}",
       "table": "Table {{label}}",
+      "pager": "Pager {{number}}",
+      "round": "Round {{number}}",
       "added": "ADDED",
       "voided": "VOID",
       "start": "Start",
@@ -715,12 +1123,19 @@
       "title": "Kitchen screen not available",
       "description": "Your role cannot change order status or your plan does not include the kitchen display.",
       "backToDashboard": "Back to dashboard"
-    }
+    },
+    "eyebrow": "KITCHEN DISPLAY SYSTEM",
+    "online": "Kitchen online",
+    "reconnecting": "Reconnecting"
   },
   "shell": {
     "toggleSidebar": "Collapse or expand the menu",
     "darkMode": "Dark mode",
-    "lightMode": "Light mode"
+    "lightMode": "Light mode",
+    "ownerArea": "Owner",
+    "modules": "Switch area",
+    "dashboardArea": "Dashboard",
+    "planEyebrow": "PLAN"
   },
   "billing": {
     "title": "Billing",
@@ -782,6 +1197,7 @@
       "branches.multi": "Multiple branches",
       "roles.custom": "Custom roles",
       "ordering.table_qr": "Order from the table",
+      "ordering.pager": "Pickup numbers and \"Ready\" screen",
       "api.access": "API access"
     },
     "limits": {
@@ -833,5 +1249,202 @@
       "lockedNav": "Needs a higher plan",
       "featureToast": "This needs a higher plan."
     }
+  },
+  "branches": {
+    "title": "Branches",
+    "description": "Every location of your restaurant. Add a branch, rename it or change its settings.",
+    "current": "Current",
+    "inactive": "Inactive",
+    "active": "Active",
+    "switch": "Switch to this branch",
+    "settings": "Settings",
+    "address": "No address yet",
+    "switchedTo": "Switched branch.",
+    "loadError": "Could not load branches.",
+    "empty": "No branches yet.",
+    "breadcrumb": "Branches",
+    "newBranch": "New branch",
+    "newBranchTitle": "Add a branch",
+    "newBranchDescription": "Create another location. You can switch between branches from the top bar, then fine-tune its settings here.",
+    "newBranchName": "Branch name",
+    "newBranchNamePlaceholder": "e.g. Downtown",
+    "newBranchTimezone": "Timezone",
+    "newBranchCreate": "Create branch",
+    "newBranchCancel": "Cancel",
+    "newBranchCreated": "Branch created. You are now working in it.",
+    "newBranchNameRequired": "Enter a branch name."
+  },
+  "devices": {
+    "title": "Cashier devices",
+    "description": "Link a tablet or computer to a branch so staff can sign in on it with just their PIN.",
+    "add": "Link a device",
+    "loadError": "Could not load devices.",
+    "empty": "No devices linked yet.",
+    "columnName": "Device",
+    "columnBranch": "Branch",
+    "columnStatus": "Status",
+    "columnLastUsed": "Last used",
+    "actions": "Actions",
+    "remove": "Remove",
+    "never": "Never",
+    "waitingToLink": "Waiting to be linked",
+    "revoked": "Device removed.",
+    "removeTitle": "Remove this device?",
+    "removeDescription": "It can no longer sign staff in and must be linked again. Device:",
+    "status": {
+      "pending": "Waiting for code",
+      "active": "Linked",
+      "revoked": "Removed"
+    },
+    "create": {
+      "title": "Link a device",
+      "description": "Name the device and choose its branch. You will get a one-time code.",
+      "nameLabel": "Device name",
+      "branchLabel": "Branch",
+      "submit": "Create code",
+      "nameRequired": "Enter a name for the device."
+    },
+    "code": {
+      "title": "Enter this code on the device",
+      "hint": "Valid for 15 minutes and works once.",
+      "steps": "On the device, open the sign-in page, choose Link this device, and type the code.",
+      "done": "Done"
+    },
+    "pair": {
+      "title": "Link this device",
+      "description": "Ask an owner or manager for a linking code from Dashboard, Devices.",
+      "codeLabel": "Linking code",
+      "submit": "Link device",
+      "invalidCode": "This code is invalid or has expired.",
+      "error": "Could not link the device. Try again."
+    },
+    "login": {
+      "subtitle": "Choose your name and enter your PIN.",
+      "submit": "Sign in",
+      "loadError": "Could not load the staff list.",
+      "useEmail": "Sign in with email instead",
+      "backToPin": "Sign in with PIN",
+      "unlink": "Unlink this device",
+      "linkDevice": "Link this device with a code"
+    }
+  },
+  "validation": {
+    "required": "This field is required.",
+    "email": "Enter a valid email address, like name@example.com.",
+    "tooShort_one": "Must be at least {{count}} character.",
+    "tooShort_other": "Must be at least {{count}} characters.",
+    "tooLong_one": "Must be at most {{count}} character.",
+    "tooLong_other": "Must be at most {{count}} characters.",
+    "tooFewItems_one": "Choose at least {{count}} item.",
+    "tooFewItems_other": "Choose at least {{count}} items.",
+    "tooManyItems_one": "Choose at most {{count}} item.",
+    "tooManyItems_other": "Choose at most {{count}} items.",
+    "tooSmall": "Must be at least {{min}}.",
+    "tooBig": "Must be at most {{max}}.",
+    "invalidType": "Enter a valid value.",
+    "invalidFormat": "This value is not in the expected format.",
+    "invalidValue": "Choose one of the available options."
+  },
+  "orderDetails": {
+    "orderNumber": "Order #{{number}}",
+    "progress": "Order progress",
+    "businessDate": "Business date",
+    "createdAt": "Created",
+    "pager": "Pager {{number}}",
+    "seat": "Guest {{seat}}",
+    "noSeat": "No seat",
+    "addedLater": "Added later",
+    "each": "each",
+    "by": "By",
+    "approvedBy": "Approved by",
+    "reason": "Reason",
+    "managerSection": "Manager",
+    "loadingTimeline": "Loading timeline",
+    "error": {
+      "order": "Could not load this order. Close and try again.",
+      "events": "Could not load the timeline."
+    },
+    "cards": {
+      "items": "Items",
+      "info": "Order info",
+      "totals": "Totals",
+      "payments": "Payments",
+      "timeline": "Timeline",
+      "timestamps": "Timestamps"
+    },
+    "empty": {
+      "items": "No items on this order.",
+      "payments": "No payments yet",
+      "events": "No activity yet."
+    },
+    "status": {
+      "draft": "Draft",
+      "placed": "Placed",
+      "preparing": "Preparing",
+      "ready": "Ready",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "refunded": "Refunded",
+      "unknown": "Unknown"
+    },
+    "itemStatus": {
+      "awaiting_payment": "Awaiting payment",
+      "pending": "Pending",
+      "preparing": "Preparing",
+      "ready": "Ready",
+      "voided": "Voided"
+    },
+    "paymentStatus": {
+      "unpaid": "Unpaid",
+      "partial": "Partially paid",
+      "paid": "Paid",
+      "refunded": "Refunded"
+    },
+    "type": {
+      "dine_in": "Dine-in",
+      "takeaway": "Takeaway"
+    },
+    "method": {
+      "cash": "Cash",
+      "card": "Card",
+      "other": "Other"
+    },
+    "payment": {
+      "tendered": "Tendered",
+      "change": "Change"
+    },
+    "stepper": {
+      "awaitingPayment": "Awaiting payment",
+      "cancelled": "Cancelled",
+      "cancelledWithReason": "Cancelled: {{reason}}"
+    },
+    "info": {
+      "type": "Type",
+      "table": "Table",
+      "pager": "Pager number",
+      "customer": "Customer",
+      "notes": "Order notes",
+      "currency": "Currency",
+      "version": "Version",
+      "createdBy": "Created by"
+    },
+    "totals": {
+      "subtotal": "Subtotal",
+      "discount": "Discount",
+      "tax": "Tax",
+      "total": "Total",
+      "paid": "Paid",
+      "due": "Due",
+      "inCurrency": "Total in {{currency}}",
+      "rate": "Exchange rate"
+    },
+    "timestamps": {
+      "created": "Created",
+      "placed": "Placed",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "actions": "Order actions",
+    "pagerShort": "Pager"
   }
 }

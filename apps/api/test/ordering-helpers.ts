@@ -26,6 +26,8 @@ export function postOrder(
     clientOrderId: string;
     type: 'takeaway' | 'dine_in';
     tableId?: string;
+    customerName?: string;
+    pagerNumber?: number;
     items: Array<{ productId: string; quantity: number; modifierIds: string[] }>;
   },
   idempotencyKey?: string,
@@ -135,6 +137,17 @@ export function businessDateForBranch(timezone: string, dayStartHour: number, no
   return computeBusinessDate({ now, timezone, dayStartHour });
 }
 
+/**
+ * New branches default to cards off. Suites that pay by card on the seeded demo branch turn
+ * cards on explicitly instead of relying on the default.
+ */
+export async function enableCardPayments(owner: Agent, branchId: string): Promise<void> {
+  const res = await owner.patch(`/v1/branches/${branchId}`).send({ acceptsCard: true });
+  if (res.status !== 200) {
+    throw new Error(`enable card payments failed: ${JSON.stringify(res.body)}`);
+  }
+}
+
 export async function demoOwnerContext(
   agent: Agent,
   db: DrizzleDb,
@@ -159,6 +172,7 @@ export async function demoOwnerContext(
   if (!branchId) {
     throw new Error('demo org has no active branch');
   }
+  await enableCardPayments(client, branchId);
   let membershipId = '';
   await withOrg(db, SEED_ORG.demo.id, async (tx) => {
     const rows = await tx
@@ -218,13 +232,13 @@ export async function createIsolatedBranch(
     throw new Error(`branch create failed: ${JSON.stringify(create.body)}`);
   }
   const branchId = (create.body as { id: string }).id;
-  if (opts?.payBeforeSend !== undefined || opts?.acceptsCard !== undefined) {
-    const patchBody: { payBeforeSend?: boolean; acceptsCard?: boolean } = {};
-    if (opts.payBeforeSend !== undefined) {
+  // New branches default to cards off; tests keep cards on unless they ask otherwise.
+  {
+    const patchBody: { payBeforeSend?: boolean; acceptsCard?: boolean } = {
+      acceptsCard: opts?.acceptsCard ?? true,
+    };
+    if (opts?.payBeforeSend !== undefined) {
       patchBody.payBeforeSend = opts.payBeforeSend;
-    }
-    if (opts.acceptsCard !== undefined) {
-      patchBody.acceptsCard = opts.acceptsCard;
     }
     const patch = await owner.patch(`/v1/branches/${branchId}`).send(patchBody);
     if (patch.status !== 200) {
@@ -320,6 +334,7 @@ export async function insertPlacedOrderForBusinessDate(
       paymentStatus: 'unpaid',
       tableId: null,
       customerName: null,
+      pagerNumber: null,
       notes: null,
       subtotalMinor: total,
       discountMinor: 0,

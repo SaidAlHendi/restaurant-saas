@@ -23,6 +23,16 @@ export default defineConfig(({ mode }) => {
         '@app/shared': path.join(siteRoot, '../../packages/shared/src/index.ts'),
       },
     },
+    build: {
+      rollupOptions: {
+        // @app/shared and @app/ui only define functions, components and Zod schemas. Without this
+        // the bundler must keep every schema (and Zod itself) in any page that imports @app/ui.
+        treeshake: {
+          moduleSideEffects: (id) =>
+            id.endsWith('.css') || !/[\\/]packages[\\/](shared|ui)[\\/]/.test(id),
+        },
+      },
+    },
     plugins: [tailwindcss(), reactRouter()],
     server: {
       port: 5174,

@@ -1,6 +1,7 @@
 import { computeDueMinor } from '@app/shared';
 import type {
   DiningTable,
+  MoneyDisplay,
   DiningTableWithToken,
   KitchenBoardResponse,
   Order,
@@ -61,6 +62,21 @@ function businessDateString(d: string | Date): string {
   return d.toISOString().slice(0, 10);
 }
 
+/** The display currency frozen on the order, or null when it is shown in its own currency. */
+export function moneyDisplayForOrder(
+  row: Pick<OrderRow, 'displayCurrency' | 'exchangeRate' | 'displayItemStep' | 'displayTotalStep'>,
+): MoneyDisplay | null {
+  if (row.displayCurrency === null || row.exchangeRate === null) {
+    return null;
+  }
+  return {
+    currency: row.displayCurrency,
+    rate: row.exchangeRate,
+    itemStep: row.displayItemStep ?? 0,
+    totalStep: row.displayTotalStep ?? 0,
+  };
+}
+
 export function mapPayment(row: PaymentRow): Payment {
   return {
     id: row.id,
@@ -68,6 +84,8 @@ export function mapPayment(row: PaymentRow): Payment {
     amountMinor: row.amountMinor,
     tenderedMinor: row.tenderedMinor,
     changeMinor: row.changeMinor,
+    displayTenderedMinor: row.displayTenderedMinor,
+    displayChangeMinor: row.displayChangeMinor,
     createdAt: row.createdAt.toISOString(),
   };
 }
@@ -87,13 +105,16 @@ export function mapOrder(row: OrderRow, paidMinor: number): Order {
     paidMinor,
     dueMinor,
     tableId: row.tableId,
+    billId: row.billId,
     customerName: row.customerName,
+    pagerNumber: row.pagerNumber,
     notes: row.notes,
     subtotalMinor: row.subtotalMinor,
     discountMinor: row.discountMinor,
     taxMinor: row.taxMinor,
     totalMinor: row.totalMinor,
     currency: row.currency,
+    display: moneyDisplayForOrder(row),
     version: row.version,
     placedAt: iso(row.placedAt),
     completedAt: iso(row.completedAt),
@@ -115,6 +136,7 @@ export function mapOrderItem(row: ItemRow, modifiers: ModifierRow[]) {
     notes: row.notes,
     status: row.status,
     isAddition: row.isAddition,
+    seat: row.seat,
     voidedAt: iso(row.voidedAt),
     voidReason: row.voidReason,
     modifiers: modifiers.map((m) => ({
@@ -180,6 +202,7 @@ export function mapKitchenBoardResponse(input: {
   itemRows: ItemRow[];
   modifierRows: ModifierRow[];
   labelByTableId: Map<string, string>;
+  roundByOrderId?: Map<string, number>;
 }): KitchenBoardResponse {
   const modifiersByItem = new Map<string, ModifierRow[]>();
   for (const mod of input.modifierRows) {
@@ -210,6 +233,8 @@ export function mapKitchenBoardResponse(input: {
         placedAt: placedAt.toISOString(),
         tableLabel,
         customerName: row.customerName,
+        pagerNumber: row.pagerNumber,
+        round: input.roundByOrderId?.get(row.id) ?? null,
         notes: row.notes,
         paymentStatus: row.paymentStatus,
         items: items.map((item) => ({
@@ -230,4 +255,3 @@ export function mapKitchenBoardResponse(input: {
     }),
   };
 }
-

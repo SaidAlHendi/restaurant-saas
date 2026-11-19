@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { isValidIanaTimezone } from './timezone.js';
+import { pageMetaShape } from '../page-pagination.js';
 
 const nullableTrimmedText = (max: number) =>
   z
@@ -26,6 +27,7 @@ export const branchSchema = z.object({
   receiptFooter: z.string().nullable(),
   payBeforeSend: z.boolean(),
   acceptsCard: z.boolean(),
+  pagerEnabled: z.boolean(),
   isActive: z.boolean(),
 });
 
@@ -61,11 +63,20 @@ export const patchBranchBodySchema = z.object({
   receiptFooter: nullableTrimmedText(500),
   payBeforeSend: z.boolean().optional(),
   acceptsCard: z.boolean().optional(),
+  pagerEnabled: z.boolean().optional(),
   isActive: z.boolean().optional(),
 });
+
+/** Secret address token of a branch's customer "Ready" screen; null until the owner creates it. */
+export const branchDisplayLinkSchema = z.object({
+  token: z.string().min(20).nullable(),
+});
+
+export type BranchDisplayLink = z.infer<typeof branchDisplayLinkSchema>;
 
 export type PatchBranchBody = z.infer<typeof patchBranchBodySchema>;
 
 export const branchListResponseSchema = z.object({
   items: z.array(branchSchema),
+  ...pageMetaShape,
 });

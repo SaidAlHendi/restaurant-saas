@@ -11,6 +11,7 @@ export const cartLineSchema = z.object({
   modifierNames: z.record(z.string(), localizedSnapshotSchema),
   quantity: z.number().int().min(1).max(999),
   note: z.string(),
+  seat: z.string().max(24).optional(),
 });
 
 export const cartStateSchema = z.object({
@@ -19,7 +20,10 @@ export const cartStateSchema = z.object({
   orderType: z.enum(['dine_in', 'takeaway']),
   tableId: z.uuid().nullable(),
   customerName: z.string(),
+  pagerNumber: z.string().default(''),
   orderNote: z.string(),
+  seat: z.string().max(24).default(''),
+  billChoice: z.string().default(''),
   lines: z.array(cartLineSchema),
 });
 

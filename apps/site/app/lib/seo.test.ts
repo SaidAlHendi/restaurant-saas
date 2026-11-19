@@ -16,6 +16,7 @@ const sampleMenu: PublicMenuPayload = {
     defaultLocale: 'en',
     locales: ['en', 'ar'],
     currency: 'SAR',
+    display: null,
     logoUrl: null,
   },
   branches: [{ name: 'Main', slug: 'main', address: null }],
@@ -115,5 +116,30 @@ describe('seo', () => {
     };
     const price = jsonLd.hasMenu.hasMenuSection[0]?.hasMenuItem[0]?.offers.price;
     expect(price).toBe(minorUnitsToMajorString(1500, 'SAR'));
+  });
+
+  it('buildMenuJsonLd shows the display currency price when the menu has one', () => {
+    const jsonLd = buildMenuJsonLd({
+      menu: {
+        ...sampleMenu,
+        org: {
+          ...sampleMenu.org,
+          display: { currency: 'SYP', rate: 3500, itemStep: 100, totalStep: 500 },
+        },
+      },
+      locale: 'en',
+      url: 'https://menu.example/en/m/demo',
+    }) as {
+      hasMenu: {
+        hasMenuSection: Array<{
+          hasMenuItem: Array<{ offers: { price: string; priceCurrency: string } }>;
+        }>;
+      };
+    };
+    // 15.00 SAR x 3,500 = 52,500 SYP
+    expect(jsonLd.hasMenu.hasMenuSection[0]?.hasMenuItem[0]?.offers).toMatchObject({
+      price: '52500',
+      priceCurrency: 'SYP',
+    });
   });
 });

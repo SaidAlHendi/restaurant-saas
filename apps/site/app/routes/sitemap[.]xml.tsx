@@ -1,33 +1,22 @@
 import { fetchPublicSitemap } from '../lib/api.server.js';
 import { getSiteEnv } from '../lib/env.server.js';
+import { buildSitemapXml } from '../lib/sitemap.js';
 
 export async function loader() {
-  const sitemap = await fetchPublicSitemap();
   const { PUBLIC_SITE_URL } = getSiteEnv();
-  const base = PUBLIC_SITE_URL.replace(/\/$/, '');
-
-  const urls: string[] = [];
-  for (const entry of sitemap.items) {
-    for (const locale of entry.locales) {
-      urls.push(`${base}/${locale}/m/${entry.slug}`);
-    }
+  // If the API is down the landing pages still go out, with a short cache so the menus come back soon.
+  let menus: Awaited<ReturnType<typeof fetchPublicSitemap>>['items'] = [];
+  let cacheControl = 'public, s-maxage=3600, stale-while-revalidate=600';
+  try {
+    menus = (await fetchPublicSitemap()).items;
+  } catch {
+    cacheControl = 'public, s-maxage=60';
   }
 
-  const body = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls
-  .map(
-    (loc) => `  <url>
-    <loc>${loc}</loc>
-  </url>`,
-  )
-  .join('\n')}
-</urlset>`;
-
-  return new Response(body, {
+  return new Response(buildSitemapXml(PUBLIC_SITE_URL, menus), {
     headers: {
       'Content-Type': 'application/xml; charset=utf-8',
-      'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=600',
+      'Cache-Control': cacheControl,
     },
   });
 }

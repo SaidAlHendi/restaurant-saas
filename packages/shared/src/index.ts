@@ -51,11 +51,7 @@ export type { MeResponse } from './auth/me.js';
 export { switchOrgBodySchema, switchOrgResponseSchema } from './auth/switch-org.js';
 export type { SwitchOrgBody, SwitchOrgResponse } from './auth/switch-org.js';
 
-export {
-  canAssignRole,
-  canInviteRole,
-  canManageMember,
-} from './auth/staff-rules.js';
+export { canAssignRole, canInviteRole, canManageMember } from './auth/staff-rules.js';
 export type {
   CanManageMemberResult,
   StaffRulesActor,
@@ -76,6 +72,7 @@ export type {
 } from './auth/invite.js';
 
 export {
+  currencyCodeSchema,
   orgSettingsResponseSchema,
   patchOrgSettingsBodySchema,
   orgLogoUploadResponseSchema,
@@ -110,6 +107,19 @@ export type {
   PutStaffPinBody,
 } from './staff/staff.js';
 
+export {
+  OVERRIDABLE_PERMISSION_KEYS,
+  computeEffectivePermissions,
+  overridablePermissionKeySchema,
+  permissionKeySchema,
+  putStaffPermissionOverridesBodySchema,
+  staffPermissionOverridesResponseSchema,
+} from './staff/permission-overrides.js';
+export type {
+  PutStaffPermissionOverridesBody,
+  StaffPermissionOverridesResponse,
+} from './staff/permission-overrides.js';
+
 export { pinUserListItemSchema, pinUserListResponseSchema } from './staff/pin-users.js';
 export type { PinUserListItem, PinUserListResponse } from './staff/pin-users.js';
 
@@ -123,13 +133,22 @@ export { isValidIanaTimezone } from './branches/timezone.js';
 
 export {
   branchSchema,
+  branchDisplayLinkSchema,
   createBranchBodySchema,
   patchBranchBodySchema,
   branchListResponseSchema,
 } from './branches/branch.js';
-export type { Branch, CreateBranchBody, PatchBranchBody } from './branches/branch.js';
+export type {
+  Branch,
+  BranchDisplayLink,
+  CreateBranchBody,
+  PatchBranchBody,
+} from './branches/branch.js';
 
-export { membershipListItemSchema, membershipListResponseSchema } from './memberships/membership.js';
+export {
+  membershipListItemSchema,
+  membershipListResponseSchema,
+} from './memberships/membership.js';
 export type { MembershipListItem } from './memberships/membership.js';
 
 export {
@@ -149,9 +168,22 @@ export type { OrgLocaleCode } from './i18n/org-locales.js';
 export { currencyDigits, currencySymbol, formatMinor } from './money/currency.js';
 export { formatMoney, intlLocaleForUi } from './money/format-money.js';
 export {
-  computeLineTotalMinor,
-  computeOrderTotals,
-} from './money/order-totals.js';
+  DEFAULT_DISPLAY_ITEM_STEP,
+  DEFAULT_DISPLAY_TOTAL_STEP,
+  DISPLAY_ROUNDING_STEPS,
+  convertDisplayToBaseMinor,
+  convertMinorToDisplay,
+  defaultDisplaySteps,
+  displayFractionDigits,
+  displayRoundingStepSchema,
+  exchangeRateSchema,
+  formatDisplayMinor,
+  formatMoneyForDisplay,
+  isDisplayConversionActive,
+  moneyDisplaySchema,
+} from './money/display-currency.js';
+export type { MoneyDisplay, MoneyKind } from './money/display-currency.js';
+export { computeLineTotalMinor, computeOrderTotals } from './money/order-totals.js';
 export type { OrderLineForTotals, OrderTotals, OrderTotalsInput } from './money/order-totals.js';
 export { computeDueMinor, computePaymentStatus } from './money/payment-status.js';
 
@@ -182,13 +214,25 @@ export {
   patchCategoryBodySchema,
   reorderBodySchema,
 } from './catalog/category.js';
-export type { Category, CreateCategoryBody, PatchCategoryBody, ReorderBody } from './catalog/category.js';
+export {
+  branchAvailabilityFields,
+  branchAvailabilityInputFields,
+  branchAvailabilityInputValid,
+} from './catalog/branch-availability.js';
+export type { BranchAvailabilityInput } from './catalog/branch-availability.js';
+export type {
+  Category,
+  CreateCategoryBody,
+  PatchCategoryBody,
+  ReorderBody,
+} from './catalog/category.js';
 
 export {
   productSchema,
   productDetailSchema,
   productListQuerySchema,
   productListResponseSchema,
+  productListItemSchema,
   createProductBodySchema,
   patchProductBodySchema,
   reorderProductsBodySchema,
@@ -199,6 +243,7 @@ export type {
   Product,
   ProductDetail,
   ProductListQuery,
+  ProductListItem,
   CreateProductBody,
   PatchProductBody,
   ReorderProductsBody,
@@ -210,6 +255,7 @@ export {
   modifierGroupSchema,
   modifierGroupDetailSchema,
   modifierGroupListResponseSchema,
+  modifierGroupListItemSchema,
   createModifierGroupBodySchema,
   patchModifierGroupBodySchema,
   createModifierBodySchema,
@@ -220,6 +266,7 @@ export type {
   Modifier,
   ModifierGroup,
   ModifierGroupDetail,
+  ModifierGroupListItem,
   CreateModifierGroupBody,
   PatchModifierGroupBody,
   CreateModifierBody,
@@ -236,12 +283,7 @@ export {
   paymentStatusSchema,
   orderItemStatusSchema,
 } from './orders/enums.js';
-export type {
-  OrderType,
-  OrderStatus,
-  PaymentStatus,
-  OrderItemStatus,
-} from './orders/enums.js';
+export type { OrderType, OrderStatus, PaymentStatus, OrderItemStatus } from './orders/enums.js';
 
 export {
   orderRealtimeChangeSchema,
@@ -269,6 +311,23 @@ export type {
 export { changeOrderItemStatusBodySchema } from './kitchen/change-item-status.js';
 export type { ChangeOrderItemStatusBody } from './kitchen/change-item-status.js';
 
+export { computeItemShares } from './orders/item-shares.js';
+export {
+  billSchema,
+  billStatusSchema,
+  billListQuerySchema,
+  createBillPaymentBodySchema,
+  billPaymentResultSchema,
+} from './orders/bill.js';
+export type {
+  Bill,
+  BillItem,
+  BillOrder,
+  BillStatus,
+  BillListQuery,
+  CreateBillPaymentBody,
+  BillPaymentResult,
+} from './orders/bill.js';
 export { orderLineInputSchema } from './orders/order-line.js';
 export type { OrderLineInput } from './orders/order-line.js';
 
@@ -281,21 +340,15 @@ export {
   orderListResponseSchema,
   changeOrderStatusBodySchema,
   addOrderItemsBodySchema,
+  moveOrderTableBodySchema,
   voidOrderItemBodySchema,
   orderEventSchema,
   orderEventListResponseSchema,
 } from './orders/order.js';
-export {
-  createPaymentBodySchema,
-  paymentSchema,
-  paymentMethodSchema,
-} from './orders/payment.js';
+export { createPaymentBodySchema, paymentSchema, paymentMethodSchema } from './orders/payment.js';
 export type { CreatePaymentBody, Payment, PaymentMethod } from './orders/payment.js';
 export { PAYMENT_METHODS_SORTED, sortPaymentMethods } from './orders/payment-methods.js';
-export {
-  businessDateSchema,
-  inclusiveBusinessDaySpan,
-} from './dates/business-date.js';
+export { businessDateSchema, inclusiveBusinessDaySpan } from './dates/business-date.js';
 export type { BusinessDate } from './dates/business-date.js';
 export {
   dailyReportQuerySchema,
@@ -316,6 +369,7 @@ export type {
   OrderListQuery,
   ChangeOrderStatusBody,
   AddOrderItemsBody,
+  MoveOrderTableBody,
   VoidOrderItemBody,
   OrderEvent,
 } from './orders/order.js';
@@ -354,3 +408,148 @@ export type {
   ModifierGroupIdParam,
   ModifierIdParam,
 } from './catalog/path-params.js';
+
+export { ADMIN_ROLES, adminRoleSchema, adminRoleSatisfies } from './admin/roles.js';
+export type { AdminRole } from './admin/roles.js';
+export {
+  adminLoginBodySchema,
+  adminUserSchema,
+  adminLoginResponseSchema,
+  adminRefreshResponseSchema,
+  adminMeResponseSchema,
+  createAdminUserInputSchema,
+} from './admin/auth.js';
+export type {
+  AdminLoginBody,
+  AdminUser,
+  AdminLoginResponse,
+  AdminRefreshResponse,
+  AdminMeResponse,
+  CreateAdminUserInput,
+} from './admin/auth.js';
+
+export {
+  adminOrgStatusSchema,
+  adminOrgListQuerySchema,
+  adminOrgListItemSchema,
+  adminOrgListResponseSchema,
+  adminOrgDetailSchema,
+  adminOrgIdParamSchema,
+  adminOrgStatusChangeSchema,
+  adminOrgActivateSchema,
+  adminOrgActivateResultSchema,
+  ADMIN_GRANT_PLAN_KEYS,
+  ADMIN_ORG_PAGE_SIZE_MAX,
+  ADMIN_ORG_STATUSES,
+} from './admin/orgs.js';
+export type {
+  AdminOrgStatus,
+  AdminOrgListQuery,
+  AdminOrgListItem,
+  AdminOrgListResponse,
+  AdminOrgDetail,
+  AdminOrgStatusChange,
+  AdminOrgActivateInput,
+  AdminOrgActivateResult,
+} from './admin/orgs.js';
+
+export {
+  ADMIN_CURSOR_PAGE_SIZE,
+  ADMIN_TRIAL_ENDING_DAYS,
+  adminUserListQuerySchema,
+  adminTenantUserSchema,
+  adminUserListResponseSchema,
+  adminSubscriptionStatusSchema,
+  adminSubscriptionListQuerySchema,
+  adminSubscriptionItemSchema,
+  adminSubscriptionListResponseSchema,
+  adminPlanSchema,
+  adminPlanListResponseSchema,
+  adminAuditListQuerySchema,
+  adminAuditItemSchema,
+  adminAuditListResponseSchema,
+} from './admin/directory.js';
+export type {
+  AdminUserListQuery,
+  AdminTenantUser,
+  AdminUserListResponse,
+  AdminSubscriptionStatus,
+  AdminSubscriptionListQuery,
+  AdminSubscriptionItem,
+  AdminSubscriptionListResponse,
+  AdminPlan,
+  AdminPlanListResponse,
+  AdminAuditListQuery,
+  AdminAuditItem,
+  AdminAuditListResponse,
+} from './admin/directory.js';
+
+export {
+  adminOverviewSchema,
+  adminOverviewMrrSchema,
+  adminOverviewPlanMixItemSchema,
+} from './admin/overview.js';
+export type { AdminOverview, AdminOverviewPlanMixItem } from './admin/overview.js';
+
+export {
+  PAIRING_CODE_ALPHABET,
+  PAIRING_CODE_LENGTH,
+  createPosDeviceBodySchema,
+  createPosDeviceResponseSchema,
+  devicePinLoginBodySchema,
+  devicePinUsersBodySchema,
+  devicePinUsersResponseSchema,
+  pairPosDeviceBodySchema,
+  pairPosDeviceResponseSchema,
+  posDeviceListItemSchema,
+  posDeviceListResponseSchema,
+  posDeviceStatusSchema,
+} from './devices/devices.js';
+export type {
+  CreatePosDeviceBody,
+  CreatePosDeviceResponse,
+  DevicePinLoginBody,
+  DevicePinUsersBody,
+  DevicePinUsersResponse,
+  PairPosDeviceBody,
+  PairPosDeviceResponse,
+  PosDeviceListItem,
+  PosDeviceListResponse,
+  PosDeviceStatus,
+} from './devices/devices.js';
+
+export { CATALOG_UPDATED_EVENT, catalogRealtimePayloadSchema } from './catalog/realtime-payload.js';
+export type { CatalogRealtimePayload } from './catalog/realtime-payload.js';
+
+export {
+  publicDisplayTokenSchema,
+  publicDisplayOrderSchema,
+  publicDisplayPayloadSchema,
+  type PublicDisplayOrder,
+  type PublicDisplayPayload,
+} from './public-menu/public-display.js';
+
+export {
+  leadAttributionSchema,
+  leadCountrySchema,
+  leadCreateBodySchema,
+  leadCreateResponseSchema,
+  leadLocaleSchema,
+  leadPhoneSchema,
+  normalizeDigits,
+} from './leads/lead-schemas.js';
+export type { LeadAttribution, LeadCreateBody, LeadCreateResponse } from './leads/lead-schemas.js';
+
+export { registerValidationMessages } from './validation/validation-messages.js';
+export type { ValidationTranslate } from './validation/validation-messages.js';
+
+export {
+  DEFAULT_PAGE_SIZE,
+  PAGE_SIZE_MAX,
+  pageMeta,
+  pageQuerySchema,
+  pageResponseSchema,
+  pageWindow,
+  slicePage,
+} from './page-pagination.js';
+export type { PageQuery } from './page-pagination.js';

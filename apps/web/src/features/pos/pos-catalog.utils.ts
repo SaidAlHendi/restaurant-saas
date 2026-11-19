@@ -51,3 +51,12 @@ export function lastLineOfProduct(lines: CartLine[], productId: string): CartLin
   return null;
 }
 
+
+/** Product ids in the cart that are no longer on the branch menu (hidden, deleted or sold out). */
+export function unavailableProductIds(
+  lines: CartLine[],
+  categories: PosCategory[],
+): Set<string> {
+  const onMenu = new Set(categories.flatMap((c) => c.products.map((p) => p.id)));
+  return new Set(lines.filter((l) => !onMenu.has(l.productId)).map((l) => l.productId));
+}

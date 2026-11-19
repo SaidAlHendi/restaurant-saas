@@ -15,10 +15,15 @@ export const createPaymentBodySchema = z
     method: paymentMethodSchema,
     amountMinor: moneyMinorSchema,
     tenderedMinor: moneyMinorSchema.optional(),
+    /**
+     * Cash handed over, in the order's display currency (minor units). Required for cash when the
+     * order has a display currency; the server derives `tenderedMinor` from it.
+     */
+    displayTenderedMinor: moneyMinorSchema.optional(),
   })
   .superRefine((body, ctx) => {
     if (body.method === 'cash') {
-      if (body.tenderedMinor === undefined) {
+      if (body.tenderedMinor === undefined && body.displayTenderedMinor === undefined) {
         ctx.addIssue({
           code: 'custom',
           message: 'tenderedMinor is required for cash',
@@ -26,6 +31,13 @@ export const createPaymentBodySchema = z
         });
       }
       return;
+    }
+    if (body.displayTenderedMinor !== undefined) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'displayTenderedMinor is only allowed for cash',
+        path: ['displayTenderedMinor'],
+      });
     }
     if (body.tenderedMinor !== undefined) {
       ctx.addIssue({
@@ -44,6 +56,9 @@ export const paymentSchema = z.object({
   amountMinor: moneyMinorSchema,
   tenderedMinor: moneyMinorSchema.nullable(),
   changeMinor: moneyMinorSchema.nullable(),
+  /** Cash handed over and change given, in the order's display currency; `null` without one. */
+  displayTenderedMinor: moneyMinorSchema.nullable().default(null),
+  displayChangeMinor: moneyMinorSchema.nullable().default(null),
   createdAt: z.iso.datetime(),
 });
 

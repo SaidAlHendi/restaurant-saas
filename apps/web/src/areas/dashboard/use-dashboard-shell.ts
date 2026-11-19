@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLocation } from 'react-router-dom';
 
 import { useAppDispatch, useAppSelector } from '../../app/hooks.js';
 import { applyDashboardBranchChange } from '../../features/session/apply-dashboard-branch-change.js';
@@ -7,14 +8,20 @@ import {
   selectCurrentBranchId,
   selectSessionBranches,
   selectSessionOrg,
+  selectSessionRole,
+  selectSessionUser,
 } from '../../features/session/session.selectors.js';
 import { localizedName } from '../../lib/localized-name.js';
+import { dashboardTitleKey, initialsOf } from './dashboard-shell.utils.js';
 
 /** Dashboard top bar: the branch switcher. Navigation lives in the app shell. */
 export function useDashboardShell() {
   const { t, i18n } = useTranslation();
+  const location = useLocation();
+  const user = useAppSelector(selectSessionUser);
   const dispatch = useAppDispatch();
   const org = useAppSelector(selectSessionOrg);
+  const role = useAppSelector(selectSessionRole);
   const branches = useAppSelector(selectSessionBranches);
   const currentBranchId = useAppSelector(selectCurrentBranchId);
 
@@ -40,6 +47,13 @@ export function useDashboardShell() {
 
   return {
     title: org ? localizedName(org.name, i18n.language) : t('app.title'),
+    pageTitle: t(dashboardTitleKey(location.pathname)),
+    breadcrumb: `${t('app.title')} / ${
+      role
+        ? t(`settings.staff.roles.${role.key}`, { defaultValue: role.name })
+        : t('shell.ownerArea')
+    }`,
+    userInitials: initialsOf(user?.name ?? ''),
     branchSwitcher,
     onBranchChange,
   };

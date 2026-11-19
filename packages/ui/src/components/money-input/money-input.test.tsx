@@ -68,7 +68,7 @@ describe('MoneyInput', () => {
     render(<Harness onValue={onValue} />);
     const input = screen.getByRole('textbox', { name: 'Price' });
     await user.type(input, '١٢x٫٥');
-    expect(input).toHaveValue('١٢٫٥');
+    expect(input).toHaveValue('12.5');
     expect(onValue).toHaveBeenLastCalledWith(1250);
   });
 

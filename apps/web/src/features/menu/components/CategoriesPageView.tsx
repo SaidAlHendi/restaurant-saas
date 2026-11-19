@@ -1,15 +1,7 @@
 import type { ComponentProps, CSSProperties, HTMLAttributes, ReactNode, Ref } from 'react';
 import { GripVerticalIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 
-import {
-  Badge,
-  Button,
-  ConfirmDialog,
-  EmptyState,
-  IconButton,
-  PageHeader,
-  Spinner,
-} from '@app/ui';
+import { Badge, Button, ConfirmDialog, EmptyState, IconButton, PageHeader, Spinner } from '@app/ui';
 
 import type { Category } from '@app/shared';
 
@@ -28,10 +20,7 @@ export interface CategoriesPageViewProps {
   formOpen: boolean;
   onFormOpenChange: (open: boolean) => void;
   formMode: 'create' | 'edit';
-  formProps: Omit<
-    ComponentProps<typeof CategoryFormDialogView>,
-    'open' | 'onOpenChange' | 'mode'
-  >;
+  formProps: Omit<ComponentProps<typeof CategoryFormDialogView>, 'open' | 'onOpenChange' | 'mode'>;
   confirmDeleteOpen: boolean;
   onConfirmDeleteOpenChange: (open: boolean) => void;
   onConfirmDelete: () => void;
@@ -114,6 +103,8 @@ export interface CategoryRowViewProps {
   deleteLabel: string;
   activeLabel: string;
   inactiveLabel: string;
+  /** Where the category is shown (e.g. "All branches"); omitted when there is one branch. */
+  availabilityLabel?: string | undefined;
   dragHandleProps: HTMLAttributes<HTMLButtonElement>;
   rowProps?: HTMLAttributes<HTMLLIElement> & { ref?: Ref<HTMLLIElement> };
   style?: CSSProperties;
@@ -132,6 +123,7 @@ export function CategoryRowView({
   deleteLabel,
   activeLabel,
   inactiveLabel,
+  availabilityLabel,
   dragHandleProps,
   rowProps,
   style,
@@ -157,6 +149,9 @@ export function CategoryRowView({
         </button>
       ) : null}
       <span className="flex-1 truncate text-sm font-medium">{label}</span>
+      {availabilityLabel ? (
+        <span className="text-muted-foreground hidden text-xs sm:inline">{availabilityLabel}</span>
+      ) : null}
       <Badge variant={category.isActive ? 'default' : 'secondary'}>
         {category.isActive ? activeLabel : inactiveLabel}
       </Badge>

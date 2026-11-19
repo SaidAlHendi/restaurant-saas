@@ -38,6 +38,7 @@ const sampleMe: MeResponse = {
     { id: branchB, name: 'Second', slug: 'second', isActive: true },
   ],
   orgs: [{ id: orgId, name: 'Demo', slug: 'demo' }],
+  allBranches: true,
   currentBranchId: branchA,
   entitlements: testMeEntitlements,
 };

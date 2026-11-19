@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate, type RouteObject } from 'react-router-do
 
 import { App } from '../App.js';
 import { GuestLayout } from '../areas/auth/GuestLayout.js';
+import { LandingRedirect } from '../features/session/LandingRedirect.js';
 import { RequireAuth } from '../features/session/RequireAuth.js';
 import { AppShellLayout } from '../features/shell/AppShellLayout.js';
 
@@ -12,6 +13,8 @@ const AcceptInvitePage = lazy(() => import('../features/auth/pages/AcceptInviteP
 const DashboardArea = lazy(() => import('../areas/dashboard/DashboardArea.js'));
 const PosArea = lazy(() => import('../areas/pos/PosArea.js'));
 const KdsArea = lazy(() => import('../areas/kds/KdsArea.js'));
+const DisplayPage = lazy(() => import('../areas/display/DisplayPage.js'));
+const NotFoundPage = lazy(() => import('../areas/not-found/NotFoundPage.js'));
 const AdminArea = lazy(() => import('../areas/admin/AdminArea.js'));
 
 const devRoutes: RouteObject[] = import.meta.env.DEV
@@ -29,7 +32,7 @@ export const appRoutes: RouteObject[] = [
     path: '/',
     element: <App />,
     children: [
-      { index: true, element: <Navigate to="/dashboard" replace /> },
+      { index: true, element: <LandingRedirect /> },
       {
         element: <GuestLayout />,
         children: [
@@ -38,6 +41,7 @@ export const appRoutes: RouteObject[] = [
           { path: 'invite/:token', element: <AcceptInvitePage /> },
         ],
       },
+      { path: 'display/:token', element: <DisplayPage /> },
       { path: 'auth/*', element: <Navigate to="/login" replace /> },
       {
         element: (
@@ -59,6 +63,8 @@ export const appRoutes: RouteObject[] = [
           </RequireAuth>
         ),
       },
+      // Unknown URLs (e.g. /menu/products) get a friendly 404 page instead of a blank screen.
+      { path: '*', element: <NotFoundPage /> },
     ],
   },
   ...devRoutes,

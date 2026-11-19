@@ -1,6 +1,8 @@
 /*
- * Themes: "cupcake" (light, default) and "forest" (dark), both custom warm palettes,
- * mapped onto shadcn/ui tokens. Apply with <html data-theme="cupcake|forest">.
+ * Themes: "cupcake" (light, default) and "forest" (dark), mapped onto shadcn/ui tokens.
+ * Theme ids are kept for saved preferences; the palette is the Sahtain design (sahtain-design):
+ * Cosmic Latte light palette (mocha cream surfaces, paprika orange brand (from staging); dark theme unchanged), and 1px borders. Radii stay rounded (set in the restyle).
+ * Apply with <html data-theme="cupcake|forest">.
  * Components must use these tokens through Tailwind classes (bg-background, text-primary, ...),
  * never raw colors.
  */
@@ -11,71 +13,85 @@
 :root,
 [data-theme='cupcake'] {
   color-scheme: light;
-  /* Light theme (name kept for saved preferences). */
-  --base-100: oklch(99.2% 0.004 85);
-  --base-200: oklch(95.4% 0.011 85);
-  --base-300: oklch(91% 0.016 80);
-  --base-content: oklch(26% 0.014 60);
+  /* Cosmic latte palette: Cosmic Latte #B7AB9A, Mocha Cream #E8DCC6, brand orange oklch(55% 0.15 38) copied from staging. */
+  --canvas: #f3ecdf;
+  --base-100: #fbf8f2;
+  --base-200: #e8dcc6;
+  --base-300: #d9ccb4;
+  --base-content: #2b1f1c;
   --brand-primary: oklch(55% 0.15 38);
-  --brand-primary-content: oklch(99% 0.005 85);
-  --brand-secondary: oklch(94.5% 0.03 50);
+  --brand-primary-content: #ffffff;
+  --brand-secondary: #e8dcc6;
   --brand-secondary-content: oklch(42% 0.12 38);
-  --brand-accent: oklch(95.5% 0.05 85);
-  --brand-accent-content: oklch(44% 0.1 65);
-  --brand-accent-2: oklch(50% 0.09 120);
-  --brand-accent-2-content: oklch(98% 0.01 120);
+  --brand-accent: #f1e6d0;
+  --brand-accent-content: #6b4a1f;
+  --brand-accent-2: #b7ab9a;
+  --brand-accent-2-content: #2b1f1c;
   --brand-highlight: var(--brand-accent);
   --brand-highlight-content: var(--brand-accent-content);
   --brand-neutral: oklch(27% 0.012 60);
-  --brand-neutral-content: oklch(94% 0.008 85);
-  --state-info: oklch(62% 0.13 240);
-  --state-info-content: oklch(98% 0.01 240);
-  --state-success: oklch(60% 0.14 155);
-  --state-success-content: oklch(98% 0.01 155);
-  --state-warning: oklch(80% 0.16 85);
-  --state-warning-content: oklch(28% 0.07 65);
-  --state-error: oklch(56% 0.21 25);
-  --state-error-content: oklch(99% 0.005 25);
-  --radius: 0.75rem;
+  --brand-neutral-content: #f3ecdf;
+  --state-info: #527c9c;
+  --state-info-content: #ffffff;
+  --state-success: #2e8b57;
+  --state-success-content: #ffffff;
+  --state-warning: #e6a23c;
+  --state-warning-content: #3a2606;
+  --state-error: #c0463a;
+  --state-error-content: #ffffff;
+  --radius: 0.375rem;
   --border-width: 1px;
+  --border-mix: 14%;
+  --input-mix: 24%;
+  --table-head-bg: #ece2cf;
+  --table-row-alt: #f7f2e8;
+  --table-row-hover: #efe5d2;
 }
 
 [data-theme='forest'] {
   color-scheme: dark;
-  /* Dark theme (name kept for saved preferences): warm espresso. */
-  --base-100: oklch(23% 0.012 55);
-  --base-200: oklch(19.5% 0.011 55);
-  --base-300: oklch(16.5% 0.01 55);
-  --base-content: oklch(90% 0.014 80);
-  --brand-primary: oklch(70% 0.14 45);
-  --brand-primary-content: oklch(20% 0.02 45);
-  --brand-secondary: oklch(33% 0.05 45);
-  --brand-secondary-content: oklch(88% 0.07 55);
-  --brand-accent: oklch(78% 0.13 85);
-  --brand-accent-content: oklch(22% 0.04 85);
-  --brand-accent-2: oklch(76% 0.11 120);
-  --brand-accent-2-content: oklch(22% 0.04 120);
+  /* DaisyUI "dark" palette: slate-blue surfaces, indigo primary, pink secondary, teal accent. Also
+     base-200 here is the raised/muted tone (lighter than the
+     card); the page canvas is daisy's darkest base-300. */
+  --canvas: oklch(21.15% 0.012 254.09);
+  --base-100: oklch(25.33% 0.016 252.42);
+  --base-200: oklch(29.5% 0.017 252.42);
+  --base-300: oklch(19% 0.011 254.09);
+  --base-content: oklch(97.807% 0.029 256.847);
+  --brand-primary: oklch(58% 0.233 277.117);
+  --brand-primary-content: oklch(96% 0.018 272.314);
+  --brand-secondary: oklch(65% 0.241 354.308);
+  --brand-secondary-content: oklch(94% 0.028 342.258);
+  --brand-accent: oklch(77% 0.152 181.912);
+  --brand-accent-content: oklch(38% 0.063 188.416);
+  --brand-accent-2: oklch(77% 0.152 181.912);
+  --brand-accent-2-content: oklch(38% 0.063 188.416);
   /* Warm surface for highlighted cards (open orders). */
-  --brand-highlight: oklch(32% 0.05 70);
+  --brand-highlight: oklch(34% 0.05 70);
   --brand-highlight-content: oklch(85% 0.12 80);
-  --brand-neutral: oklch(32% 0.015 55);
-  --brand-neutral-content: oklch(88% 0.012 80);
-  --state-info: oklch(72% 0.12 240);
-  --state-info-content: oklch(18% 0.03 240);
-  --state-success: oklch(70% 0.14 155);
-  --state-success-content: oklch(18% 0.03 155);
-  --state-warning: oklch(82% 0.15 85);
-  --state-warning-content: oklch(22% 0.05 65);
-  --state-error: oklch(70% 0.17 25);
-  --state-error-content: oklch(18% 0.04 25);
-  --radius: 0.75rem;
+  --brand-neutral: oklch(14% 0.005 285.823);
+  --brand-neutral-content: oklch(92% 0.004 286.32);
+  --state-info: oklch(74% 0.16 232.661);
+  --state-info-content: oklch(29% 0.066 243.157);
+  --state-success: oklch(76% 0.177 163.223);
+  --state-success-content: oklch(37% 0.077 168.94);
+  --state-warning: oklch(82% 0.189 84.429);
+  --state-warning-content: oklch(41% 0.112 45.904);
+  --state-error: oklch(71% 0.194 13.428);
+  --state-error-content: oklch(27% 0.105 12.094);
+  --radius: 0.375rem;
   --border-width: 1px;
+  --border-mix: 14%;
+  --input-mix: 24%;
+  --table-head-bg: oklch(29.5% 0.017 252.42);
+  --table-row-alt: oklch(27% 0.016 252.42);
+  --table-row-hover: oklch(32% 0.018 252.42);
 }
 
 /* shadcn/ui tokens derived from the palette above (same for both themes) */
 :root,
 [data-theme] {
-  --background: var(--base-100);
+  --background: var(--canvas);
   --foreground: var(--base-content);
   --card: var(--base-100);
   --card-foreground: var(--base-content);
@@ -90,7 +106,7 @@
   --accent-2: var(--brand-accent-2);
   --accent-2-foreground: var(--brand-accent-2-content);
   --muted: var(--base-200);
-  --muted-foreground: color-mix(in oklch, var(--base-content) 65%, var(--base-100));
+  --muted-foreground: color-mix(in oklch, var(--base-content) 58%, var(--base-100));
   --destructive: var(--state-error);
   --destructive-foreground: var(--state-error-content);
   --success: var(--state-success);
@@ -101,8 +117,8 @@
   --highlight-foreground: var(--brand-highlight-content);
   --info: var(--state-info);
   --info-foreground: var(--state-info-content);
-  --border: color-mix(in oklch, var(--base-content) 11%, var(--base-100));
-  --input: color-mix(in oklch, var(--base-content) 20%, var(--base-100));
+  --border: color-mix(in oklch, var(--base-content) var(--border-mix, 11%), var(--base-100));
+  --input: color-mix(in oklch, var(--base-content) var(--input-mix, 20%), var(--base-100));
   --ring: var(--brand-primary);
   --chart-1: var(--brand-primary);
   --chart-2: var(--brand-secondary);
@@ -147,6 +163,9 @@
   --color-highlight-foreground: var(--highlight-foreground);
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
+  --color-table-head: var(--table-head-bg);
+  --color-table-alt: var(--table-row-alt);
+  --color-table-hover: var(--table-row-hover);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -163,8 +182,8 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --radius-sm: calc(var(--radius) - 6px);
-  --radius-md: calc(var(--radius) - 4px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 6px);
 }

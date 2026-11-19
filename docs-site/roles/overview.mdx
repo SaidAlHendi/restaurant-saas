@@ -1,0 +1,72 @@
+---
+title: "Roles overview"
+description: "Who can do what in Sahtain, for restaurant staff and platform admins."
+icon: "users"
+---
+
+Sahtain has two separate sets of roles. Restaurant staff roles apply inside one restaurant. Platform admin roles apply to the team that runs Sahtain itself. The two never mix: a restaurant owner cannot sign in to the admin app, and an admin is not a member of any restaurant.
+
+## Restaurant staff roles
+
+Staff use the restaurant app. Each role is a fixed set of permissions. Owners and managers can assign roles on the **Staff** page.
+
+<Columns cols={2}>
+  <Card title="Owner" icon="crown" href="/roles/owner">
+    Full control of the restaurant, including billing and settings.
+  </Card>
+
+  <Card title="Manager" icon="clipboard-list" href="/roles/manager">
+    Runs daily operations, menu and reports, and manages cashiers and kitchen staff.
+  </Card>
+
+  <Card title="Cashier" icon="shopping-bag" href="/roles/cashier">
+    Takes orders and payments at the POS.
+  </Card>
+
+  <Card title="Kitchen" icon="chef-hat" href="/roles/kitchen">
+    Sees incoming orders and moves them through preparation.
+  </Card>
+</Columns>
+
+### Staff permission matrix
+
+| Capability | Owner | Manager | Cashier | Kitchen |
+| --- | --- | --- | --- | --- |
+| View orders | Yes | Yes | Yes | Yes |
+| Create orders (POS) | Yes | Yes | Yes | No |
+| Update order status (kitchen display) | Yes | Yes | Yes | Yes |
+| Cancel orders without approval | Yes | Yes | No, needs approval | No |
+| Reopen a completed order | Yes | Yes | No | No |
+| View menu | Yes | Yes | Yes | No |
+| Edit menu | Yes | Yes | No | No |
+| Show a menu item in all branches | Yes | Only if allowed in every branch | No | No |
+| Show a menu item in chosen branches | Yes | Yes, own branches only | No | No |
+| View reports and dashboard | Yes | Yes | No | No |
+| Switch between branches | Yes | Yes | Yes | No |
+| Add and edit branches and tax (Branches page) | Yes | No | No | No |
+| View staff | Yes | Yes | No | No |
+| Manage staff | Yes, all roles | Cashier and kitchen only | No | No |
+| Restaurant settings | Yes | No | No | No |
+| Billing and subscription | Yes | No | No | No |
+
+## Platform admin roles
+
+Admins use the separate admin app. Roles are ranked, and each role includes everything the roles below it can do: **support**, then **billing**, then **super**.
+
+<Columns cols={3}>
+  <Card title="Support" icon="life-buoy" href="/roles/support">
+    Read-only view of restaurants and platform data.
+  </Card>
+
+  <Card title="Billing" icon="wallet" href="/roles/billing">
+    Everything support can do, plus subscriptions and plans.
+  </Card>
+
+  <Card title="Super" icon="shield-check" href="/roles/super">
+    Full platform control, including suspending restaurants.
+  </Card>
+</Columns>
+
+<Note>
+  The admin app is still being built. Today only the overview and restaurants pages work, and suspend and reactivate are the only actions that change data. Other sidebar items open a coming-soon page. The billing and support pages describe the intended scope for those items.
+</Note>

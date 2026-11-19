@@ -3,7 +3,9 @@ import {
   Controller,
   Get,
   Headers,
+  HttpCode,
   Param,
+  ParseUUIDPipe,
   Post,
   Query,
   Res,
@@ -24,23 +26,28 @@ import {
   ChangeOrderStatusBodyDto,
   CreateOrderBodyDto,
   CreatePaymentBodyDto,
+  MoveOrderTableBodyDto,
   OrderListQueryDto,
   VoidOrderItemBodyDto,
 } from './dto/ordering.dto';
 import { OrderingPathIdPipe } from './pipes/ordering-path-id.pipe';
+import { BillsService } from './bills.service';
 import { OrderingService } from './ordering.service';
 
 @RequireBranchScope()
 @Controller('v1/branches/:branchId/orders')
 export class OrdersController {
-  constructor(private readonly ordering: OrderingService) {}
+  constructor(
+    private readonly ordering: OrderingService,
+    private readonly bills: BillsService,
+  ) {}
 
   @RequirePermission('orders.create')
   @RequireFeature('pos.access')
   @Post()
   async create(
     @Ctx() ctx: RequestContext,
-    @Param('branchId') branchId: string,
+    @Param('branchId', ParseUUIDPipe) branchId: string,
     @Headers('idempotency-key') idempotencyKey: string | undefined,
     @Body() body: CreateOrderBodyDto,
     @Res({ passthrough: true }) res: Response,
@@ -57,7 +64,7 @@ export class OrdersController {
   @Get()
   list(
     @Ctx() ctx: RequestContext,
-    @Param('branchId') branchId: string,
+    @Param('branchId', ParseUUIDPipe) branchId: string,
     @Query() query: OrderListQueryDto,
   ) {
     return this.ordering.listOrders(ctx, branchId, query);
@@ -67,7 +74,7 @@ export class OrdersController {
   @Get(':orderId/events')
   listEvents(
     @Ctx() ctx: RequestContext,
-    @Param('branchId') branchId: string,
+    @Param('branchId', ParseUUIDPipe) branchId: string,
     @Param('orderId', OrderingPathIdPipe) orderId: string,
   ) {
     return this.ordering.listEvents(ctx, branchId, orderId);
@@ -77,7 +84,7 @@ export class OrdersController {
   @Get(':orderId')
   get(
     @Ctx() ctx: RequestContext,
-    @Param('branchId') branchId: string,
+    @Param('branchId', ParseUUIDPipe) branchId: string,
     @Param('orderId', OrderingPathIdPipe) orderId: string,
   ) {
     return this.ordering.getOrder(ctx, branchId, orderId);
@@ -90,7 +97,7 @@ export class OrdersController {
   @Post(':orderId/status')
   changeStatus(
     @Ctx() ctx: RequestContext,
-    @Param('branchId') branchId: string,
+    @Param('branchId', ParseUUIDPipe) branchId: string,
     @Param('orderId', OrderingPathIdPipe) orderId: string,
     @Body() body: ChangeOrderStatusBodyDto,
   ) {
@@ -102,7 +109,7 @@ export class OrdersController {
   @Post(':orderId/items')
   addItems(
     @Ctx() ctx: RequestContext,
-    @Param('branchId') branchId: string,
+    @Param('branchId', ParseUUIDPipe) branchId: string,
     @Param('orderId', OrderingPathIdPipe) orderId: string,
     @Body() body: AddOrderItemsBodyDto,
   ) {
@@ -111,10 +118,23 @@ export class OrdersController {
 
   @RequirePermission('orders.create')
   @RequireFeature('pos.access')
+  @HttpCode(200)
+  @Post(':orderId/move-table')
+  moveTable(
+    @Ctx() ctx: RequestContext,
+    @Param('branchId', ParseUUIDPipe) branchId: string,
+    @Param('orderId', OrderingPathIdPipe) orderId: string,
+    @Body() body: MoveOrderTableBodyDto,
+  ) {
+    return this.bills.moveOrderToTable(ctx, branchId, orderId, body);
+  }
+
+  @RequirePermission('orders.create')
+  @RequireFeature('pos.access')
   @Post(':orderId/payments')
   async capturePayment(
     @Ctx() ctx: RequestContext,
-    @Param('branchId') branchId: string,
+    @Param('branchId', ParseUUIDPipe) branchId: string,
     @Param('orderId', OrderingPathIdPipe) orderId: string,
     @Headers('idempotency-key') idempotencyKey: string | undefined,
     @Body() body: CreatePaymentBodyDto,
@@ -132,7 +152,7 @@ export class OrdersController {
   @Post(':orderId/items/:itemId/void')
   voidItem(
     @Ctx() ctx: RequestContext,
-    @Param('branchId') branchId: string,
+    @Param('branchId', ParseUUIDPipe) branchId: string,
     @Param('orderId', OrderingPathIdPipe) orderId: string,
     @Param('itemId', OrderingPathIdPipe) itemId: string,
     @Body() body: VoidOrderItemBodyDto,

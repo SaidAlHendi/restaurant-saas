@@ -1,15 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { toast } from '@app/ui';
-import type { OrderListItem, OrderStatus } from '@app/shared';
+import type { OrderDetail, OrderListItem, OrderStatus } from '@app/shared';
 
 import { baseApi } from '../../../app/api/base-api.js';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks.js';
-import { intlLocaleForUi } from '../../../lib/money.js';
+import { readPrintAdditions } from '../pos-print-pref.js';
+import { intlLocaleForUi, orderMoneyFormatter } from '../../../lib/money.js';
 import type { RealtimeEvent } from '../../../lib/realtime.js';
-import { useListOrdersQuery } from '../../orders/orders.api.js';
+import { ordersApi, useListOrdersQuery } from '../../orders/orders.api.js';
 import { useBranchRealtime } from '../../realtime/use-branch-realtime.js';
 import {
   selectCan,
@@ -21,7 +22,9 @@ import { posOrderTagsForEvent } from '../pos-realtime.utils.js';
 import {
   mergeListQueryWithSearch,
   parsePosOrdersTab,
+  parseTodayOnly,
   POS_ORDERS_TABS,
+  showOlderOrdersHint,
   tabToListQuery,
   type PosOrdersTab,
 } from '../pos-orders-list.utils.js';
@@ -29,6 +32,9 @@ import { orderTypeTableLabel } from '../../orders/order-type-table-label.utils.j
 import { orderStatusBadgeTone } from '../../orders/orders-display.utils.js';
 import { shouldShowSentToKitchenToast } from '../pos-payment-toast.utils.js';
 import { useGetPosMenuQuery } from '../pos.api.js';
+import { handoverLabelKey, orderIsPaid } from '../pos-order-detail.utils.js';
+import { showOrdersApiError } from '../../orders/show-orders-api-error.js';
+import { usePosHandover } from './use-pos-handover.js';
 import { usePosOrderDetail } from './use-pos-order-detail.js';
 import { usePosPaymentDialog } from './use-pos-payment-dialog.js';
 import { usePosLockRequest } from '../pos-lock-context.js';
@@ -40,17 +46,24 @@ export function usePosOrdersPage() {
   const requestLock = usePosLockRequest();
   const dispatch = useAppDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const [printAdditionsPref] = useState(readPrintAdditions);
   const branchId = useAppSelector(selectCurrentBranchId);
   const org = useAppSelector(selectSessionOrg);
   const canCancelOrders = useAppSelector(selectCan('orders.cancel'));
+  const canReopenOrders = useAppSelector(selectCan('orders.reopen'));
   const canCreateOrders = useAppSelector(selectCan('orders.create'));
 
   const tab = parsePosOrdersTab(searchParams.get('tab'));
+  const todayOnly = parseTodayOnly(searchParams.get('today'), tab);
   const [searchQ, setSearchQ] = useState('');
   const [cursor, setCursor] = useState<string | undefined>(undefined);
   const [accumulated, setAccumulated] = useState<OrderListItem[]>([]);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const beforePaymentStatusRef = useRef<OrderStatus | null>(null);
+  const handoverAfterPayRef = useRef<string | null>(null);
+  /** Row whose handover is being prepared (fetching the order or completing it): its button shows a spinner. */
+  const [handoverBusyId, setHandoverBusyId] = useState<string | null>(null);
 
   const reloadFirstPage = useCallback(() => {
     setCursor(undefined);
@@ -59,15 +72,15 @@ export function usePosOrdersPage() {
 
   useEffect(() => {
     reloadFirstPage();
-  }, [tab, branchId, searchQ, reloadFirstPage]);
+  }, [tab, todayOnly, branchId, searchQ, reloadFirstPage]);
 
   const locale = i18n.language.startsWith('ar') ? 'ar' : 'en';
   const uiLocale = intlLocaleForUi(i18n.language);
   const defaultLocale = org?.defaultLocale ?? 'en';
 
   const listQuery = useMemo(
-    () => mergeListQueryWithSearch(tabToListQuery(tab, PAGE_SIZE), searchQ),
-    [tab, searchQ],
+    () => mergeListQueryWithSearch(tabToListQuery(tab, PAGE_SIZE, todayOnly), searchQ),
+    [tab, todayOnly, searchQ],
   );
 
   const { data, isLoading, isError, isFetching, refetch } = useListOrdersQuery(
@@ -125,19 +138,6 @@ export function usePosOrdersPage() {
     return map;
   }, [tablesData?.items]);
 
-  const formatMinor = useCallback(
-    (minor: number) =>
-      new Intl.NumberFormat(uiLocale, {
-        style: 'currency',
-        currency: menu?.branch.currency ?? 'SAR',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 2,
-      }).format(minor / 100),
-    [menu?.branch.currency, uiLocale],
-  );
-
-  const currency = menu?.branch.currency ?? 'SAR';
-
   const orderDetail = usePosOrderDetail({
     branchId,
     orderId: selectedOrderId,
@@ -148,33 +148,117 @@ export function usePosOrdersPage() {
     tableLabelById,
     locale,
     defaultLocale,
-    formatMinor,
+    uiLocale,
+    // Adding items happens on /pos; this page only hands the order over.
     additionLines: [],
     clearAdditionLines: () => {},
     isAddingItems: false,
-    setIsAddingItems: () => {},
+    onStartAddItems: (orderId: string) => {
+      void navigate(`/pos?addTo=${orderId}`);
+    },
+    onExitAddItems: () => {},
+    printAdditions: printAdditionsPref,
+    payBeforeSend: false,
+    onAdditionsHeld: () => {},
     canCancelOrders,
     canCreateOrders,
+    canReopenOrders,
+    onHandoverNeedsPayment: () => {
+      const current = orderDetail.order;
+      if (current) {
+        handoverAfterPayRef.current = current.id;
+        beforePaymentStatusRef.current = current.status;
+        paymentDialog.openForOrder(current);
+      }
+    },
   });
+
+  const rowHandover = usePosHandover(branchId);
 
   const paymentDialog = usePosPaymentDialog({
     branchId,
     order: orderDetail.order,
     acceptsCard: menu?.branch.acceptsCard ?? true,
+    onDismissUnpaid: () => {
+      handoverAfterPayRef.current = null;
+    },
     onPaymentCaptured: () => {
       const before = beforePaymentStatusRef.current;
       beforePaymentStatusRef.current = null;
+      const handoverId = handoverAfterPayRef.current;
+      handoverAfterPayRef.current = null;
+      const paidOrderBefore = orderDetail.order;
+      const finishHandover = (updated: OrderDetail) => {
+        if (handoverId === updated.id && updated.status === 'ready' && orderIsPaid(updated)) {
+          void rowHandover.complete(updated).then((done) => {
+            if (done) {
+              setSelectedOrderId(null);
+            }
+          });
+        }
+      };
+      if (handoverId !== null && handoverId !== orderDetail.order?.id && branchId) {
+        // Started from a list row: the sheet is closed, so fetch the order by id.
+        void dispatch(
+          ordersApi.endpoints.getOrder.initiate({ branchId, orderId: handoverId }, { forceRefetch: true }),
+        )
+          .unwrap()
+          .then(finishHandover)
+          .catch(() => {});
+        return;
+      }
       void orderDetail.refetchOrder().then((result) => {
         const updated = result.data;
+        if (updated) {
+          finishHandover(updated);
+        }
         if (updated && shouldShowSentToKitchenToast(before, updated.status)) {
           toast.success(t('pos.toast.sentToKitchen', { number: updated.orderNumber }));
         }
+        if (updated) {
+          orderDetail.announceReleasedAdditions(paidOrderBefore, updated);
+        }
       });
     },
-    formatMinor,
-    currency,
     uiLocale,
   });
+
+  /** Row button: paid -> complete at once; unpaid -> payment dialog first, then complete. */
+  const handoverRow = useCallback(
+    async (row: OrderListItem) => {
+      if (!branchId) {
+        return;
+      }
+      setHandoverBusyId(row.id);
+      try {
+        if (row.paymentStatus === 'paid' || row.totalMinor === 0) {
+          await rowHandover.complete(row);
+          return;
+        }
+        const detail = await dispatch(
+          ordersApi.endpoints.getOrder.initiate(
+            { branchId, orderId: row.id },
+            { forceRefetch: true },
+          ),
+        ).unwrap();
+        handoverAfterPayRef.current = detail.id;
+        beforePaymentStatusRef.current = detail.status;
+        paymentDialog.openForOrder(detail);
+      } catch (error) {
+        showOrdersApiError(error, t);
+      } finally {
+        setHandoverBusyId(null);
+      }
+    },
+    [branchId, dispatch, paymentDialog, rowHandover, t],
+  );
+
+  const setTodayOnly = useCallback(
+    (next: boolean) => {
+      setSearchParams({ tab, today: next ? '1' : '0' });
+    },
+    [setSearchParams, tab],
+  );
 
   const setTab = useCallback(
     (next: PosOrdersTab) => {
@@ -188,7 +272,7 @@ export function usePosOrdersPage() {
     return accumulated.map((order) => ({
       id: order.id,
       orderNumber: order.orderNumber,
-      timeLabel: new Intl.DateTimeFormat(uiLocale, {
+      timeLabel: new Intl.DateTimeFormat(intlLocaleForUi(uiLocale), {
         hour: '2-digit',
         minute: '2-digit',
         timeZone: menu?.branch.timezone,
@@ -201,7 +285,7 @@ export function usePosOrdersPage() {
         takeawayLabel,
       }),
       itemCount: order.itemCount,
-      totalLabel: formatMinor(order.totalMinor),
+      totalLabel: orderMoneyFormatter(order, uiLocale)(order.totalMinor, 'total'),
       statusTone: orderStatusBadgeTone(order.status),
       statusLabel:
         order.status === 'draft'
@@ -211,8 +295,18 @@ export function usePosOrdersPage() {
       onSelect: () => {
         setSelectedOrderId(order.id);
       },
+      handover:
+        order.status === 'ready'
+          ? {
+              label: t(handoverLabelKey(order.type)),
+              loading: handoverBusyId === order.id,
+              onClick: () => {
+                void handoverRow(order);
+              },
+            }
+          : null,
     }));
-  }, [accumulated, formatMinor, menu?.branch.timezone, t, tableLabelById, uiLocale]);
+  }, [accumulated, handoverBusyId, handoverRow, menu?.branch.timezone, t, tableLabelById, uiLocale]);
 
   return {
     tab,
@@ -228,6 +322,30 @@ export function usePosOrdersPage() {
       onChange: setSearchQ,
       placeholder: t('pos.orders.searchPlaceholder'),
       clearLabel: t('pos.catalog.searchClear'),
+    },
+    todaySwitch: {
+      checked: todayOnly,
+      label: t('pos.orders.todayOnly'),
+      onChange: setTodayOnly,
+    },
+    olderHint: showOlderOrdersHint(tab, todayOnly, data?.hiddenOlderCount)
+      ? {
+          message: t('pos.orders.olderHidden', { count: data?.hiddenOlderCount ?? 0 }),
+          actionLabel: t('pos.orders.showOlder'),
+          onShowAll: () => {
+            setTodayOnly(false);
+          },
+        }
+      : null,
+    tableHeaders: {
+      order: t('pos.orders.columns.order'),
+      time: t('pos.orders.columns.time'),
+      typeTable: t('pos.orders.columns.typeTable'),
+      items: t('pos.orders.columns.items'),
+      total: t('pos.orders.columns.total'),
+      status: t('pos.orders.columns.status'),
+      payment: t('pos.orders.columns.payment'),
+      action: t('pos.orders.columns.action'),
     },
     rows,
     isLoading,

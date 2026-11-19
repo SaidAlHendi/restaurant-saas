@@ -1,4 +1,17 @@
 {
+  "notFoundPage": {
+    "table": "طاولة 404",
+    "order": "طلب رقم 404",
+    "line1": "1× الصفحة التي طلبتها",
+    "line2": "1× القليل من الصبر",
+    "line3": "1× الطريق إلى الرئيسية",
+    "served": "قُدّم",
+    "onUs": "علينا",
+    "stamp": "نفدت",
+    "title": "عذراً، نفدت هذه الصفحة",
+    "body": "المطبخ لا يملك ما طلبته. ربما انتقلت إلى مكان آخر، أو لم تكن في القائمة أصلاً.",
+    "home": "العودة للرئيسية"
+  },
   "common": {
     "loading": "جاري التحميل",
     "cancel": "إلغاء",
@@ -26,6 +39,65 @@
     "admin": "الإدارة"
   },
   "auth": {
+    "aside": {
+      "title": "أهلاً بعودتك إلى المطبخ",
+      "body": "الطلبات والمطبخ والكاشير، كلها في مكان واحد.",
+      "live": {
+        "default": "اسم مطعمك",
+        "lines": [
+          "حساب جديد",
+          "جاهز للخدمة"
+        ],
+        "status": "جاهز",
+        "meta": "الآن"
+      },
+      "tickets": [
+        {
+          "title": "طاولة 4",
+          "meta": "12:40",
+          "lines": [
+            "2 × شاورما دجاج",
+            "1 × فتوش"
+          ],
+          "status": "جاهز"
+        },
+        {
+          "title": "سفري 17",
+          "meta": "12:43",
+          "lines": [
+            "1 × مشاوي مشكلة",
+            "3 × خبز"
+          ],
+          "status": "قيد التحضير"
+        },
+        {
+          "title": "طاولة 9",
+          "meta": "12:46",
+          "lines": [
+            "4 × شوربة عدس",
+            "2 × حمص"
+          ],
+          "status": "جديد"
+        },
+        {
+          "title": "طاولة 2",
+          "meta": "12:51",
+          "lines": [
+            "1 × كبسة",
+            "1 × ليمون بالنعناع"
+          ],
+          "status": "قيد التحضير"
+        },
+        {
+          "title": "توصيل 31",
+          "meta": "12:55",
+          "lines": [
+            "2 × ساندويتش فلافل"
+          ],
+          "status": "جديد"
+        }
+      ]
+    },
     "login": {
       "title": "تسجيل الدخول",
       "submit": "دخول",
@@ -52,7 +124,9 @@
       "ar": "العربية"
     },
     "errors": {
-      "generic": "حدث خطأ. حاول مرة أخرى."
+      "generic": "حدث خطأ. حاول مرة أخرى.",
+      "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
+      "emailTaken": "هذا البريد الإلكتروني مسجل بالفعل. جرّب تسجيل الدخول."
     },
     "validation": {
       "nameRequired": "أدخل اسمك."
@@ -89,7 +163,10 @@
       "kitchen": "المطبخ",
       "branchSettings": "إعدادات الفرع",
       "settings": "الإعدادات",
-      "billing": "الفوترة"
+      "billing": "الفوترة",
+      "branches": "الفروع",
+      "staff": "الموظفون",
+      "devices": "الأجهزة"
     },
     "today": {
       "title": "اليوم",
@@ -127,6 +204,13 @@
       "empty": "لا طلبات تطابق الفلاتر.",
       "error": "تعذر تحميل الطلبات.",
       "branchDateError": "تعذر تحميل تاريخ عمل الفرع.",
+      "pagination": {
+        "navigation": "التنقل بين الصفحات",
+        "previous": "الصفحة السابقة",
+        "next": "الصفحة التالية",
+        "page": "صفحة"
+      },
+      "showingRecords": "عرض {{n}} طلب",
       "loadMore": "تحميل المزيد",
       "filters": {
         "status": "الحالة",
@@ -194,6 +278,47 @@
       "total": "الإجمالي",
       "paid": "المدفوع",
       "due": "المتبقي"
+    },
+    "overview": {
+      "vsPrevious": "مقارنة باليوم السابق",
+      "salesBreakdown": "تفصيل المبيعات",
+      "salesBreakdownHint": "من أين جاءت مبيعات اليوم",
+      "liveOps": "التشغيل المباشر",
+      "liveOpsHint": "الآن في هذا الفرع",
+      "live": "مباشر",
+      "openOrders": "الطلبات المفتوحة",
+      "openOrdersHint": "مرسلة أو قيد التحضير أو جاهزة",
+      "waiting": "بانتظار المطبخ",
+      "waitingHint": "لم يبدأ تحضيرها بعد",
+      "readyOrders": "جاهزة للاستلام",
+      "readyHint": "بانتظار الكاشير",
+      "oldest": "أقدم طلب مفتوح",
+      "oldestHint": "الوقت منذ إنشائه",
+      "openKitchen": "فتح شاشة المطبخ",
+      "recent": "أحدث الطلبات",
+      "recentHint": "آخر نشاط اليوم",
+      "viewAll": "عرض الكل",
+      "colOrder": "الطلب",
+      "colTime": "الوقت",
+      "colWhere": "الطاولة أو العميل",
+      "colItems": "الأصناف",
+      "colAmount": "المبلغ",
+      "colStatus": "الحالة",
+      "noRecent": "لا توجد طلبات اليوم بعد.",
+      "popular": "الأكثر مبيعًا",
+      "popularHint": "أفضل المنتجات لهذا اليوم",
+      "minutes_zero": "{{count}} دقيقة",
+      "minutes_one": "دقيقة",
+      "minutes_two": "دقيقتان",
+      "minutes_few": "{{count}} دقائق",
+      "minutes_many": "{{count}} دقيقة",
+      "minutes_other": "{{count}} دقيقة",
+      "items_zero": "{{count}} صنف",
+      "items_one": "صنف واحد",
+      "items_two": "صنفان",
+      "items_few": "{{count}} أصناف",
+      "items_many": "{{count}} صنفًا",
+      "items_other": "{{count}} صنف"
     }
   },
   "order": {
@@ -202,14 +327,18 @@
       "placed": "أُرسل للمطبخ",
       "statusChanged": "الحالة {{from}} ← {{to}}",
       "itemsAdded": "أُضيف {{count}} صنف",
-      "itemVoided": "أُلغي {{name}} ({{reason}})",
+      "itemVoided": "حُذف {{name}}",
       "itemStatusChanged": "{{name}}: {{status}}",
-      "cancelled": "أُلغى ({{reason}})",
+      "cancelled": "أُلغي الطلب",
       "paymentCaptured": "دفع {{method}} ({{amountMinor}})",
-      "unknown": "حدث: {{type}}"
+      "unknown": "حدث: {{type}}",
+      "reopened": "أُعيد فتح الطلب: {{from}} ← {{to}}",
+      "undone": "تم التراجع: عاد إلى {{to}}",
+      "handedOver": "تم التسليم"
     }
   },
   "settings": {
+    "unsavedChanges": "لديك تغييرات غير محفوظة. اضغط على «حفظ التغييرات» حتى تُطبَّق.",
     "title": "الإعدادات",
     "description": "إعدادات المطعم والفرع والفريق.",
     "tabs": {
@@ -222,7 +351,6 @@
       "description": "الاسم والشعار واللغات في القائمة والإيصالات.",
       "name": "اسم المطعم",
       "slug": "الرابط العام",
-      "currency": "العملة الافتراضية",
       "locales": "لغات القائمة",
       "localeEn": "English",
       "localeAr": "العربية",
@@ -241,19 +369,33 @@
     },
     "branch": {
       "title": "إعدادات الفرع",
-      "description": "الضريبة والإيصالات ويوم العمل وخيارات الدفع للفرع الحالي.",
+      "description": "الاسم والعنوان والضريبة والدفع والإيصال لهذا الفرع.",
       "payBeforeSend": "الدفع قبل الإرسال",
-      "payBeforeSendHint": "تبقى الطلبات مسودة حتى اكتمال الدفع، ثم تُرسل للمطبخ.",
+      "payBeforeSendHint": "مفعّل: يصل الطلب للمطبخ بعد دفعه فقط. معطّل: يصل للمطبخ أولاً ويُدفع لاحقاً.",
       "acceptsCard": "قبول الدفع بالبطاقة",
-      "acceptsCardHint": "عند الإيقاف، يسجّل الكاشير النقد فقط.",
+      "acceptsCardHint": "معطّل: يسجّل الكاشير الدفع النقدي فقط.",
+      "pager": "أرقام الاستلام / أجهزة التنبيه",
+      "pagerHint": "مفعّل: يدخل الكاشير رقم جهاز التنبيه في كل طلب. يظهر الرقم على تذاكر المطبخ والإيصالات وعلى شاشة «جاهز» للعملاء.",
+      "pagerPlanHint": "متاح في باقة المطعم وما فوقها.",
+      "pagerDisplayLink": "عنوان شاشة «جاهز» للعملاء",
+      "pagerLinkHint": "افتح هذا الرابط الخاص على التلفزيون أو التابلت المواجه للعملاء. أي شخص لديه الرابط يستطيع رؤية الشاشة، فلا تنشره علناً.",
+      "pagerLinkCreate": "إنشاء الرابط",
+      "pagerLinkCopy": "نسخ الرابط",
+      "pagerLinkRegenerate": "إنشاء رابط جديد",
+      "pagerLinkCopied": "تم نسخ الرابط",
+      "pagerLinkRegenerateConfirm": "سيتوقف الرابط القديم عن العمل ويجب فتح الشاشة من جديد بالرابط الجديد. هل تريد المتابعة؟",
       "taxPercent": "نسبة الضريبة (%)",
-      "taxPercentHint": "من 0 إلى 100، بحد أقصى منزلتين عشريتين.",
+      "taxPercentHint": "مثلاً 15 تعني 15%. اكتب 0 إذا لا تحسب ضريبة.",
       "taxInvalid": "أدخل نسبة ضريبة صالحة بين 0 و 100.",
       "taxInclusive": "الأسعار شاملة الضريبة",
-      "taxInclusiveHint": "أسعار القائمة تشمل الضريبة.",
-      "dayStartHour": "بداية يوم العمل (الساعة)",
-      "dayStartHourHint": "0–23 بتوقيت الفرع؛ التقارير تستخدم هذا الوقت.",
+      "taxInclusiveHint": "مفعّل: سعر القائمة يشمل الضريبة. معطّل: تُضاف الضريبة فوق السعر عند الدفع.",
+      "dayStartHour": "متى يبدأ يوم العمل عندك؟",
+      "dayStartHourHint": "الطلبات قبل هذا الوقت تُحسب في التقارير على اليوم السابق. مثال: إذا تقفل بعد منتصف الليل اختر 4:00 صباحاً، فتُحسب مبيعات الساعة 1:00 ليلاً على اليوم الذي تنتمي له.",
       "dayStartInvalid": "أدخل ساعة بين 0 و 23.",
+      "dayPartEvening": "المساء",
+      "dayPartAfternoon": "الظهر والعصر",
+      "dayPartMorning": "الصباح",
+      "dayPartNight": "الليل",
       "timezone": "المنطقة الزمنية",
       "address": "العنوان على الإيصال",
       "receiptHeader": "ترويسة الإيصال",
@@ -266,10 +408,26 @@
       "receiptOther": "أخرى",
       "receiptTendered": "المُسلّم",
       "receiptChange": "الباقي",
-      "taxDayNote": "الضريبة وبداية يوم العمل تُطبّق على الطلبات الجديدة؛ شاشات الكاشier تتحدّث عند تغيير الإعدادات.",
+      "taxDayNote": "التغييرات تنطبق على الطلبات الجديدة، وتتحدّث شاشات الكاشير المفتوحة تلقائياً.",
       "save": "حفظ التغييرات",
       "saved": "تم حفظ الإعدادات.",
-      "loadError": "تعذر تحميل إعدادات الفرع."
+      "loadError": "تعذر تحميل إعدادات الفرع.",
+      "taxSection": "الضريبة",
+      "taxSectionHint": "كيف تُضاف الضريبة على الطلبات في هذا الفرع.",
+      "paymentsSection": "الدفع عند الكاشير",
+      "paymentsSectionHint": "كيف يستلم الكاشير الدفع.",
+      "advancedTitle": "إعدادات متقدمة",
+      "advancedHint": "يوم العمل، المنطقة الزمنية والإيصال المطبوع. القيم الافتراضية تناسب أغلب المطاعم.",
+      "businessDaySection": "يوم العمل والمنطقة الزمنية",
+      "receiptSection": "الإيصال المطبوع",
+      "receiptSectionHint": "نص اختياري يُطبع أعلى وأسفل إيصال الزبون، مثل الرقم الضريبي أو عبارة شكر.",
+      "generalSection": "عام",
+      "nameLabel": "اسم الفرع",
+      "activeLabel": "الفرع فعّال",
+      "activeHint": "أوقفه لمنع هذا الفرع من استقبال الطلبات. يبقى سجله محفوظاً.",
+      "back": "كل الفروع",
+      "notFound": "تعذّر العثور على هذا الفرع.",
+      "nameRequired": "أدخل اسم الفرع."
     },
     "staff": {
       "title": "الفريق والأدوار",
@@ -282,12 +440,20 @@
       "columnRole": "الدور",
       "columnStatus": "الحالة",
       "columnPin": "PIN",
+      "columnBranches": "الفروع",
+      "branchCount": "{{n}} فروع",
+      "allBranchesLabel": "كل الفروع",
+      "searchPlaceholder": "ابحث بالاسم أو البريد",
+      "allRoles": "كل الأدوار",
+      "filterRole": "تصفية حسب الدور",
       "actions": "إجراءات",
       "disable": "تعطيل",
       "enable": "تفعيل",
       "regenerateInvite": "نسخ رابط دعوة جديد",
       "revokeInvite": "إلغاء الدعوة",
       "inviteDialogTitle": "دعوة بالبريد",
+      "inviteDialogDescription": "أرسل رابط تسجيل دخول لأحد أعضاء الفريق. الرابط صالح لمدة 7 أيام.",
+      "close": "إغلاق",
       "inviteEmail": "البريد الإلكتروني",
       "inviteRole": "الدور",
       "inviteSubmit": "إرسال الدعوة",
@@ -354,7 +520,52 @@
         "too_long": "PIN يجب ألا يزيد عن 6 أرقام.",
         "not_digits": "PIN أرقام فقط.",
         "mismatch": "PIN غير متطابق."
+      },
+      "permissions": {
+        "action": "الصلاحيات",
+        "title": "صلاحيات {{name}}",
+        "description": "فعّل الصلاحيات أو عطّلها لهذا الشخص فقط. لا يتأثر باقي الموظفين الذين لديهم الدور نفسه.",
+        "overridden": "مخصّصة",
+        "reset": "إعادة إلى صلاحيات الدور",
+        "saved": "تم تحديث الصلاحيات.",
+        "loadError": "تعذّر تحميل الصلاحيات.",
+        "keys": {
+          "branches.read": "عرض الفروع",
+          "branches.manage": "إدارة الفروع والطاولات",
+          "tables.rotate_qr": "إعادة إنشاء رموز QR للطاولات",
+          "staff.read": "عرض الموظفين",
+          "staff.manage": "إدارة الموظفين",
+          "orders.create": "إنشاء الطلبات",
+          "orders.read": "عرض الطلبات",
+          "orders.update_status": "تحديث حالة الطلب",
+          "orders.cancel": "إلغاء الطلبات",
+          "orders.reopen": "إعادة فتح الطلبات المكتملة",
+          "menu.read": "عرض القائمة",
+          "menu.manage": "إدارة القائمة",
+          "reports.read": "عرض التقارير"
+        }
       }
+    },
+    "currency": {
+      "title": "العملة",
+      "description": "احفظ الأسعار بعملة واعرض عملة أخرى للموظفين والزبائن.",
+      "baseCurrency": "العملة الأساسية",
+      "baseCurrencyHint": "تُحفظ الأسعار بهذه العملة. يمكنك تغييرها حتى يستقبل المطعم أول طلب. أرقام الأسعار تبقى كما كُتبت.",
+      "baseCurrencyLockedHint": "تُحفظ الأسعار بهذه العملة. لا يمكن تغييرها لأن المطعم لديه طلبات.",
+      "displayCurrency": "عملة العرض",
+      "displayCurrencyHint": "تظهر على شاشة الكاشير والإيصالات والقائمة العامة والتقارير.",
+      "sameAsBase": "نفس العملة الأساسية ({{currency}})",
+      "rate": "سعر الصرف: 1 {{base}} مقابل {{display}}",
+      "rateHint": "اكتب سعر اليوم. الطلبات السابقة تحتفظ بالسعر الذي أُنشئت به.",
+      "rateInvalid": "أدخل سعر الصرف كرقم أكبر من 0.",
+      "rateUpdated": "آخر تحديث {{date}}",
+      "rateStale": "لم يُحدَّث سعر الصرف منذ أكثر من 7 أيام. تأكد أنه ما زال صحيحاً.",
+      "itemStep": "تقريب الأسعار إلى",
+      "itemStepHint": "يُستخدم لأسعار القائمة وبنود الطلب.",
+      "totalStep": "تقريب الإجمالي إلى",
+      "totalStepHint": "يُستخدم للمبلغ الذي يدفعه الزبون.",
+      "noRounding": "بدون تقريب",
+      "preview": "مثال: صنف محفوظ بسعر {{base}} يظهر بسعر {{price}}. إجمالي طلب {{base}} يُحصَّل {{total}}."
     }
   },
   "pos": {
@@ -369,12 +580,21 @@
     "awaitingPaymentBadge": "بانتظار الدفع",
     "toast": {
       "sentToKitchen": "تم إرسال الطلب رقم {{number}} للمطبخ",
-      "awaitingPayment": "الطلب رقم {{number}} بانتظار الدفع"
+      "awaitingPayment": "الطلب رقم {{number}} بانتظار الدفع",
+      "additionsSent_zero": "لم يُرسل أي صنف إلى المطبخ للطلب رقم {{number}}",
+      "additionsSent_one": "أُرسل صنف واحد إلى المطبخ للطلب رقم {{number}}",
+      "additionsSent_two": "أُرسل صنفان إلى المطبخ للطلب رقم {{number}}",
+      "additionsSent_few": "أُرسلت {{count}} أصناف إلى المطبخ للطلب رقم {{number}}",
+      "additionsSent_many": "أُرسل {{count}} صنفًا إلى المطبخ للطلب رقم {{number}}",
+      "additionsSent_other": "أُرسل {{count}} صنف إلى المطبخ للطلب رقم {{number}}",
+      "additionsAwaitingPayment": "تم حفظ إضافات الطلب رقم {{number}} وتنتظر الدفع قبل إرسالها إلى المطبخ"
     },
     "nav": {
       "section": "الكاشير",
       "newOrder": "طلب جديد",
-      "orders": "الطلبات"
+      "orders": "الطلبات",
+      "bills": "الفواتير",
+      "tables": "الطاولات"
     },
     "orders": {
       "title": "الطلبات",
@@ -382,6 +602,24 @@
       "empty": "لا توجد طلبات في هذا العرض.",
       "error": "تعذر تحميل الطلبات.",
       "loadMore": "تحميل المزيد",
+      "todayOnly": "اليوم فقط",
+      "olderHidden_zero": "لا طلبات أقدم مخفية.",
+      "olderHidden_one": "طلب أقدم واحد مخفي.",
+      "olderHidden_two": "طلبان أقدم مخفيان.",
+      "olderHidden_few": "{{count}} طلبات أقدم مخفية.",
+      "olderHidden_many": "{{count}} طلباً أقدم مخفياً.",
+      "olderHidden_other": "{{count}} طلب أقدم مخفي.",
+      "showOlder": "إظهارها",
+      "columns": {
+        "order": "الطلب",
+        "time": "الوقت",
+        "typeTable": "الطاولة أو العميل",
+        "items": "الأصناف",
+        "total": "الإجمالي",
+        "status": "الحالة",
+        "payment": "الدفع",
+        "action": "إجراء"
+      },
       "tabs": {
         "active": "نشطة",
         "awaitingPayment": "بانتظار الدفع",
@@ -397,6 +635,8 @@
     },
     "table": "الطاولة",
     "customer": "اسم العميل",
+    "pagerNumber": "رقم جهاز التنبيه",
+    "pagerNumberHint": "اختياري",
     "orderNote": "ملاحظة الطلب",
     "totals": {
       "subtotal": "المجموع الفرعي",
@@ -407,16 +647,26 @@
     "cart": {
       "title": "السلة",
       "empty": "أضف منتجات من القائمة.",
+      "unavailable": "لم يعد متوفراً. احذفه لإرسال الطلب.",
+      "unavailableRemoved": "بعض الأصناف لم تعد متوفرة وتمت إزالتها.",
       "decreaseQty": "تقليل الكمية",
       "increaseQty": "زيادة الكمية",
-      "removeLine": "حذف السطر"
+      "removeLine": "حذف السطر",
+      "editLine": "تعديل الخيارات",
+      "eyebrow": "الطلب الحالي",
+      "orderType": "نوع الطلب"
     },
     "modifiers": {
       "invalid": "اختر الخيارات المطلوبة.",
       "addToCart": "أضف إلى السلة",
+      "saveChanges": "حفظ التعديلات",
       "quantity": "الكمية",
       "note": "ملاحظة السطر",
-      "notePlaceholder": "ملاحظة اختيارية للمطبخ"
+      "notePlaceholder": "ملاحظة اختيارية للمطبخ",
+      "hintRequiredOne": "اختر خيارًا واحدًا (إلزامي)",
+      "hintRequiredRange": "اختر من {{min}} إلى {{max}} (إلزامي)",
+      "hintOptionalOne": "اختر خيارًا واحدًا (اختياري)",
+      "hintOptionalUpTo": "اختر حتى {{max}} (اختياري)"
     },
     "result": {
       "orderNumber": "طلب رقم {{number}}"
@@ -444,7 +694,9 @@
       "methodCash": "نقد",
       "methodCard": "بطاقة",
       "methodOther": "أخرى",
-      "confirm": "تسجيل الدفع"
+      "confirm": "تسجيل الدفع",
+      "discard": "تجاهل الطلب",
+      "discardReason": "غادر العميل قبل الدفع"
     },
     "paymentStatus": {
       "unpaid": "غير مدفوع",
@@ -461,12 +713,16 @@
       "cancelled": "ملغى",
       "refunded": "مسترد"
     },
+    "handover": {
+      "pickedUp": "تم الاستلام",
+      "served": "تم التقديم",
+      "done": "تم تسليم الطلب #{{number}}",
+      "undo": "تراجع"
+    },
     "orderDetail": {
       "title": "الطلب",
       "pay": "دفع",
       "addItems": "إضافة أصناف",
-      "addItemsHint": "اضغط على المنتجات لإضافتها إلى هذا الطلب.",
-      "sendAdditions": "إرسال الإضافات",
       "complete": "إتمام",
       "markPreparing": "بدء التحضير",
       "markReady": "تعيين جاهز",
@@ -474,15 +730,17 @@
       "cancelTitle": "إلغاء هذا الطلب؟",
       "cancelReason": "سبب الإلغاء",
       "cancelConfirm": "إلغاء الطلب",
-      "voidItem": "إبطال",
-      "voidTitle": "إبطال الصنف؟",
-      "voidReason": "سبب الإبطال",
-      "voidConfirm": "إبطال الصنف",
+      "voidItem": "إزالة الصنف",
+      "voidTitle": "إزالة هذا الصنف؟",
+      "voidReason": "سبب الإزالة",
+      "voidConfirm": "إزالة الصنف",
       "approvalTitle": "موافقة المدير",
       "approvalHint": "يجب على المدير أو المالك إدخال الرمز السري للتأكيد.",
       "approvalNext": "متابعة",
       "pickApprover": "اختر المعتمد",
-      "emptyApprovers": "لا يوجد مديرون برمز سري في هذا الفرع."
+      "emptyApprovers": "لا يوجد مديرون برمز سري في هذا الفرع.",
+      "more": "المزيد",
+      "itemAwaitingPayment": "بانتظار الدفع"
     },
     "lock": {
       "button": "قفل",
@@ -494,18 +752,19 @@
       "submit": "فتح",
       "lockedCountdown": "حاول مرة أخرى بعد",
       "switchUser": "تبديل المستخدم",
+      "signOut": "تسجيل الخروج (دخول المالك)",
       "pinDigits": "الرمز السري، {{count}} أرقام"
     },
     "print": {
       "receipt": "فاتورة",
       "kitchen": "تذكرة المطبخ",
-      "kitchenAddition": "إضافات المطبخ",
       "receiptTitle": "فاتورة",
       "kitchenTitle": "المطبخ",
       "kitchenAdditionTitle": "إضافات",
       "paid": "مدفوع",
       "due": "متبقي",
-      "taxInclSuffix": "(شامل)"
+      "taxInclSuffix": "(شامل)",
+      "pager": "جهاز التنبيه"
     },
     "noAccess": {
       "title": "الكاشير غير متاح",
@@ -525,6 +784,108 @@
       "searchPlaceholder": "ابحث عن منتج",
       "searchClear": "مسح البحث",
       "noResults": "لا توجد منتجات مطابقة."
+    },
+    "rateStale": "لم يُحدَّث سعر الصرف منذ أكثر من 7 أيام. اطلب من المالك مراجعته.",
+    "bills": {
+      "title": "فواتير الطاولات",
+      "description": "الطاولات المفتوحة. اختر أصنافاً أو ضيفاً وسجّل الدفع.",
+      "loadError": "تعذّر تحميل الفواتير.",
+      "empty": "لا توجد فواتير مفتوحة",
+      "emptyHint": "تُفتح الفاتورة مع أول طلب على الطاولة.",
+      "table": "طاولة",
+      "open": "مفتوحة",
+      "settled": "مسدّدة",
+      "rounds_zero": "{{count}} جولة",
+      "rounds_one": "جولة واحدة",
+      "rounds_two": "جولتان",
+      "rounds_few": "{{count}} جولات",
+      "rounds_many": "{{count}} جولة",
+      "rounds_other": "{{count}} جولة",
+      "round": "الجولة {{round}}",
+      "due": "المتبقي",
+      "total": "الإجمالي",
+      "paidSoFar": "المدفوع",
+      "noSeat": "بدون ضيف",
+      "selectAll": "تحديد الكل",
+      "clear": "مسح",
+      "voided": "ملغى",
+      "itemPaid": "مدفوع",
+      "paySelected": "ادفع {{amount}}",
+      "selectToPay": "اختر الأصناف للدفع",
+      "payTitle": "دفع الأصناف المحددة",
+      "paid": "تم تسجيل الدفعة",
+      "payError": "تعذّر تسجيل الدفعة. تم تحديث الفاتورة.",
+      "closeTable": "إغلاق الطاولة",
+      "closed": "تم إغلاق الطاولة",
+      "closeError": "تعذّر إغلاق الطاولة.",
+      "dismiss": "إغلاق",
+      "billLabel": "الفاتورة",
+      "billPlaceholder": "اختر فاتورة",
+      "billNeedsChoice": "على هذه الطاولة عدة فواتير مفتوحة. اختر واحدة.",
+      "guestLabel": "الضيف (للدفع منفصلاً)",
+      "tableBill": "فاتورة الطاولة",
+      "billNumber": "الفاتورة {{number}}",
+      "newBill": "فاتورة منفصلة جديدة",
+      "guest": "ضيف {{number}}",
+      "moveTable": "نقل الطاولة إلى طاولة أخرى",
+      "moveRound": "نقل",
+      "moveTitle_zero": "نقل الطلبات إلى طاولة أخرى",
+      "moveTitle_one": "نقل طلب واحد إلى طاولة أخرى",
+      "moveTitle_two": "نقل طلبين إلى طاولة أخرى",
+      "moveTitle_few": "نقل {{count}} طلبات إلى طاولة أخرى",
+      "moveTitle_many": "نقل {{count}} طلباً إلى طاولة أخرى",
+      "moveTitle_other": "نقل {{count}} طلب إلى طاولة أخرى",
+      "moveTo": "الطاولة الجديدة",
+      "moveHint": "ينضم الطلب إلى فاتورة الطاولة الجديدة. الطلبات التي دُفع جزء منها تبقى مكانها.",
+      "moveCancel": "إلغاء",
+      "moveConfirm": "نقل",
+      "moved": "تم النقل إلى الطاولة الجديدة",
+      "moveError": "تعذّر نقل الطلب. تم تحديث الفواتير.",
+      "moveAmbiguous": "لدى تلك الطاولة عدة فواتير مفتوحة. ادفع إحداها أو أغلقها أولاً."
+    },
+    "tables": {
+      "title": "الطاولات",
+      "description": "اختر طاولة لأخذ طلب أو إضافة جولة. الطاولات المشغولة تعرض المبلغ المستحق.",
+      "loadError": "تعذّر تحميل الطاولات.",
+      "empty": "لا توجد طاولات بعد",
+      "emptyHint": "اطلب من المالك إضافة طاولات من الإعدادات.",
+      "free": "فارغة",
+      "busy": "مشغولة",
+      "settled": "مدفوعة",
+      "freeHint": "اضغط لأخذ طلب",
+      "bills_zero": "لا فواتير",
+      "bills_one": "فاتورة واحدة",
+      "bills_two": "فاتورتان",
+      "bills_few": "{{count}} فواتير",
+      "bills_many": "{{count}} فاتورة",
+      "bills_other": "{{count}} فاتورة",
+      "pager": "Pager {{numbers}}",
+      "pagerOne": "Pager {{number}}",
+      "newOrder": "طلب جديد",
+      "addRound": "إضافة جولة",
+      "bill": "الفاتورة"
+    },
+    "addMode": {
+      "title": "إضافة إلى الطلب رقم {{number}}",
+      "alreadySent_zero": "لا أصناف مُرسلة",
+      "alreadySent_one": "صنف واحد مُرسل",
+      "alreadySent_two": "صنفان مُرسلان",
+      "alreadySent_few": "{{count}} أصناف مُرسلة",
+      "alreadySent_many": "{{count}} صنفًا مُرسلًا",
+      "alreadySent_other": "{{count}} صنف مُرسل",
+      "send": "إرسال إلى المطبخ ({{count}})",
+      "back": "رجوع",
+      "printTicket": "طباعة تذكرة المطبخ",
+      "closed": "لا يمكن إضافة أصناف جديدة إلى هذا الطلب.",
+      "payAndSend": "دفع وإرسال الإضافات ({{count}})"
+    },
+    "reopen": {
+      "action": "إعادة فتح الطلب",
+      "title": "إعادة فتح هذا الطلب؟",
+      "body": "يعود الطلب إلى حالة جاهز ويظهر من جديد على شاشتي المطبخ والجاهز إلى أن يتم تسليمه. لا يتغير الدفع.",
+      "reason": "السبب (اختياري)",
+      "confirm": "إعادة الفتح",
+      "done": "تمت إعادة فتح الطلب #{{number}}"
     }
   },
   "orders": {
@@ -538,11 +899,13 @@
       "notFound": "الطلب غير موجود.",
       "forbidden": "ليس لديك صلاحية لهذا الإجراء.",
       "notPaid": "يجب دفع الطلب قبل إنهائه.",
+      "undoExpired": "لم يعد التراجع متاحاً.",
       "itemVoided": "هذا الصنف ملغى.",
       "paymentMethodNotAccepted": "هذا الفرع لا يقبل الدفع بالبطاقة.",
       "managerApprovalRequired": "يلزم موافقة المدير لهذا الإجراء.",
       "pinInvalid": "رمز سري غير صحيح. حاول مرة أخرى.",
-      "pinLocked": "محاولات كثيرة. انتظر قبل المحاولة مرة أخرى."
+      "pinLocked": "محاولات كثيرة. انتظر قبل المحاولة مرة أخرى.",
+      "billClosed": "فاتورة الطاولة مغلقة، لذلك لا يمكن إعادة فتح هذا الطلب."
     }
   },
   "menu": {
@@ -592,6 +955,10 @@
       "editTitle": "تعديل المنتج",
       "emptyTitle": "لا توجد منتجات",
       "emptyDescription": "أضف منتجاً أو غيّر عوامل التصفية.",
+      "noCategoriesTitle": "أنشئ تصنيفاً أولاً",
+      "noCategoriesDescription": "كل منتج ينتمي إلى تصنيف، والتصنيف يحدد الوحدات التي يمكنك اختيارها. أنشئ تصنيفاً واحداً على الأقل ثم عد لإضافة المنتجات.",
+      "noCategoriesDescriptionReadOnly": "تحتاج المنتجات إلى تصنيف. اطلب من المدير إنشاء واحد.",
+      "noCategoriesAction": "إنشاء تصنيف",
       "searchPlaceholder": "بحث في المنتجات",
       "searchClear": "مسح البحث",
       "allCategories": "كل التصنيفات",
@@ -610,6 +977,8 @@
       "fields": {
         "category": "التصنيف",
         "price": "السعر",
+        "systemPrice": "سعر النظام",
+        "displayPrice": "سعر العرض",
         "modifierGroups": "مجموعات الإضافات"
       },
       "imageLabel": "صورة المنتج",
@@ -619,7 +988,17 @@
       "imageRemove": "إزالة الصورة",
       "imagePreviewAlt": "معاينة المنتج",
       "imageUploadError": "فشل الرفع. جرّب ملفاً آخر.",
-      "imageRemoveError": "تعذرت إزالة الصورة."
+      "imageRemoveError": "تعذرت إزالة الصورة.",
+      "newGroup": "مجموعة جديدة",
+      "modifierGroupsHelp": "مجموعات الإضافات هي خيارات يختارها العميل لهذا المنتج، مثل الحجم أو الإضافات. فعّل المجموعات المناسبة.",
+      "modifierGroupsEmpty": "لا توجد مجموعات إضافات بعد. أنشئ واحدة لتقديم أحجام أو إضافات.",
+      "optionsBadge_zero": "بلا خيارات",
+      "optionsBadge_one": "مجموعة إضافات واحدة",
+      "optionsBadge_two": "مجموعتا إضافات",
+      "optionsBadge_few": "{{count}} مجموعات إضافات",
+      "optionsBadge_many": "{{count}} مجموعة إضافات",
+      "optionsBadge_other": "{{count}} مجموعة إضافات",
+      "optionsColumn": "الخيارات"
     },
     "modifierGroups": {
       "title": "مجموعات الإضافات",
@@ -628,16 +1007,51 @@
       "createTitle": "مجموعة إضافات جديدة",
       "editTitle": "تعديل المجموعة",
       "emptyTitle": "لا توجد مجموعات",
-      "emptyDescription": "أنشئ مجموعات للأحجام أو الإضافات أو الأطباق الجانبية.",
-      "minMax": "اختر {{min}}–{{max}}",
+      "emptyDescription": "أضف مجموعات للأحجام أو الإضافات أو الأطباق الجانبية، ثم اربطها بالمنتجات.",
+      "emptyDescriptionReadOnly": "لا توجد مجموعات إضافات بعد. اطلب من المدير أو المالك إضافتها.",
       "manageModifiers": "إدارة الإضافات",
       "detailTitle": "مجموعة الإضافات",
       "deleteConfirm": "ستُفك هذه المجموعة من المنتجات المرتبطة.",
       "decrease": "إنقاص",
       "increase": "زيادة",
-      "fields": {
-        "minSelect": "الحد الأدنى",
-        "maxSelect": "الحد الأقصى"
+      "summary": {
+        "requiredOne": "على العميل اختيار خيار واحد",
+        "requiredRange": "على العميل اختيار من {{min}} إلى {{max}} خيارات",
+        "optionalOne": "يمكن للعميل اختيار خيار واحد (اختياري)",
+        "optionalUpTo": "يمكن للعميل اختيار حتى {{max}} خيارات (اختياري)"
+      },
+      "usage": "{{modifiers}} · {{products}}",
+      "modifierCount_zero": "لا خيارات",
+      "modifierCount_one": "خيار واحد",
+      "modifierCount_two": "خياران",
+      "modifierCount_few": "{{count}} خيارات",
+      "modifierCount_many": "{{count}} خيارًا",
+      "modifierCount_other": "{{count}} خيار",
+      "productCount_zero": "غير مستخدمة",
+      "productCount_one": "مستخدمة في منتج واحد",
+      "productCount_two": "مستخدمة في منتجين",
+      "productCount_few": "مستخدمة في {{count}} منتجات",
+      "productCount_many": "مستخدمة في {{count}} منتجًا",
+      "productCount_other": "مستخدمة في {{count}} منتج",
+      "info": {
+        "title": "كيف تعمل مجموعات الإضافات",
+        "intro": "مجموعة الإضافات هي سؤال تطرحه على العميل، والإضافات هي الإجابات التي يختار منها.",
+        "step1": "أنشئ مجموعة وحدد قاعدتها: إلزامية أو اختيارية، وكم خيارًا يمكن اختياره.",
+        "step2": "أضف الخيارات (الإضافات) ولكل منها تغيير اختياري في السعر.",
+        "step3": "افتح منتجًا وفعّل المجموعة لربطها به.",
+        "example": "مثال: مجموعة «الحجم» (إلزامية، اختيار واحد) تضم صغير ووسط وكبير. فعّلها على كل بيتزا."
+      },
+      "form": {
+        "requiredLabel": "يجب على العميل الاختيار",
+        "requiredHelp": "مفعّل: على العميل اختيار خيار واحد على الأقل قبل الطلب (مثل الحجم). غير مفعّل: الخيارات إضافات اختيارية.",
+        "maxLabel": "الاختيار حتى",
+        "maxHelp": "أقصى عدد من الخيارات يمكن للعميل اختياره من هذه المجموعة. استخدم 1 لـ«اختر واحدًا»، أو رقمًا أكبر للإضافات.",
+        "modifiersTitle": "الخيارات (الإضافات)",
+        "modifiersHelp": "الخيارات التي يختار منها العميل، مثل صغير ووسط وكبير. يُضاف تغيير السعر إلى سعر المنتج (اتركه 0 إن كان مجانيًا).",
+        "modifierName": "اسم الخيار ({{language}})",
+        "addRow": "إضافة خيار آخر",
+        "removeRow": "حذف الخيار",
+        "modifiersLaterHint": "لتعديل الخيارات استخدم «إدارة الإضافات» في بطاقة المجموعة."
       }
     },
     "modifiers": {
@@ -659,6 +1073,7 @@
       "statusColumn": "الحالة",
       "emptyTitle": "لا توجد طاولات",
       "emptyDescription": "أضف طاولات لإنشاء رموز QR للطاولات.",
+      "emptyDescriptionReadOnly": "لا توجد طاولات بعد. اطلب من المدير أو المالك إضافتها.",
       "noBranchTitle": "اختر فرعاً",
       "noBranchDescription": "اختر فرعاً من شريط الأدوات أعلاه لإدارة طاولاته.",
       "rotateQr": "تدوير QR"
@@ -670,12 +1085,46 @@
       "print": "طباعة",
       "printTitle": "رموز QR",
       "back": "العودة إلى رموز QR",
-      "tableQrUpsell": "تظهر رموز QR للطاولات عند تفعيل ميزة QR للطاولات في خطتك ووجود طاولات نشطة."
+      "tableQrUpsell": "تظهر رموز QR للطاولات عند تفعيل ميزة QR للطاولات في خطتك ووجود طاولات نشطة.",
+      "tableQrUpsellReadOnly": "رموز QR للطاولات غير متاحة بعد. اطلب من المدير أو المالك إضافة طاولات أو مراجعة الخطة.",
+      "noTablesTitle": "لا توجد رموز QR بعد",
+      "noTablesDescription": "تُنشأ رموز QR من الطاولات. أضف طاولة أولاً.",
+      "noTablesDescriptionReadOnly": "تُنشأ رموز QR من الطاولات. اطلب من المدير أو المالك إضافتها."
     },
     "fields": {
       "name": "الاسم",
       "description": "الوصف"
+    },
+    "availability": {
+      "label": "التوفّر",
+      "allBranches": "كل الفروع",
+      "hint": "اختر أين يظهر هذا المنتج. خيار «كل الفروع» يشمل أيضاً الفروع التي تضيفها لاحقاً.",
+      "hintCategory": "اختر أين يظهر هذا التصنيف، وتتبعه منتجاته. خيار «كل الفروع» يشمل أيضاً الفروع التي تضيفها لاحقاً.",
+      "hintScoped": "اختر أي فروعك تعرض هذا المنتج. لا تتغير الفروع الأخرى.",
+      "hintScopedCategory": "اختر أي فروعك تعرض هذا التصنيف. لا تتغير الفروع الأخرى.",
+      "pickOne": "اختر فرعاً واحداً على الأقل.",
+      "column": "الفروع",
+      "filterAll": "كل الفروع",
+      "count_zero": "{{count}} فرع",
+      "count_one": "فرع واحد",
+      "count_two": "فرعان",
+      "count_few": "{{count}} فروع",
+      "count_many": "{{count}} فرعاً",
+      "count_other": "{{count}} فرع"
+    },
+    "help": {
+      "whatIsThis": "ما معنى هذا؟",
+      "showNote": "إظهار الشرح",
+      "hideNote": "إخفاء الشرح"
     }
+  },
+  "pickupDisplay": {
+    "heading": "جاهز للاستلام",
+    "empty": "لا توجد طلبات جاهزة بعد",
+    "enableSound": "تشغيل الصوت",
+    "soundOn": "الصوت يعمل",
+    "notFound": "هذه الشاشة غير متاحة.",
+    "error": "تعذّر تحميل الطلبات. تتم إعادة المحاولة…"
   },
   "kds": {
     "title": "المطبخ",
@@ -687,9 +1136,15 @@
       "preparing": "قيد التحضير",
       "ready": "جاهز"
     },
+    "undo": {
+      "done": "{{number}} جاهز",
+      "action": "تراجع"
+    },
     "card": {
       "orderNumber": "#{{number}}",
       "table": "طاولة {{label}}",
+      "pager": "جهاز {{number}}",
+      "round": "الجولة {{number}}",
       "added": "مُضاف",
       "voided": "ملغى",
       "start": "ابدأ",
@@ -719,12 +1174,19 @@
       "title": "شاشة المطبخ غير متاحة",
       "description": "دورك لا يسمح بتغيير حالة الطلب أو خطتك لا تشمل شاشة المطبخ.",
       "backToDashboard": "العودة للوحة التحكم"
-    }
+    },
+    "eyebrow": "شاشة المطبخ",
+    "online": "المطبخ متصل",
+    "reconnecting": "جارٍ إعادة الاتصال"
   },
   "shell": {
     "toggleSidebar": "طيّ القائمة أو توسيعها",
     "darkMode": "الوضع الداكن",
-    "lightMode": "الوضع الفاتح"
+    "lightMode": "الوضع الفاتح",
+    "ownerArea": "المالك",
+    "modules": "تبديل القسم",
+    "dashboardArea": "لوحة التحكم",
+    "planEyebrow": "الباقة"
   },
   "billing": {
     "title": "الفوترة",
@@ -794,6 +1256,7 @@
       "branches.multi": "عدة فروع",
       "roles.custom": "أدوار مخصّصة",
       "ordering.table_qr": "الطلب من الطاولة",
+      "ordering.pager": "أرقام الاستلام وشاشة «جاهز»",
       "api.access": "الوصول عبر API"
     },
     "limits": {
@@ -857,5 +1320,208 @@
       "lockedNav": "يحتاج خطة أعلى",
       "featureToast": "هذا يحتاج خطة أعلى."
     }
+  },
+  "branches": {
+    "title": "الفروع",
+    "description": "كل مواقع مطعمك. أضف فرعاً أو غيّر اسمه أو إعداداته.",
+    "current": "الحالي",
+    "inactive": "معطّل",
+    "active": "فعّال",
+    "switch": "التحويل لهذا الفرع",
+    "settings": "الإعدادات",
+    "address": "لا يوجد عنوان بعد",
+    "switchedTo": "تم تغيير الفرع.",
+    "loadError": "تعذّر تحميل الفروع.",
+    "empty": "لا توجد فروع بعد.",
+    "breadcrumb": "الفروع",
+    "newBranch": "فرع جديد",
+    "newBranchTitle": "إضافة فرع",
+    "newBranchDescription": "أنشئ موقعاً آخر. تقدر تنتقل بين الفروع من الشريط العلوي، ثم تضبط إعداداته من هنا.",
+    "newBranchName": "اسم الفرع",
+    "newBranchNamePlaceholder": "مثلاً: وسط البلد",
+    "newBranchTimezone": "المنطقة الزمنية",
+    "newBranchCreate": "إنشاء الفرع",
+    "newBranchCancel": "إلغاء",
+    "newBranchCreated": "تم إنشاء الفرع وأنت تعمل عليه الآن.",
+    "newBranchNameRequired": "أدخل اسم الفرع."
+  },
+  "devices": {
+    "title": "أجهزة الكاشير",
+    "description": "اربط جهازاً لوحياً أو حاسوباً بفرع ليدخل عليه الموظفون بالرمز السري فقط.",
+    "add": "ربط جهاز",
+    "loadError": "تعذّر تحميل الأجهزة.",
+    "empty": "لا توجد أجهزة مربوطة بعد.",
+    "columnName": "الجهاز",
+    "columnBranch": "الفرع",
+    "columnStatus": "الحالة",
+    "columnLastUsed": "آخر استخدام",
+    "actions": "إجراءات",
+    "remove": "إزالة",
+    "never": "لم يُستخدم",
+    "waitingToLink": "بانتظار الربط",
+    "revoked": "تمت إزالة الجهاز.",
+    "removeTitle": "إزالة هذا الجهاز؟",
+    "removeDescription": "لن يستطيع تسجيل دخول الموظفين وسيحتاج إلى ربط جديد. الجهاز:",
+    "status": {
+      "pending": "بانتظار الرمز",
+      "active": "مربوط",
+      "revoked": "أُزيل"
+    },
+    "create": {
+      "title": "ربط جهاز",
+      "description": "سمِّ الجهاز واختر الفرع. ستحصل على رمز لمرة واحدة.",
+      "nameLabel": "اسم الجهاز",
+      "branchLabel": "الفرع",
+      "submit": "إنشاء الرمز",
+      "nameRequired": "أدخل اسماً للجهاز."
+    },
+    "code": {
+      "title": "أدخل هذا الرمز على الجهاز",
+      "hint": "صالح 15 دقيقة ويعمل مرة واحدة.",
+      "steps": "على الجهاز افتح صفحة تسجيل الدخول واختر «ربط هذا الجهاز» ثم اكتب الرمز.",
+      "done": "تم"
+    },
+    "pair": {
+      "title": "ربط هذا الجهاز",
+      "description": "اطلب رمز الربط من المالك أو المدير من لوحة التحكم ثم الأجهزة.",
+      "codeLabel": "رمز الربط",
+      "submit": "ربط الجهاز",
+      "invalidCode": "الرمز غير صحيح أو انتهت صلاحيته.",
+      "error": "تعذّر ربط الجهاز. حاول مرة أخرى."
+    },
+    "login": {
+      "subtitle": "اختر اسمك وأدخل رمزك السري.",
+      "submit": "دخول",
+      "loadError": "تعذّر تحميل قائمة الموظفين.",
+      "useEmail": "الدخول بالبريد الإلكتروني بدلاً من ذلك",
+      "backToPin": "الدخول بالرمز السري",
+      "unlink": "فك ربط هذا الجهاز",
+      "linkDevice": "ربط هذا الجهاز برمز"
+    }
+  },
+  "validation": {
+    "required": "هذا الحقل مطلوب.",
+    "email": "أدخل بريدًا إلكترونيًا صحيحًا، مثل name@example.com.",
+    "tooShort_zero": "يجب ألا يقل عن {{count}} حرف.",
+    "tooShort_one": "يجب ألا يقل عن حرف واحد.",
+    "tooShort_two": "يجب ألا يقل عن حرفين.",
+    "tooShort_few": "يجب ألا يقل عن {{count}} أحرف.",
+    "tooShort_many": "يجب ألا يقل عن {{count}} حرفًا.",
+    "tooShort_other": "يجب ألا يقل عن {{count}} حرف.",
+    "tooLong_zero": "يجب ألا يزيد على {{count}} حرف.",
+    "tooLong_one": "يجب ألا يزيد على حرف واحد.",
+    "tooLong_two": "يجب ألا يزيد على حرفين.",
+    "tooLong_few": "يجب ألا يزيد على {{count}} أحرف.",
+    "tooLong_many": "يجب ألا يزيد على {{count}} حرفًا.",
+    "tooLong_other": "يجب ألا يزيد على {{count}} حرف.",
+    "tooFewItems_other": "اختر {{count}} عناصر على الأقل.",
+    "tooManyItems_other": "اختر {{count}} عناصر كحد أقصى.",
+    "tooSmall": "يجب ألا تقل القيمة عن {{min}}.",
+    "tooBig": "يجب ألا تزيد القيمة على {{max}}.",
+    "invalidType": "أدخل قيمة صحيحة.",
+    "invalidFormat": "صيغة هذه القيمة غير صحيحة.",
+    "invalidValue": "اختر أحد الخيارات المتاحة."
+  },
+  "orderDetails": {
+    "orderNumber": "الطلب رقم {{number}}",
+    "progress": "مراحل الطلب",
+    "businessDate": "تاريخ العمل",
+    "createdAt": "وقت الإنشاء",
+    "pager": "جهاز النداء {{number}}",
+    "seat": "الضيف {{seat}}",
+    "noSeat": "بدون مقعد",
+    "addedLater": "أُضيف لاحقًا",
+    "each": "للقطعة",
+    "by": "بواسطة",
+    "approvedBy": "وافق عليه",
+    "reason": "السبب",
+    "managerSection": "المدير",
+    "loadingTimeline": "جارٍ تحميل السجل",
+    "error": {
+      "order": "تعذّر تحميل هذا الطلب. أغلق النافذة وحاول مجددًا.",
+      "events": "تعذّر تحميل السجل."
+    },
+    "cards": {
+      "items": "الأصناف",
+      "info": "معلومات الطلب",
+      "totals": "المجاميع",
+      "payments": "المدفوعات",
+      "timeline": "السجل الزمني",
+      "timestamps": "الأوقات"
+    },
+    "empty": {
+      "items": "لا توجد أصناف في هذا الطلب.",
+      "payments": "لا توجد مدفوعات بعد",
+      "events": "لا يوجد نشاط بعد."
+    },
+    "status": {
+      "draft": "مسودة",
+      "placed": "تم الإرسال",
+      "preparing": "قيد التحضير",
+      "ready": "جاهز",
+      "completed": "مكتمل",
+      "cancelled": "ملغى",
+      "refunded": "مُسترد",
+      "unknown": "غير معروف"
+    },
+    "itemStatus": {
+      "awaiting_payment": "بانتظار الدفع",
+      "pending": "قيد الانتظار",
+      "preparing": "قيد التحضير",
+      "ready": "جاهز",
+      "voided": "ملغى"
+    },
+    "paymentStatus": {
+      "unpaid": "غير مدفوع",
+      "partial": "مدفوع جزئيًا",
+      "paid": "مدفوع",
+      "refunded": "مُسترد"
+    },
+    "type": {
+      "dine_in": "في المطعم",
+      "takeaway": "سفري"
+    },
+    "method": {
+      "cash": "نقدًا",
+      "card": "بطاقة",
+      "other": "أخرى"
+    },
+    "payment": {
+      "tendered": "المبلغ المستلم",
+      "change": "الباقي"
+    },
+    "stepper": {
+      "awaitingPayment": "بانتظار الدفع",
+      "cancelled": "ملغى",
+      "cancelledWithReason": "ملغى: {{reason}}"
+    },
+    "info": {
+      "type": "النوع",
+      "table": "الطاولة",
+      "pager": "رقم جهاز النداء",
+      "customer": "العميل",
+      "notes": "ملاحظات الطلب",
+      "currency": "العملة",
+      "version": "الإصدار",
+      "createdBy": "أنشأه"
+    },
+    "totals": {
+      "subtotal": "المجموع الفرعي",
+      "discount": "الخصم",
+      "tax": "الضريبة",
+      "total": "الإجمالي",
+      "paid": "المدفوع",
+      "due": "المتبقي",
+      "inCurrency": "الإجمالي بعملة {{currency}}",
+      "rate": "سعر الصرف"
+    },
+    "timestamps": {
+      "created": "الإنشاء",
+      "placed": "الإرسال",
+      "completed": "الإكمال",
+      "cancelled": "الإلغاء"
+    },
+    "actions": "إجراءات الطلب",
+    "pagerShort": "النداء"
   }
 }

@@ -1,13 +1,14 @@
-import { currencyDigits, type PublicMenuPayload } from '@app/shared';
+import {
+  convertMinorToDisplay,
+  currencyDigits,
+  isDisplayConversionActive,
+  type MoneyDisplay,
+  type PublicMenuPayload,
+} from '@app/shared';
 
-export type PageMetaInput = {
-  title: string;
-  description: string;
-  canonical?: string;
-  locale: string;
-  imageUrl?: string;
-  alternateLocales?: Array<{ locale: string; href: string }>;
-};
+import { buildPageMeta } from './page-meta.js';
+
+export { buildPageMeta, type PageMetaInput } from './page-meta.js';
 
 export function minorUnitsToMajorString(minor: number, currency: string): string {
   const digits = currencyDigits(currency);
@@ -15,34 +16,22 @@ export function minorUnitsToMajorString(minor: number, currency: string): string
   return major.toFixed(digits);
 }
 
-export function buildPageMeta(input: PageMetaInput) {
-  const tags: Array<Record<string, string>> = [
-    { title: input.title },
-    { name: 'description', content: input.description },
-    { property: 'og:title', content: input.title },
-    { property: 'og:description', content: input.description },
-    { property: 'og:locale', content: input.locale },
-    { name: 'twitter:card', content: 'summary_large_image' },
-    { name: 'twitter:title', content: input.title },
-    { name: 'twitter:description', content: input.description },
-  ];
-  if (input.canonical !== undefined) {
-    tags.push({ tagName: 'link', rel: 'canonical', href: input.canonical });
+/** Price and currency as guests see them: converted when the menu has a display currency. */
+function shownOffer(
+  priceMinor: number,
+  currency: string,
+  display: MoneyDisplay | null,
+): { price: string; priceCurrency: string } {
+  if (!isDisplayConversionActive(currency, display)) {
+    return { price: minorUnitsToMajorString(priceMinor, currency), priceCurrency: currency };
   }
-  if (input.imageUrl) {
-    tags.push({ property: 'og:image', content: input.imageUrl });
-  }
-  if (input.alternateLocales) {
-    for (const alt of input.alternateLocales) {
-      tags.push({
-        tagName: 'link',
-        rel: 'alternate',
-        hrefLang: alt.locale,
-        href: alt.href,
-      });
-    }
-  }
-  return tags;
+  return {
+    price: minorUnitsToMajorString(
+      convertMinorToDisplay(priceMinor, currency, display, 'item'),
+      display.currency,
+    ),
+    priceCurrency: display.currency,
+  };
 }
 
 export function buildMenuPageMeta(input: {
@@ -116,8 +105,7 @@ export function buildMenuJsonLd(input: {
           description: item.description ?? undefined,
           offers: {
             '@type': 'Offer',
-            price: minorUnitsToMajorString(item.priceMinor, item.currency),
-            priceCurrency: item.currency,
+            ...shownOffer(item.priceMinor, item.currency, menu.org.display),
           },
         })),
       })),

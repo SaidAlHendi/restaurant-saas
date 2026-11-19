@@ -1,15 +1,16 @@
 import { currencyDigits, currencySymbol, formatMinor } from './currency.js';
 
-/** Map app UI language (e.g. from i18n) to an Intl locale for number formatting. */
+/**
+ * Map app UI language (e.g. from i18n) to an Intl locale. Digits are always Western (0-9),
+ * also in Arabic, and Arabic dates use the Gregorian calendar.
+ */
 export function intlLocaleForUi(uiLocale: string): string {
   const base = uiLocale.split('-')[0] ?? uiLocale;
   if (base === 'ar') {
-    return 'ar-SA';
+    return 'ar-SA-u-ca-gregory-nu-latn';
   }
-  if (uiLocale.includes('-')) {
-    return uiLocale;
-  }
-  return `${base}-US`;
+  const tag = uiLocale.includes('-') ? uiLocale : `${base}-US`;
+  return tag.includes('-u-') ? tag : `${tag}-u-nu-latn`;
 }
 
 /** Format minor units with currency code/symbol for display. */

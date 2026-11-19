@@ -11,7 +11,7 @@ export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
 const badgeVariants = cva(
   [
-    'inline-flex w-fit shrink-0 items-center justify-center gap-1 overflow-hidden whitespace-nowrap rounded-md border px-2 py-0.5 text-xs font-medium transition-colors',
+    'inline-flex w-fit shrink-0 items-center justify-center gap-1 overflow-hidden whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors',
     '[&>svg]:pointer-events-none [&>svg]:size-3',
     focusRing,
   ],
@@ -26,9 +26,9 @@ const badgeVariants = cva(
         info: 'border-transparent bg-info text-info-foreground',
         destructive: 'border-transparent bg-destructive text-destructive-foreground',
         // Order statuses (KDS columns, order lists).
-        new: 'border-transparent bg-info text-info-foreground',
-        preparing: 'border-transparent bg-warning text-warning-foreground',
-        ready: 'border-transparent bg-success text-success-foreground',
+        new: 'border-transparent bg-info/15 text-info',
+        preparing: 'border-transparent bg-warning/20 text-warning',
+        ready: 'border-transparent bg-success/15 text-success',
         completed: 'border-border bg-muted text-muted-foreground',
         cancelled:
           'border-destructive/40 bg-transparent text-destructive line-through decoration-1',

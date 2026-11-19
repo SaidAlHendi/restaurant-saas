@@ -1,4 +1,4 @@
-import { ImageIcon, MinusIcon, PlusIcon, Trash2Icon } from 'lucide-react';
+import { ImageIcon, MinusIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 
 import { IconButton } from '../icon-button/index.js';
 import { cn } from '../../lib/cn.js';
@@ -15,6 +15,8 @@ export type CartLineProps = {
   quantity: number;
   modifiers: CartLineModifier[];
   note?: string;
+  /** Shown in red under the options, e.g. when the product left the menu. */
+  warning?: string;
   /** Small product photo; a placeholder is shown when missing. */
   imageUrl?: string | null;
   decreaseLabel: string;
@@ -23,6 +25,9 @@ export type CartLineProps = {
   onIncrease: () => void;
   onDecrease: () => void;
   onRemove: () => void;
+  /** When set, an edit (pencil) button is shown, e.g. to change the options. */
+  onEdit?: () => void;
+  editLabel?: string;
   className?: string;
 };
 
@@ -34,6 +39,7 @@ export function CartLine({
   quantity,
   modifiers,
   note,
+  warning,
   imageUrl,
   decreaseLabel,
   increaseLabel,
@@ -41,6 +47,8 @@ export function CartLine({
   onIncrease,
   onDecrease,
   onRemove,
+  onEdit,
+  editLabel,
   className,
 }: CartLineProps) {
   return (
@@ -58,15 +66,28 @@ export function CartLine({
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex items-start justify-between gap-2">
           <p className="min-w-0 text-sm font-medium leading-snug">{name}</p>
-          <IconButton
-            type="button"
-            size="sm"
-            variant="ghost"
-            className="-me-1 -mt-1 text-muted-foreground hover:text-destructive"
-            label={removeLabel}
-            icon={<Trash2Icon />}
-            onClick={onRemove}
-          />
+          <div className="-me-1 -mt-1 flex shrink-0 items-center">
+            {onEdit ? (
+              <IconButton
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="text-muted-foreground hover:text-foreground"
+                label={editLabel ?? 'Edit'}
+                icon={<PencilIcon />}
+                onClick={onEdit}
+              />
+            ) : null}
+            <IconButton
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="text-muted-foreground hover:text-destructive"
+              label={removeLabel}
+              icon={<Trash2Icon />}
+              onClick={onRemove}
+            />
+          </div>
         </div>
         {modifiers.length > 0 ? (
           <ul className="text-xs text-muted-foreground">
@@ -77,6 +98,11 @@ export function CartLine({
         ) : null}
         {note && note.length > 0 ? (
           <p className="text-xs italic text-muted-foreground">{note}</p>
+        ) : null}
+        {warning && warning.length > 0 ? (
+          <p role="alert" className="text-xs font-medium text-destructive">
+            {warning}
+          </p>
         ) : null}
         <div className="mt-1 flex items-center justify-between gap-2">
           <div className="flex flex-col">

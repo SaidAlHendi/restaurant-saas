@@ -4,7 +4,9 @@ import {
   ConfirmDialog,
   DataTable,
   Dialog,
+  DialogBody,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -24,7 +26,11 @@ import {
   Switch,
 } from '@app/ui';
 
-import type { StaffRoleOption, StaffSettingsPageViewModel } from '../hooks/use-staff-settings-page.js';
+import { StaffPermissionsDialog } from './StaffPermissionsDialog.js';
+import type {
+  StaffRoleOption,
+  StaffSettingsPageViewModel,
+} from '../hooks/use-staff-settings-page.js';
 
 type BranchScopeProps = {
   allBranches: boolean;
@@ -37,17 +43,20 @@ type BranchScopeProps = {
 };
 
 function StaffBranchScopeFields(props: BranchScopeProps) {
-  const { allBranches, branchIds, branchOptions, scopeError, labels, onAllBranchesChange, onBranchToggle } =
-    props;
+  const {
+    allBranches,
+    branchIds,
+    branchOptions,
+    scopeError,
+    labels,
+    onAllBranchesChange,
+    onBranchToggle,
+  } = props;
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-4">
         <Label htmlFor="all-branches">{labels.allBranches}</Label>
-        <Switch
-          id="all-branches"
-          checked={allBranches}
-          onCheckedChange={onAllBranchesChange}
-        />
+        <Switch id="all-branches" checked={allBranches} onCheckedChange={onAllBranchesChange} />
       </div>
       {!allBranches ? (
         <div className="space-y-2">
@@ -105,6 +114,11 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
     isLoading,
     isError,
     rows,
+    searchQuery,
+    onSearchQueryChange,
+    roleFilter,
+    onRoleFilterChange,
+    roleFilterOptions,
     canAddStaff,
     branchOptions,
     inviteRoleOptions,
@@ -143,6 +157,8 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
     onSubmitPinOnly,
     editOpen,
     onEditOpenChange,
+    permissionsMember,
+    onPermissionsClose,
     editRole,
     onEditRoleChange,
     editScope,
@@ -197,11 +213,11 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
+    <div className="flex w-full flex-col gap-6 p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h2 className="text-lg font-semibold">{labels.title}</h2>
-          <p className="text-muted-foreground mt-1 text-sm">{labels.description}</p>
+          <h1 className="text-2xl font-semibold tracking-tight">{labels.title}</h1>
+          <p className="text-muted-foreground mt-1">{labels.description}</p>
         </div>
         {canAddStaff ? (
           <DropdownMenu>
@@ -231,6 +247,31 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
           </DropdownMenu>
         ) : null}
       </div>
+      <div className="flex flex-wrap items-center gap-3">
+        <Input
+          className="max-w-xs"
+          type="search"
+          aria-label={labels.searchPlaceholder}
+          placeholder={labels.searchPlaceholder}
+          value={searchQuery}
+          onChange={(e) => {
+            onSearchQueryChange(e.target.value);
+          }}
+        />
+        <Select value={roleFilter} onValueChange={onRoleFilterChange}>
+          <SelectTrigger className="w-48" aria-label={labels.filterRole}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{labels.allRoles}</SelectItem>
+            {roleFilterOptions.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
       <DataTable
         columns={[
           { id: 'name', header: labels.columnName, cell: (row) => row.name },
@@ -241,6 +282,7 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
             header: labels.columnStatus,
             cell: (row) => <Badge variant={row.statusTone}>{row.statusLabel}</Badge>,
           },
+          { id: 'branches', header: labels.columnBranches, cell: (row) => row.branchLabel },
           { id: 'pin', header: labels.columnPin, cell: (row) => row.pinLabel },
         ]}
         data={rows}
@@ -250,6 +292,7 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
         rowActions={(row) => {
           const hasMenu =
             row.onEdit ??
+            row.onPermissions ??
             row.onSetPin ??
             row.onRemovePin ??
             row.onDisable ??
@@ -274,6 +317,15 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
                     }}
                   >
                     {labels.edit}
+                  </DropdownMenuItem>
+                ) : null}
+                {row.onPermissions ? (
+                  <DropdownMenuItem
+                    onClick={() => {
+                      row.onPermissions?.();
+                    }}
+                  >
+                    {labels.permissions}
                   </DropdownMenuItem>
                 ) : null}
                 {row.onSetPin ? (
@@ -336,23 +388,36 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
         }}
       />
 
+      {permissionsMember ? (
+        <StaffPermissionsDialog
+          key={permissionsMember.id}
+          member={permissionsMember}
+          onClose={onPermissionsClose}
+        />
+      ) : null}
+
       <Dialog open={inviteOpen} onOpenChange={onInviteOpenChange}>
-        <DialogContent className="max-h-[90dvh] overflow-y-auto">
+        <DialogContent closeLabel={labels.close}>
           <DialogHeader>
             <DialogTitle>{labels.inviteDialogTitle}</DialogTitle>
+            <DialogDescription>{labels.inviteDialogDescription}</DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <DialogBody>
             <div className="space-y-2">
               <Label htmlFor="invite-email">{labels.inviteEmail}</Label>
               <Input
                 id="invite-email"
                 type="email"
+                dir="ltr"
+                autoComplete="off"
                 value={inviteEmail}
                 onChange={(e) => {
                   onInviteEmailChange(e.target.value);
                 }}
               />
-              {inviteEmailError ? <p className="text-destructive text-sm">{inviteEmailError}</p> : null}
+              {inviteEmailError ? (
+                <p className="text-destructive text-sm">{inviteEmailError}</p>
+              ) : null}
             </div>
             <StaffRoleSelect
               label={labels.inviteRole}
@@ -369,7 +434,7 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
               onAllBranchesChange={onInviteAllBranchesChange}
               onBranchToggle={onInviteBranchToggle}
             />
-          </div>
+          </DialogBody>
           <DialogFooter>
             <Button
               type="button"
@@ -388,11 +453,11 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
       </Dialog>
 
       <Dialog open={pinOnlyOpen} onOpenChange={onPinOnlyOpenChange}>
-        <DialogContent className="max-h-[90dvh] overflow-y-auto">
+        <DialogContent closeLabel={labels.close}>
           <DialogHeader>
             <DialogTitle>{labels.pinOnlyDialogTitle}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <DialogBody>
             <div className="space-y-2">
               <Label htmlFor="pin-only-name">{labels.pinOnlyName}</Label>
               <Input
@@ -402,7 +467,9 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
                   onPinOnlyNameChange(e.target.value);
                 }}
               />
-              {pinOnlyNameError ? <p className="text-destructive text-sm">{pinOnlyNameError}</p> : null}
+              {pinOnlyNameError ? (
+                <p className="text-destructive text-sm">{pinOnlyNameError}</p>
+              ) : null}
             </div>
             <StaffRoleSelect
               label={labels.inviteRole}
@@ -442,9 +509,11 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
                   onPinOnlyPinConfirmChange(e.target.value);
                 }}
               />
-              {pinOnlyPinError ? <p className="text-destructive text-sm">{pinOnlyPinError}</p> : null}
+              {pinOnlyPinError ? (
+                <p className="text-destructive text-sm">{pinOnlyPinError}</p>
+              ) : null}
             </div>
-          </div>
+          </DialogBody>
           <DialogFooter>
             <Button
               type="button"
@@ -463,11 +532,11 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
       </Dialog>
 
       <Dialog open={editOpen} onOpenChange={onEditOpenChange}>
-        <DialogContent className="max-h-[90dvh] overflow-y-auto">
+        <DialogContent closeLabel={labels.close}>
           <DialogHeader>
             <DialogTitle>{labels.editDialogTitle}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <DialogBody>
             <StaffRoleSelect
               label={labels.inviteRole}
               value={editRole}
@@ -483,7 +552,7 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
               onAllBranchesChange={onEditAllBranchesChange}
               onBranchToggle={onEditBranchToggle}
             />
-          </div>
+          </DialogBody>
           <DialogFooter>
             <Button
               type="button"
@@ -502,12 +571,12 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
       </Dialog>
 
       <Dialog open={pinDialogOpen} onOpenChange={onPinDialogOpenChange}>
-        <DialogContent>
+        <DialogContent closeLabel={labels.close}>
           <DialogHeader>
             <DialogTitle>{labels.pinDialogTitle}</DialogTitle>
           </DialogHeader>
-          <p className="text-muted-foreground text-sm">{pinDialogMemberName}</p>
-          <div className="space-y-4">
+          <DialogBody>
+            <p className="text-muted-foreground text-sm">{pinDialogMemberName}</p>
             <div className="space-y-2">
               <Label htmlFor="set-pin">{labels.pinLabel}</Label>
               <Input
@@ -533,7 +602,7 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
               />
               {pinFormError ? <p className="text-destructive text-sm">{pinFormError}</p> : null}
             </div>
-          </div>
+          </DialogBody>
           <DialogFooter>
             <Button
               type="button"
@@ -594,13 +663,17 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
       />
 
       <Dialog open={inviteLinkOpen} onOpenChange={onInviteLinkOpenChange}>
-        <DialogContent>
+        <DialogContent closeLabel={labels.close}>
           <DialogHeader>
             <DialogTitle>{labels.inviteLinkDialogTitle}</DialogTitle>
+            <DialogDescription>{labels.inviteLinkValidFor}</DialogDescription>
           </DialogHeader>
-          <p className="text-muted-foreground text-sm">{labels.inviteLinkValidFor}</p>
-          <Input readOnly value={inviteLinkUrl} className="font-mono text-xs" />
-          {inviteLinkCopyLabel ? <p className="text-muted-foreground text-sm">{inviteLinkCopyLabel}</p> : null}
+          <DialogBody>
+            <Input readOnly dir="ltr" value={inviteLinkUrl} className="font-mono text-xs" />
+            {inviteLinkCopyLabel ? (
+              <p className="text-muted-foreground text-sm">{inviteLinkCopyLabel}</p>
+            ) : null}
+          </DialogBody>
           <DialogFooter>
             <Button
               type="button"

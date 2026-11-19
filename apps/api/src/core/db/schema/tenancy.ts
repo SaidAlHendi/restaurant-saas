@@ -1,6 +1,8 @@
 import {
   boolean,
+  foreignKey,
   integer,
+  numeric,
   pgEnum,
   pgTable,
   primaryKey,
@@ -9,6 +11,8 @@ import {
   unique,
   uuid,
 } from 'drizzle-orm/pg-core';
+
+export const posDeviceStatusEnum = pgEnum('pos_device_status', ['pending', 'active', 'revoked']);
 
 export const orgStatusEnum = pgEnum('org_status', [
   'trial',
@@ -29,6 +33,13 @@ export const organizations = pgTable('organizations', {
   defaultLocale: text('default_locale').notNull(),
   locales: text('locales').array().notNull(),
   logoKey: text('logo_key'),
+  /** Currency shown to staff and guests; null = show `defaultCurrency`. */
+  displayCurrency: text('display_currency'),
+  /** Display-currency units for 1 `defaultCurrency` unit. */
+  exchangeRate: numeric('exchange_rate', { precision: 18, scale: 6, mode: 'number' }),
+  exchangeRateUpdatedAt: timestamp('exchange_rate_updated_at', { withTimezone: true }),
+  displayItemStep: integer('display_item_step').notNull().default(100),
+  displayTotalStep: integer('display_total_step').notNull().default(500),
   status: orgStatusEnum('status').notNull().default('active'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
@@ -51,7 +62,9 @@ export const branches = pgTable(
     receiptHeader: text('receipt_header'),
     receiptFooter: text('receipt_footer'),
     payBeforeSend: boolean('pay_before_send').notNull().default(false),
-    acceptsCard: boolean('accepts_card').notNull().default(true),
+    acceptsCard: boolean('accepts_card').notNull().default(false),
+    pagerEnabled: boolean('pager_enabled').notNull().default(false),
+    displayToken: text('display_token'),
     isActive: boolean('is_active').notNull().default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
@@ -122,4 +135,53 @@ export const membershipBranches = pgTable(
       .references(() => organizations.id),
   },
   (t) => [primaryKey({ columns: [t.membershipId, t.branchId] })],
+);
+
+/** Per-employee permission exceptions on top of the role: `grant` adds a key, `deny` removes it. */
+export const membershipPermissionOverrides = pgTable(
+  'membership_permission_overrides',
+  {
+    membershipId: uuid('membership_id')
+      .notNull()
+      .references(() => memberships.id),
+    permissionKey: text('permission_key').notNull(),
+    effect: text('effect', { enum: ['grant', 'deny'] }).notNull(),
+    orgId: uuid('org_id')
+      .notNull()
+      .references(() => organizations.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.membershipId, t.permissionKey] })],
+);
+
+/** A cashier device linked to one branch. Staff sign in on it with a PIN; the device key never leaves the browser. */
+export const posDevices = pgTable(
+  'pos_devices',
+  {
+    id: uuid('id').primaryKey(),
+    orgId: uuid('org_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    branchId: uuid('branch_id').notNull(),
+    name: text('name').notNull(),
+    status: posDeviceStatusEnum('status').notNull().default('pending'),
+    pairingCodeHash: text('pairing_code_hash'),
+    pairingExpiresAt: timestamp('pairing_expires_at', { withTimezone: true }),
+    deviceKeyHash: text('device_key_hash'),
+    createdBy: uuid('created_by')
+      .notNull()
+      .references(() => memberships.id),
+    pairedAt: timestamp('paired_at', { withTimezone: true }),
+    lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('pos_devices_id_org_id_unique').on(t.id, t.orgId),
+    foreignKey({
+      columns: [t.branchId, t.orgId],
+      foreignColumns: [branches.id, branches.orgId],
+      name: 'pos_devices_branch_id_org_id_branches_id_org_id_fk',
+    }).onDelete('cascade'),
+  ],
 );

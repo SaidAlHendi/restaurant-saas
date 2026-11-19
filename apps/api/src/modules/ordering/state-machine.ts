@@ -11,12 +11,44 @@ export type StatusTransition = {
 const ALLOWED: StatusTransition[] = [
   { from: 'draft', to: 'cancelled', permission: 'orders.create' },
   { from: 'placed', to: 'preparing', permission: 'orders.update_status' },
+  // One tap on a New order: the cook marks the whole order ready without ticking items first.
+  { from: 'placed', to: 'ready', permission: 'orders.update_status' },
   { from: 'preparing', to: 'ready', permission: 'orders.update_status' },
   { from: 'ready', to: 'completed', permission: 'orders.update_status' },
   { from: 'placed', to: 'cancelled', permission: 'orders.cancel' },
   { from: 'preparing', to: 'cancelled', permission: 'orders.cancel' },
   { from: 'ready', to: 'cancelled', permission: 'orders.cancel' },
 ];
+
+/** Reverse moves, only as a short "Undo" by the person who just made the change. */
+const UNDO_ALLOWED: StatusTransition[] = [
+  { from: 'ready', to: 'preparing', permission: 'orders.update_status' },
+  { from: 'completed', to: 'ready', permission: 'orders.update_status' },
+];
+
+/** Manager/owner fix after the Undo window: a completed order goes back to Ready. */
+export function assertReopenTransition(from: OrderStatus, to: OrderStatus): StatusTransition {
+  if (from !== 'completed' || to !== 'ready') {
+    throw new BusinessRuleError(
+      'ORDER_INVALID_TRANSITION',
+      `Cannot reopen from ${from} to ${to}`,
+      { from, to },
+    );
+  }
+  return { from, to, permission: 'orders.reopen' };
+}
+
+export function assertUndoTransition(from: OrderStatus, to: OrderStatus): StatusTransition {
+  const transition = UNDO_ALLOWED.find((t) => t.from === from && t.to === to);
+  if (!transition) {
+    throw new BusinessRuleError(
+      'ORDER_INVALID_TRANSITION',
+      `Cannot undo from ${from} to ${to}`,
+      { from, to },
+    );
+  }
+  return transition;
+}
 
 export function findTransition(from: OrderStatus, to: OrderStatus): StatusTransition | undefined {
   return ALLOWED.find((t) => t.from === from && t.to === to);

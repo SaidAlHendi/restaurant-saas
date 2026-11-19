@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { intlLocaleForUi } from '@app/shared';
 
 import {
   ORDER_STATUSES,
@@ -107,7 +108,7 @@ export function useOrdersDemo(copy: DevUiCopy, locale: string) {
     onRetry: () => {
       setTableState('data');
     },
-    formatPage: (value: number) => new Intl.NumberFormat(locale).format(value),
+    formatPage: (value: number) => new Intl.NumberFormat(intlLocaleForUi(locale)).format(value),
   };
 }
 

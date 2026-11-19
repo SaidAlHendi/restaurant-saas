@@ -21,23 +21,12 @@ export function useSettingsLayout() {
     if (location.pathname.endsWith('/restaurant')) {
       return 'restaurant';
     }
-    if (location.pathname.endsWith('/branch')) {
-      return 'branch';
-    }
-    if (location.pathname.endsWith('/staff')) {
-      return 'staff';
-    }
     return null;
   }, [location.pathname]);
 
   const tabItems = tabs.map((tab) => ({
     id: tab,
-    label:
-      tab === 'restaurant'
-        ? t('settings.tabs.restaurant')
-        : tab === 'branch'
-          ? t('settings.tabs.branch')
-          : t('settings.tabs.staff'),
+    label: t('settings.tabs.restaurant'),
     active: tab === activeTab,
     onSelect: () => {
       void navigate(settingsTabPath(tab));

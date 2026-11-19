@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
 import {
   Button,
-  Card,
   Form,
   FormControl,
   FormField,
@@ -24,10 +23,23 @@ export default function SignupPage() {
 
   return (
     <GuestOnly>
-      <Card className="mx-auto max-w-lg p-6">
-        <h2 className="mb-4 text-xl font-semibold">{t('auth.signup.title')}</h2>
+      <div className="mx-auto w-full">
+        <h2 className="auth-display mb-5 text-4xl leading-tight">{t('auth.signup.title')}</h2>
         <Form {...form}>
-          <form onSubmit={(e) => void onSubmit(e)} className="flex flex-col gap-4">
+          <form onSubmit={(e) => void onSubmit(e)} className="flex flex-col gap-3">
+            <FormField
+              control={form.control}
+              name="restaurantName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('auth.fields.restaurantName')}</FormLabel>
+                  <FormControl>
+                    <Input className="h-11" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="name"
@@ -35,7 +47,7 @@ export default function SignupPage() {
                 <FormItem>
                   <FormLabel>{t('auth.fields.name')}</FormLabel>
                   <FormControl>
-                    <Input autoComplete="name" {...field} />
+                    <Input className="h-11" autoComplete="name" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -48,7 +60,7 @@ export default function SignupPage() {
                 <FormItem>
                   <FormLabel>{t('auth.fields.email')}</FormLabel>
                   <FormControl>
-                    <Input type="email" autoComplete="email" {...field} />
+                    <Input className="h-11" type="email" autoComplete="email" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -61,20 +73,7 @@ export default function SignupPage() {
                 <FormItem>
                   <FormLabel>{t('auth.fields.password')}</FormLabel>
                   <FormControl>
-                    <Input type="password" autoComplete="new-password" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="restaurantName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('auth.fields.restaurantName')}</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
+                    <Input className="h-11" type="password" autoComplete="new-password" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -88,7 +87,7 @@ export default function SignupPage() {
                   <FormLabel>{t('auth.fields.defaultLocale')}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-11">
                         <SelectValue />
                       </SelectTrigger>
                     </FormControl>
@@ -106,7 +105,7 @@ export default function SignupPage() {
                 {errorMessage}
               </p>
             ) : null}
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" size="touch" className="mt-1 w-full" disabled={isLoading}>
               {t('auth.signup.submit')}
             </Button>
           </form>
@@ -117,7 +116,7 @@ export default function SignupPage() {
             {t('auth.signup.loginLink')}
           </Link>
         </p>
-      </Card>
+      </div>
     </GuestOnly>
   );
 }

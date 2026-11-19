@@ -1,0 +1,97 @@
+---
+title: "Cashier"
+description: "Takes orders and payments at the point of sale."
+icon: "shopping-bag"
+---
+
+## Who this role is for
+
+Front-of-house staff who take customer orders and handle payment at the counter.
+
+## What cashiers can do
+
+- Open the POS, build an order from the menu, and send it to the kitchen.
+- Change a cart item's options before sending. Select the pencil icon on the item in the cart to reopen its options (for example size or extras), with the current choices already ticked. Change them, the quantity or the note, then select **Save changes**.
+- Take payment, following the restaurant's pay-before-send and card settings. When the owner has set a display currency, the POS shows prices, the order total, the cash received and the change in that currency, with the total already rounded. Collect the total shown. A warning appears at the top of the POS when the exchange rate is older than 7 days; tell the owner or a manager.
+- Enter a **Pager no.** on an order when the branch uses pickup numbers (see below).
+- Run dine-in tables from the **Tables** page: one open bill per table visit, several rounds of orders, pay by guest or item, and move an order to another table (see below).
+- View orders, including the POS orders page and the open-orders strip.
+- Update order status. This also gives them access to the kitchen display.
+- View the menu and the branches they are assigned to.
+- Sign in with a PIN on a linked device, and lock the screen between customers. On the lock screen, pick your name and enter your PIN to switch user, or sign out.
+
+## Pager numbers and the Ready screen
+
+When the owner turns on **Pickup numbers / pagers** for a branch, the cart shows an optional **Pager no.** field. Type the number of the pager you hand to the customer (1 to 9999) before you send the order.
+
+- The pager number shows on the kitchen display card and on kitchen tickets and customer receipts.
+- When the kitchen marks the order **Ready**, its number appears on the branch's customer **Ready** screen, with a chime, and stays there until you tap **Picked up** or **Served**. Orders without a pager show the order number.
+- The field is optional. Leave it empty for orders that have no pager.
+
+## Handing over a ready order
+
+A ready order stays visible on the POS (Active tab), the kitchen display and the customer **Ready** screen until you hand it over. Paying an order does not complete it, and neither does the kitchen marking it ready.
+
+- When the customer has the food, tap **Picked up** (takeaway) or **Served** (dine-in). You find the button on the order sheet and on each ready order in the **Orders** list. The order becomes **Completed**.
+- An order must be fully paid to be completed. If it is not, the button opens the payment window first, and the order is completed as soon as it is paid in full. No second tap is needed.
+- On the **Orders** page, the **Today only** switch limits the list to today's business day. **Active**, **Awaiting payment** and **Ready** start with it off, so an open order from an earlier day never disappears before it is handled. **Completed**, **Cancelled** and **All today** start with it on. Your choice stays in the page address. When it is on and older open orders are hidden, a note says how many, with a button to show them.
+- After the tap, an **Undo** message stays for 10 seconds. Tap it to put the order back to ready. Only the person who made the change can undo it, and only within a short time.
+- Tapped by mistake, or the customer comes back? After the Undo time is over, ask a manager or the owner. They open the completed order and choose **More → Reopen order** (an optional reason can be added). The order goes back to **Ready**, shows on the kitchen and Ready screens again, and you hand it over again. Payment does not change. You cannot reopen orders yourself unless the owner turned on **Reopen completed orders** for you in **Permissions**. A dine-in order cannot be reopened once its table bill is closed.
+
+## Order details
+
+Tap an order in the **Orders** list (or on the POS) to open its details. The header shows the order number, the total and what is still due, the colour-coded status, the payment status, where it is for (table, or pager number for takeaway), and a progress bar from **Placed** to **Completed**. A **Draft** says it is awaiting payment, and a **Cancelled** order shows its reason.
+
+Below, cards show everything saved on the order: items (with extras, notes, guest seat, a status chip and an **Added later** chip), totals, payments (with cash tendered and change), order info, timestamps, and a **Timeline** you open when you need it. Empty values are hidden. If the order has a display currency, the totals also show the order-currency total and the exchange rate used.
+
+The buttons at the bottom depend on the status:
+
+| Status | Big button | Next to it |
+|---|---|---|
+| Draft | **Pay** | **Cancel order** under **More** |
+| New (placed) | **Start preparing** | **Mark ready**, **Pay**, **Add items** |
+| Preparing | **Mark ready** | **Pay**, **Add items** |
+| Ready | **Picked up** or **Served** (with the 10-second Undo) | **Pay** if something is due |
+| Completed | none | **Print receipt**; managers see **Reopen order** under **More → Manager** |
+| Cancelled | none | **Print receipt** |
+
+**Print receipt**, **Print kitchen ticket** and **Cancel order** (in red) are under **More**. **Remove item** sits on each item line. The dashboard order page (for managers and owners) has the same buttons, except **Add items**. **Undo** is only the 10-second message right after your own tap. **Reopen** is the manager fix for a completed order later on.
+
+## Tables and table bills
+
+Open **Tables** in the sidebar. Every table shows as a card: **free**, **busy** (an open bill) or **settled** (everything paid, bill still open). A busy card shows the number of rounds, the amount still due and any pager numbers.
+
+- **New order** on a free table opens the POS with that table already selected.
+- **Add round** on a busy table does the same. When the guests order again, the new order joins the table's open bill as the next round. Busy tables stay selectable in the POS.
+- If two separate groups share one table, choose **New separate bill** so each group pays on its own.
+- **Bill** opens the bill: all rounds and items. Label items with a **Guest** number if guests pay separately.
+- **Pay selected** takes payment for the ticked items only. Pay with cash (change and the display currency are shown) or card. A bill can be paid in several steps, and an item cannot be paid twice.
+- Takeaway orders have no bill and work as before.
+- **Close table** is available once every order is completed and nothing is due. A settled bill closes by itself when a new order arrives at that table.
+
+### Moving an order to another table
+
+If an order went to the wrong table (for example T4 instead of T5), open the bill and use **Move table** to move the whole order, or **Move** on a single round. Choose the new table. The order joins that table's open bill, or starts a new one, and an empty old bill is closed.
+
+- Only dine-in orders that are not cancelled or refunded can be moved.
+- An order that already has a payment cannot be moved.
+- Moving a single item to another table is not available yet.
+
+## What cashiers cannot do
+
+- Edit the menu, branches, staff or settings.
+- See the dashboard or reports. Opening a dashboard address sends them back to the Cashier screen.
+- See billing.
+- Cancel an order that has been placed, or void items on an order that is preparing or ready, without approval. A manager or owner must enter their PIN on the approval dialog. Cancelling a draft order needs no approval.
+
+<Note>
+  Five wrong PIN attempts lock the account for five minutes.
+</Note>
+
+## Signing in with a PIN
+
+PIN-only staff have no email or password. A manager or owner links the device once (**Devices** page, using a pairing code that works for 15 minutes). After that, the sign-in page on that device opens straight to the **choose your name and enter your PIN** screen and lists only the staff of that branch. Signing out returns to the same PIN screen. Removing the device on the **Devices** page ends its access.
+
+## Where they work
+
+The restaurant app. The sidebar shows only **Cashier** and **Kitchen**; the menu is available inside the POS. After sign-in, a cashier lands on the **Cashier** screen.

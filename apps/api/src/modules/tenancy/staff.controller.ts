@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, ParseUUIDPipe, Query } from '@nestjs/common';
 
 import { Authenticated } from '../../core/auth/authenticated.decorator';
 import { RequirePermission } from '../../core/permissions/require-permission.decorator';
@@ -9,9 +9,11 @@ import {
   CreatePinOnlyStaffBodyDto,
   CreateStaffInviteBodyDto,
   PatchStaffMembershipBodyDto,
+  PutStaffPermissionOverridesBodyDto,
   PutStaffPinBodyDto,
 } from './dto/staff.dto';
 import { StaffService } from './staff.service';
+import { PageQueryDto } from '../../core/validation/page-query.dto';
 
 @Controller('v1/staff')
 export class StaffController {
@@ -19,8 +21,8 @@ export class StaffController {
 
   @RequirePermission('staff.read')
   @Get()
-  list(@Ctx() ctx: RequestContext) {
-    return this.staff.list(ctx);
+  list(@Ctx() ctx: RequestContext, @Query() query: PageQueryDto) {
+    return this.staff.list(ctx, query);
   }
 
   @RequirePermission('staff.manage')
@@ -37,13 +39,13 @@ export class StaffController {
 
   @RequirePermission('staff.manage')
   @Post(':membershipId/invite/regenerate')
-  regenerateInvite(@Ctx() ctx: RequestContext, @Param('membershipId') membershipId: string) {
+  regenerateInvite(@Ctx() ctx: RequestContext, @Param('membershipId', ParseUUIDPipe) membershipId: string) {
     return this.staff.regenerateInvite(ctx, membershipId);
   }
 
   @RequirePermission('staff.manage')
   @Delete(':membershipId/invite')
-  revokeInvite(@Ctx() ctx: RequestContext, @Param('membershipId') membershipId: string) {
+  revokeInvite(@Ctx() ctx: RequestContext, @Param('membershipId', ParseUUIDPipe) membershipId: string) {
     return this.staff.revokeInvite(ctx, membershipId);
   }
 
@@ -51,17 +53,33 @@ export class StaffController {
   @Patch(':membershipId')
   patchMembership(
     @Ctx() ctx: RequestContext,
-    @Param('membershipId') membershipId: string,
+    @Param('membershipId', ParseUUIDPipe) membershipId: string,
     @Body() body: PatchStaffMembershipBodyDto,
   ) {
     return this.staff.patchMembership(ctx, membershipId, body);
+  }
+
+  @RequirePermission('org.manage')
+  @Get(':membershipId/permissions')
+  getPermissions(@Ctx() ctx: RequestContext, @Param('membershipId', ParseUUIDPipe) membershipId: string) {
+    return this.staff.getPermissionOverrides(ctx, membershipId);
+  }
+
+  @RequirePermission('org.manage')
+  @Put(':membershipId/permissions')
+  putPermissions(
+    @Ctx() ctx: RequestContext,
+    @Param('membershipId', ParseUUIDPipe) membershipId: string,
+    @Body() body: PutStaffPermissionOverridesBodyDto,
+  ) {
+    return this.staff.putPermissionOverrides(ctx, membershipId, body);
   }
 
   @Authenticated()
   @Put(':membershipId/pin')
   putPin(
     @Ctx() ctx: RequestContext,
-    @Param('membershipId') membershipId: string,
+    @Param('membershipId', ParseUUIDPipe) membershipId: string,
     @Body() body: PutStaffPinBodyDto,
   ) {
     return this.staff.putPin(ctx, membershipId, body);
@@ -69,7 +87,7 @@ export class StaffController {
 
   @Authenticated()
   @Delete(':membershipId/pin')
-  deletePin(@Ctx() ctx: RequestContext, @Param('membershipId') membershipId: string) {
+  deletePin(@Ctx() ctx: RequestContext, @Param('membershipId', ParseUUIDPipe) membershipId: string) {
     return this.staff.deletePin(ctx, membershipId);
   }
 }

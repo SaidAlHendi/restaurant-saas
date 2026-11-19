@@ -1,13 +1,19 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useParams } from 'react-router-dom';
 
 import { toast } from '@app/ui';
 
 import { useAppSelector } from '../../../app/hooks.js';
 import { formatMoney, intlLocaleForUi } from '../../../lib/money.js';
-import { useListBranchesQuery, usePatchBranchMutation } from '../../branches/branches.api.js';
+import {
+  useGetBranchDisplayLinkQuery,
+  useListBranchesQuery,
+  usePatchBranchMutation,
+  useRotateBranchDisplayLinkMutation,
+} from '../../branches/branches.api.js';
 import { showApiError } from '../../../lib/show-api-error.js';
-import { selectCurrentBranchId, selectSessionOrg } from '../../session/session.selectors.js';
+import { selectHasFeature, selectSessionOrg } from '../../session/session.selectors.js';
 import { useSettingsPageAccess } from './use-settings-page-access.js';
 import { branchReceiptPreviewHtml } from '../branch-receipt-preview.utils.js';
 import { filterTimezoneOptions } from '../branch-timezone.utils.js';
@@ -16,19 +22,24 @@ import { parseTaxPercentInput, taxBpToPercentInput } from '../tax-rate.utils.js'
 export function useBranchSettingsPage() {
   const { t, i18n } = useTranslation();
   const { allowed, redirectTo } = useSettingsPageAccess('branches.manage');
-  const branchId = useAppSelector(selectCurrentBranchId);
+  const { branchId = null } = useParams();
   const org = useAppSelector(selectSessionOrg);
   const uiLocale = intlLocaleForUi(i18n.language);
   const { data, isLoading, isError } = useListBranchesQuery(undefined, { skip: !allowed });
+  const pagerPlanAvailable = useAppSelector(selectHasFeature('ordering.pager'));
+  const [rotateLink, rotateState] = useRotateBranchDisplayLinkMutation();
   const [patchBranch, patchState] = usePatchBranchMutation();
 
-  const branch = useMemo(
-    () => data?.items.find((b) => b.id === branchId),
-    [branchId, data?.items],
-  );
+  const branch = useMemo(() => data?.items.find((b) => b.id === branchId), [branchId, data?.items]);
+  const displayLinkQuery = useGetBranchDisplayLinkQuery(branchId ?? '', {
+    skip: !allowed || branchId === null || branch?.pagerEnabled !== true,
+  });
 
+  const [name, setName] = useState('');
+  const [isActive, setIsActive] = useState(true);
   const [payBeforeSend, setPayBeforeSend] = useState(false);
-  const [acceptsCard, setAcceptsCard] = useState(true);
+  const [acceptsCard, setAcceptsCard] = useState(false);
+  const [pagerEnabled, setPagerEnabled] = useState(false);
   const [taxInclusive, setTaxInclusive] = useState(false);
   const [dayStartHour, setDayStartHour] = useState('4');
   const [timezone, setTimezone] = useState('Asia/Riyadh');
@@ -41,8 +52,11 @@ export function useBranchSettingsPage() {
 
   useEffect(() => {
     if (branch) {
+      setName(branch.name);
+      setIsActive(branch.isActive);
       setPayBeforeSend(branch.payBeforeSend);
       setAcceptsCard(branch.acceptsCard);
+      setPagerEnabled(branch.pagerEnabled);
       setTaxInclusive(branch.taxInclusive);
       setDayStartHour(String(branch.dayStartHour));
       setTimezone(branch.timezone);
@@ -54,10 +68,7 @@ export function useBranchSettingsPage() {
     }
   }, [branch]);
 
-  const timezoneOptions = useMemo(
-    () => filterTimezoneOptions(timezoneQuery),
-    [timezoneQuery],
-  );
+  const timezoneOptions = useMemo(() => filterTimezoneOptions(timezoneQuery), [timezoneQuery]);
 
   const dirty = useMemo(() => {
     if (!branch) {
@@ -67,8 +78,11 @@ export function useBranchSettingsPage() {
     const taxBp = parsedTax.ok ? parsedTax.bp : branch.taxRateBp;
     const hour = Number(dayStartHour);
     return (
+      name.trim() !== branch.name ||
+      isActive !== branch.isActive ||
       payBeforeSend !== branch.payBeforeSend ||
       acceptsCard !== branch.acceptsCard ||
+      pagerEnabled !== branch.pagerEnabled ||
       taxInclusive !== branch.taxInclusive ||
       timezone !== branch.timezone ||
       taxBp !== branch.taxRateBp ||
@@ -82,6 +96,9 @@ export function useBranchSettingsPage() {
     address,
     branch,
     dayStartHour,
+    isActive,
+    name,
+    pagerEnabled,
     payBeforeSend,
     receiptFooter,
     receiptHeader,
@@ -138,6 +155,16 @@ export function useBranchSettingsPage() {
     org?.name,
   ]);
 
+  const onRotateLink = useCallback(async () => {
+    if (!branchId) {
+      return;
+    }
+    const result = await rotateLink(branchId);
+    if ('error' in result) {
+      showApiError(result.error, t);
+    }
+  }, [branchId, rotateLink, t]);
+
   const onSave = useCallback(async () => {
     if (!branchId) {
       return;
@@ -152,12 +179,19 @@ export function useBranchSettingsPage() {
       setTaxErrorKey('settings.branch.dayStartInvalid');
       return;
     }
+    if (name.trim().length === 0) {
+      setTaxErrorKey('settings.branch.nameRequired');
+      return;
+    }
     setTaxErrorKey(null);
     const result = await patchBranch({
       branchId,
       body: {
+        name: name.trim(),
+        isActive,
         payBeforeSend,
         acceptsCard,
+        pagerEnabled,
         taxInclusive,
         taxRateBp: parsedTax.bp,
         dayStartHour: hour,
@@ -177,6 +211,9 @@ export function useBranchSettingsPage() {
     address,
     branchId,
     dayStartHour,
+    isActive,
+    name,
+    pagerEnabled,
     patchBranch,
     payBeforeSend,
     receiptFooter,
@@ -192,14 +229,55 @@ export function useBranchSettingsPage() {
     isLoading: allowed ? isLoading : false,
     isError,
     branchName: branch?.name ?? '',
+    notFound: !isLoading && !isError && branch === undefined,
+    name,
+    onNameChange: setName,
+    isActive,
+    onIsActiveChange: setIsActive,
     payBeforeSend,
     onPayBeforeSendChange: setPayBeforeSend,
     acceptsCard,
     onAcceptsCardChange: setAcceptsCard,
+    pagerEnabled,
+    onPagerEnabledChange: setPagerEnabled,
+    pagerPlanAvailable,
+    displayLink: {
+      /** Only a saved-on branch can have a link; the switch above is saved with the form. */
+      visible: pagerPlanAvailable && branch?.pagerEnabled === true,
+      url: displayLinkQuery.data?.token
+        ? `${window.location.origin}/display/${displayLinkQuery.data.token}`
+        : null,
+      busy: rotateState.isLoading,
+      onCreate: () => {
+        void onRotateLink();
+      },
+      onRegenerate: () => {
+        if (window.confirm(t('settings.branch.pagerLinkRegenerateConfirm'))) {
+          void onRotateLink();
+        }
+      },
+      onCopy: () => {
+        const url = displayLinkQuery.data?.token
+          ? `${window.location.origin}/display/${displayLinkQuery.data.token}`
+          : null;
+        if (url !== null) {
+          void navigator.clipboard.writeText(url).then(() => {
+            toast.success(t('settings.branch.pagerLinkCopied'));
+          });
+        }
+      },
+    },
     taxInclusive,
     onTaxInclusiveChange: setTaxInclusive,
     dayStartHour,
     onDayStartHourChange: setDayStartHour,
+    uiLocale,
+    dayStartGroups: [
+      { label: t('settings.branch.dayPartNight'), hours: [0, 1, 2, 3, 4, 5] },
+      { label: t('settings.branch.dayPartMorning'), hours: [6, 7, 8, 9, 10, 11] },
+      { label: t('settings.branch.dayPartAfternoon'), hours: [12, 13, 14, 15, 16, 17] },
+      { label: t('settings.branch.dayPartEvening'), hours: [18, 19, 20, 21, 22, 23] },
+    ],
     timezone,
     onTimezoneChange: setTimezone,
     timezoneQuery,
@@ -231,6 +309,14 @@ export function useBranchSettingsPage() {
       payBeforeSendHint: t('settings.branch.payBeforeSendHint'),
       acceptsCard: t('settings.branch.acceptsCard'),
       acceptsCardHint: t('settings.branch.acceptsCardHint'),
+      pager: t('settings.branch.pager'),
+      pagerHint: t('settings.branch.pagerHint'),
+      pagerPlanHint: t('settings.branch.pagerPlanHint'),
+      pagerDisplayLink: t('settings.branch.pagerDisplayLink'),
+      pagerLinkHint: t('settings.branch.pagerLinkHint'),
+      pagerLinkCreate: t('settings.branch.pagerLinkCreate'),
+      pagerLinkCopy: t('settings.branch.pagerLinkCopy'),
+      pagerLinkRegenerate: t('settings.branch.pagerLinkRegenerate'),
       taxPercent: t('settings.branch.taxPercent'),
       taxPercentHint: t('settings.branch.taxPercentHint'),
       taxInclusive: t('settings.branch.taxInclusive'),
@@ -242,8 +328,24 @@ export function useBranchSettingsPage() {
       receiptHeader: t('settings.branch.receiptHeader'),
       receiptFooter: t('settings.branch.receiptFooter'),
       receiptPreview: t('settings.branch.receiptPreview'),
+      generalSection: t('settings.branch.generalSection'),
+      nameLabel: t('settings.branch.nameLabel'),
+      activeLabel: t('settings.branch.activeLabel'),
+      activeHint: t('settings.branch.activeHint'),
+      back: t('settings.branch.back'),
+      notFound: t('settings.branch.notFound'),
+      taxSection: t('settings.branch.taxSection'),
+      taxSectionHint: t('settings.branch.taxSectionHint'),
+      paymentsSection: t('settings.branch.paymentsSection'),
+      paymentsSectionHint: t('settings.branch.paymentsSectionHint'),
+      advancedTitle: t('settings.branch.advancedTitle'),
+      advancedHint: t('settings.branch.advancedHint'),
+      businessDaySection: t('settings.branch.businessDaySection'),
+      receiptSection: t('settings.branch.receiptSection'),
+      receiptSectionHint: t('settings.branch.receiptSectionHint'),
       taxDayNote: t('settings.branch.taxDayNote'),
       save: t('settings.branch.save'),
+      unsavedChanges: t('settings.unsavedChanges'),
       loadError: t('settings.branch.loadError'),
       loading: t('common.loading'),
     },

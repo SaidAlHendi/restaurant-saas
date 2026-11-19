@@ -54,10 +54,15 @@ import {
   mapOrderEvent,
   mapOrderListItem,
   mapPayment,
+  moneyDisplayForOrder,
 } from './ordering.mapper';
+import { BillsService } from './bills.service';
+import { resolveCashAmounts } from './cash-amounts';
 import { OrderingRepository } from './ordering.repository';
 import {
   assertTransition,
+  assertReopenTransition,
+  assertUndoTransition,
   itemStatusForNotReady,
   itemStatusForOrderStatus,
   voidItemPermission,
@@ -73,6 +78,9 @@ export type CapturePaymentResult = {
   created: boolean;
 };
 
+/** How long the person who changed an order's status may take it back. */
+const UNDO_WINDOW_MS = 15_000;
+
 @Injectable()
 export class OrderingService {
   constructor(
@@ -84,6 +92,7 @@ export class OrderingService {
     private readonly catalogOrdering: CatalogOrderingService,
     private readonly outbox: OutboxService,
     private readonly identity: IdentityService,
+    private readonly bills: BillsService,
   ) {}
 
   async createOrder(
@@ -134,14 +143,28 @@ export class OrderingService {
         );
       }
 
+      if (body.pagerNumber !== undefined && !branch.pagerEnabled) {
+        throw new BusinessRuleError('PAGER_DISABLED', 'Pager numbers are not enabled for this branch');
+      }
+
+      let billId: string | null = null;
       if (body.type === 'dine_in' && body.tableId) {
         const table = await this.repo.findActiveTableForBranch(tx, branchId, body.tableId);
         if (!table) {
           throw new NotFoundError();
         }
+        billId = await this.bills.resolveBillForNewOrder(tx, ctx, branchId, body.tableId, {
+          billId: body.billId,
+          newBill: body.newBill === true,
+          label: body.billLabel,
+        });
       }
 
-      const lineSnapshots = await this.catalogOrdering.validateAndSnapshotOrderLines(tx, body.items);
+      const lineSnapshots = await this.catalogOrdering.validateAndSnapshotOrderLines(
+        tx,
+        body.items,
+        branchId,
+      );
 
       const now = this.clock.now();
       const businessDate = computeBusinessDate({
@@ -186,13 +209,20 @@ export class OrderingService {
         status: initialStatus,
         paymentStatus,
         tableId: body.tableId ?? null,
+        billId,
         customerName: body.customerName ?? null,
+        pagerNumber: body.pagerNumber ?? null,
         notes: body.notes ?? null,
         subtotalMinor: totals.subtotalMinor,
         discountMinor: totals.discountMinor,
         taxMinor: totals.taxMinor,
         totalMinor: totals.totalMinor,
         currency: branch.currency,
+        // Frozen here: later rate or rounding changes never touch this order.
+        displayCurrency: org.display?.currency ?? null,
+        exchangeRate: org.display?.rate ?? null,
+        displayItemStep: org.display?.itemStep ?? null,
+        displayTotalStep: org.display?.totalStep ?? null,
         version: 1,
         placedAt,
         createdBy: ctx.membershipId,
@@ -212,6 +242,7 @@ export class OrderingService {
           quantity: line.quantity,
           lineTotalMinor: computeLineTotalMinor(line.unitPriceMinor, line.quantity),
           notes: line.notes ?? null,
+          seat: line.seat ?? null,
           status: 'pending',
           isAddition: false,
         });
@@ -317,7 +348,16 @@ export class OrderingService {
               id: last.order.id,
             })
           : null;
+      const hiddenOlderCount =
+        todayOnlyBusinessDate !== undefined && cursor === undefined && query.q === undefined
+          ? await this.repo.countOlderOpenOrders(tx, branchId, {
+              status: query.status,
+              activeOnly: query.activeOnly,
+              before: todayOnlyBusinessDate,
+            })
+          : undefined;
       return {
+        ...(hiddenOlderCount !== undefined ? { hiddenOlderCount } : {}),
         items: page.map((row) =>
           mapOrderListItem(
             row.order,
@@ -361,7 +401,12 @@ export class OrderingService {
       return { status: current.status };
     });
 
-    const transition = assertTransition(preflight.status, body.to);
+    const transition =
+      body.reopen === true
+        ? assertReopenTransition(preflight.status, body.to)
+        : body.undo === true
+          ? assertUndoTransition(preflight.status, body.to)
+          : assertTransition(preflight.status, body.to);
     let approvedByMembershipId: string | null = null;
     if (!ctx.permissions.includes(transition.permission)) {
       if (transition.permission === 'orders.cancel') {
@@ -390,7 +435,31 @@ export class OrderingService {
         );
       }
 
-      if (body.to === 'completed' && current.paymentStatus !== 'paid') {
+      let undoneEvent: Awaited<ReturnType<OrderingService['assertUndoWindow']>> | undefined;
+      if (body.undo === true) {
+        undoneEvent = await this.assertUndoWindow(tx, ctx, orderId, current.status);
+      }
+      if (
+        (body.undo === true || body.reopen === true) &&
+        current.status === 'completed' &&
+        current.billId !== null
+      ) {
+        // The table was settled and closed since: reopening one order would leave the bill wrong.
+        const billStatus = await this.repo.findBillStatus(tx, current.billId);
+        if (billStatus === 'closed') {
+          throw new BusinessRuleError(
+            body.reopen === true ? 'ORDER_REOPEN_BILL_CLOSED' : 'ORDER_UNDO_BILL_CLOSED',
+            'The table bill is already closed, so this order cannot be reopened',
+            { orderId },
+          );
+        }
+      }
+
+      if (
+        body.to === 'completed' &&
+        current.paymentStatus !== 'paid' &&
+        current.totalMinor !== 0
+      ) {
         throw new BusinessRuleError('ORDER_NOT_PAID', 'Order must be fully paid before completing', {
           orderId,
           paymentStatus: current.paymentStatus,
@@ -407,7 +476,7 @@ export class OrderingService {
 
       const patch: {
         status: OrderStatus;
-        completedAt?: Date;
+        completedAt?: Date | null;
         cancelledAt?: Date;
         cancelReason?: string | null;
       } = {
@@ -416,6 +485,9 @@ export class OrderingService {
       const now = this.clock.now();
       if (body.to === 'completed') {
         patch.completedAt = now;
+      }
+      if ((body.undo === true || body.reopen === true) && current.status === 'completed') {
+        patch.completedAt = null;
       }
       if (body.to === 'cancelled') {
         patch.cancelledAt = now;
@@ -439,7 +511,15 @@ export class OrderingService {
       }
 
       const itemTarget = itemStatusForOrderStatus(body.to);
-      if (itemTarget === 'preparing') {
+      let itemsMovedToReady: Array<{ id: string; from: 'pending' | 'preparing' }> | undefined;
+      if (body.undo === true && body.to === 'preparing') {
+        await this.restoreItemsAfterUndoReady(tx, orderId, undoneEvent?.payload);
+      } else if (body.reopen === true) {
+        // Items of a completed order are already ready: nothing to change.
+      } else if (body.to === 'ready' && body.undo !== true) {
+        // Whole order Ready (one tap): remember which items were still open, so Undo can put them back.
+        itemsMovedToReady = await this.repo.markOpenItemsReady(tx, orderId);
+      } else if (itemTarget === 'preparing') {
         await this.repo.syncItemStatusesForOrder(tx, orderId, 'preparing', ['pending']);
       } else if (itemTarget === 'ready') {
         await this.repo.syncItemStatusesForOrder(tx, orderId, 'ready', ['preparing']);
@@ -455,7 +535,17 @@ export class OrderingService {
         type: eventType,
         fromStatus: current.status,
         toStatus: body.to,
-        payload: body.reason ? { reason: body.reason } : {},
+        payload: {
+          ...(body.reason ? { reason: body.reason } : {}),
+          ...(body.undo === true ? { undo: true } : {}),
+          ...(body.reopen === true ? { reopen: true } : {}),
+          ...(itemsMovedToReady !== undefined
+            ? { auto: false, itemsMovedToReady }
+            : {}),
+          ...(body.undo !== true && current.status === 'ready' && body.to === 'completed'
+            ? { handover: true }
+            : {}),
+        },
         actorMembershipId: ctx.membershipId,
         approvedByMembershipId,
       });
@@ -464,6 +554,61 @@ export class OrderingService {
 
       return this.loadOrderDetailInTx(tx, branchId, orderId);
     });
+  }
+
+  /** Undo is for the person who just made the change, within a short window. */
+  private async assertUndoWindow(
+    tx: DrizzleTx,
+    ctx: RequestContext,
+    orderId: string,
+    currentStatus: OrderStatus,
+  ) {
+    const events = await this.repo.listOrderEvents(tx, orderId);
+    const last = [...events]
+      .reverse()
+      .find((event) => event.type === ORDER_EVENT_TYPES.statusChanged);
+    const fresh =
+      last !== undefined &&
+      last.toStatus === currentStatus &&
+      last.actorMembershipId === ctx.membershipId &&
+      // A manager's Reopen is not a handover/ready tap the cook can undo.
+      !(
+        last.payload !== null &&
+        typeof last.payload === 'object' &&
+        (last.payload as { reopen?: unknown }).reopen === true
+      ) &&
+      this.clock.now().getTime() - last.createdAt.getTime() <= UNDO_WINDOW_MS;
+    if (!fresh) {
+      throw new BusinessRuleError('ORDER_UNDO_EXPIRED', 'Undo is no longer available', {
+        orderId,
+      });
+    }
+    return last;
+  }
+
+  /**
+   * Undo of "Ready": items that were still open when the order was marked ready go back to how they
+   * were. Older events without that list fall back to "all ready items back to preparing".
+   * Items ticked one by one before Ready stay ready. The order always returns to `preparing`
+   * (also when it was `placed` before), because the kitchen had started.
+   */
+  private async restoreItemsAfterUndoReady(
+    tx: DrizzleTx,
+    orderId: string,
+    payload: unknown,
+  ): Promise<void> {
+    const moved =
+      payload !== null && typeof payload === 'object'
+        ? (payload as { itemsMovedToReady?: unknown }).itemsMovedToReady
+        : undefined;
+    if (!Array.isArray(moved)) {
+      await this.repo.syncItemStatusesForOrder(tx, orderId, 'preparing', ['ready']);
+      return;
+    }
+    const ids = moved
+      .map((entry) => (entry as { id?: unknown }).id)
+      .filter((id): id is string => typeof id === 'string');
+    await this.repo.restoreItemsToPreparing(tx, orderId, ids);
   }
 
   async addItems(
@@ -500,7 +645,11 @@ export class OrderingService {
         throw new NotFoundError();
       }
 
-      const lineSnapshots = await this.catalogOrdering.validateAndSnapshotOrderLines(tx, body.items);
+      const lineSnapshots = await this.catalogOrdering.validateAndSnapshotOrderLines(
+        tx,
+        body.items,
+        branchId,
+      );
 
       const addedItemIds: string[] = [];
       for (const line of lineSnapshots) {
@@ -516,7 +665,13 @@ export class OrderingService {
           quantity: line.quantity,
           lineTotalMinor: computeLineTotalMinor(line.unitPriceMinor, line.quantity),
           notes: line.notes ?? null,
-          status: current.status === 'preparing' ? 'preparing' : 'pending',
+          seat: line.seat ?? null,
+          status:
+            current.status !== 'draft' && branch.payBeforeSend
+              ? 'awaiting_payment'
+              : current.status === 'preparing'
+                ? 'preparing'
+                : 'pending',
           isAddition: current.status !== 'draft',
         });
         for (const mod of line.modifiers) {
@@ -656,17 +811,22 @@ export class OrderingService {
         );
       }
 
-      if (await this.repo.hasCapturedPayments(tx, orderId)) {
+      const item = await this.repo.findOrderItem(tx, orderId, itemId);
+      if (!item || item.status === 'voided') {
+        throw new NotFoundError();
+      }
+
+      // An addition still held for payment never reached the kitchen and was not paid for,
+      // so the cashier may take it back even when the order has captured payments.
+      if (
+        item.status !== 'awaiting_payment' &&
+        (await this.repo.hasCapturedPayments(tx, orderId))
+      ) {
         throw new BusinessRuleError(
           'ORDER_HAS_PAYMENTS',
           'Cannot void items on an order with captured payments',
           { orderId },
         );
-      }
-
-      const item = await this.repo.findOrderItem(tx, orderId, itemId);
-      if (!item || item.status === 'voided') {
-        throw new NotFoundError();
       }
 
       const nonVoided = await this.repo.countNonVoidedItems(tx, orderId);
@@ -812,16 +972,8 @@ export class OrderingService {
         );
       }
 
-      if (body.method === 'cash') {
-        const tendered = body.tenderedMinor ?? 0;
-        if (tendered < body.amountMinor) {
-          throw new BusinessRuleError(
-            'PAYMENT_TENDERED_INSUFFICIENT',
-            'Tendered amount is less than payment amount',
-            { tenderedMinor: tendered, amountMinor: body.amountMinor },
-          );
-        }
-      }
+      const cash =
+        body.method === 'cash' ? resolveCashAmounts(body, current.currency, moneyDisplayForOrder(current)) : null;
 
       if (current.version !== body.expectedVersion) {
         throw new ConflictError(
@@ -831,11 +983,6 @@ export class OrderingService {
         );
       }
 
-      const tenderedMinor = body.method === 'cash' ? body.tenderedMinor ?? null : null;
-      const changeMinor =
-        body.method === 'cash' && tenderedMinor !== null
-          ? tenderedMinor - body.amountMinor
-          : null;
 
       const inserted = await this.repo.insertPayment(tx, {
         id: newUuidV7(),
@@ -844,8 +991,10 @@ export class OrderingService {
         clientPaymentId: body.clientPaymentId,
         method: body.method,
         amountMinor: body.amountMinor,
-        tenderedMinor,
-        changeMinor,
+        tenderedMinor: cash?.tenderedMinor ?? null,
+        changeMinor: cash?.changeMinor ?? null,
+        displayTenderedMinor: cash?.displayTenderedMinor ?? null,
+        displayChangeMinor: cash?.displayChangeMinor ?? null,
         status: 'captured',
         createdBy: ctx.membershipId,
       });
@@ -904,6 +1053,35 @@ export class OrderingService {
         updated,
       );
 
+      if (!placingFromDraft && paymentStatus === 'paid') {
+        // Paid in full: additions held for payment now go to the kitchen.
+        const releasedIds = await this.repo.releaseHeldItems(
+          tx,
+          orderId,
+          current.status === 'preparing' ? 'preparing' : 'pending',
+        );
+        if (releasedIds.length > 0) {
+          await this.repo.insertOrderEvent(tx, {
+            id: newUuidV7(),
+            orgId: ctx.orgId,
+            orderId,
+            type: ORDER_EVENT_TYPES.itemsAdded,
+            fromStatus: current.status,
+            toStatus: current.status,
+            payload: { itemIds: releasedIds, released: true },
+            actorMembershipId: ctx.membershipId,
+          });
+          await this.writeOutbox(
+            tx,
+            ctx.orgId,
+            branchId,
+            orderId,
+            ORDER_EVENT_TYPES.itemsAdded,
+            updated,
+          );
+        }
+      }
+
       if (placingFromDraft) {
         await this.repo.insertOrderEvent(tx, {
           id: newUuidV7(),
@@ -931,7 +1109,10 @@ export class OrderingService {
       }
       const orderRows = await this.repo.listKitchenBoardOrders(tx, branchId, 200);
       const orderIds = orderRows.map((row) => row.id);
-      const itemRows = await this.repo.listOrderItemsForOrderIds(tx, orderIds);
+      // Additions still waiting for payment are not for the kitchen yet.
+      const itemRows = (await this.repo.listOrderItemsForOrderIds(tx, orderIds)).filter(
+        (row) => row.status !== 'awaiting_payment',
+      );
       const itemIds = itemRows.map((row) => row.id);
       const modifierRows = await this.repo.listOrderItemModifiersForItemIds(tx, itemIds);
       const tableIds = [
@@ -943,12 +1124,17 @@ export class OrderingService {
       ];
       const tableRows = await this.repo.listTableLabelsForBranch(tx, branchId, tableIds);
       const labelByTableId = new Map(tableRows.map((row) => [row.id, row.label]));
+      const billIds = [
+        ...new Set(orderRows.map((row) => row.billId).filter((id): id is string => id !== null)),
+      ];
+      const roundByOrderId = await this.repo.listBillRounds(tx, billIds);
       return mapKitchenBoardResponse({
         serverTime,
         orderRows,
         itemRows,
         modifierRows,
         labelByTableId,
+        roundByOrderId,
       });
     });
   }
@@ -982,7 +1168,13 @@ export class OrderingService {
       const targetStatus: OrderItemStatus =
         body.to === 'ready' ? 'ready' : itemStatusForNotReady(current.status);
 
-      const updated = await this.repo.bumpOrderVersion(tx, orderId, body.expectedVersion);
+      // First item ticked on a new order: the kitchen has started, so the order moves to preparing.
+      const startsPreparing = current.status === 'placed' && body.to === 'ready';
+      const updated = startsPreparing
+        ? await this.repo.updateOrderStatus(tx, orderId, 'placed', body.expectedVersion, {
+            status: 'preparing',
+          })
+        : await this.repo.bumpOrderVersion(tx, orderId, body.expectedVersion);
       if (!updated) {
         const detail = await this.loadOrderDetailInTx(tx, branchId, orderId);
         throw new ConflictError(
@@ -993,6 +1185,27 @@ export class OrderingService {
       }
 
       const fromStatus = item.status;
+      if (startsPreparing) {
+        await this.repo.syncItemStatusesForOrder(tx, orderId, 'preparing', ['pending']);
+        await this.repo.insertOrderEvent(tx, {
+          id: newUuidV7(),
+          orgId: ctx.orgId,
+          orderId,
+          type: ORDER_EVENT_TYPES.statusChanged,
+          fromStatus: 'placed',
+          toStatus: 'preparing',
+          payload: { auto: true },
+          actorMembershipId: ctx.membershipId,
+        });
+        await this.writeOutbox(
+          tx,
+          ctx.orgId,
+          branchId,
+          orderId,
+          ORDER_EVENT_TYPES.statusChanged,
+          updated,
+        );
+      }
       await this.repo.updateOrderItemStatus(tx, orderId, itemId, targetStatus);
 
       await this.repo.insertOrderEvent(tx, {
@@ -1000,8 +1213,8 @@ export class OrderingService {
         orgId: ctx.orgId,
         orderId,
         type: ORDER_EVENT_TYPES.itemStatusChanged,
-        fromStatus: current.status,
-        toStatus: current.status,
+        fromStatus: startsPreparing ? 'preparing' : current.status,
+        toStatus: startsPreparing ? 'preparing' : current.status,
         payload: { itemId, from: fromStatus, to: targetStatus },
         actorMembershipId: ctx.membershipId,
       });

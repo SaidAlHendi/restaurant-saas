@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, ParseUUIDPipe, Query } from '@nestjs/common';
 
 import { RequireBranchScope } from '../../core/permissions/require-branch-scope.decorator';
 import { RequirePermission } from '../../core/permissions/require-permission.decorator';
@@ -6,6 +6,7 @@ import { Ctx } from '../../core/context/context.decorator';
 import type { RequestContext } from '../../core/context/request-context';
 import { CreateBranchBodyDto, PatchBranchBodyDto } from './dto/branch.dto';
 import { BranchesService } from './branches.service';
+import { PageQueryDto } from '../../core/validation/page-query.dto';
 
 @Controller('v1/branches')
 export class BranchesController {
@@ -13,8 +14,8 @@ export class BranchesController {
 
   @RequirePermission('branches.read')
   @Get()
-  list(@Ctx() ctx: RequestContext) {
-    return this.branches.list(ctx);
+  list(@Ctx() ctx: RequestContext, @Query() query: PageQueryDto) {
+    return this.branches.list(ctx, query);
   }
 
   @RequirePermission('branches.manage')
@@ -26,15 +27,27 @@ export class BranchesController {
   @RequirePermission('orders.read')
   @RequireBranchScope()
   @Get(':branchId/pin-users')
-  listPinUsers(@Ctx() ctx: RequestContext, @Param('branchId') branchId: string) {
+  listPinUsers(@Ctx() ctx: RequestContext, @Param('branchId', ParseUUIDPipe) branchId: string) {
     return this.branches.listPinUsers(ctx, branchId);
+  }
+
+  @RequirePermission('branches.manage')
+  @Get(':branchId/display-link')
+  getDisplayLink(@Ctx() ctx: RequestContext, @Param('branchId', ParseUUIDPipe) branchId: string) {
+    return this.branches.getDisplayLink(ctx, branchId);
+  }
+
+  @RequirePermission('branches.manage')
+  @Post(':branchId/display-link/rotate')
+  rotateDisplayLink(@Ctx() ctx: RequestContext, @Param('branchId', ParseUUIDPipe) branchId: string) {
+    return this.branches.rotateDisplayLink(ctx, branchId);
   }
 
   @RequirePermission('branches.manage')
   @Patch(':branchId')
   patch(
     @Ctx() ctx: RequestContext,
-    @Param('branchId') branchId: string,
+    @Param('branchId', ParseUUIDPipe) branchId: string,
     @Body() body: PatchBranchBodyDto,
   ) {
     return this.branches.patch(ctx, branchId, body);

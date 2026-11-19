@@ -92,4 +92,15 @@ describe('createRealtimeClient', () => {
     expect(opts.refreshToken).not.toHaveBeenCalled();
     expect(socket.disconnect).toHaveBeenCalled();
   });
+
+  it('passes a valid catalog.updated payload and ignores a malformed one', () => {
+    const onCatalogUpdated = vi.fn();
+    const { socket, opts } = setup({ onCatalogUpdated });
+    const good = { branchId: '00000000-0000-4000-8000-000000000002', version: 1700000000000 };
+    socket.emit('catalog.updated', good);
+    socket.emit('catalog.updated', { branchId: 'nope' });
+    expect(onCatalogUpdated).toHaveBeenCalledTimes(1);
+    expect(onCatalogUpdated).toHaveBeenCalledWith(good);
+    expect(opts.onEvent).not.toHaveBeenCalled();
+  });
 });

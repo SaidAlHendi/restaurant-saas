@@ -1,6 +1,7 @@
 import type { FeatureKey, PermissionKey } from '@app/shared';
 
 import type { RootState } from '../../app/store.js';
+import { isPlanGateEnabled } from '../../lib/plan-gate.js';
 
 export const selectAccessToken = (state: RootState) => state.session.accessToken;
 export const selectBootstrapDone = (state: RootState) => state.session.bootstrapDone;
@@ -8,6 +9,7 @@ export const selectSessionUser = (state: RootState) => state.session.user;
 export const selectSessionOrg = (state: RootState) => state.session.org;
 export const selectSessionRole = (state: RootState) => state.session.role;
 export const selectSessionBranches = (state: RootState) => state.session.branches;
+export const selectAllBranchesScope = (state: RootState) => state.session.allBranches;
 export const selectSessionOrgs = (state: RootState) => state.session.orgs;
 export const selectCurrentBranchId = (state: RootState) => state.session.currentBranchId;
 export const selectPermissions = (state: RootState) => state.session.permissions;
@@ -29,4 +31,6 @@ export const selectEntitlements = (state: RootState) => state.session.entitlemen
 export const selectHasFeature =
   (feature: FeatureKey) =>
   (state: RootState): boolean =>
-    state.session.entitlements === null || state.session.entitlements.features.includes(feature);
+    !isPlanGateEnabled() ||
+    state.session.entitlements === null ||
+    state.session.entitlements.features.includes(feature);

@@ -1,32 +1,16 @@
-import { SITE_APP_TITLE } from '../lib/brand.js';
-import { getSiteEnv } from '../lib/env.server.js';
-import { homeCanonicalUrl } from '../lib/menu-path.js';
-import { buildPageMeta } from '../lib/seo.js';
+import { redirect } from 'react-router';
 
-export function loader() {
-  return { siteBaseUrl: getSiteEnv().PUBLIC_SITE_URL };
-}
+import { landingPath, negotiateLocale } from '../lib/locale.js';
 
-export function meta({ data: loaderData }: { data?: { siteBaseUrl: string } }) {
-  return buildPageMeta({
-    title: SITE_APP_TITLE.en,
-    description: 'Digital menus and operations for modern restaurants.',
-    canonical: loaderData && homeCanonicalUrl(loaderData.siteBaseUrl),
-    locale: 'en',
+/**
+ * `/` has no content of its own: it sends the visitor to `/ar` (default) or `/en` based on
+ * Accept-Language. A 302 (not 301) because the target depends on the request, and `Vary` tells
+ * caches so.
+ */
+export function loader({ request }: { request: Request }) {
+  const locale = negotiateLocale(request.headers.get('accept-language'));
+  return redirect(landingPath(locale), {
+    status: 302,
+    headers: { Vary: 'Accept-Language', 'Cache-Control': 'public, max-age=0, s-maxage=300' },
   });
-}
-
-export default function Home() {
-  return (
-    <main className="mx-auto max-w-3xl p-6">
-      <h1 className="text-3xl font-semibold">{SITE_APP_TITLE.en}</h1>
-      <p className="mt-2 text-muted-foreground">
-        Public marketing home. Browse sample menu at{' '}
-        <a className="text-primary underline" href="/en/m/demo">
-          /en/m/demo
-        </a>
-        .
-      </p>
-    </main>
-  );
 }

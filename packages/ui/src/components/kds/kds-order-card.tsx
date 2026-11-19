@@ -35,6 +35,9 @@ export type KdsOrderCardProps = {
   actionLabel?: string;
   onAction?: () => void;
   actionDisabled?: boolean;
+  /** Optional lighter action next to the primary one, e.g. "Start" on a new order. */
+  secondaryActionLabel?: string;
+  onSecondaryAction?: () => void;
   /** Shown when there is no action, e.g. "Awaiting payment". */
   statusNote?: string | null;
   /** Dims the card while a request is in flight. */
@@ -56,6 +59,8 @@ export function KdsOrderCard({
   actionLabel,
   onAction,
   actionDisabled,
+  secondaryActionLabel,
+  onSecondaryAction,
   statusNote,
   pending,
   className,
@@ -64,7 +69,7 @@ export function KdsOrderCard({
     <article
       aria-busy={pending || undefined}
       className={cn(
-        'bg-card text-card-foreground relative flex shrink-0 flex-col overflow-hidden rounded-3xl border shadow-sm transition-opacity',
+        'bg-card text-card-foreground relative flex shrink-0 flex-col overflow-hidden rounded-lg border shadow-xs transition-opacity',
         pending && 'opacity-60',
         className,
       )}
@@ -86,7 +91,6 @@ export function KdsOrderCard({
             {subtitle ? ` · ${subtitle}` : ''}
           </p>
         </div>
-        <AgeTimer label={ageLabel} level={ageLevel} ariaLabel={ageAriaLabel} />
       </header>
 
       <ul className="flex flex-col divide-y">
@@ -152,19 +156,27 @@ export function KdsOrderCard({
         </p>
       ) : null}
 
-      <footer className="mt-auto border-t p-3">
+      <footer className="mt-auto flex flex-wrap items-center justify-between gap-2 border-t p-3">
+        <AgeTimer label={ageLabel} level={ageLevel} ariaLabel={ageAriaLabel} />
         {actionLabel && onAction ? (
-          <Button
-            type="button"
-            size="touch"
-            className="w-full"
-            onClick={onAction}
-            disabled={actionDisabled}
-          >
-            {actionLabel}
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            {secondaryActionLabel && onSecondaryAction ? (
+              <Button
+                type="button"
+                size="touch"
+                variant="outline"
+                onClick={onSecondaryAction}
+                disabled={actionDisabled}
+              >
+                {secondaryActionLabel}
+              </Button>
+            ) : null}
+            <Button type="button" size="touch" onClick={onAction} disabled={actionDisabled}>
+              {actionLabel}
+            </Button>
+          </div>
         ) : statusNote ? (
-          <p className="text-muted-foreground py-2 text-center text-sm font-medium">{statusNote}</p>
+          <p className="text-muted-foreground text-sm font-medium">{statusNote}</p>
         ) : null}
       </footer>
     </article>

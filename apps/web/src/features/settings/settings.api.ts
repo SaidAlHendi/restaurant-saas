@@ -7,9 +7,11 @@ import {
   orgSettingsResponseSchema,
   patchOrgSettingsBodySchema,
   patchStaffMembershipBodySchema,
+  putStaffPermissionOverridesBodySchema,
   putStaffPinBodySchema,
   regenerateStaffInviteResponseSchema,
   staffListResponseSchema,
+  staffPermissionOverridesResponseSchema,
   type CreatePinOnlyStaffBody,
   type CreateStaffInviteBody,
   type OrgLogoDeleteResponse,
@@ -17,8 +19,10 @@ import {
   type OrgSettingsResponse,
   type PatchOrgSettingsBody,
   type PatchStaffMembershipBody,
+  type PutStaffPermissionOverridesBody,
   type PutStaffPinBody,
   type StaffListResponse,
+  type StaffPermissionOverridesResponse,
 } from '@app/shared';
 
 import { baseApi } from '../../app/api/base-api.js';
@@ -37,7 +41,14 @@ export const settingsApi = baseApi.injectEndpoints({
         body: patchOrgSettingsBodySchema.parse(body),
       }),
       transformResponse: (response: unknown) => orgSettingsResponseSchema.parse(response),
-      invalidatesTags: [{ type: 'OrgSettings', id: 'CURRENT' }, 'Me'],
+      // The base and display currency reach branches, the POS menu, orders and reports.
+      invalidatesTags: (_result, _error, body) => [
+        { type: 'OrgSettings', id: 'CURRENT' },
+        'Me',
+        ...(body.defaultCurrency !== undefined || body.displayCurrency !== undefined
+          ? (['Branch', 'PosMenu', 'Order', 'DailyReport'] as const)
+          : []),
+      ],
     }),
     uploadOrgLogo: builder.mutation<OrgLogoUploadResponse, File>({
       query: (file: File) => {
@@ -105,6 +116,23 @@ export const settingsApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: [{ type: 'Staff', id: 'LIST' }],
     }),
+    getStaffPermissions: builder.query<StaffPermissionOverridesResponse, string>({
+      query: (membershipId) => `/v1/staff/${membershipId}/permissions`,
+      transformResponse: (response: unknown) => staffPermissionOverridesResponseSchema.parse(response),
+      providesTags: (_result, _error, membershipId) => [{ type: 'Staff', id: membershipId }],
+    }),
+    putStaffPermissions: builder.mutation<
+      StaffPermissionOverridesResponse,
+      { membershipId: string; body: PutStaffPermissionOverridesBody }
+    >({
+      query: ({ membershipId, body }) => ({
+        url: `/v1/staff/${membershipId}/permissions`,
+        method: 'PUT',
+        body: putStaffPermissionOverridesBodySchema.parse(body),
+      }),
+      transformResponse: (response: unknown) => staffPermissionOverridesResponseSchema.parse(response),
+      invalidatesTags: (_result, _error, { membershipId }) => [{ type: 'Staff', id: membershipId }],
+    }),
     putStaffPin: builder.mutation({
       query: ({ membershipId, body }: { membershipId: string; body: PutStaffPinBody }) => ({
         url: `/v1/staff/${membershipId}/pin`,
@@ -129,6 +157,8 @@ export const {
   useUploadOrgLogoMutation,
   useDeleteOrgLogoMutation,
   useListStaffQuery,
+  useGetStaffPermissionsQuery,
+  usePutStaffPermissionsMutation,
   useCreateStaffInviteMutation,
   useCreatePinOnlyStaffMutation,
   useRegenerateStaffInviteMutation,

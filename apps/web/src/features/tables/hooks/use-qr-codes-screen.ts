@@ -58,7 +58,11 @@ export function useQrCodesScreen(): QrCodesPageViewProps {
     qrLoading,
     cards,
     tableQrAvailable,
-    tableQrUpsell: t('menu.qr.tableQrUpsell'),
+    tableQrUpsell: t(canManage ? 'menu.qr.tableQrUpsell' : 'menu.qr.tableQrUpsellReadOnly'),
+    emptyTitle: t('menu.qr.noTablesTitle'),
+    emptyDescription: t(
+      canManage ? 'menu.qr.noTablesDescription' : 'menu.qr.noTablesDescriptionReadOnly',
+    ),
     printLabel: t('menu.qr.print'),
     downloadLabel: t('menu.qr.download'),
     loadingQrLabel: t('common.loading'),
@@ -68,6 +72,6 @@ export function useQrCodesScreen(): QrCodesPageViewProps {
     onDownload: (url: string, fileName: string) => {
       void downloadQrPng(url, fileName);
     },
-    showTableQrHint: canManage && !tableQrAvailable,
+    showTableQrHint: !tableQrAvailable,
   };
 }

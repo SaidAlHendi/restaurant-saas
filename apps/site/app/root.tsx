@@ -1,4 +1,5 @@
 import '@app/ui/globals.css';
+import './features/landing/landing.css';
 
 import type { ReactNode } from 'react';
 import {
@@ -8,21 +9,30 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLocation,
   useRouteLoaderData,
 } from 'react-router';
 
-export const links = () => [];
+import { NotFoundPage } from './features/landing/components/NotFoundPage.js';
+import { getSocialLinks, getWhatsappNumber } from './lib/env.server.js';
+import type { RootLoaderData } from './lib/root-data.js';
 
-type RootLoaderData = {
-  locale: string;
-  dir: 'rtl' | 'ltr';
-};
+export const links = () => [
+  { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+  { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
+  { rel: 'manifest', href: '/site.webmanifest' },
+];
 
 export function loader({ request }: { request: Request }) {
   const url = new URL(request.url);
   const segment = url.pathname.split('/').filter(Boolean)[0];
   const locale = segment === 'ar' || segment === 'en' ? segment : 'en';
-  return { locale, dir: locale === 'ar' ? 'rtl' : 'ltr' } satisfies RootLoaderData;
+  return {
+    locale,
+    dir: locale === 'ar' ? 'rtl' : 'ltr',
+    whatsappNumber: getWhatsappNumber(),
+    social: getSocialLinks(),
+  } satisfies RootLoaderData;
 }
 
 export function Layout({ children }: { children: ReactNode }) {
@@ -52,6 +62,11 @@ export default function Root() {
 }
 
 export function ErrorBoundary({ error }: { error: unknown }) {
+  const { pathname } = useLocation();
+  if (isRouteErrorResponse(error) && error.status === 404) {
+    const ar = pathname.split('/').filter(Boolean)[0] === 'ar';
+    return <NotFoundPage locale={ar ? 'ar' : 'en'} />;
+  }
   let message = 'Unexpected error';
   if (isRouteErrorResponse(error)) {
     message = error.statusText || message;

@@ -3,8 +3,10 @@ import {
   Button,
   ConnectionBanner,
   EmptyState,
+  Label,
   SearchInput,
   Spinner,
+  Switch,
   Tabs,
   TabsContent,
   TabsList,
@@ -21,6 +23,9 @@ export function PosOrdersPageView(props: PosOrdersPageViewModel) {
     tab,
     tabs,
     search,
+    todaySwitch,
+    tableHeaders,
+    olderHint,
     rows,
     isLoading,
     isError,
@@ -66,6 +71,28 @@ export function PosOrdersPageView(props: PosOrdersPageViewModel) {
             placeholder={search.placeholder}
             clearLabel={search.clearLabel}
           />
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Switch
+                id="pos-orders-today-only"
+                checked={todaySwitch.checked}
+                onCheckedChange={todaySwitch.onChange}
+              />
+              <Label htmlFor="pos-orders-today-only">{todaySwitch.label}</Label>
+            </div>
+            {olderHint ? (
+              <p className="text-muted-foreground text-sm" role="status">
+                {olderHint.message}{' '}
+                <button
+                  type="button"
+                  className="text-primary font-medium underline underline-offset-2"
+                  onClick={olderHint.onShowAll}
+                >
+                  {olderHint.actionLabel}
+                </button>
+              </p>
+            ) : null}
+          </div>
           {isLoading ? (
             <div className="flex justify-center py-12">
               <Spinner label={labels.loading} />
@@ -84,25 +111,55 @@ export function PosOrdersPageView(props: PosOrdersPageViewModel) {
           {!isLoading && !isError && rows.length === 0 ? <EmptyState title={emptyLabel} /> : null}
           {!isLoading && !isError && rows.length > 0 ? (
             <>
-              <div className="hidden overflow-x-auto rounded-lg border md:block">
-                <table className="w-full text-sm">
+              <div className="hidden overflow-x-auto rounded-lg border bg-card md:block">
+                <table className="w-full border-separate border-spacing-0 text-sm">
+                  <thead className="sr-only">
+                    <tr>
+                      <th scope="col">{tableHeaders.order}</th>
+                      <th scope="col">{tableHeaders.time}</th>
+                      <th scope="col">{tableHeaders.typeTable}</th>
+                      <th scope="col">{tableHeaders.items}</th>
+                      <th scope="col">{tableHeaders.total}</th>
+                      <th scope="col">{tableHeaders.status}</th>
+                      <th scope="col">{tableHeaders.payment}</th>
+                      <th scope="col">{tableHeaders.action}</th>
+                    </tr>
+                  </thead>
                   <tbody>
                     {rows.map((row) => (
                       <tr
                         key={row.id}
-                        className="hover:bg-muted/50 cursor-pointer border-b last:border-0"
+                        className="hover:bg-table-hover cursor-pointer [&:last-child>td]:border-b-0"
                         onClick={row.onSelect}
                       >
-                        <td className="p-3 font-semibold tabular-nums">#{String(row.orderNumber)}</td>
-                        <td className="p-3 tabular-nums">{row.timeLabel}</td>
-                        <td className="p-3">{row.typeTable}</td>
-                        <td className="p-3 tabular-nums">{String(row.itemCount)}</td>
-                        <td className="p-3 tabular-nums">{row.totalLabel}</td>
-                        <td className="p-3">
+                        <td className="border-b px-4 py-3 font-semibold tabular-nums">
+                          #{String(row.orderNumber)}
+                        </td>
+                        <td className="border-b px-4 py-3 tabular-nums">{row.timeLabel}</td>
+                        <td className="border-b px-4 py-3">{row.typeTable}</td>
+                        <td className="border-b px-4 py-3 tabular-nums">{String(row.itemCount)}</td>
+                        <td className="border-b px-4 py-3 tabular-nums">{row.totalLabel}</td>
+                        <td className="border-b px-4 py-3">
                           <Badge variant={row.statusTone}>{row.statusLabel}</Badge>
                         </td>
-                        <td className="p-3">
+                        <td className="border-b px-4 py-3">
                           <Badge variant="outline">{row.paymentLabel}</Badge>
+                        </td>
+                        <td className="border-b px-4 py-3 text-end">
+                          {row.handover ? (
+                            <Button
+                              type="button"
+                              size="sm"
+                              disabled={row.handover.loading}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                row.handover?.onClick();
+                              }}
+                            >
+                              {row.handover.loading ? <Spinner label={labels.loading} /> : null}
+                              {row.handover.label}
+                            </Button>
+                          ) : null}
                         </td>
                       </tr>
                     ))}
@@ -118,8 +175,12 @@ export function PosOrdersPageView(props: PosOrdersPageViewModel) {
                       onClick={row.onSelect}
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-semibold tabular-nums">#{String(row.orderNumber)}</span>
-                        <span className="text-muted-foreground text-sm tabular-nums">{row.timeLabel}</span>
+                        <span className="font-semibold tabular-nums">
+                          #{String(row.orderNumber)}
+                        </span>
+                        <span className="text-muted-foreground text-sm tabular-nums">
+                          {row.timeLabel}
+                        </span>
                       </div>
                       <p className="mt-1 text-sm">{row.typeTable}</p>
                       <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -128,6 +189,18 @@ export function PosOrdersPageView(props: PosOrdersPageViewModel) {
                         <span className="ms-auto font-medium tabular-nums">{row.totalLabel}</span>
                       </div>
                     </button>
+                    {row.handover ? (
+                      <Button
+                        type="button"
+                        size="touch"
+                        className="mt-2 w-full"
+                        disabled={row.handover.loading}
+                        onClick={row.handover.onClick}
+                      >
+                        {row.handover.loading ? <Spinner label={labels.loading} /> : null}
+                        {row.handover.label}
+                      </Button>
+                    ) : null}
                   </li>
                 ))}
               </ul>

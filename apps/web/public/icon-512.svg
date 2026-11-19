@@ -1,4 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Restaurant">
-  <rect width="512" height="512" rx="96" fill="#065f46"/>
-  <path fill="#fff" d="M128 341V171h43v170h-43zm107 0V128h43v213h-43zm107 0V192h43v149h-43z"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Sahtain"><rect width="512" height="512" rx="112" fill="#C8442B"/><circle cx="256" cy="256" r="214" fill="#F8F1E4"/><circle cx="256" cy="256" r="178" fill="none" stroke="#C8442B" stroke-width="10"/><path d="M139 264l42.9 42.9l78 -101.4" fill="none" stroke="#C8442B" stroke-width="38" stroke-linecap="round" stroke-linejoin="round"/><path d="M252 264l42.9 42.9l78 -101.4" fill="none" stroke="#3B2418" stroke-width="38" stroke-linecap="round" stroke-linejoin="round"/></svg>

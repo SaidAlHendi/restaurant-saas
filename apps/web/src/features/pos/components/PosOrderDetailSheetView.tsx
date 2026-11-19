@@ -1,6 +1,4 @@
 import {
-  Badge,
-  Button,
   Sheet,
   SheetBody,
   SheetContent,
@@ -9,8 +7,13 @@ import {
   SheetTitle,
 } from '@app/ui';
 
+import { OrderDetailsBodyView, OrderDetailsSkeletonView } from '../../orders/components/order-details/OrderDetailsBodyView.js';
+import { OrderDetailsHeaderView } from '../../orders/components/order-details/OrderDetailsHeaderView.js';
 import type { PosOrderDetailViewModel } from '../hooks/use-pos-order-detail.js';
+import { posActionMaps } from '../pos-action-maps.js';
+import { PosOrderActionBarView } from './PosOrderActionBarView.js';
 import { PosOrderActionDialogView } from './PosOrderActionDialogView.js';
+import { PosReopenDialogView } from './PosReopenDialogView.js';
 
 export type PosOrderDetailSheetViewProps = PosOrderDetailViewModel & {
   onPay: () => void;
@@ -21,154 +24,77 @@ export function PosOrderDetailSheetView(props: PosOrderDetailSheetViewProps) {
     open,
     onOpenChange,
     order,
-    itemRows,
-    canAddItems,
-    canPay,
-    canCancel,
-    nextStatusAction,
-    isAddingItems,
-    startAddItems,
-    cancelAddItems,
-    submitAdditions,
-    addingItems,
-    additionCount,
+    orderLoadFailed,
+    details,
+    layout,
+    timeline,
+    reopen,
     voidDialog,
     cancelDialog,
-    openCancelDialog,
-    printReceipt,
-    printKitchenFull,
-    printKitchenAddition,
+    statusChanging,
     labels,
     onPay,
-    formatMinor,
   } = props;
+
+  const { run, actionLabel } = posActionMaps(props, onPay);
 
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="end" size="lg" closeLabel={labels.close}>
-          <SheetHeader>
-            <SheetTitle>{labels.title}</SheetTitle>
-            {order ? (
-              <div className="flex flex-wrap items-center gap-2 pt-1">
-                <span className="text-lg font-bold tabular-nums">{labels.orderNumber}</span>
-                <Badge>{labels.status}</Badge>
-                <Badge variant="outline">{labels.paymentStatus}</Badge>
-              </div>
+        <SheetContent
+          side="end"
+          size="lg"
+          closeLabel={labels.close}
+          className="sm:max-w-3xl lg:max-w-5xl"
+        >
+          <SheetHeader className="border-b">
+            <SheetTitle className="sr-only">{labels.title}</SheetTitle>
+            {order && details ? (
+              <OrderDetailsHeaderView
+                header={details.header}
+                stepper={details.stepper}
+                labels={{
+                  orderNumber: labels.orderNumber,
+                  progress: labels.progress,
+                  business: labels.business,
+                  created: labels.created,
+                  due: labels.dueLabel,
+                }}
+                className="pe-8"
+              />
             ) : null}
           </SheetHeader>
-          {order ? (
-            <>
-              <SheetBody>
-                <dl className="grid grid-cols-2 gap-2 text-sm">
-                  <dt className="text-muted-foreground">{labels.total}</dt>
-                  <dd className="text-end font-semibold tabular-nums">
-                    {formatMinor(order.totalMinor)}
-                  </dd>
-                  {order.dueMinor > 0 ? (
-                    <>
-                      <dt className="text-muted-foreground">{labels.due}</dt>
-                      <dd className="text-end font-semibold tabular-nums">
-                        {formatMinor(order.dueMinor)}
-                      </dd>
-                    </>
-                  ) : null}
-                </dl>
-                <ul className="space-y-3 border-t pt-4">
-                  {itemRows.map((row) => (
-                    <li
-                      key={row.id}
-                      className={`flex items-start justify-between gap-2 text-sm ${row.voided ? 'opacity-50 line-through' : ''}`}
-                    >
-                      <div>
-                        <span className="font-medium">
-                          {String(row.quantity)}× {row.name}
-                        </span>
-                        {row.isAddition ? (
-                          <Badge variant="outline" className="ms-2">
-                            +
-                          </Badge>
-                        ) : null}
-                      </div>
-                      <div className="flex flex-col items-end gap-1">
-                        <span className="tabular-nums">{row.lineTotalLabel}</span>
-                        {row.onVoid ? (
-                          <Button type="button" size="sm" variant="ghost" onClick={row.onVoid}>
-                            {row.voidLabel}
-                          </Button>
-                        ) : null}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-                {isAddingItems ? (
-                  <p className="text-muted-foreground text-sm">
-                    {labels.sendAdditions} ({String(additionCount)})
-                  </p>
-                ) : null}
-              </SheetBody>
-              <SheetFooter className="flex-col sm:flex-col sm:justify-start">
-                {canPay ? (
-                  <Button type="button" size="touch" onClick={onPay}>
-                    {labels.pay}
-                  </Button>
-                ) : null}
-                {nextStatusAction ? (
-                  <Button
-                    type="button"
-                    size="touch"
-                    variant="secondary"
-                    onClick={nextStatusAction.onClick}
-                  >
-                    {nextStatusAction.label}
-                  </Button>
-                ) : null}
-                {canAddItems && !isAddingItems ? (
-                  <Button type="button" size="touch" variant="outline" onClick={startAddItems}>
-                    {labels.addItems}
-                  </Button>
-                ) : null}
-                {isAddingItems ? (
-                  <>
-                    <Button type="button" size="touch" variant="outline" onClick={cancelAddItems}>
-                      {labels.close}
-                    </Button>
-                    <Button
-                      type="button"
-                      size="touch"
-                      disabled={additionCount === 0}
-                      isLoading={addingItems}
-                      onClick={() => {
-                        void submitAdditions();
-                      }}
-                    >
-                      {labels.sendAdditions}
-                    </Button>
-                  </>
-                ) : null}
-                <div className="flex flex-wrap gap-2">
-                  <Button type="button" size="sm" variant="outline" onClick={printReceipt}>
-                    {labels.printReceipt}
-                  </Button>
-                  <Button type="button" size="sm" variant="outline" onClick={printKitchenFull}>
-                    {labels.printKitchen}
-                  </Button>
-                  <Button type="button" size="sm" variant="outline" onClick={printKitchenAddition}>
-                    {labels.printKitchenAddition}
-                  </Button>
-                </div>
-                {canCancel ? (
-                  <Button type="button" size="sm" variant="destructive" onClick={openCancelDialog}>
-                    {labels.cancelOrder}
-                  </Button>
-                ) : null}
-              </SheetFooter>
-            </>
+          <SheetBody>
+            {order && details ? (
+              <OrderDetailsBodyView
+                model={details}
+                labels={labels}
+                timeline={{ collapsible: true, onToggle: timeline.onToggle, loading: timeline.loading }}
+              />
+            ) : orderLoadFailed ? (
+              <p role="alert" className="text-destructive text-sm">
+                {labels.loadFailed}
+              </p>
+            ) : (
+              <OrderDetailsSkeletonView label={labels.loading} />
+            )}
+          </SheetBody>
+          {order && layout ? (
+            <SheetFooter className="flex-col gap-2 border-t sm:flex-col sm:justify-start">
+              <PosOrderActionBarView
+                layout={layout}
+                run={run}
+                actionLabel={actionLabel}
+                busy={statusChanging}
+                labels={{ more: labels.more, moreActions: labels.moreActions, manager: labels.manager }}
+              />
+            </SheetFooter>
           ) : null}
         </SheetContent>
       </Sheet>
       <PosOrderActionDialogView {...voidDialog} />
       <PosOrderActionDialogView {...cancelDialog} />
+      <PosReopenDialogView {...reopen} />
     </>
   );
 }

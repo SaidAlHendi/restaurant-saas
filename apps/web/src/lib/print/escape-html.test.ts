@@ -16,6 +16,7 @@ describe('print HTML escaping', () => {
           notes: '<img src=x onerror=alert(1)>',
           status: 'pending',
           isAddition: false,
+          seat: null,
           voidedAt: null,
           voidReason: null,
           modifiers: [],

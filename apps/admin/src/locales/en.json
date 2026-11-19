@@ -1,0 +1,370 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "retry": "Try again",
+    "loading": "Loading",
+    "clearSearch": "Clear search",
+    "actions": "Actions",
+    "sortBy": "Sort by",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {{page}}"
+  },
+  "app": {
+    "title": "Sahtain Admin"
+  },
+  "roles": {
+    "super": "Super admin",
+    "support": "Support",
+    "billing": "Billing"
+  },
+  "auth": {
+    "aside": {
+      "title": "Platform control",
+      "body": "Restaurants, plans and support in one place.",
+      "live": {
+        "default": "Sahtain platform",
+        "lines": [
+          "Staff sign-in",
+          "Sessions are logged"
+        ],
+        "status": "Secure",
+        "meta": "now"
+      },
+      "tickets": [
+        {
+          "title": "New restaurant",
+          "meta": "09:12",
+          "lines": [
+            "Al Noor Grill",
+            "Riyadh"
+          ],
+          "status": "Pending"
+        },
+        {
+          "title": "Plan activated",
+          "meta": "09:30",
+          "lines": [
+            "Golden Spoon",
+            "Monthly plan"
+          ],
+          "status": "Done"
+        },
+        {
+          "title": "Support request",
+          "meta": "10:05",
+          "lines": [
+            "Printer not pairing",
+            "Branch: Olaya"
+          ],
+          "status": "Open"
+        },
+        {
+          "title": "New restaurant",
+          "meta": "10:41",
+          "lines": [
+            "Cedar House",
+            "Jeddah"
+          ],
+          "status": "Pending"
+        },
+        {
+          "title": "Plan expiring",
+          "meta": "11:00",
+          "lines": [
+            "Tasty Corner",
+            "2 days left"
+          ],
+          "status": "Notify"
+        }
+      ]
+    },
+    "logout": "Sign out",
+    "fields": {
+      "email": "Email",
+      "password": "Password"
+    },
+    "login": {
+      "title": "Platform sign in",
+      "subtitle": "For Sahtain staff only.",
+      "submit": "Sign in"
+    },
+    "errors": {
+      "invalidCredentials": "Invalid email or password."
+    }
+  },
+  "shell": {
+    "sidebar": "Main menu",
+    "closeSidebar": "Close the menu",
+    "toggleSidebar": "Collapse or expand the menu",
+    "darkMode": "Dark mode",
+    "lightMode": "Light mode"
+  },
+  "adminNav": {
+    "overview": "Platform Overview",
+    "restaurants": "Restaurants",
+    "users": "Users",
+    "subscriptions": "Subscriptions",
+    "plans": "Plans & Pricing",
+    "payments": "Payments",
+    "invoices": "Invoices",
+    "revenue": "Revenue Analytics",
+    "posActivity": "POS Activity",
+    "kdsActivity": "KDS Activity",
+    "usage": "Usage & Statistics",
+    "integrations": "Integrations",
+    "support": "Support Tickets",
+    "feedback": "Customer Feedback",
+    "announcements": "Announcements",
+    "adminUsers": "Admin Users & Roles",
+    "audit": "Audit Logs",
+    "settings": "System Settings"
+  },
+  "overview": {
+    "title": "Platform Overview",
+    "welcome": "Welcome, {{name}}.",
+    "loadError": "Could not load platform numbers.",
+    "kpi": {
+      "mrr": "Monthly recurring revenue",
+      "restaurants": "Restaurants",
+      "restaurantsActive": "{{formatted}} active",
+      "subscriptions": "Active subscriptions",
+      "trials": "Trials",
+      "churn": "Churn",
+      "churnCount": "{{formatted}} canceled",
+      "last30d": "last 30 days"
+    },
+    "planMix": {
+      "title": "Plan mix",
+      "description": "Live subscriptions and monthly revenue by plan.",
+      "empty": "No live subscriptions yet.",
+      "subscriptions": "{{formatted}} subscriptions"
+    },
+    "activity": {
+      "title": "Last 24 hours",
+      "description": "What restaurants did on the platform.",
+      "orders": "Orders placed",
+      "ordersHint": "Across all restaurants",
+      "activeOrgs": "Active restaurants",
+      "activeOrgsHint": "Placed at least one order",
+      "suspended": "Suspended restaurants",
+      "suspendedHint": "Currently blocked from signing in"
+    }
+  },
+  "comingSoon": {
+    "unknown": "Page not found",
+    "heading": "Coming soon",
+    "body": "This page has not been built yet."
+  },
+  "restaurants": {
+    "title": "Restaurants",
+    "description_one": "{{count}} restaurant on the platform",
+    "description_other": "{{count}} restaurants on the platform",
+    "searchPlaceholder": "Search by name or slug",
+    "clearSearch": "Clear search",
+    "allStatuses": "All statuses",
+    "none": "None",
+    "sortBy": "Sort by",
+    "loadError": "Could not load restaurants.",
+    "loadErrorTitle": "Something went wrong",
+    "emptyTitle": "No restaurants yet",
+    "emptyBody": "Restaurants appear here after they sign up.",
+    "emptyFilteredTitle": "No matching restaurants",
+    "emptyFilteredBody": "Try a different search or status.",
+    "notFoundTitle": "Restaurant not found",
+    "notFoundBody": "It may have been removed, or the link is wrong.",
+    "backToList": "Back to restaurants",
+    "breadcrumb": "Breadcrumb",
+    "suspend": "Suspend",
+    "reactivate": "Reactivate",
+    "superOnly": "Only super admins can change a restaurant's status",
+    "suspendTitle": "Suspend {{name}}?",
+    "suspendBody": "Staff lose access immediately and the public menu stops working until the restaurant is reactivated.",
+    "reactivateTitle": "Reactivate {{name}}?",
+    "reactivateBody": "Staff can sign in again and the public menu is restored.",
+    "suspended": "Restaurant suspended",
+    "reactivated": "Restaurant reactivated",
+    "statusChangeError": "Could not change the status. The restaurant may have changed, so the page was refreshed.",
+    "branchesCount_one": "{{count}} branch",
+    "branchesCount_other": "{{count}} branches",
+    "branchActive": "Active",
+    "branchInactive": "Inactive",
+    "status": {
+      "trial": "Trial",
+      "active": "Active",
+      "past_due": "Past due",
+      "suspended": "Suspended",
+      "cancelled": "Cancelled"
+    },
+    "columns": {
+      "name": "Restaurant",
+      "owner": "Owner",
+      "plan": "Plan",
+      "status": "Status",
+      "branches": "Branches",
+      "created": "Created",
+      "actions": "Actions"
+    },
+    "sections": {
+      "restaurant": "Restaurant",
+      "owner": "Owner",
+      "plan": "Plan and subscription",
+      "branches": "Branches"
+    },
+    "fields": {
+      "country": "Country",
+      "currency": "Currency",
+      "locale": "Default language",
+      "created": "Created",
+      "members": "Team members",
+      "ownerName": "Name",
+      "ownerEmail": "Email",
+      "subscription": "Subscription",
+      "trialEnds": "Trial ends",
+      "periodEnd": "Current period ends",
+      "manualPaid": "Manual payment",
+      "manualAmount": "Amount received",
+      "manualNote": "Payment note"
+    },
+    "pagination": {
+      "navigation": "Pagination",
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page {{page}}",
+      "more": "More pages"
+    },
+    "activate": "Activate plan",
+    "activateTitle": "Activate {{name}}",
+    "activateBody": "Use this when the restaurant paid outside Paddle. The plan stays active until the chosen date, then the restaurant falls back to the free plan.",
+    "activatePlan": "Plan",
+    "activateUntil": "Active until",
+    "activated": "Plan activated",
+    "activateError": "Could not activate the plan. Check the date, or the restaurant may be billed through Paddle.",
+    "billingOnly": "Only billing or super admins can activate a plan",
+    "activatePaid": "Payment received",
+    "activateAmount": "Amount received",
+    "activateNote": "Note (optional)",
+    "paidYes": "Paid",
+    "paidNo": "Not paid"
+  },
+  "users": {
+    "title": "Users",
+    "description": "People with access to any restaurant on the platform.",
+    "searchPlaceholder": "Search by name or email",
+    "none": "None",
+    "never": "Never",
+    "loadError": "Could not load users.",
+    "emptyTitle": "No users yet",
+    "emptyBody": "Users appear here after they sign up.",
+    "emptyFilteredTitle": "No matching users",
+    "emptyFilteredBody": "Try a different name or email.",
+    "columns": {
+      "name": "Name",
+      "email": "Email",
+      "restaurants": "Restaurant",
+      "role": "Role",
+      "lastLogin": "Last sign-in"
+    }
+  },
+  "subscriptions": {
+    "title": "Subscriptions",
+    "description": "Billing state of every restaurant.",
+    "allStatuses": "All statuses",
+    "allPlans": "All plans",
+    "trialEnding": "Trial ending (7 days)",
+    "loadError": "Could not load subscriptions.",
+    "emptyTitle": "No subscriptions yet",
+    "emptyBody": "Subscriptions appear here after restaurants sign up.",
+    "emptyFilteredTitle": "No matching subscriptions",
+    "emptyFilteredBody": "Try a different status or plan.",
+    "status": {
+      "trialing": "Trial",
+      "active": "Active",
+      "past_due": "Past due",
+      "canceled": "Canceled"
+    },
+    "columns": {
+      "restaurant": "Restaurant",
+      "plan": "Plan",
+      "status": "Status",
+      "trialEnds": "Trial ends",
+      "periodEnd": "Period ends",
+      "providerId": "Provider ID"
+    }
+  },
+  "plans": {
+    "title": "Plans & Pricing",
+    "description": "Read-only. Plans are changed through migrations.",
+    "loadError": "Could not load plans.",
+    "emptyTitle": "No plans",
+    "emptyBody": "No plans are defined.",
+    "private": "Private",
+    "perMonth": "/ month",
+    "perBranchMonth": "/ branch / month",
+    "unlimited": "Unlimited",
+    "feature": {
+      "menu_multilang": "Menu in Arabic & English",
+      "menu_branding": "Menu branding",
+      "menu_table_qr": "Table QR codes",
+      "pos_access": "POS access",
+      "kds_access": "Kitchen display",
+      "reports_basic": "Basic reports",
+      "reports_advanced": "Advanced reports",
+      "reports_export": "Report export",
+      "branches_multi": "Multiple branches",
+      "roles_custom": "Custom roles",
+      "ordering_table_qr": "Order from table",
+      "ordering_pager": "Pickup numbers and Ready screen",
+      "api_access": "API access",
+      "limit_products": "Products limit",
+      "limit_users_per_branch": "Staff per branch",
+      "limit_devices_per_branch": "Devices per branch"
+    },
+    "columns": {
+      "plan": "Plan",
+      "price": "Price"
+    }
+  },
+  "audit": {
+    "title": "Audit Logs",
+    "description": "Every change made by platform admins.",
+    "actorPlaceholder": "Filter by admin name or email",
+    "actionPlaceholder": "Filter by action, e.g. org.suspend",
+    "loadError": "Could not load the audit log.",
+    "emptyTitle": "No audit entries yet",
+    "emptyBody": "Changes made by admins are recorded here.",
+    "emptyFilteredTitle": "No matching entries",
+    "emptyFilteredBody": "Try a different admin or action.",
+    "viewRestaurant": "View restaurant",
+    "roles": {
+      "super": "Super admin",
+      "support": "Support",
+      "billing": "Billing"
+    },
+    "columns": {
+      "when": "When",
+      "actor": "Admin",
+      "role": "Role",
+      "action": "Action",
+      "target": "Target",
+      "ip": "IP"
+    }
+  },
+  "validation": {
+    "required": "This field is required.",
+    "email": "Enter a valid email address, like name@example.com.",
+    "tooShort_one": "Must be at least {{count}} character.",
+    "tooShort_other": "Must be at least {{count}} characters.",
+    "tooLong_one": "Must be at most {{count}} character.",
+    "tooLong_other": "Must be at most {{count}} characters.",
+    "tooFewItems_one": "Choose at least {{count}} item.",
+    "tooFewItems_other": "Choose at least {{count}} items.",
+    "tooManyItems_one": "Choose at most {{count}} item.",
+    "tooManyItems_other": "Choose at most {{count}} items.",
+    "tooSmall": "Must be at least {{min}}.",
+    "tooBig": "Must be at most {{max}}.",
+    "invalidType": "Enter a valid value.",
+    "invalidFormat": "This value is not in the expected format.",
+    "invalidValue": "Choose one of the available options."
+  }
+}

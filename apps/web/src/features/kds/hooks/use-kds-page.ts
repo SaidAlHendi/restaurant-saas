@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { intlLocaleForUi } from '@app/shared';
 
 import { toast } from '@app/ui';
 
@@ -42,6 +43,8 @@ import { useNow } from './use-now.js';
 import { useWakeLock } from './use-wake-lock.js';
 
 const REFETCH_DEBOUNCE_MS = 300;
+/** How long the cook can take back "Ready"; the server allows a little longer. */
+const KDS_UNDO_MS = 5_000;
 
 export function useKdsPage() {
   const { t, i18n } = useTranslation();
@@ -130,6 +133,8 @@ export function useKdsPage() {
       type: (type) =>
         type === 'dine_in' ? t('pos.orderType.dineIn') : t('pos.orderType.takeaway'),
       table: (label) => t('kds.card.table', { label }),
+      pager: (n) => t('kds.card.pager', { number: n }),
+      round: (n) => t('kds.card.round', { number: n }),
       added: t('kds.card.added'),
       voided: t('kds.card.voided'),
       start: t('kds.card.start'),
@@ -174,19 +179,41 @@ export function useKdsPage() {
   );
 
   const onAdvance = useCallback(
-    (card: KdsCardModel) => {
-      if (!branchId || !card.next || !canTap) {
+    (card: KdsCardModel, target?: 'preparing' | 'ready') => {
+      const to = target ?? card.next;
+      if (!branchId || !to || !canTap) {
         return;
       }
       markPending(card.id, true);
-      moveOrder({ branchId, orderId: card.id, to: card.next, expectedVersion: card.version })
+      moveOrder({ branchId, orderId: card.id, to, expectedVersion: card.version })
         .unwrap()
+        .then((order) => {
+          if (to === 'ready') {
+            toast(t('kds.undo.done', { number: card.orderNumberLabel }), {
+              duration: KDS_UNDO_MS,
+              action: {
+                label: t('kds.undo.action'),
+                onClick: () => {
+                  moveOrder({
+                    branchId,
+                    orderId: card.id,
+                    to: 'preparing',
+                    expectedVersion: order.version,
+                    undo: true,
+                  })
+                    .unwrap()
+                    .catch(handleMutationError);
+                },
+              },
+            });
+          }
+        })
         .catch(handleMutationError)
         .finally(() => {
           markPending(card.id, false);
         });
     },
-    [branchId, canTap, handleMutationError, markPending, moveOrder],
+    [branchId, canTap, handleMutationError, markPending, moveOrder, t],
   );
 
   const onToggleItem = useCallback(
@@ -267,6 +294,12 @@ export function useKdsPage() {
             onAdvance(card);
           }
         : undefined,
+      secondaryActionLabel: card.startLabel ?? undefined,
+      onSecondaryAction: card.startLabel
+        ? () => {
+            onAdvance(card, 'preparing');
+          }
+        : undefined,
       items: card.items.map((item) => ({
         ...item,
         onToggle:
@@ -286,11 +319,17 @@ export function useKdsPage() {
 
   return {
     branchName,
+    clockLabel: new Intl.DateTimeFormat(intlLocaleForUi(i18n.language), { hour: '2-digit', minute: '2-digit' }).format(
+      new Date(nowMs + offsetMs),
+    ),
     isLoading: board.isLoading,
     isError: board.isError && !board.data,
     labels: {
       loading: t('common.loading'),
       loadError: t('kds.loadError'),
+      eyebrow: t('kds.eyebrow'),
+      online: t('kds.online'),
+      reconnecting: t('kds.reconnecting'),
       title: t('kds.title'),
       emptyColumn: t('kds.emptyColumn'),
       disconnected: t('kds.disconnected'),
