@@ -38,6 +38,25 @@ A ready order stays visible on the POS (Active tab), the kitchen display and the
 - After the tap, an **Undo** message stays for 10 seconds. Tap it to put the order back to ready. Only the person who made the change can undo it, and only within a short time.
 - Tapped by mistake, or the customer comes back? After the Undo time is over, ask a manager or the owner. They open the completed order and choose **More → Reopen order** (an optional reason can be added). The order goes back to **Ready**, shows on the kitchen and Ready screens again, and you hand it over again. Payment does not change. You cannot reopen orders yourself unless the owner turned on **Reopen completed orders** for you in **Permissions**. A dine-in order cannot be reopened once its table bill is closed.
 
+## Order details
+
+Tap an order in the **Orders** list (or on the POS) to open its details. The header shows the order number, the total and what is still due, the colour-coded status, the payment status, where it is for (table, or pager number for takeaway), and a progress bar from **Placed** to **Completed**. A **Draft** says it is awaiting payment, and a **Cancelled** order shows its reason.
+
+Below, cards show everything saved on the order: items (with extras, notes, guest seat, a status chip and an **Added later** chip), totals, payments (with cash tendered and change), order info, timestamps, and a **Timeline** you open when you need it. Empty values are hidden. If the order has a display currency, the totals also show the order-currency total and the exchange rate used.
+
+The buttons at the bottom depend on the status:
+
+| Status | Big button | Next to it |
+|---|---|---|
+| Draft | **Pay** | **Cancel order** under **More** |
+| New (placed) | **Start preparing** | **Mark ready**, **Pay**, **Add items** |
+| Preparing | **Mark ready** | **Pay**, **Add items** |
+| Ready | **Picked up** or **Served** (with the 10-second Undo) | **Pay** if something is due |
+| Completed | none | **Print receipt**; managers see **Reopen order** under **More → Manager** |
+| Cancelled | none | **Print receipt** |
+
+**Print receipt**, **Print kitchen ticket** and **Cancel order** (in red) are under **More**. **Remove item** sits on each item line. **Undo** is only the 10-second message right after your own tap. **Reopen** is the manager fix for a completed order later on.
+
 ## Tables and table bills
 
 Open **Tables** in the sidebar. Every table shows as a card: **free**, **busy** (an open bill) or **settled** (everything paid, bill still open). A busy card shows the number of rounds, the amount still due and any pager numbers.

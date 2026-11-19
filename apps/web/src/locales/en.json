@@ -319,11 +319,14 @@
       "placed": "Sent to kitchen",
       "statusChanged": "Status {{from}} → {{to}}",
       "itemsAdded": "{{count}} items added",
-      "itemVoided": "Voided {{name}} ({{reason}})",
+      "itemVoided": "Removed {{name}}",
       "itemStatusChanged": "{{name}}: {{status}}",
-      "cancelled": "Cancelled ({{reason}})",
+      "cancelled": "Order cancelled",
       "paymentCaptured": "Payment {{method}} ({{amountMinor}})",
-      "unknown": "Event: {{type}}"
+      "unknown": "Event: {{type}}",
+      "reopened": "Order reopened: {{from}} → {{to}}",
+      "undone": "Undone: back to {{to}}",
+      "handedOver": "Handed over"
     }
   },
   "settings": {
@@ -1341,5 +1344,105 @@
     "invalidType": "Enter a valid value.",
     "invalidFormat": "This value is not in the expected format.",
     "invalidValue": "Choose one of the available options."
+  },
+  "orderDetails": {
+    "orderNumber": "Order #{{number}}",
+    "progress": "Order progress",
+    "businessDate": "Business date",
+    "createdAt": "Created",
+    "pager": "Pager {{number}}",
+    "seat": "Guest {{seat}}",
+    "noSeat": "No seat",
+    "addedLater": "Added later",
+    "each": "each",
+    "by": "By",
+    "approvedBy": "Approved by",
+    "reason": "Reason",
+    "managerSection": "Manager",
+    "loadingTimeline": "Loading timeline",
+    "error": {
+      "order": "Could not load this order. Close and try again.",
+      "events": "Could not load the timeline."
+    },
+    "cards": {
+      "items": "Items",
+      "info": "Order info",
+      "totals": "Totals",
+      "payments": "Payments",
+      "timeline": "Timeline",
+      "timestamps": "Timestamps"
+    },
+    "empty": {
+      "items": "No items on this order.",
+      "payments": "No payments yet",
+      "events": "No activity yet."
+    },
+    "status": {
+      "draft": "Draft",
+      "placed": "Placed",
+      "preparing": "Preparing",
+      "ready": "Ready",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "refunded": "Refunded",
+      "unknown": "Unknown"
+    },
+    "itemStatus": {
+      "awaiting_payment": "Awaiting payment",
+      "pending": "Pending",
+      "preparing": "Preparing",
+      "ready": "Ready",
+      "voided": "Voided"
+    },
+    "paymentStatus": {
+      "unpaid": "Unpaid",
+      "partial": "Partially paid",
+      "paid": "Paid",
+      "refunded": "Refunded"
+    },
+    "type": {
+      "dine_in": "Dine-in",
+      "takeaway": "Takeaway"
+    },
+    "method": {
+      "cash": "Cash",
+      "card": "Card",
+      "other": "Other"
+    },
+    "payment": {
+      "tendered": "Tendered",
+      "change": "Change"
+    },
+    "stepper": {
+      "awaitingPayment": "Awaiting payment",
+      "cancelled": "Cancelled",
+      "cancelledWithReason": "Cancelled: {{reason}}"
+    },
+    "info": {
+      "type": "Type",
+      "table": "Table",
+      "pager": "Pager number",
+      "customer": "Customer",
+      "notes": "Order notes",
+      "currency": "Currency",
+      "version": "Version",
+      "createdBy": "Created by"
+    },
+    "totals": {
+      "subtotal": "Subtotal",
+      "discount": "Discount",
+      "tax": "Tax",
+      "total": "Total",
+      "paid": "Paid",
+      "due": "Due",
+      "inCurrency": "Total in {{currency}}",
+      "rate": "Exchange rate"
+    },
+    "timestamps": {
+      "created": "Created",
+      "placed": "Placed",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    }
   }
 }

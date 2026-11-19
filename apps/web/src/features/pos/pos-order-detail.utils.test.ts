@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import type { OrderStatus } from '@app/shared';
+
 import {
   canShowCancelOrder,
   canShowHandover,
@@ -9,6 +11,7 @@ import {
   handoverLabelKey,
   canVoidOrderItem,
   nextOrderStatusTarget,
+  posDetailActionLayout,
 } from './pos-order-detail.utils.js';
 
 const baseOrder = {
@@ -124,5 +127,55 @@ describe('reopen action', () => {
     expect(reopenReasonValue('   ')).toBeUndefined();
     expect(reopenReasonValue(' wrong tap ')).toBe('wrong tap');
     expect(reopenReasonValue('x'.repeat(300))).toHaveLength(200);
+  });
+});
+
+describe('posDetailActionLayout', () => {
+  const base = { canAddItems: false, canCancel: false, canReopen: false };
+  const order = (status: OrderStatus, dueMinor = 0) => ({
+    status,
+    paymentStatus: dueMinor > 0 ? ('unpaid' as const) : ('paid' as const),
+    dueMinor,
+  });
+
+  it('draft: Pay is the primary action only while something is due', () => {
+    expect(posDetailActionLayout({ ...base, order: order('draft', 500) }).primary).toBe('pay');
+    expect(posDetailActionLayout({ ...base, order: order('draft', 0) }).primary).toBeNull();
+  });
+
+  it('placed: start preparing is primary, mark ready and pay are secondary', () => {
+    const layout = posDetailActionLayout({ ...base, canAddItems: true, order: order('placed', 500) });
+    expect(layout.primary).toBe('startPreparing');
+    expect(layout.secondary).toEqual(['markReady', 'pay', 'addItems']);
+  });
+
+  it('preparing: mark ready is primary', () => {
+    expect(posDetailActionLayout({ ...base, order: order('preparing') }).primary).toBe('markReady');
+  });
+
+  it('ready: hand over is primary and pay stays secondary while due', () => {
+    const layout = posDetailActionLayout({ ...base, order: order('ready', 300) });
+    expect(layout.primary).toBe('handover');
+    expect(layout.secondary).toEqual(['pay']);
+  });
+
+  it('completed and cancelled have no primary action and no pay', () => {
+    for (const status of ['completed', 'cancelled'] as const) {
+      const layout = posDetailActionLayout({ ...base, order: order(status, 500) });
+      expect(layout.primary).toBeNull();
+      expect(layout.secondary).toEqual([]);
+    }
+  });
+
+  it('reopen sits in the manager section, only when allowed (the caller passes canShowReopen)', () => {
+    expect(posDetailActionLayout({ ...base, canReopen: true, order: order('completed') }).manager).toEqual(['reopen']);
+    expect(posDetailActionLayout({ ...base, order: order('completed') }).manager).toEqual([]);
+  });
+
+  it('cancel is destructive and follows canCancel; print is always in More', () => {
+    const layout = posDetailActionLayout({ ...base, canCancel: true, order: order('placed') });
+    expect(layout.destructive).toEqual(['cancel']);
+    expect(layout.more).toEqual(['printReceipt', 'printKitchen']);
+    expect(posDetailActionLayout({ ...base, order: order('placed') }).destructive).toEqual([]);
   });
 });

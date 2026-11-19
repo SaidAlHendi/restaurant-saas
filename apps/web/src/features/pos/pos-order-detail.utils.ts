@@ -94,3 +94,68 @@ export function reopenReasonValue(raw: string): string | undefined {
   const trimmed = raw.trim().slice(0, REOPEN_REASON_MAX);
   return trimmed.length === 0 ? undefined : trimmed;
 }
+
+export type PosDetailAction =
+  | 'pay'
+  | 'startPreparing'
+  | 'markReady'
+  | 'handover'
+  | 'addItems'
+  | 'printReceipt'
+  | 'printKitchen'
+  | 'cancel'
+  | 'reopen';
+
+export type PosDetailActionLayout = {
+  /** The one big button in the sticky footer, or null (completed and cancelled orders). */
+  primary: PosDetailAction | null;
+  /** Smaller buttons next to it. */
+  secondary: PosDetailAction[];
+  /** "More" menu, safe items. */
+  more: PosDetailAction[];
+  /** "More" menu, destructive items (red). */
+  destructive: PosDetailAction[];
+  /** "More" menu, "Manager" section. */
+  manager: PosDetailAction[];
+};
+
+/**
+ * Which actions the POS sheet shows and where. Presentation only: the rules (who may cancel, add
+ * items, reopen) come in as booleans from the helpers above, and the server still decides.
+ */
+export function posDetailActionLayout(input: {
+  order: Pick<OrderDetail, 'status' | 'paymentStatus' | 'dueMinor'>;
+  canAddItems: boolean;
+  canCancel: boolean;
+  canReopen: boolean;
+}): PosDetailActionLayout {
+  const { order } = input;
+  const pay = canShowPay(order);
+  const secondary: PosDetailAction[] = [];
+  let primary: PosDetailAction | null = null;
+
+  if (order.status === 'draft') {
+    primary = pay ? 'pay' : null;
+  } else if (order.status === 'placed') {
+    primary = 'startPreparing';
+    secondary.push('markReady');
+  } else if (order.status === 'preparing') {
+    primary = 'markReady';
+  } else if (order.status === 'ready') {
+    primary = 'handover';
+  }
+  if (pay && primary !== 'pay') {
+    secondary.push('pay');
+  }
+  if (input.canAddItems) {
+    secondary.push('addItems');
+  }
+
+  return {
+    primary,
+    secondary,
+    more: ['printReceipt', 'printKitchen'],
+    destructive: input.canCancel ? ['cancel'] : [],
+    manager: input.canReopen ? ['reopen'] : [],
+  };
+}
