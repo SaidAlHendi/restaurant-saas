@@ -40,6 +40,8 @@ export function branchReceiptPreviewHtml(input: {
       payBeforeSend: false,
       acceptsCard: true,
       pagerEnabled: false,
+      supportsDineIn: true,
+      supportsTakeaway: true,
     },
     org: { name: input.orgName, logoUrl: input.orgLogoUrl },
     categories: [],

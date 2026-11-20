@@ -1,6 +1,7 @@
 import { and, asc, count, desc, eq, inArray, lt, or, sql } from 'drizzle-orm';
 import { Injectable } from '@nestjs/common';
 
+import { OPEN_ORDER_STATUSES } from './state-machine';
 import type { OrderListCursor } from '../../lib/order-list-cursor';
 import { escapeLikePattern } from '../../lib/sql-like';
 import type { DrizzleTx } from '../../core/db/with-org';
@@ -184,8 +185,7 @@ export class OrderingRepository {
     branchId: string,
     opts: { status?: OrderStatus; activeOnly?: boolean; before: string },
   ): Promise<number | undefined> {
-    const open: OrderStatus[] = ['draft', 'placed', 'preparing', 'ready'];
-    if (opts.status !== undefined && !open.includes(opts.status)) {
+    if (opts.status !== undefined && !OPEN_ORDER_STATUSES.includes(opts.status)) {
       return undefined;
     }
     if (opts.status === undefined && opts.activeOnly !== true) {
@@ -197,7 +197,7 @@ export class OrderingRepository {
       .where(
         and(
           eq(orders.branchId, branchId),
-          opts.status !== undefined ? eq(orders.status, opts.status) : inArray(orders.status, open),
+          opts.status !== undefined ? eq(orders.status, opts.status) : inArray(orders.status, [...OPEN_ORDER_STATUSES]),
           sql`${orders.businessDate} < ${opts.before}::date`,
         ),
       );
@@ -223,7 +223,7 @@ export class OrderingRepository {
   ) {
     const conditions = [eq(orders.branchId, branchId)];
     if (opts.activeOnly) {
-      conditions.push(inArray(orders.status, ['draft', 'placed', 'preparing', 'ready']));
+      conditions.push(inArray(orders.status, [...OPEN_ORDER_STATUSES]));
     }
     if (opts.status) {
       conditions.push(eq(orders.status, opts.status));

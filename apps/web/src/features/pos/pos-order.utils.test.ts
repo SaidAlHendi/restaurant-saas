@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { CartState } from '../cart/cart.types.js';
-import { buildCreateOrderBody } from './pos-order.utils.js';
+import { buildCreateOrderBody, cartForBranchOrderTypes } from './pos-order.utils.js';
 
 const baseCart = (): CartState => ({
   branchId: '01932a1a-7b3e-7000-8000-000000000030',
@@ -70,5 +70,32 @@ describe('buildCreateOrderBody', () => {
     const takeaway = buildCreateOrderBody(cart);
     expect(takeaway?.newBill).toBeUndefined();
     expect(takeaway?.items[0]?.seat).toBeUndefined();
+  });
+});
+
+describe('cartForBranchOrderTypes', () => {
+  it('moves a dine-in cart to takeaway on a takeaway-only branch and clears table, bill and seat', () => {
+    const cart: CartState = {
+      ...baseCart(),
+      orderType: 'dine_in',
+      tableId: '01932a1a-7b3e-7000-8000-000000000050',
+      billChoice: 'new',
+      seat: 'Guest 1',
+    };
+    const fixed = cartForBranchOrderTypes(cart, { supportsDineIn: false, supportsTakeaway: true });
+    expect(fixed).toMatchObject({ orderType: 'takeaway', tableId: null, billChoice: '', seat: '' });
+    // The first submit on the new branch is a valid takeaway order.
+    expect(buildCreateOrderBody(fixed)).toMatchObject({ type: 'takeaway' });
+  });
+
+  it('moves a takeaway cart to dine-in on a dine-in-only branch, needing a table before submit', () => {
+    const fixed = cartForBranchOrderTypes(baseCart(), { supportsDineIn: true, supportsTakeaway: false });
+    expect(fixed.orderType).toBe('dine_in');
+    expect(buildCreateOrderBody(fixed)).toBeNull();
+  });
+
+  it('returns the same cart when the branch offers its type', () => {
+    const cart = baseCart();
+    expect(cartForBranchOrderTypes(cart, { supportsDineIn: false, supportsTakeaway: true })).toBe(cart);
   });
 });

@@ -83,6 +83,8 @@ export class MeService {
         name: b.name,
         slug: b.slug,
         isActive: b.isActive,
+        supportsDineIn: b.supportsDineIn,
+        supportsTakeaway: b.supportsTakeaway,
       })),
       orgs,
       allBranches,

@@ -41,6 +41,8 @@ export function PosPageView(props: PosPageViewModel) {
     productTiles,
     search,
     orderType,
+    supportsDineIn,
+    supportsTakeaway,
     onOrderTypeChange,
     tableId,
     onTableChange,
@@ -198,24 +200,26 @@ export function PosPageView(props: PosPageViewModel) {
               </div>
               <span className="text-muted-foreground text-sm tabular-nums">{labels.cartCount}</span>
             </div>
-            <SegmentedControl
-              label={labels.orderType}
-              value={orderType}
-              onValueChange={onOrderTypeChange}
-              options={[
-                {
-                  value: 'dine_in',
-                  label: labels.orderTypeDineIn,
-                  icon: <UtensilsIcon aria-hidden />,
-                },
-                {
-                  value: 'takeaway',
-                  label: labels.orderTypeTakeaway,
-                  icon: <ShoppingBagIcon aria-hidden />,
-                },
-              ]}
-            />
-            {orderType === 'dine_in' ? (
+            {supportsDineIn && supportsTakeaway ? (
+              <SegmentedControl
+                label={labels.orderType}
+                value={orderType}
+                onValueChange={onOrderTypeChange}
+                options={[
+                  {
+                    value: 'dine_in',
+                    label: labels.orderTypeDineIn,
+                    icon: <UtensilsIcon aria-hidden />,
+                  },
+                  {
+                    value: 'takeaway',
+                    label: labels.orderTypeTakeaway,
+                    icon: <ShoppingBagIcon aria-hidden />,
+                  },
+                ]}
+              />
+            ) : null}
+            {orderType === 'dine_in' && supportsDineIn ? (
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="pos-table">{labels.table}</Label>
                 <Select

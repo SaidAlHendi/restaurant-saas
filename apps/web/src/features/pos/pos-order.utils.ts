@@ -2,6 +2,23 @@ import type { CreateOrderBody } from '@app/shared';
 
 import type { CartState } from '../cart/cart.types.js';
 
+/**
+ * A saved cart may hold an order type the branch does not offer (the owner switched it off, or the
+ * cashier changed branch). Returns the cart fixed for the branch, or the same object when it is fine.
+ */
+export function cartForBranchOrderTypes(
+  cart: CartState,
+  offers: { supportsDineIn: boolean; supportsTakeaway: boolean },
+): CartState {
+  if (cart.orderType === 'dine_in' && !offers.supportsDineIn) {
+    return { ...cart, orderType: 'takeaway', tableId: null, billChoice: '', seat: '' };
+  }
+  if (cart.orderType === 'takeaway' && !offers.supportsTakeaway) {
+    return { ...cart, orderType: 'dine_in', billChoice: '' };
+  }
+  return cart;
+}
+
 export function buildCreateOrderBody(
   cart: CartState,
   pagerEnabled = false,

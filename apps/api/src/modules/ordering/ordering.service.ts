@@ -129,7 +129,9 @@ export class OrderingService {
         return { order: detail, created: false };
       }
 
-      const branch = await this.tenancyRepo.findBranchById(tx, branchId);
+      // Shared lock, taken before the order-type guard: a concurrent change of the branch's order
+      // types waits for this order, and an order that starts after it sees the new flags.
+      const branch = await this.tenancyRepo.findBranchByIdLocked(tx, branchId, 'share');
       if (!branch || branch.orgId !== ctx.orgId) {
         throw new NotFoundError();
       }
@@ -145,6 +147,17 @@ export class OrderingService {
 
       if (body.pagerNumber !== undefined && !branch.pagerEnabled) {
         throw new BusinessRuleError('PAGER_DISABLED', 'Pager numbers are not enabled for this branch');
+      }
+
+      if (body.type === 'dine_in' && !branch.supportsDineIn) {
+        throw new BusinessRuleError('ORDER_TYPE_NOT_SUPPORTED', 'This branch does not offer dine-in', {
+          type: body.type,
+        });
+      }
+      if (body.type === 'takeaway' && !branch.supportsTakeaway) {
+        throw new BusinessRuleError('ORDER_TYPE_NOT_SUPPORTED', 'This branch does not offer takeaway', {
+          type: body.type,
+        });
       }
 
       let billId: string | null = null;

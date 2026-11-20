@@ -34,7 +34,7 @@ import {
 } from '../pos-catalog.utils.js';
 import { orderStatusBadgeTone } from '../../orders/orders-display.utils.js';
 import { posLocalizedName } from '../pos-label.utils.js';
-import { buildCreateOrderBody } from '../pos-order.utils.js';
+import { buildCreateOrderBody, cartForBranchOrderTypes } from '../pos-order.utils.js';
 import { posOrderTagsForEvent } from '../pos-realtime.utils.js';
 import { useGetPosMenuQuery } from '../pos.api.js';
 import type { PosMenuProduct } from './use-pos-modifier-sheet.js';
@@ -253,6 +253,27 @@ export function usePosPage() {
   }, [menu]);
 
   const currency = menu?.branch.currency ?? org?.defaultCurrency ?? 'USD';
+  const supportsDineIn = menu?.branch.supportsDineIn ?? true;
+  const supportsTakeaway = menu?.branch.supportsTakeaway ?? true;
+  // `menu` can still be the previous branch's while the new one loads, so trust its flags only
+  // once it belongs to the current branch.
+  const menuMatchesBranch = menu !== undefined && menu.branch.id === branchId;
+  // A saved cart may hold an order type this branch does not offer. Derive the fixed cart during
+  // render so the first view and the first submit are already right; the effect then saves it.
+  const effectiveCart = useMemo(
+    () =>
+      menuMatchesBranch ? cartForBranchOrderTypes(cart, { supportsDineIn, supportsTakeaway }) : cart,
+    [cart, menuMatchesBranch, supportsDineIn, supportsTakeaway],
+  );
+  useEffect(() => {
+    if (effectiveCart === cart) {
+      return;
+    }
+    dispatch(cartActions.setOrderType(effectiveCart.orderType));
+    dispatch(cartActions.setTableId(effectiveCart.tableId));
+    dispatch(cartActions.setBillChoice(effectiveCart.billChoice));
+    dispatch(cartActions.setSeat(effectiveCart.seat));
+  }, [cart, effectiveCart, dispatch]);
 
   const totals = useMemo(() => {
     if (!menu) {
@@ -494,7 +515,7 @@ export function usePosPage() {
       return;
     }
     setSendError(false);
-    const body = buildCreateOrderBody(cart, menu.branch.pagerEnabled);
+    const body = buildCreateOrderBody(effectiveCart, menu.branch.pagerEnabled);
     if (!body) {
       return;
     }
@@ -520,7 +541,7 @@ export function usePosPage() {
       return;
     }
     toast.success(t('pos.toast.sentToKitchen', { number: order.orderNumber }));
-  }, [branchId, cart, createOrder, dispatch, isOnline, menu, paymentDialog, t]);
+  }, [branchId, cart, createOrder, dispatch, effectiveCart, isOnline, menu, paymentDialog, t]);
 
   const onRetrySend = useCallback(() => {
     void onSendToKitchen();
@@ -657,12 +678,12 @@ export function usePosPage() {
   const sending = createState.isLoading;
   const showOfflineBanner = !isOnline || sendError;
   const { data: tableBills } = useListBillsQuery(
-    { branchId: branchId ?? '', tableId: cart.tableId ?? undefined },
-    { skip: !branchId || cart.orderType !== 'dine_in' || cart.tableId === null },
+    { branchId: branchId ?? '', tableId: effectiveCart.tableId ?? undefined },
+    { skip: !branchId || effectiveCart.orderType !== 'dine_in' || effectiveCart.tableId === null },
   );
-  const openTableBills = cart.orderType === 'dine_in' ? (tableBills ?? []) : [];
+  const openTableBills = effectiveCart.orderType === 'dine_in' ? (tableBills ?? []) : [];
   // With two open bills at the table the cashier must say which one this order joins.
-  const billNeedsChoice = openTableBills.length > 1 && cart.billChoice === '';
+  const billNeedsChoice = openTableBills.length > 1 && effectiveCart.billChoice === '';
   const billOptions =
     openTableBills.length === 0
       ? []
@@ -719,7 +740,7 @@ export function usePosPage() {
   }, [addTargetClosed, exitAddMode, t]);
 
   const canSend =
-    buildCreateOrderBody(cart, menu?.branch.pagerEnabled ?? false) !== null &&
+    buildCreateOrderBody(effectiveCart, menu?.branch.pagerEnabled ?? false) !== null &&
     unavailableIds.size === 0 &&
     !billNeedsChoice;
 
@@ -751,7 +772,9 @@ export function usePosPage() {
       clearLabel: t('pos.catalog.searchClear'),
       noResults: t('pos.catalog.noResults'),
     },
-    orderType: cart.orderType,
+    orderType: effectiveCart.orderType,
+    supportsDineIn,
+    supportsTakeaway,
     onOrderTypeChange: (type: CartOrderType) => {
       dispatch(cartActions.setOrderType(type));
     },
@@ -761,12 +784,12 @@ export function usePosPage() {
       dispatch(cartActions.setSeat(value));
     },
     billOptions,
-    billChoice: cart.billChoice,
+    billChoice: effectiveCart.billChoice,
     billNeedsChoice,
     onBillChoiceChange: (value: string) => {
       dispatch(cartActions.setBillChoice(value));
     },
-    tableId: cart.tableId,
+    tableId: effectiveCart.tableId,
     onTableChange: (id: string | null) => {
       dispatch(cartActions.setTableId(id));
     },

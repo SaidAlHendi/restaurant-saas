@@ -111,6 +111,13 @@ apps/api/
 - `modules/ordering/state-machine.ts` exports `transitions` and `assertTransition(from, to, ctx)`.
 - `OrderingService.placeOrder(ctx, dto)` in one transaction: idempotency lookup → counter increment →
   insert order + items (snapshots) → compute totals → `order_events` + `OutboxService.write`.
+- Branch order types: `branches.supports_dine_in` / `supports_takeaway` (default true, CHECK at least one).
+  `placeOrder` rejects an unsupported type with `ORDER_TYPE_NOT_SUPPORTED`; `TablesService` refuses table
+  create and QR rotate when dine-in is off; `BranchesService.patch` refuses both off (`ORDER_TYPE_REQUIRED`)
+  and turning a type off while it has open orders (`OPEN_ORDER_STATUSES`, includes pay-before-send drafts,
+  `ORDER_TYPE_HAS_OPEN_ORDERS`) or, for dine-in, open table bills (`ORDER_TYPE_HAS_OPEN_BILLS`). `patch`
+  and `placeOrder` both lock the branch row first (`FOR UPDATE` / `FOR SHARE`), so a toggle and an order race safely. Flags also ride on `/me`
+  branches and the POS menu so the web can hide what the branch does not offer.
 - Status change: `UPDATE ... WHERE id = $1 AND status = $from AND version = $v RETURNING *`;
   zero rows → `ConflictError` with the current order.
 

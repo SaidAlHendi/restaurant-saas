@@ -90,6 +90,7 @@ vi.mock('../../../app/hooks.js', () => ({
       session: {
         org: { defaultCurrency: 'SAR', defaultLocale: 'en' },
         currentBranchId: '01932a1a-7b3e-7000-8000-000000000030',
+        branches: [],
       },
     }),
 }));

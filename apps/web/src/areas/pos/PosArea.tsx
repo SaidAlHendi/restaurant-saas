@@ -49,8 +49,12 @@ export default function PosArea() {
         <Routes>
           <Route index element={<PosPage />} />
           <Route path="orders" element={<PosOrdersPage />} />
-          <Route path="tables" element={<PosTablesPage />} />
-          <Route path="bills" element={<PosBillsPage />} />
+          {vm.supportsDineIn ? (
+            <>
+              <Route path="tables" element={<PosTablesPage />} />
+              <Route path="bills" element={<PosBillsPage />} />
+            </>
+          ) : null}
           <Route path="*" element={<Navigate to="/pos" replace />} />
         </Routes>
       </Suspense>

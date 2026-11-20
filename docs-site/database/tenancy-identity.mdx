@@ -16,7 +16,7 @@ The default currency is the base currency that all prices are stored in. The own
 
 ### branches
 
-A location of a restaurant. Holds `timezone`, `currency`, tax (`tax_rate_bp` in basis points, `tax_inclusive`), `day_start_hour` (default 4, defines the business date), address, receipt header and footer, `pay_before_send`, `accepts_card` and `is_active`. Unique by `(org_id, slug)`.
+A location of a restaurant. Holds `timezone`, `currency`, tax (`tax_rate_bp` in basis points, `tax_inclusive`), `day_start_hour` (default 4, defines the business date), address, receipt header and footer, `pay_before_send`, `accepts_card`, `supports_dine_in`, `supports_takeaway` and `is_active`. The two `supports_*` flags default to true and a check constraint requires at least one of them. Creating an order of an unsupported type is refused, and a type cannot be turned off while the branch still has open orders of that type. Unique by `(org_id, slug)`.
 
 **Used by:** nearly every module, because orders, tables, counters and reports hang off a branch.
 

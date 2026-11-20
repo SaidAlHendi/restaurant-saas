@@ -1,5 +1,7 @@
+import { sql } from 'drizzle-orm';
 import {
   boolean,
+  check,
   foreignKey,
   integer,
   numeric,
@@ -64,6 +66,8 @@ export const branches = pgTable(
     payBeforeSend: boolean('pay_before_send').notNull().default(false),
     acceptsCard: boolean('accepts_card').notNull().default(false),
     pagerEnabled: boolean('pager_enabled').notNull().default(false),
+    supportsDineIn: boolean('supports_dine_in').notNull().default(true),
+    supportsTakeaway: boolean('supports_takeaway').notNull().default(true),
     displayToken: text('display_token'),
     isActive: boolean('is_active').notNull().default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -72,6 +76,7 @@ export const branches = pgTable(
   (t) => [
     unique('branches_org_slug_unique').on(t.orgId, t.slug),
     unique('branches_id_org_id_unique').on(t.id, t.orgId),
+    check('branches_order_type_required', sql`${t.supportsDineIn} OR ${t.supportsTakeaway}`),
   ],
 );
 

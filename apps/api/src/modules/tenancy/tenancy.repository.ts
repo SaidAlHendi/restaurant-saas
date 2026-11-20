@@ -1,10 +1,11 @@
-import { and, asc, count, desc, eq, gt, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gt, inArray, sql } from 'drizzle-orm';
 import { Injectable } from '@nestjs/common';
 
 import { computeEffectivePermissions } from '@app/shared';
 
 import { users } from '../../core/db/schema/identity';
-import { orders } from '../../core/db/schema/ordering';
+import { bills, orders } from '../../core/db/schema/ordering';
+import { OPEN_ORDER_STATUSES } from '../ordering/state-machine';
 import {
   branches,
   membershipBranches,
@@ -50,6 +51,20 @@ export class TenancyRepository {
     return rows[0];
   }
 
+  /**
+   * Row lock on the branch. `update` is for changing order-type flags; `share` is for placing an
+   * order, so orders do not block each other but do wait for (and then see) a flag change.
+   */
+  async findBranchByIdLocked(tx: DrizzleTx, branchId: string, mode: 'update' | 'share') {
+    const rows = await tx
+      .select()
+      .from(branches)
+      .where(eq(branches.id, branchId))
+      .limit(1)
+      .for(mode);
+    return rows[0];
+  }
+
   async insertBranch(tx: DrizzleTx, row: typeof branches.$inferInsert) {
     const inserted = await tx.insert(branches).values(row).returning();
     return firstInsertedRow(inserted);
@@ -62,6 +77,30 @@ export class TenancyRepository {
       .where(eq(branches.id, branchId))
       .returning();
     return updated[0];
+  }
+
+  /** Orders of `type` still in progress (see `OPEN_ORDER_STATUSES`). */
+  async countOpenOrdersOfType(tx: DrizzleTx, branchId: string, type: 'dine_in' | 'takeaway') {
+    const rows = await tx
+      .select({ n: count() })
+      .from(orders)
+      .where(
+        and(
+          eq(orders.branchId, branchId),
+          eq(orders.type, type),
+          inArray(orders.status, [...OPEN_ORDER_STATUSES]),
+        ),
+      );
+    return rows[0]?.n ?? 0;
+  }
+
+  /** Table bills not yet closed; they can hold served orders that are still unpaid. */
+  async countOpenBills(tx: DrizzleTx, branchId: string) {
+    const rows = await tx
+      .select({ n: count() })
+      .from(bills)
+      .where(and(eq(bills.branchId, branchId), eq(bills.status, 'open')));
+    return rows[0]?.n ?? 0;
   }
 
   async branchSlugExistsInOrg(tx: DrizzleTx, orgId: string, slug: string) {

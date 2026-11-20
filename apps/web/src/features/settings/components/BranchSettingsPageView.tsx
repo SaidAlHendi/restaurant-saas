@@ -34,6 +34,10 @@ export function BranchSettingsPageView(props: BranchSettingsPageViewModel) {
     onAcceptsCardChange,
     pagerEnabled,
     onPagerEnabledChange,
+    supportsDineIn,
+    onSupportsDineInChange,
+    supportsTakeaway,
+    onSupportsTakeawayChange,
     pagerPlanAvailable,
     displayLink,
     taxInclusive,
@@ -174,6 +178,32 @@ export function BranchSettingsPageView(props: BranchSettingsPageViewModel) {
           hint={labels.acceptsCardHint}
           control={
             <Switch id="accepts-card" checked={acceptsCard} onCheckedChange={onAcceptsCardChange} />
+          }
+        />
+        <SettingsToggleRow
+          id="supports-dine-in"
+          label={labels.dineIn}
+          hint={labels.dineInHint}
+          control={
+            <Switch
+              id="supports-dine-in"
+              checked={supportsDineIn}
+              disabled={supportsDineIn && !supportsTakeaway}
+              onCheckedChange={onSupportsDineInChange}
+            />
+          }
+        />
+        <SettingsToggleRow
+          id="supports-takeaway"
+          label={labels.takeaway}
+          hint={labels.takeawayHint}
+          control={
+            <Switch
+              id="supports-takeaway"
+              checked={supportsTakeaway}
+              disabled={supportsTakeaway && !supportsDineIn}
+              onCheckedChange={onSupportsTakeawayChange}
+            />
           }
         />
         <SettingsToggleRow

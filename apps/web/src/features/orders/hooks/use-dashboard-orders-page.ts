@@ -9,7 +9,11 @@ import { useAppDispatch, useAppSelector } from '../../../app/hooks.js';
 import { intlLocaleForUi, orderMoneyFormatter } from '../../../lib/money.js';
 import type { RealtimeEvent } from '../../../lib/realtime.js';
 import { useBranchRealtime } from '../../realtime/use-branch-realtime.js';
-import { selectCurrentBranchId } from '../../session/session.selectors.js';
+import {
+  selectCurrentBranchId,
+  selectSupportsDineIn,
+  selectSupportsTakeaway,
+} from '../../session/session.selectors.js';
 import {
   dashboardOrdersFiltersToSearchParams,
   parseDashboardOrdersFilters,
@@ -31,6 +35,8 @@ export function useDashboardOrdersPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const branchId = useAppSelector(selectCurrentBranchId);
+  const supportsDineIn = useAppSelector(selectSupportsDineIn);
+  const supportsTakeaway = useAppSelector(selectSupportsTakeaway);
   const orgSwitcher = useOrgSwitcher();
   const branchContext = useBranchBusinessDate(branchId);
 
@@ -207,13 +213,18 @@ export function useDashboardOrdersPage() {
     [filterAllLabel, t],
   );
 
+  // Only offer the types this branch supports, but keep an already-selected one so it can be cleared.
   const typeOptions = useMemo(
     () => [
       { value: 'all', label: filterAllLabel },
-      { value: 'dine_in', label: t('dashboard.orders.orderType.dine_in') },
-      { value: 'takeaway', label: t('dashboard.orders.orderType.takeaway') },
+      ...(supportsDineIn || filters?.type === 'dine_in'
+        ? [{ value: 'dine_in', label: t('dashboard.orders.orderType.dine_in') }]
+        : []),
+      ...(supportsTakeaway || filters?.type === 'takeaway'
+        ? [{ value: 'takeaway', label: t('dashboard.orders.orderType.takeaway') }]
+        : []),
     ],
-    [filterAllLabel, t],
+    [filterAllLabel, filters?.type, supportsDineIn, supportsTakeaway, t],
   );
 
   const paymentMethodOptions = useMemo(

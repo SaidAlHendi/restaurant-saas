@@ -5,6 +5,7 @@ All notable user-facing changes to Sahtain. Format follows [Keep a Changelog](ht
 ## Unreleased
 
 ### Added
+- Branch setting for **Dine-in (tables)** and **Takeaway**: switch off what a branch doesn't offer. The POS then shows only the available order type, and new tables and QR codes are blocked when dine-in is off. At least one must stay on, and a type can't be turned off while it has open orders (dine-in: or open table bills).
 - Reopen a completed order: managers and owners (and anyone the owner grants **Reopen completed orders**) can send a wrongly handed-over order back to Ready from the order sheet. Payment is unchanged; not possible once the table bill is closed.
 - Handing over an order: tap **Picked up** (takeaway) or **Served** (dine-in) on a ready order, with a 10-second Undo. Ready orders now stay on the POS, kitchen and Ready screens until handed over, and an unpaid one opens payment first.
 - Kitchen: tap **Ready** with a 5-second Undo, also straight from a New order. A lighter **Start** button on a New order moves it to Preparing. Undo keeps the items you had ticked.

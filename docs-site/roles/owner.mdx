@@ -13,13 +13,19 @@ The restaurant's owner or business operator, who is accountable for the whole re
 - Create, view and cancel orders, and update order status.
 - View and edit the menu: categories, products, modifier groups and ingredients. A modifier group is a question for the customer, such as "Size" (must pick 1) or "Extras" (pick up to 2), and its modifiers are the answers, each with an optional price change. Create groups under **Menu → Modifier groups**, or select **New group** inside a product's form, then tick the group on every product that offers it. Each product and category is shown in **All branches** (the default, which also covers branches added later) or only in the branches you choose, in its form on the **Menu** page.
 - See the dashboard and reports: today's sales, order history and trends.
-- Manage branches on the **Branches** page: add a branch, rename it, turn it on or off, and edit its settings. Branch settings cover the address, tax rate, whether prices include tax, cashier payment options, pickup numbers and pagers, the business day start, the timezone and the printed receipt. Adding a branch is subject to the plan's branch limit.
+- Manage branches on the **Branches** page: add a branch, rename it, turn it on or off, and edit its settings. Branch settings cover the address, tax rate, whether prices include tax, cashier payment options, whether the branch offers dine-in and takeaway, pickup numbers and pagers, the business day start, the timezone and the printed receipt. Adding a branch is subject to the plan's branch limit.
 - Manage staff on the **Staff** page: invite staff, create PIN-only staff accounts, change roles, restrict staff to specific branches, and disable accounts. Owners can assign any role, including other owners.
 - Fine-tune one employee's access with **Permissions** in the Staff row actions: grant a permission their role lacks (for example, rotating table QR codes or reopening completed orders) or deny one it has. Only owners can do this, and owner accounts cannot be customised. Changes apply on the employee's next action. See [Roles overview](/roles/overview#per-employee-permission-overrides).
 - Link and remove POS devices on the **Devices** page, so PIN-only staff can sign in on a shared tablet without an owner session. A device is linked with a pairing code that works once for 15 minutes.
 - Edit restaurant settings such as the name, logo, languages and display currency in **Settings**.
 - Manage the subscription: view the plan, billing status and invoices.
 - Approve cashier requests to cancel or void an order, with their PIN.
+
+## Dine-in and takeaway
+
+In a branch's settings, use the **Dine-in (tables)** and **Takeaway** switches to say what the branch offers. Both are on by default, and at least one must stay on. Turn dine-in off for a takeaway-only branch: the POS shows only takeaway, and the Tables, QR codes and Bills pages are hidden. Turn takeaway off and the POS shows only dine-in.
+
+You can't turn a type off while the branch still has open orders of that type: placed, preparing, ready, or a draft still waiting for payment. Dine-in also can't be turned off while any table bill is open, even if its orders are finished. Finish or cancel the orders and close the bills first. Past orders, reports and tables are kept, so turning a type back on brings everything back.
 
 ## Pickup numbers and the customer Ready screen
 

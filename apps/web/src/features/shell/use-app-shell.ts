@@ -28,6 +28,7 @@ import { useBillingBanner } from '../billing/hooks/use-billing-banner.js';
 import { clearSession } from '../session/session.slice.js';
 import {
   selectCan,
+  selectSupportsDineIn,
   selectEntitlements,
   selectSessionOrg,
   selectSessionRole,
@@ -46,6 +47,7 @@ export function useAppShell() {
   const org = useAppSelector(selectSessionOrg);
   const role = useAppSelector(selectSessionRole);
   const canReadMenu = useAppSelector(selectCan('menu.read'));
+  const supportsDineIn = useAppSelector(selectSupportsDineIn);
   const canManageBranches = useAppSelector(selectCan('branches.manage'));
   const canManageOrg = useAppSelector(selectCan('org.manage'));
   const canReadStaff = useAppSelector(selectCan('staff.read'));
@@ -234,11 +236,13 @@ export function useAppShell() {
             { to: '/dashboard/menu/categories', label: t('menu.nav.categories') },
             { to: '/dashboard/menu/products', label: t('menu.nav.products') },
             { to: '/dashboard/menu/modifier-groups', label: t('menu.nav.modifierGroups') },
-            { to: '/dashboard/menu/tables', label: t('menu.nav.tables') },
-            { to: '/dashboard/menu/qr-codes', label: t('menu.nav.qrCodes') },
-          ].map((item) => ({ ...item, active: location.pathname === item.to }))
+            { to: '/dashboard/menu/tables', label: t('menu.nav.tables'), dineInOnly: true },
+            { to: '/dashboard/menu/qr-codes', label: t('menu.nav.qrCodes'), dineInOnly: true },
+          ]
+            .filter((item) => supportsDineIn || item.dineInOnly !== true)
+            .map((item) => ({ ...item, active: location.pathname === item.to }))
         : [],
-    [canReadMenu, location.pathname, t],
+    [canReadMenu, location.pathname, supportsDineIn, t],
   );
 
   const posSubNav = useMemo(
@@ -246,17 +250,19 @@ export function useAppShell() {
       canUsePos && location.pathname.startsWith('/pos')
         ? [
             { to: '/pos', label: t('pos.nav.newOrder'), end: true },
-            { to: '/pos/tables', label: t('pos.nav.tables'), end: true },
+            { to: '/pos/tables', label: t('pos.nav.tables'), end: true, dineInOnly: true },
             { to: '/pos/orders', label: t('pos.nav.orders'), end: true },
-            { to: '/pos/bills', label: t('pos.nav.bills'), end: true },
-          ].map((item) => ({
-            ...item,
-            active: item.end
-              ? location.pathname === item.to
-              : location.pathname === item.to || location.pathname.startsWith(`${item.to}/`),
-          }))
+            { to: '/pos/bills', label: t('pos.nav.bills'), end: true, dineInOnly: true },
+          ]
+            .filter((item) => supportsDineIn || item.dineInOnly !== true)
+            .map((item) => ({
+              ...item,
+              active: item.end
+                ? location.pathname === item.to
+                : location.pathname === item.to || location.pathname.startsWith(`${item.to}/`),
+            }))
         : [],
-    [canUsePos, location.pathname, t],
+    [canUsePos, location.pathname, supportsDineIn, t],
   );
 
   const onToggleCollapsed = useCallback(() => {
