@@ -253,11 +253,11 @@ export function usePosPage() {
   }, [menu]);
 
   const currency = menu?.branch.currency ?? org?.defaultCurrency ?? 'USD';
-  const supportsDineIn = menu?.branch.supportsDineIn ?? true;
-  const supportsTakeaway = menu?.branch.supportsTakeaway ?? true;
   // `menu` can still be the previous branch's while the new one loads, so trust its flags only
   // once it belongs to the current branch.
   const menuMatchesBranch = menu !== undefined && menu.branch.id === branchId;
+  const supportsDineIn = menuMatchesBranch ? menu.branch.supportsDineIn : true;
+  const supportsTakeaway = menuMatchesBranch ? menu.branch.supportsTakeaway : true;
   // A saved cart may hold an order type this branch does not offer. Derive the fixed cart during
   // render so the first view and the first submit are already right; the effect then saves it.
   const effectiveCart = useMemo(
