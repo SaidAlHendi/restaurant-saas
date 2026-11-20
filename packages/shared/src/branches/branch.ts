@@ -28,6 +28,8 @@ export const branchSchema = z.object({
   payBeforeSend: z.boolean(),
   acceptsCard: z.boolean(),
   pagerEnabled: z.boolean(),
+  supportsDineIn: z.boolean(),
+  supportsTakeaway: z.boolean(),
   isActive: z.boolean(),
 });
 
@@ -64,7 +66,12 @@ export const patchBranchBodySchema = z.object({
   payBeforeSend: z.boolean().optional(),
   acceptsCard: z.boolean().optional(),
   pagerEnabled: z.boolean().optional(),
+  supportsDineIn: z.boolean().optional(),
+  supportsTakeaway: z.boolean().optional(),
   isActive: z.boolean().optional(),
+}).refine((b) => !(b.supportsDineIn === false && b.supportsTakeaway === false), {
+  message: 'A branch must support at least one order type',
+  path: ['supportsDineIn'],
 });
 
 /** Secret address token of a branch's customer "Ready" screen; null until the owner creates it. */

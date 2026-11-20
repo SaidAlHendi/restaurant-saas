@@ -31,6 +31,9 @@ export const meResponseSchema = z.object({
       name: z.string(),
       slug: z.string(),
       isActive: z.boolean(),
+      /** Absent on older cached sessions; treat a missing flag as true. */
+      supportsDineIn: z.boolean().optional(),
+      supportsTakeaway: z.boolean().optional(),
     }),
   ),
   orgs: z.array(

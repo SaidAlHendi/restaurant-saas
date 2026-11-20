@@ -19,6 +19,8 @@ export const posMenuBranchSchema = z.object({
   acceptsCard: z.boolean(),
   /** Branch setting AND the plan includes `ordering.pager`. */
   pagerEnabled: z.boolean(),
+  supportsDineIn: z.boolean(),
+  supportsTakeaway: z.boolean(),
 });
 
 export const posMenuOrgSchema = z.object({

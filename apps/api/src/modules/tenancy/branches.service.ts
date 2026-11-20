@@ -41,6 +41,8 @@ function mapBranchRow(b: {
   payBeforeSend: boolean;
   acceptsCard: boolean;
   pagerEnabled: boolean;
+  supportsDineIn: boolean;
+  supportsTakeaway: boolean;
   isActive: boolean;
 }): Branch {
   return {
@@ -59,6 +61,8 @@ function mapBranchRow(b: {
     payBeforeSend: b.payBeforeSend,
     acceptsCard: b.acceptsCard,
     pagerEnabled: b.pagerEnabled,
+    supportsDineIn: b.supportsDineIn,
+    supportsTakeaway: b.supportsTakeaway,
     isActive: b.isActive,
   };
 }
@@ -173,6 +177,20 @@ export class BranchesService {
       if (body.isActive === true && !existing.isActive) {
         await this.billing.assertCanActivateBranch(tx, ctx.orgId);
       }
+      const nextDineIn = body.supportsDineIn ?? existing.supportsDineIn;
+      const nextTakeaway = body.supportsTakeaway ?? existing.supportsTakeaway;
+      if (!nextDineIn && !nextTakeaway) {
+        throw new BusinessRuleError(
+          'ORDER_TYPE_REQUIRED',
+          'A branch must support at least one order type',
+        );
+      }
+      if (body.supportsDineIn === false && existing.supportsDineIn) {
+        await this.assertNoOpenOrdersOfType(tx, branchId, 'dine_in');
+      }
+      if (body.supportsTakeaway === false && existing.supportsTakeaway) {
+        await this.assertNoOpenOrdersOfType(tx, branchId, 'takeaway');
+      }
       const updated = await this.repo.updateBranch(tx, branchId, {
         name: body.name,
         timezone: body.timezone,
@@ -186,6 +204,8 @@ export class BranchesService {
         payBeforeSend: body.payBeforeSend,
         acceptsCard: body.acceptsCard,
         pagerEnabled: body.pagerEnabled,
+        supportsDineIn: body.supportsDineIn,
+        supportsTakeaway: body.supportsTakeaway,
         isActive: body.isActive,
       });
       if (!updated) {
@@ -211,6 +231,21 @@ export class BranchesService {
       await this.billing.syncBranchQuantity(ctx.orgId);
     }
     return branch;
+  }
+
+  private async assertNoOpenOrdersOfType(
+    tx: DrizzleTx,
+    branchId: string,
+    type: 'dine_in' | 'takeaway',
+  ) {
+    const open = await this.repo.countOpenOrdersOfType(tx, branchId, type);
+    if (open > 0) {
+      throw new BusinessRuleError(
+        'ORDER_TYPE_HAS_OPEN_ORDERS',
+        'Finish or cancel the open orders of this type before turning it off',
+        { type, open },
+      );
+    }
   }
 
   private async assertBranchCurrencyMatchesOrg(

@@ -55,6 +55,7 @@ vi.mock('../../session/session.selectors.js', () => ({
   selectCurrentBranchId: (state: { session: { currentBranchId: string } }) =>
     state.session.currentBranchId,
   selectHasFeature: (feature: string) => () => features.includes(feature),
+  selectSupportsDineIn: () => true,
   selectSessionOrg: (state: { session: { org: { id: string } } }) => state.session.org,
 }));
 

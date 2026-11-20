@@ -7,8 +7,9 @@ import type { CreateDiningTableBody, PageQuery, PatchDiningTableBody } from '@ap
 
 import type { RequestContext } from '../../core/context/request-context';
 import { DRIZZLE, type DrizzleDb } from '../../core/db/db.module';
-import { withOrg } from '../../core/db/with-org';
-import { ConflictError, NotFoundError } from '../../core/errors/app-errors';
+import { withOrg, type DrizzleTx } from '../../core/db/with-org';
+import { BusinessRuleError, ConflictError, NotFoundError } from '../../core/errors/app-errors';
+import { TenancyRepository } from '../tenancy/tenancy.repository';
 import { isPgUniqueViolation } from '../../lib/pg-errors';
 import { generateQrToken } from '../../lib/qr-token';
 import { newUuidV7 } from '../../lib/uuid';
@@ -22,7 +23,20 @@ export class TablesService {
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly repo: OrderingRepository,
     private readonly entitlements: EntitlementsService,
+    private readonly tenancyRepo: TenancyRepository,
   ) {}
+
+  private async assertDineInSupported(tx: DrizzleTx, orgId: string, branchId: string) {
+    const branch = await this.tenancyRepo.findBranchById(tx, branchId);
+    if (!branch || branch.orgId !== orgId) {
+      throw new NotFoundError();
+    }
+    if (!branch.supportsDineIn) {
+      throw new BusinessRuleError('ORDER_TYPE_NOT_SUPPORTED', 'This branch does not offer dine-in', {
+        type: 'dine_in',
+      });
+    }
+  }
 
   async list(ctx: RequestContext, branchId: string, wantsQrToken: boolean, query: PageQuery = {}) {
     const includeQrToken =
@@ -39,6 +53,7 @@ export class TablesService {
 
   rotateQr(ctx: RequestContext, branchId: string, tableId: string) {
     return withOrg(this.db, ctx.orgId, async (tx) => {
+      await this.assertDineInSupported(tx, ctx.orgId, branchId);
       const existing = await this.repo.findTableById(tx, branchId, tableId);
       if (!existing) {
         throw new NotFoundError();
@@ -61,6 +76,7 @@ export class TablesService {
   async create(ctx: RequestContext, branchId: string, body: CreateDiningTableBody) {
     const includeQrToken = await this.canSeeQrToken(ctx);
     return withOrg(this.db, ctx.orgId, async (tx) => {
+      await this.assertDineInSupported(tx, ctx.orgId, branchId);
       try {
         const row = await this.repo.insertTable(tx, {
           id: newUuidV7(),

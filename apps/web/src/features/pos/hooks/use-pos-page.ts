@@ -253,6 +253,21 @@ export function usePosPage() {
   }, [menu]);
 
   const currency = menu?.branch.currency ?? org?.defaultCurrency ?? 'USD';
+  const supportsDineIn = menu?.branch.supportsDineIn ?? true;
+  const supportsTakeaway = menu?.branch.supportsTakeaway ?? true;
+  const cartOrderType = cart.orderType;
+  // A saved cart (or an old branch default) may hold a type this branch no longer offers.
+  useEffect(() => {
+    if (menu === undefined) {
+      return;
+    }
+    if (cartOrderType === 'dine_in' && !supportsDineIn) {
+      dispatch(cartActions.setOrderType('takeaway'));
+      dispatch(cartActions.setTableId(null));
+    } else if (cartOrderType === 'takeaway' && !supportsTakeaway) {
+      dispatch(cartActions.setOrderType('dine_in'));
+    }
+  }, [menu, cartOrderType, supportsDineIn, supportsTakeaway, dispatch]);
 
   const totals = useMemo(() => {
     if (!menu) {
@@ -427,7 +442,12 @@ export function usePosPage() {
           orderDetail.printReceipt(updated);
         }
         // One flow: paying a ready order from "Picked up"/"Served" finishes the handover too.
-        if (updated && handoverId === updated.id && updated.status === 'ready' && orderIsPaid(updated)) {
+        if (
+          updated &&
+          handoverId === updated.id &&
+          updated.status === 'ready' &&
+          orderIsPaid(updated)
+        ) {
           void orderDetail.completeHandover(updated).then((done) => {
             if (done) {
               setSelectedOrderId(null);
@@ -752,6 +772,8 @@ export function usePosPage() {
       noResults: t('pos.catalog.noResults'),
     },
     orderType: cart.orderType,
+    supportsDineIn,
+    supportsTakeaway,
     onOrderTypeChange: (type: CartOrderType) => {
       dispatch(cartActions.setOrderType(type));
     },
@@ -901,8 +923,8 @@ export function usePosPage() {
               count: additionLines.reduce((sum: number, line) => sum + line.quantity, 0),
             })
           : menu?.branch.payBeforeSend
-          ? t('pos.payAndSend')
-          : t('pos.sendToKitchen'),
+            ? t('pos.payAndSend')
+            : t('pos.sendToKitchen'),
       orderTypeDineIn: t('pos.orderType.dineIn'),
       orderTypeTakeaway: t('pos.orderType.takeaway'),
       table: t('pos.table'),

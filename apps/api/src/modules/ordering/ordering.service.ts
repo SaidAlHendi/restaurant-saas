@@ -147,6 +147,17 @@ export class OrderingService {
         throw new BusinessRuleError('PAGER_DISABLED', 'Pager numbers are not enabled for this branch');
       }
 
+      if (body.type === 'dine_in' && !branch.supportsDineIn) {
+        throw new BusinessRuleError('ORDER_TYPE_NOT_SUPPORTED', 'This branch does not offer dine-in', {
+          type: body.type,
+        });
+      }
+      if (body.type === 'takeaway' && !branch.supportsTakeaway) {
+        throw new BusinessRuleError('ORDER_TYPE_NOT_SUPPORTED', 'This branch does not offer takeaway', {
+          type: body.type,
+        });
+      }
+
       let billId: string | null = null;
       if (body.type === 'dine_in' && body.tableId) {
         const table = await this.repo.findActiveTableForBranch(tx, branchId, body.tableId);

@@ -64,6 +64,21 @@ export class TenancyRepository {
     return updated[0];
   }
 
+  /** Orders of `type` still in progress (not completed, cancelled, refunded or draft). */
+  async countOpenOrdersOfType(tx: DrizzleTx, branchId: string, type: 'dine_in' | 'takeaway') {
+    const rows = await tx
+      .select({ n: count() })
+      .from(orders)
+      .where(
+        and(
+          eq(orders.branchId, branchId),
+          eq(orders.type, type),
+          sql`${orders.status} IN ('placed', 'preparing', 'ready')`,
+        ),
+      );
+    return rows[0]?.n ?? 0;
+  }
+
   async branchSlugExistsInOrg(tx: DrizzleTx, orgId: string, slug: string) {
     const rows = await tx
       .select({ id: branches.id })

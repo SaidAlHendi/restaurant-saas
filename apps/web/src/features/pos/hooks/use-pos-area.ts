@@ -13,6 +13,7 @@ import {
   selectCurrentBranchId,
   selectHasFeature,
   selectSessionOrg,
+  selectSupportsDineIn,
 } from '../../session/session.selectors.js';
 import { usePosLockScreen } from './use-pos-lock-screen.js';
 
@@ -22,6 +23,7 @@ export function usePosArea() {
   const canUsePos = useAppSelector(selectCan('orders.create'));
   const hasPosFeature = useAppSelector(selectHasFeature('pos.access'));
   const branchId = useAppSelector(selectCurrentBranchId);
+  const supportsDineIn = useAppSelector(selectSupportsDineIn);
   const orgId = useAppSelector(selectSessionOrg)?.id ?? null;
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -82,6 +84,7 @@ export function usePosArea() {
   return {
     t,
     bootstrapDone,
+    supportsDineIn,
     canUsePos,
     showUpgrade,
     showLockScreen,

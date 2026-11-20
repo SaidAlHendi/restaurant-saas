@@ -40,6 +40,8 @@ export function useBranchSettingsPage() {
   const [payBeforeSend, setPayBeforeSend] = useState(false);
   const [acceptsCard, setAcceptsCard] = useState(false);
   const [pagerEnabled, setPagerEnabled] = useState(false);
+  const [supportsDineIn, setSupportsDineIn] = useState(true);
+  const [supportsTakeaway, setSupportsTakeaway] = useState(true);
   const [taxInclusive, setTaxInclusive] = useState(false);
   const [dayStartHour, setDayStartHour] = useState('4');
   const [timezone, setTimezone] = useState('Asia/Riyadh');
@@ -57,6 +59,8 @@ export function useBranchSettingsPage() {
       setPayBeforeSend(branch.payBeforeSend);
       setAcceptsCard(branch.acceptsCard);
       setPagerEnabled(branch.pagerEnabled);
+      setSupportsDineIn(branch.supportsDineIn);
+      setSupportsTakeaway(branch.supportsTakeaway);
       setTaxInclusive(branch.taxInclusive);
       setDayStartHour(String(branch.dayStartHour));
       setTimezone(branch.timezone);
@@ -83,6 +87,8 @@ export function useBranchSettingsPage() {
       payBeforeSend !== branch.payBeforeSend ||
       acceptsCard !== branch.acceptsCard ||
       pagerEnabled !== branch.pagerEnabled ||
+      supportsDineIn !== branch.supportsDineIn ||
+      supportsTakeaway !== branch.supportsTakeaway ||
       taxInclusive !== branch.taxInclusive ||
       timezone !== branch.timezone ||
       taxBp !== branch.taxRateBp ||
@@ -99,6 +105,8 @@ export function useBranchSettingsPage() {
     isActive,
     name,
     pagerEnabled,
+    supportsDineIn,
+    supportsTakeaway,
     payBeforeSend,
     receiptFooter,
     receiptHeader,
@@ -192,6 +200,8 @@ export function useBranchSettingsPage() {
         payBeforeSend,
         acceptsCard,
         pagerEnabled,
+        supportsDineIn,
+        supportsTakeaway,
         taxInclusive,
         taxRateBp: parsedTax.bp,
         dayStartHour: hour,
@@ -214,6 +224,8 @@ export function useBranchSettingsPage() {
     isActive,
     name,
     pagerEnabled,
+    supportsDineIn,
+    supportsTakeaway,
     patchBranch,
     payBeforeSend,
     receiptFooter,
@@ -240,6 +252,10 @@ export function useBranchSettingsPage() {
     onAcceptsCardChange: setAcceptsCard,
     pagerEnabled,
     onPagerEnabledChange: setPagerEnabled,
+    supportsDineIn,
+    onSupportsDineInChange: setSupportsDineIn,
+    supportsTakeaway,
+    onSupportsTakeawayChange: setSupportsTakeaway,
     pagerPlanAvailable,
     displayLink: {
       /** Only a saved-on branch can have a link; the switch above is saved with the form. */
@@ -309,6 +325,10 @@ export function useBranchSettingsPage() {
       payBeforeSendHint: t('settings.branch.payBeforeSendHint'),
       acceptsCard: t('settings.branch.acceptsCard'),
       acceptsCardHint: t('settings.branch.acceptsCardHint'),
+      dineIn: t('settings.branch.dineIn'),
+      dineInHint: t('settings.branch.dineInHint'),
+      takeaway: t('settings.branch.takeaway'),
+      takeawayHint: t('settings.branch.takeawayHint'),
       pager: t('settings.branch.pager'),
       pagerHint: t('settings.branch.pagerHint'),
       pagerPlanHint: t('settings.branch.pagerPlanHint'),

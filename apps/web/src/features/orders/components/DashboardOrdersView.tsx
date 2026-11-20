@@ -147,23 +147,25 @@ export function DashboardOrdersView(props: DashboardOrdersViewProps) {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium" htmlFor="orders-filter-type">
-                {labels.type}
-              </label>
-              <Select value={type.value} onValueChange={type.onChange}>
-                <SelectTrigger id="orders-filter-type">
-                  <SelectValue placeholder={labels.type} />
-                </SelectTrigger>
-                <SelectContent>
-                  {typeOptions.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {typeOptions.length > 2 || type.value !== 'all' ? (
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium" htmlFor="orders-filter-type">
+                  {labels.type}
+                </label>
+                <Select value={type.value} onValueChange={type.onChange}>
+                  <SelectTrigger id="orders-filter-type">
+                    <SelectValue placeholder={labels.type} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {typeOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : null}
             <div className="flex flex-col gap-1">
               <label className="text-sm font-medium" htmlFor="orders-filter-payment">
                 {labels.payment}

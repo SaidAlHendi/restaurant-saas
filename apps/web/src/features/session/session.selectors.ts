@@ -12,6 +12,13 @@ export const selectSessionBranches = (state: RootState) => state.session.branche
 export const selectAllBranchesScope = (state: RootState) => state.session.allBranches;
 export const selectSessionOrgs = (state: RootState) => state.session.orgs;
 export const selectCurrentBranchId = (state: RootState) => state.session.currentBranchId;
+/** Order types the current branch offers; a missing flag counts as offered. */
+const currentBranch = (state: RootState) =>
+  state.session.branches.find((b) => b.id === state.session.currentBranchId);
+export const selectSupportsDineIn = (state: RootState): boolean =>
+  currentBranch(state)?.supportsDineIn ?? true;
+export const selectSupportsTakeaway = (state: RootState): boolean =>
+  currentBranch(state)?.supportsTakeaway ?? true;
 export const selectPermissions = (state: RootState) => state.session.permissions;
 
 export const selectIsAuthenticated = (state: RootState) =>

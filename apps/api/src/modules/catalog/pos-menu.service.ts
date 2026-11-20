@@ -87,6 +87,8 @@ export class PosMenuService {
           payBeforeSend: branch.payBeforeSend,
           acceptsCard: branch.acceptsCard,
           pagerEnabled: branch.pagerEnabled && pagerPlanOk,
+          supportsDineIn: branch.supportsDineIn,
+          supportsTakeaway: branch.supportsTakeaway,
         },
         org: {
           name: org.name,

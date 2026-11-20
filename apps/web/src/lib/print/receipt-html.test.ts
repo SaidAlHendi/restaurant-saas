@@ -19,6 +19,8 @@ const baseMenu = {
     payBeforeSend: false,
     acceptsCard: true,
     pagerEnabled: false,
+    supportsDineIn: true,
+    supportsTakeaway: true,
   },
   org: { name: 'Demo Restaurant', logoUrl: null },
   categories: [],

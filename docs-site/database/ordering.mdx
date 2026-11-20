@@ -23,7 +23,7 @@ flowchart LR
 
 ### tables
 
-Dining tables per branch: `label`, a unique `qr_token` for the table QR code, `is_active`. Unique by `(branch_id, label)`. **Used by:** ordering.
+Dining tables per branch: `label`, a unique `qr_token` for the table QR code, `is_active`. Unique by `(branch_id, label)`. New tables and QR rotation are refused while the branch has `supports_dine_in` off; existing tables are kept and listed. **Used by:** ordering.
 
 ### branch_counters
 
