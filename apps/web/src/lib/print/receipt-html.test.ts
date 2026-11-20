@@ -133,9 +133,9 @@ describe('renderReceiptHtml', () => {
       printedAt: new Date('2026-04-01T10:05:00.000Z'),
       labels: receiptLabels,
     });
-    expect(body).toContain('<span>Total</span><span>149,500 SYP</span>');
-    expect(body).toContain('<span>Tendered</span><span>150,000 SYP</span>');
-    expect(body).toContain('<span>Change</span><span>500 SYP</span>');
+    expect(body).toContain('<span>Total</span><span class="num">149,500 SYP</span>');
+    expect(body).toContain('<span>Tendered</span><span class="num">150,000 SYP</span>');
+    expect(body).toContain('<span>Change</span><span class="num">500 SYP</span>');
     expect(body).not.toContain('$');
   });
 

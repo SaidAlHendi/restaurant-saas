@@ -59,16 +59,16 @@ function renderPaymentsHtml(
     .map((payment) => {
       const method = escapeHtml(paymentMethodLabel(payment, labels));
       const amount = escapeHtml(formatMinor(payment.amountMinor, 'total'));
-      const lines = [`<div class="line"><span>${method}</span><span>${amount}</span></div>`];
+      const lines = [`<div class="line"><span>${method}</span><span class="num">${amount}</span></div>`];
       const cash = cashLabels(payment);
       if (cash.tendered !== null) {
         lines.push(
-          `<div class="line"><span>${escapeHtml(labels.tendered)}</span><span>${escapeHtml(cash.tendered)}</span></div>`,
+          `<div class="line"><span>${escapeHtml(labels.tendered)}</span><span class="num">${escapeHtml(cash.tendered)}</span></div>`,
         );
       }
       if (cash.change !== null) {
         lines.push(
-          `<div class="line"><span>${escapeHtml(labels.change)}</span><span>${escapeHtml(cash.change)}</span></div>`,
+          `<div class="line"><span>${escapeHtml(labels.change)}</span><span class="num">${escapeHtml(cash.change)}</span></div>`,
         );
       }
       return lines.join('');
@@ -91,7 +91,7 @@ export function renderReceiptHtml(ctx: ReceiptPrintContext): string {
       : '';
   const footer =
     menu.branch.receiptFooter !== null && menu.branch.receiptFooter.length > 0
-      ? `<hr /><div class="meta">${escapeHtml(menu.branch.receiptFooter)}</div>`
+      ? `<div class="foot">${escapeHtml(menu.branch.receiptFooter)}</div>`
       : '';
 
   const items = activeOrderItems(order);
@@ -110,21 +110,31 @@ export function renderReceiptHtml(ctx: ReceiptPrintContext): string {
       ? `${labels.tax} ${labels.taxInclusiveSuffix}`
       : labels.tax;
 
+  const itemsBlock = `<div class="items">${itemHtml}</div>`;
+  const payments = renderPaymentsHtml(order.payments, labels, formatMinor, cashLabels);
+  const paymentsBlock = payments.length > 0 ? `<div class="pay">${payments}</div>` : '';
+
   return `
+<div class="rcpt">
+<header class="head">
 <h1>${orgName}</h1>
 <div class="meta">${branchName}</div>
 ${address}
 ${customHeader}
-<div class="meta bold">${orderNo}</div>
-<div class="meta">${timeLabel}</div>
-<div class="meta">${meta}</div>
-<hr />
-${itemHtml}
-<hr />
-<div class="line"><span>${escapeHtml(labels.subtotal)}</span><span>${escapeHtml(formatMinor(order.subtotalMinor))}</span></div>
-<div class="line"><span>${escapeHtml(taxLabel)}</span><span>${escapeHtml(formatMinor(order.taxMinor))}</span></div>
-<div class="line bold"><span>${escapeHtml(labels.total)}</span><span>${escapeHtml(formatMinor(order.totalMinor, 'total'))}</span></div>
-${renderPaymentsHtml(order.payments, labels, formatMinor, cashLabels)}
+</header>
+<div class="order-no">${orderNo}</div>
+<div class="when"><span>${timeLabel}</span><span>${meta}</span></div>
+<hr class="solid" />
+${itemsBlock}
+<hr class="solid" />
+<div class="sums">
+<div class="line"><span>${escapeHtml(labels.subtotal)}</span><span class="num">${escapeHtml(formatMinor(order.subtotalMinor))}</span></div>
+<div class="line"><span>${escapeHtml(taxLabel)}</span><span class="num">${escapeHtml(formatMinor(order.taxMinor))}</span></div>
+</div>
+<div class="grand"><span>${escapeHtml(labels.total)}</span><span class="num">${escapeHtml(formatMinor(order.totalMinor, 'total'))}</span></div>
+${paymentsBlock}
 ${footer}
+<div class="cut"></div>
+</div>
 `;
 }

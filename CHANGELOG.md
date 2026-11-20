@@ -15,6 +15,7 @@ All notable user-facing changes to Sahtain. Format follows [Keep a Changelog](ht
 - Edit the modifiers of a line already in the cart.
 
 ### Changed
+- Printed receipt redesigned: bold restaurant name, black order-number bar, itemised lines with quantities, a ruled grand total and a clear payment block.
 - Dashboard Orders: every filter now has a label above it (Status, Order type, Payment method, Date), so "All" is no longer ambiguous.
 - Numbers always use English digits (0-9), also in Arabic: prices, totals, dates, times, counts, and any number you type (Arabic-Indic digits are converted as you type).
 - Order details redesigned: one clear, colour-coded layout on the POS and the dashboard, with a progress bar, items grouped by guest seat, totals with the display-currency rate, payments, a timeline (including reopen and undo) and one big action button per status. Works in English and Arabic. The dashboard order page now has the same action buttons as the POS (except Add items), shown only for what you are allowed to do.

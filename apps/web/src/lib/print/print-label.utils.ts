@@ -74,7 +74,7 @@ export function renderReceiptItemLinesHtml(
         item.notes !== null && item.notes.length > 0
           ? `<div class="mods">${escapeHtml(item.notes)}</div>`
           : '';
-      return `<div class="line bold"><span class="line-name">${qty}× ${name}</span><span>${lineTotal}</span></div>${mods}${note}`;
+      return `<div class="item"><div class="line"><span class="line-name"><b class="qty">${qty}×</b> ${name}</span><span class="num">${lineTotal}</span></div>${mods}${note}</div>`;
     })
     .join('');
 }
