@@ -27,7 +27,7 @@ export class TablesService {
   ) {}
 
   private async assertDineInSupported(tx: DrizzleTx, orgId: string, branchId: string) {
-    const branch = await this.tenancyRepo.findBranchById(tx, branchId);
+    const branch = await this.tenancyRepo.findBranchByIdLocked(tx, branchId, 'share');
     if (!branch || branch.orgId !== orgId) {
       throw new NotFoundError();
     }

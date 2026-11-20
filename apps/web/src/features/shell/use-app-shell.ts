@@ -28,11 +28,11 @@ import { useBillingBanner } from '../billing/hooks/use-billing-banner.js';
 import { clearSession } from '../session/session.slice.js';
 import {
   selectCan,
-  selectSupportsDineIn,
   selectEntitlements,
   selectSessionOrg,
   selectSessionRole,
   selectSessionUser,
+  selectSupportsDineIn,
 } from '../session/session.selectors.js';
 import { activeNavItemId, readSidebarCollapsed, writeSidebarCollapsed } from './app-shell.utils.js';
 
