@@ -130,54 +130,74 @@ export function DashboardOrdersView(props: DashboardOrdersViewProps) {
             clearLabel={search.clearLabel}
           />
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-            <Select value={status.value} onValueChange={status.onChange}>
-              <SelectTrigger>
-                <SelectValue placeholder={labels.status} />
-              </SelectTrigger>
-              <SelectContent>
-                {statusOptions.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={type.value} onValueChange={type.onChange}>
-              <SelectTrigger>
-                <SelectValue placeholder={labels.type} />
-              </SelectTrigger>
-              <SelectContent>
-                {typeOptions.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={paymentMethod.value} onValueChange={paymentMethod.onChange}>
-              <SelectTrigger>
-                <SelectValue placeholder={labels.payment} />
-              </SelectTrigger>
-              <SelectContent>
-                {paymentMethodOptions.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={period.value} onValueChange={period.onChange}>
-              <SelectTrigger>
-                <SelectValue placeholder={labels.period} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="today">{labels.periodToday}</SelectItem>
-                <SelectItem value="yesterday">{labels.periodYesterday}</SelectItem>
-                <SelectItem value="last7">{labels.periodLast7}</SelectItem>
-                <SelectItem value="last30">{labels.periodLast30}</SelectItem>
-                <SelectItem value="custom">{labels.periodCustom}</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium" htmlFor="orders-filter-status">
+                {labels.status}
+              </label>
+              <Select value={status.value} onValueChange={status.onChange}>
+                <SelectTrigger id="orders-filter-status">
+                  <SelectValue placeholder={labels.status} />
+                </SelectTrigger>
+                <SelectContent>
+                  {statusOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium" htmlFor="orders-filter-type">
+                {labels.type}
+              </label>
+              <Select value={type.value} onValueChange={type.onChange}>
+                <SelectTrigger id="orders-filter-type">
+                  <SelectValue placeholder={labels.type} />
+                </SelectTrigger>
+                <SelectContent>
+                  {typeOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium" htmlFor="orders-filter-payment">
+                {labels.payment}
+              </label>
+              <Select value={paymentMethod.value} onValueChange={paymentMethod.onChange}>
+                <SelectTrigger id="orders-filter-payment">
+                  <SelectValue placeholder={labels.payment} />
+                </SelectTrigger>
+                <SelectContent>
+                  {paymentMethodOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium" htmlFor="orders-filter-period">
+                {labels.period}
+              </label>
+              <Select value={period.value} onValueChange={period.onChange}>
+                <SelectTrigger id="orders-filter-period">
+                  <SelectValue placeholder={labels.period} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="today">{labels.periodToday}</SelectItem>
+                  <SelectItem value="yesterday">{labels.periodYesterday}</SelectItem>
+                  <SelectItem value="last7">{labels.periodLast7}</SelectItem>
+                  <SelectItem value="last30">{labels.periodLast30}</SelectItem>
+                  <SelectItem value="custom">{labels.periodCustom}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           {period.value === 'custom' ? (
             <div className="grid gap-3 sm:grid-cols-2">

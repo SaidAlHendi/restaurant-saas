@@ -27,7 +27,6 @@ export function PosOrderDetailSheetView(props: PosOrderDetailSheetViewProps) {
     orderLoadFailed,
     details,
     layout,
-    timeline,
     reopen,
     voidDialog,
     cancelDialog,
@@ -45,7 +44,7 @@ export function PosOrderDetailSheetView(props: PosOrderDetailSheetViewProps) {
           side="end"
           size="lg"
           closeLabel={labels.close}
-          className="sm:max-w-3xl lg:max-w-5xl"
+          className="sm:max-w-xl"
         >
           <SheetHeader className="border-b">
             <SheetTitle className="sr-only">{labels.title}</SheetTitle>
@@ -66,11 +65,7 @@ export function PosOrderDetailSheetView(props: PosOrderDetailSheetViewProps) {
           </SheetHeader>
           <SheetBody>
             {order && details ? (
-              <OrderDetailsBodyView
-                model={details}
-                labels={labels}
-                timeline={{ collapsible: true, onToggle: timeline.onToggle, loading: timeline.loading }}
-              />
+              <OrderDetailsBodyView model={details} labels={labels} />
             ) : orderLoadFailed ? (
               <p role="alert" className="text-destructive text-sm">
                 {labels.loadFailed}

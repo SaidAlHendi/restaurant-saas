@@ -214,9 +214,9 @@
       "loadMore": "Load more",
       "filters": {
         "status": "Status",
-        "type": "Type",
-        "payment": "Payment",
-        "period": "Period",
+        "type": "Order type",
+        "payment": "Payment method",
+        "period": "Date",
         "all": "All",
         "periodToday": "Today",
         "periodYesterday": "Yesterday",

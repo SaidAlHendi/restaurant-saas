@@ -110,7 +110,6 @@ function renderBody(order: OrderDetail, events?: OrderEvent[], showVersion = fal
       <OrderDetailsBodyView
         model={model}
         labels={orderDetailsBodyLabels(i18n.t.bind(i18n))}
-        timeline={{ collapsible: false, loading: false }}
       />
     </div>,
   );
@@ -185,13 +184,12 @@ describe('order details views', () => {
     },
   );
 
-  it('shows modifiers, note, seat group, added-later chip and an empty payments state', () => {
+  it('shows modifiers, note, seat group and added-later chip', () => {
     renderBody(makeOrder());
     expect(screen.getByText(/Extra sauce/)).toBeTruthy();
     expect(screen.getByText('“No onion”')).toBeTruthy();
     expect(screen.getByText('Guest 1')).toBeTruthy();
     expect(screen.getByText('Added later')).toBeTruthy();
-    expect(screen.getByText('No payments yet')).toBeTruthy();
   });
 
   it('strikes through a voided line and shows why', () => {

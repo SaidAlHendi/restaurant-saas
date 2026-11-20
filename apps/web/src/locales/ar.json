@@ -214,9 +214,9 @@
       "loadMore": "تحميل المزيد",
       "filters": {
         "status": "الحالة",
-        "type": "النوع",
-        "payment": "الدفع",
-        "period": "الفترة",
+        "type": "نوع الطلب",
+        "payment": "طريقة الدفع",
+        "period": "التاريخ",
         "all": "الكل",
         "periodToday": "اليوم",
         "periodYesterday": "أمس",
