@@ -1,5 +1,7 @@
+import { sql } from 'drizzle-orm';
 import {
   boolean,
+  check,
   foreignKey,
   integer,
   numeric,
@@ -74,6 +76,7 @@ export const branches = pgTable(
   (t) => [
     unique('branches_org_slug_unique').on(t.orgId, t.slug),
     unique('branches_id_org_id_unique').on(t.id, t.orgId),
+    check('branches_order_type_required', sql`${t.supportsDineIn} OR ${t.supportsTakeaway}`),
   ],
 );
 

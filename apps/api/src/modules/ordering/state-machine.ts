@@ -8,6 +8,12 @@ export type StatusTransition = {
   permission: PermissionKey;
 };
 
+/**
+ * Orders still in progress: a draft (pay-before-send, awaiting payment) or one moving through the
+ * kitchen. Everything else (completed, cancelled, refunded) is finished.
+ */
+export const OPEN_ORDER_STATUSES: readonly OrderStatus[] = ['draft', 'placed', 'preparing', 'ready'];
+
 const ALLOWED: StatusTransition[] = [
   { from: 'draft', to: 'cancelled', permission: 'orders.create' },
   { from: 'placed', to: 'preparing', permission: 'orders.update_status' },

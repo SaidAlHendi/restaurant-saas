@@ -69,9 +69,6 @@ export const patchBranchBodySchema = z.object({
   supportsDineIn: z.boolean().optional(),
   supportsTakeaway: z.boolean().optional(),
   isActive: z.boolean().optional(),
-}).refine((b) => !(b.supportsDineIn === false && b.supportsTakeaway === false), {
-  message: 'A branch must support at least one order type',
-  path: ['supportsDineIn'],
 });
 
 /** Secret address token of a branch's customer "Ready" screen; null until the owner creates it. */

@@ -190,143 +190,141 @@ export function PosPageView(props: PosPageViewModel) {
               </div>
             </div>
           ) : (
-            <div className="flex shrink-0 flex-col gap-4 border-b px-5 py-4">
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-muted-foreground text-[11px] font-semibold tracking-widest uppercase">
-                    {labels.cartEyebrow}
-                  </span>
-                  <h2 className="text-lg font-semibold">{labels.cartTitle}</h2>
-                </div>
-                <span className="text-muted-foreground text-sm tabular-nums">
-                  {labels.cartCount}
+          <div className="flex shrink-0 flex-col gap-4 border-b px-5 py-4">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-muted-foreground text-[11px] font-semibold tracking-widest uppercase">
+                  {labels.cartEyebrow}
                 </span>
+                <h2 className="text-lg font-semibold">{labels.cartTitle}</h2>
               </div>
-              {supportsDineIn && supportsTakeaway ? (
-                <SegmentedControl
-                  label={labels.orderType}
-                  value={orderType}
-                  onValueChange={onOrderTypeChange}
-                  options={[
-                    {
-                      value: 'dine_in',
-                      label: labels.orderTypeDineIn,
-                      icon: <UtensilsIcon aria-hidden />,
-                    },
-                    {
-                      value: 'takeaway',
-                      label: labels.orderTypeTakeaway,
-                      icon: <ShoppingBagIcon aria-hidden />,
-                    },
-                  ]}
-                />
-              ) : null}
-              {orderType === 'dine_in' && supportsDineIn ? (
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="pos-table">{labels.table}</Label>
-                  <Select
-                    value={tableId ?? ''}
-                    onValueChange={(value) => {
-                      onTableChange(value.length > 0 ? value : null);
-                    }}
-                  >
-                    <SelectTrigger id="pos-table" size="touch">
-                      <SelectValue placeholder={labels.table} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {tableOptions.map((table) => (
-                        <SelectItem key={table.id} value={table.id}>
-                          {table.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {tableId !== null && billOptions.length > 0 ? (
-                    <div className="flex flex-col gap-1.5">
-                      <Label htmlFor="pos-bill">{labels.bill}</Label>
-                      <Select
-                        value={
-                          billChoice === ''
-                            ? billOptions.some((o) => o.value === '')
-                              ? 'table-bill'
-                              : undefined
-                            : billChoice
-                        }
-                        onValueChange={(value) => {
-                          onBillChoiceChange(value === 'table-bill' ? '' : value);
-                        }}
-                      >
-                        <SelectTrigger id="pos-bill" size="touch">
-                          <SelectValue placeholder={labels.billPlaceholder} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {billOptions.map((option) => (
-                            <SelectItem
-                              key={option.value || 'table-bill'}
-                              value={option.value || 'table-bill'}
-                            >
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {billNeedsChoice ? (
-                        <p className="text-warning text-sm">{labels.billNeedsChoice}</p>
-                      ) : null}
-                    </div>
-                  ) : null}
-                  {tableId !== null ? (
-                    <div className="flex flex-col gap-1.5">
-                      <Label>{labels.guest}</Label>
-                      <div className="flex flex-wrap gap-1.5">
-                        {seatOptions.map((option) => (
-                          <Button
-                            key={option.value || 'none'}
-                            type="button"
-                            size="sm"
-                            variant={seat === option.value ? 'default' : 'outline'}
-                            onClick={() => {
-                              onSeatChange(option.value);
-                            }}
-                          >
-                            {option.value === '' ? option.label : option.label.replace(/\D+/g, '')}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                  ) : null}
-                </div>
-              ) : (
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="pos-customer">{labels.customer}</Label>
-                  <Input
-                    id="pos-customer"
-                    className="h-12"
-                    value={customerName}
-                    onChange={(event) => {
-                      onCustomerNameChange(event.target.value);
-                    }}
-                  />
-                </div>
-              )}
-              {pagerEnabled ? (
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="pos-pager">{labels.pagerNumber}</Label>
-                  <Input
-                    id="pos-pager"
-                    className="h-12"
-                    inputMode="numeric"
-                    autoComplete="off"
-                    maxLength={4}
-                    placeholder={labels.pagerNumberHint}
-                    value={pagerNumber}
-                    onChange={(event) => {
-                      onPagerNumberChange(event.target.value);
-                    }}
-                  />
-                </div>
-              ) : null}
+              <span className="text-muted-foreground text-sm tabular-nums">{labels.cartCount}</span>
             </div>
+            {supportsDineIn && supportsTakeaway ? (
+              <SegmentedControl
+                label={labels.orderType}
+                value={orderType}
+                onValueChange={onOrderTypeChange}
+                options={[
+                  {
+                    value: 'dine_in',
+                    label: labels.orderTypeDineIn,
+                    icon: <UtensilsIcon aria-hidden />,
+                  },
+                  {
+                    value: 'takeaway',
+                    label: labels.orderTypeTakeaway,
+                    icon: <ShoppingBagIcon aria-hidden />,
+                  },
+                ]}
+              />
+            ) : null}
+            {orderType === 'dine_in' && supportsDineIn ? (
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="pos-table">{labels.table}</Label>
+                <Select
+                  value={tableId ?? ''}
+                  onValueChange={(value) => {
+                    onTableChange(value.length > 0 ? value : null);
+                  }}
+                >
+                  <SelectTrigger id="pos-table" size="touch">
+                    <SelectValue placeholder={labels.table} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {tableOptions.map((table) => (
+                      <SelectItem key={table.id} value={table.id}>
+                        {table.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {tableId !== null && billOptions.length > 0 ? (
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="pos-bill">{labels.bill}</Label>
+                    <Select
+                      value={
+                        billChoice === ''
+                          ? billOptions.some((o) => o.value === '')
+                            ? 'table-bill'
+                            : undefined
+                          : billChoice
+                      }
+                      onValueChange={(value) => {
+                        onBillChoiceChange(value === 'table-bill' ? '' : value);
+                      }}
+                    >
+                      <SelectTrigger id="pos-bill" size="touch">
+                        <SelectValue placeholder={labels.billPlaceholder} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {billOptions.map((option) => (
+                          <SelectItem
+                            key={option.value || 'table-bill'}
+                            value={option.value || 'table-bill'}
+                          >
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {billNeedsChoice ? (
+                      <p className="text-warning text-sm">{labels.billNeedsChoice}</p>
+                    ) : null}
+                  </div>
+                ) : null}
+                {tableId !== null ? (
+                  <div className="flex flex-col gap-1.5">
+                    <Label>{labels.guest}</Label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {seatOptions.map((option) => (
+                        <Button
+                          key={option.value || 'none'}
+                          type="button"
+                          size="sm"
+                          variant={seat === option.value ? 'default' : 'outline'}
+                          onClick={() => {
+                            onSeatChange(option.value);
+                          }}
+                        >
+                          {option.value === '' ? option.label : option.label.replace(/\D+/g, '')}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="pos-customer">{labels.customer}</Label>
+                <Input
+                  id="pos-customer"
+                  className="h-12"
+                  value={customerName}
+                  onChange={(event) => {
+                    onCustomerNameChange(event.target.value);
+                  }}
+                />
+              </div>
+            )}
+            {pagerEnabled ? (
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="pos-pager">{labels.pagerNumber}</Label>
+                <Input
+                  id="pos-pager"
+                  className="h-12"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  maxLength={4}
+                  placeholder={labels.pagerNumberHint}
+                  value={pagerNumber}
+                  onChange={(event) => {
+                    onPagerNumberChange(event.target.value);
+                  }}
+                />
+              </div>
+            ) : null}
+          </div>
           )}
 
           <div className="min-h-40 flex-1 overflow-y-auto px-5">
@@ -339,18 +337,18 @@ export function PosPageView(props: PosPageViewModel) {
 
           <div className="flex shrink-0 flex-col gap-3 border-t px-5 py-4">
             {addMode ? null : (
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="pos-note">{labels.orderNote}</Label>
-                <Textarea
-                  id="pos-note"
-                  value={orderNote}
-                  onChange={(event) => {
-                    onOrderNoteChange(event.target.value);
-                  }}
-                  rows={1}
-                  className="min-h-10"
-                />
-              </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="pos-note">{labels.orderNote}</Label>
+              <Textarea
+                id="pos-note"
+                value={orderNote}
+                onChange={(event) => {
+                  onOrderNoteChange(event.target.value);
+                }}
+                rows={1}
+                className="min-h-10"
+              />
+            </div>
             )}
             {totals ? (
               <dl className="flex flex-col gap-1.5 text-sm">

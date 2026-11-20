@@ -129,7 +129,9 @@ export class OrderingService {
         return { order: detail, created: false };
       }
 
-      const branch = await this.tenancyRepo.findBranchById(tx, branchId);
+      // Shared lock, taken before the order-type guard: a concurrent change of the branch's order
+      // types waits for this order, and an order that starts after it sees the new flags.
+      const branch = await this.tenancyRepo.findBranchByIdLocked(tx, branchId, 'share');
       if (!branch || branch.orgId !== ctx.orgId) {
         throw new NotFoundError();
       }

@@ -164,7 +164,8 @@ export class BranchesService {
 
   async patch(ctx: RequestContext, branchId: string, body: PatchBranchBody) {
     const branch = await withOrg(this.db, ctx.orgId, async (tx) => {
-      const existing = await this.repo.findBranchById(tx, branchId);
+      // Lock first: an order being placed must wait for this change (and see it), not slip past the count.
+      const existing = await this.repo.findBranchByIdLocked(tx, branchId, 'update');
       if (!existing || existing.orgId !== ctx.orgId) {
         throw new NotFoundError();
       }
@@ -186,10 +187,10 @@ export class BranchesService {
         );
       }
       if (body.supportsDineIn === false && existing.supportsDineIn) {
-        await this.assertNoOpenOrdersOfType(tx, branchId, 'dine_in');
+        await this.assertNoOpenWorkOfType(tx, branchId, 'dine_in');
       }
       if (body.supportsTakeaway === false && existing.supportsTakeaway) {
-        await this.assertNoOpenOrdersOfType(tx, branchId, 'takeaway');
+        await this.assertNoOpenWorkOfType(tx, branchId, 'takeaway');
       }
       const updated = await this.repo.updateBranch(tx, branchId, {
         name: body.name,
@@ -233,18 +234,28 @@ export class BranchesService {
     return branch;
   }
 
-  private async assertNoOpenOrdersOfType(
+  private async assertNoOpenWorkOfType(
     tx: DrizzleTx,
     branchId: string,
     type: 'dine_in' | 'takeaway',
   ) {
-    const open = await this.repo.countOpenOrdersOfType(tx, branchId, type);
-    if (open > 0) {
+    const openOrders = await this.repo.countOpenOrdersOfType(tx, branchId, type);
+    if (openOrders > 0) {
       throw new BusinessRuleError(
         'ORDER_TYPE_HAS_OPEN_ORDERS',
         'Finish or cancel the open orders of this type before turning it off',
-        { type, open },
+        { type, openOrders },
       );
+    }
+    if (type === 'dine_in') {
+      const openBills = await this.repo.countOpenBills(tx, branchId);
+      if (openBills > 0) {
+        throw new BusinessRuleError(
+          'ORDER_TYPE_HAS_OPEN_BILLS',
+          'Close the open table bills before turning dine-in off',
+          { type, openBills },
+        );
+      }
     }
   }
 
