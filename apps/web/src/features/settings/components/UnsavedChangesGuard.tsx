@@ -1,8 +1,8 @@
-import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useBlocker } from 'react-router-dom';
 
 import { ConfirmDialog } from '@app/ui';
+
+import { useUnsavedChangesGuard } from '../hooks/use-unsaved-changes-guard.js';
 
 export type UnsavedChangesGuardProps = {
   dirty: boolean;
@@ -14,18 +14,7 @@ export type UnsavedChangesGuardProps = {
  */
 export function UnsavedChangesGuard({ dirty }: UnsavedChangesGuardProps) {
   const { t } = useTranslation();
-  const blocker = useBlocker(dirty);
-
-  useEffect(() => {
-    if (!dirty) return;
-    const onBeforeUnload = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-    };
-    window.addEventListener('beforeunload', onBeforeUnload);
-    return () => {
-      window.removeEventListener('beforeunload', onBeforeUnload);
-    };
-  }, [dirty]);
+  const blocker = useUnsavedChangesGuard(dirty);
 
   return (
     <ConfirmDialog

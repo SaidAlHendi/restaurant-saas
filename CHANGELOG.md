@@ -4,6 +4,9 @@ All notable user-facing changes to Sahtain. Format follows [Keep a Changelog](ht
 
 ## Unreleased
 
+### Fixed
+- Landing page: the tablet photo in the "smoother shift" section is no longer cropped so tightly, so the whole POS screen shows.
+
 ### Added
 - Restaurant and branch settings now warn before you leave the page with unsaved changes, so edits are no longer lost by accident.
 - Branch setting for **Dine-in (tables)** and **Takeaway**: switch off what a branch doesn't offer. The POS then shows only the available order type, and new tables and QR codes are blocked when dine-in is off. At least one must stay on, and a type can't be turned off while it has open orders (dine-in: or open table bills).
