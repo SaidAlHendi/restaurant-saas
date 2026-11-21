@@ -45,7 +45,7 @@ export function HeroSection({ hero, photos, ctaHref }: HeroSectionProps) {
         />
       </div>
 
-      <Tile tone="highlight" className="md:col-span-4 md:min-h-[clamp(440px,35vw,520px)]">
+      <Tile tone="highlight" className="md:col-span-4 md:min-h-[clamp(480px,44vw,680px)]">
         <h2 className="lp-display lp-sub">{hero.tabletTitle}</h2>
         <div className="flex flex-col gap-5">
           <p className="max-w-[26em] text-base md:text-lg">{hero.tabletBody}</p>
@@ -63,8 +63,8 @@ export function HeroSection({ hero, photos, ctaHref }: HeroSectionProps) {
         image="tablet"
         alt={photos.tablet.alt}
         sizes={TABLET_IMAGE_SIZES}
-        className="md:col-span-8 md:min-h-[clamp(440px,35vw,520px)]"
-        focus="65% 62%"
+        className="aspect-[4/3] md:aspect-auto md:col-span-8 md:min-h-[clamp(480px,44vw,680px)]"
+        focus="62% 55%"
         priority
       />
 
