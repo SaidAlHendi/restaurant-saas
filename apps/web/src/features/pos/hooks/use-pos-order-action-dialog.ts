@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { OrderApproval } from '@app/shared';
+import { toast } from '@app/ui';
 
 import {
   messageFromOrdersMutationError,
@@ -37,7 +38,6 @@ export function usePosOrderActionDialog(input: {
   const [step, setStep] = useState<OrderActionDialogStep>('reason');
   const [reason, setReason] = useState('');
   const [selectedMembershipId, setSelectedMembershipId] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [lockedUntilIso, setLockedUntilIso] = useState<string | null>(null);
   const [nowMs, setNowMs] = useState(() => Date.now());
   const pinPad = usePosPinPad();
@@ -58,7 +58,6 @@ export function usePosOrderActionDialog(input: {
       setStep('reason');
       setReason('');
       setSelectedMembershipId(null);
-      setErrorMessage(null);
       setLockedUntilIso(null);
       clearPinPad();
     }
@@ -88,13 +87,12 @@ export function usePosOrderActionDialog(input: {
       const code = parseOrdersApiErrorCode(error);
       if (code === 'MANAGER_APPROVAL_REQUIRED') {
         setStep('approval');
-        setErrorMessage(null);
         return;
       }
       if (code === 'PIN_LOCKED') {
         setLockedUntilIso(parsePinLockedUntilIso(error));
       }
-      setErrorMessage(messageFromOrdersMutationError(error, t));
+      toast.error(messageFromOrdersMutationError(error, t));
       pinPad.clear();
     },
     [pinPad, t],
@@ -106,7 +104,6 @@ export function usePosOrderActionDialog(input: {
       if (trimmed.length === 0) {
         return;
       }
-      setErrorMessage(null);
       const result = await input.onExecute({ reason: trimmed, approval });
       if (result.ok) {
         input.onClose();
@@ -158,7 +155,6 @@ export function usePosOrderActionDialog(input: {
   const selectApprover = useCallback(
     (membershipId: string) => {
       setSelectedMembershipId(membershipId);
-      setErrorMessage(null);
       setLockedUntilIso(null);
       pinPad.clear();
     },
@@ -201,7 +197,6 @@ export function usePosOrderActionDialog(input: {
       onSubmit: onPrimary,
       submitting: input.submitting,
     },
-    errorMessage,
     lockCountdown,
     onPrimary,
     primaryDisabled,

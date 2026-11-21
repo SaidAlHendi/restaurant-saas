@@ -330,6 +330,12 @@
     }
   },
   "settings": {
+    "leaveDialog": {
+      "title": "Leave without saving?",
+      "description": "Your changes will be lost if you leave this page.",
+      "leave": "Leave",
+      "stay": "Keep editing"
+    },
     "unsavedChanges": "You have unsaved changes. Click \"Save changes\" for them to take effect.",
     "title": "Settings",
     "description": "Restaurant, branch and team configuration.",

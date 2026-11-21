@@ -5,6 +5,7 @@ All notable user-facing changes to Sahtain. Format follows [Keep a Changelog](ht
 ## Unreleased
 
 ### Added
+- Restaurant and branch settings now warn before you leave the page with unsaved changes, so edits are no longer lost by accident.
 - Branch setting for **Dine-in (tables)** and **Takeaway**: switch off what a branch doesn't offer. The POS then shows only the available order type, and new tables and QR codes are blocked when dine-in is off. At least one must stay on, and a type can't be turned off while it has open orders (dine-in: or open table bills).
 - Reopen a completed order: managers and owners (and anyone the owner grants **Reopen completed orders**) can send a wrongly handed-over order back to Ready from the order sheet. Payment is unchanged; not possible once the table bill is closed.
 - Handing over an order: tap **Picked up** (takeaway) or **Served** (dine-in) on a ready order, with a 10-second Undo. Ready orders now stay on the POS, kitchen and Ready screens until handed over, and an unpaid one opens payment first.
@@ -16,6 +17,7 @@ All notable user-facing changes to Sahtain. Format follows [Keep a Changelog](ht
 - Edit the modifiers of a line already in the cart.
 
 ### Changed
+- Cancel and void errors on the POS (such as a wrong manager PIN or an order that already has payments) now appear as a pop-up message instead of inline text in the dialog.
 - Sidebar and main screen are now separate rounded panels instead of square-edged blocks.
 - Rounder corners across the app: buttons, cards, inputs and panels now have softer, larger radii.
 - Dark mode is now a deep black and gray with the same paprika accent as light mode, instead of the blue and pink palette.

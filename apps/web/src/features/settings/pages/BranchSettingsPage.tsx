@@ -1,6 +1,7 @@
 import { Navigate } from 'react-router-dom';
 
 import { BranchSettingsPageView } from '../components/BranchSettingsPageView.js';
+import { UnsavedChangesGuard } from '../components/UnsavedChangesGuard.js';
 import { useBranchSettingsPage } from '../hooks/use-branch-settings-page.js';
 
 export function BranchSettingsPage() {
@@ -10,5 +11,10 @@ export function BranchSettingsPage() {
     return <Navigate to={vm.redirectTo} replace />;
   }
 
-  return <BranchSettingsPageView {...vm} />;
+  return (
+    <>
+      <UnsavedChangesGuard dirty={vm.dirty} />
+      <BranchSettingsPageView {...vm} />
+    </>
+  );
 }

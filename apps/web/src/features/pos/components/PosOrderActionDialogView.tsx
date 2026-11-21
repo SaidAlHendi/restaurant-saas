@@ -20,7 +20,6 @@ export function PosOrderActionDialogView(props: PosOrderActionDialogViewModel & 
     onReasonChange,
     approvers,
     pinPad,
-    errorMessage,
     lockCountdown,
     onPrimary,
     primaryDisabled,
@@ -83,9 +82,6 @@ export function PosOrderActionDialogView(props: PosOrderActionDialogViewModel & 
                   {labels.locked} {lockCountdown}
                 </p>
               ) : null}
-              {errorMessage !== null && lockCountdown === null ? (
-                <p className="text-destructive text-sm">{errorMessage}</p>
-              ) : null}
               <PosPinPadView
                 digits={pinPad.digits}
                 pinDigitsLabel={pinPad.pinDigitsLabel}
@@ -98,9 +94,6 @@ export function PosOrderActionDialogView(props: PosOrderActionDialogViewModel & 
               />
             </div>
           )}
-          {step === 'reason' && errorMessage !== null ? (
-            <p className="text-destructive text-sm">{errorMessage}</p>
-          ) : null}
         </DialogBody>
         {step === 'reason' ? (
           <DialogFooter>
