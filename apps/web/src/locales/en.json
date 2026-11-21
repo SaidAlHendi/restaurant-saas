@@ -1038,7 +1038,8 @@
       "emptyDescriptionReadOnly": "No tables yet. Ask a manager or the owner to add them.",
       "noBranchTitle": "Select a branch",
       "noBranchDescription": "Choose a branch from the toolbar above to manage its tables.",
-      "rotateQr": "Rotate QR"
+      "rotateQr": "Rotate QR",
+      "rotateQrSuccess": "QR code rotated. Reprint it for this table."
     },
     "qr": {
       "title": "QR codes",
@@ -1046,6 +1047,8 @@
       "download": "Download PNG",
       "print": "Print",
       "printTitle": "QR codes",
+      "copyLink": "Copy link",
+      "copied": "Copied",
       "back": "Back to QR codes",
       "tableQrUpsell": "Table QR codes appear when your plan includes table QR and you have active tables.",
       "tableQrUpsellReadOnly": "Table QR codes are not available yet. Ask a manager or the owner to add tables or check the plan.",

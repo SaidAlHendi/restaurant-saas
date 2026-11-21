@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
@@ -28,6 +28,16 @@ export function useQrCodesScreen(): QrCodesPageViewProps {
   }, [menuCard, tableCards]);
 
   const { images, loading: qrLoading } = useQrCodeImages(urls, QR_PREVIEW_PX);
+
+  const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
+  const onCopy = useCallback((url: string) => {
+    void navigator.clipboard.writeText(url).then(() => {
+      setCopiedUrl(url);
+      window.setTimeout(() => {
+        setCopiedUrl((current) => (current === url ? null : current));
+      }, 1800);
+    });
+  }, []);
 
   const cards = useMemo(() => {
     const result: QrCodesPageViewProps['cards'] = [];
@@ -66,6 +76,10 @@ export function useQrCodesScreen(): QrCodesPageViewProps {
     printLabel: t('menu.qr.print'),
     downloadLabel: t('menu.qr.download'),
     loadingQrLabel: t('common.loading'),
+    copyLabel: t('menu.qr.copyLink'),
+    copiedLabel: t('menu.qr.copied'),
+    copiedUrl,
+    onCopy,
     onPrint: () => {
       void navigate('/dashboard/menu/qr-codes/print');
     },

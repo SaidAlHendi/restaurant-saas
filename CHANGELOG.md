@@ -17,6 +17,10 @@ All notable user-facing changes to Sahtain. Format follows [Keep a Changelog](ht
 - Edit the modifiers of a line already in the cart.
 
 ### Changed
+- QR codes page redesigned: the menu QR is a large featured panel, each table gets its own sign-style card, and every code has Download and Copy link buttons.
+- POS bill sheet and payment dialog redesigned: the action buttons no longer overlap, the amount due is shown large, and payment method is a simple toggle.
+- Rotating a table QR code now shows a spinner on the button and a success or error message.
+- The Tables pages (dashboard and POS) now show each table as a restaurant table with chairs around it, instead of a plain list or cards. On the POS the table is coloured by free, busy or settled.
 - Cancel and void errors on the POS (such as a wrong manager PIN or an order that already has payments) now appear as a pop-up message instead of inline text in the dialog.
 - Sidebar and main screen are now separate rounded panels instead of square-edged blocks.
 - Rounder corners across the app: buttons, cards, inputs and panels now have softer, larger radii.

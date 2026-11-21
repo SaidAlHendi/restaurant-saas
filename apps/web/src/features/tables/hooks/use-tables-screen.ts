@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type BaseSyntheticEvent } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toast } from '@app/ui';
 
 import { useAppSelector } from '../../../app/hooks.js';
 import {
@@ -107,8 +108,6 @@ export function useTablesScreen(): TablesPageViewProps {
     emptyDescription: t(
       canManage ? 'menu.tables.emptyDescription' : 'menu.tables.emptyDescriptionReadOnly',
     ),
-    tableLabelHeader: t('menu.tables.labelColumn'),
-    statusHeader: t('menu.tables.statusColumn'),
     activeLabel: t('menu.status.active'),
     inactiveLabel: t('menu.status.inactive'),
     formOpen,
@@ -139,7 +138,9 @@ export function useTablesScreen(): TablesPageViewProps {
         setRotatingTableId(null);
         if (isMutationError(result)) {
           showMenuApiError(result.error, t);
+          return;
         }
+        toast.success(t('menu.tables.rotateQrSuccess'));
       })();
     },
   };

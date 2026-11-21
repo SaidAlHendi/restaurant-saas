@@ -1,23 +1,23 @@
 import { PlusIcon } from 'lucide-react';
 
-import {
-  Badge,
-  Button,
-  EmptyState,
-  PageHeader,
-  Spinner,
-  Switch,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@app/ui';
+import { Badge, Button, EmptyState, PageHeader, Spinner, Switch, cn } from '@app/ui';
 
 import type { DiningTableListItem } from '../tables.types.js';
 import { TableFormDialogView } from './TableFormDialogView.js';
 import type { TableFormDialogViewProps } from './TableFormDialogView.js';
+
+function Chair({ horizontal = false, active }: { horizontal?: boolean; active: boolean }) {
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        'rounded-md',
+        horizontal ? 'h-3 w-10' : 'h-10 w-3',
+        active ? 'bg-primary/30' : 'bg-muted-foreground/20',
+      )}
+    />
+  );
+}
 
 export type TablesPageViewProps = {
   title: string;
@@ -32,8 +32,6 @@ export type TablesPageViewProps = {
   addLabel: string;
   emptyTitle: string;
   emptyDescription: string;
-  tableLabelHeader: string;
-  statusHeader: string;
   activeLabel: string;
   inactiveLabel: string;
   formOpen: boolean;
@@ -60,8 +58,6 @@ export function TablesPageView({
   addLabel,
   emptyTitle,
   emptyDescription,
-  tableLabelHeader,
-  statusHeader,
   activeLabel,
   inactiveLabel,
   formOpen,
@@ -97,58 +93,82 @@ export function TablesPageView({
       ) : items.length === 0 ? (
         <EmptyState title={emptyTitle} description={emptyDescription} />
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{tableLabelHeader}</TableHead>
-              <TableHead>{statusHeader}</TableHead>
-              {canRotateQr ? <TableHead className="w-0" /> : null}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {items.map((table) => (
-              <TableRow key={table.id}>
-                <TableCell className="font-medium">{table.label}</TableCell>
-                <TableCell>
-                  {canManage ? (
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        checked={table.isActive}
-                        disabled={togglingTableId === table.id}
-                        onCheckedChange={(checked) => {
-                          onToggleActive(table, checked);
-                        }}
-                        aria-label={table.label}
-                      />
-                      <Badge variant={table.isActive ? 'default' : 'secondary'}>
-                        {table.isActive ? activeLabel : inactiveLabel}
-                      </Badge>
-                    </div>
-                  ) : (
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {items.map((table) => (
+            <li
+              key={table.id}
+              className={cn(
+                'bg-card flex flex-col items-center gap-4 rounded-xl border p-5',
+                !table.isActive && 'border-dashed opacity-70',
+              )}
+            >
+              <div className="flex flex-col items-center gap-1.5">
+                <div className="flex gap-2">
+                  <Chair horizontal active={table.isActive} />
+                  <Chair horizontal active={table.isActive} />
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="flex flex-col gap-2">
+                    <Chair active={table.isActive} />
+                    <Chair active={table.isActive} />
+                  </div>
+                  <div
+                    className={cn(
+                      'flex h-24 w-32 flex-col items-center justify-center gap-1 rounded-2xl border-2 shadow-sm',
+                      table.isActive
+                        ? 'border-primary/40 bg-primary/10'
+                        : 'border-muted-foreground/30 bg-muted',
+                    )}
+                  >
+                    <span className="max-w-full truncate px-2 text-lg font-semibold">
+                      {table.label}
+                    </span>
                     <Badge variant={table.isActive ? 'default' : 'secondary'}>
                       {table.isActive ? activeLabel : inactiveLabel}
                     </Badge>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <Chair active={table.isActive} />
+                    <Chair active={table.isActive} />
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Chair horizontal active={table.isActive} />
+                  <Chair horizontal active={table.isActive} />
+                </div>
+              </div>
+              {canManage || canRotateQr ? (
+                <div className="flex w-full items-center justify-between gap-2">
+                  {canManage ? (
+                    <Switch
+                      checked={table.isActive}
+                      disabled={togglingTableId === table.id}
+                      onCheckedChange={(checked) => {
+                        onToggleActive(table, checked);
+                      }}
+                      aria-label={table.label}
+                    />
+                  ) : (
+                    <span />
                   )}
-                </TableCell>
-                {canRotateQr ? (
-                  <TableCell>
+                  {canRotateQr ? (
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
-                      disabled={rotatingTableId === table.id}
+                      isLoading={rotatingTableId === table.id}
                       onClick={() => {
                         onRotateQr(table.id);
                       }}
                     >
                       {rotateQrLabel}
                     </Button>
-                  </TableCell>
-                ) : null}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                  ) : null}
+                </div>
+              ) : null}
+            </li>
+          ))}
+        </ul>
       )}
       <TableFormDialogView open={formOpen} onOpenChange={onFormOpenChange} {...formProps} />
     </div>

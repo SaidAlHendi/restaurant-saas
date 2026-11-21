@@ -21,6 +21,7 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
+  SegmentedControl,
   Select,
   SelectContent,
   SelectItem,
@@ -110,7 +111,7 @@ export function PosBillsPageView(vm: PosBillsPageViewProps) {
                   {bill.label ? ` · ${bill.label}` : ''}
                 </SheetTitle>
               </SheetHeader>
-              <SheetBody className="flex flex-col gap-4 overflow-y-auto">
+              <SheetBody className="gap-3">
                 {vm.seats.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
                     {vm.seats.map((seat) => {
@@ -142,7 +143,10 @@ export function PosBillsPageView(vm: PosBillsPageViewProps) {
                 ) : null}
 
                 {bill.orders.map((order) => (
-                  <section key={order.id} className="flex flex-col gap-1">
+                  <section
+                    key={order.id}
+                    className="bg-muted/50 flex flex-col gap-1 rounded-xl p-3"
+                  >
                     <div className="flex items-center justify-between gap-2">
                       <h3 className="text-muted-foreground text-sm font-medium">
                         {t('pos.bills.round', { round: order.round })} · #{order.orderNumber}
@@ -163,7 +167,7 @@ export function PosBillsPageView(vm: PosBillsPageViewProps) {
                         </Button>
                       ) : null}
                     </div>
-                    <ul className="divide-y">
+                    <ul className="flex flex-col">
                       {order.items.map((item) => {
                         const due = vm.itemDue(item);
                         const name = pickLocalizedText(
@@ -172,7 +176,7 @@ export function PosBillsPageView(vm: PosBillsPageViewProps) {
                           vm.defaultLocale,
                         );
                         return (
-                          <li key={item.id} className="flex items-center gap-3 py-2">
+                          <li key={item.id} className="flex items-center gap-3 py-2.5">
                             <Checkbox
                               aria-label={name}
                               disabled={due === 0 || !vm.canPay}
@@ -203,26 +207,27 @@ export function PosBillsPageView(vm: PosBillsPageViewProps) {
                   </section>
                 ))}
               </SheetBody>
-              <SheetFooter className="flex flex-col gap-2">
-                <dl className="grid grid-cols-3 gap-2 text-sm">
-                  <div>
-                    <dt className="text-muted-foreground">{t('pos.bills.total')}</dt>
-                    <dd className="font-semibold tabular-nums">
-                      {vm.formatTotal(bill.totalMinor)}
+              <SheetFooter className="flex-col gap-4 sm:flex-col sm:justify-start">
+                <dl className="grid grid-cols-3 gap-3">
+                  <div className="flex flex-col gap-0.5">
+                    <dt className="text-muted-foreground text-xs">{t('pos.bills.total')}</dt>
+                    <dd className="font-medium tabular-nums">{vm.formatTotal(bill.totalMinor)}</dd>
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <dt className="text-muted-foreground text-xs">{t('pos.bills.paidSoFar')}</dt>
+                    <dd className="font-medium tabular-nums">{vm.formatTotal(bill.paidMinor)}</dd>
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <dt className="text-muted-foreground text-xs">{t('pos.bills.due')}</dt>
+                    <dd className="text-xl font-semibold tabular-nums">
+                      {vm.formatTotal(bill.dueMinor)}
                     </dd>
-                  </div>
-                  <div>
-                    <dt className="text-muted-foreground">{t('pos.bills.paidSoFar')}</dt>
-                    <dd className="font-semibold tabular-nums">{vm.formatTotal(bill.paidMinor)}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-muted-foreground">{t('pos.bills.due')}</dt>
-                    <dd className="font-semibold tabular-nums">{vm.formatTotal(bill.dueMinor)}</dd>
                   </div>
                 </dl>
                 <Button
                   type="button"
                   size="touch"
+                  className="w-full"
                   disabled={!vm.canPay || vm.payMinor === 0}
                   onClick={vm.openPay}
                 >
@@ -230,27 +235,29 @@ export function PosBillsPageView(vm: PosBillsPageViewProps) {
                     ? t('pos.bills.paySelected', { amount: vm.formatTotal(vm.payMinor) })
                     : t('pos.bills.selectToPay')}
                 </Button>
-                <Button
-                  type="button"
-                  size="touch"
-                  variant="outline"
-                  disabled={!vm.canPay || !vm.canClose}
-                  isLoading={vm.closing}
-                  onClick={vm.closeTable}
-                >
-                  {t('pos.bills.closeTable')}
-                </Button>
-                <Button
-                  type="button"
-                  size="touch"
-                  variant="ghost"
-                  disabled={!vm.canPay || vm.movableIds.length === 0}
-                  onClick={() => {
-                    vm.openMove(vm.movableIds);
-                  }}
-                >
-                  {t('pos.bills.moveTable')}
-                </Button>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    type="button"
+                    size="touch"
+                    variant="outline"
+                    disabled={!vm.canPay || vm.movableIds.length === 0}
+                    onClick={() => {
+                      vm.openMove(vm.movableIds);
+                    }}
+                  >
+                    {t('pos.bills.moveTable')}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="touch"
+                    variant="outline"
+                    disabled={!vm.canPay || !vm.canClose}
+                    isLoading={vm.closing}
+                    onClick={vm.closeTable}
+                  >
+                    {t('pos.bills.closeTable')}
+                  </Button>
+                </div>
               </SheetFooter>
             </>
           ) : null}
@@ -309,35 +316,24 @@ export function PosBillsPageView(vm: PosBillsPageViewProps) {
           <DialogHeader>
             <DialogTitle>{t('pos.bills.payTitle')}</DialogTitle>
           </DialogHeader>
-          <DialogBody>
-            <p className="text-sm">
-              {t('pos.bills.due')}:{' '}
-              <span className="font-semibold tabular-nums">{vm.formatTotal(vm.payMinor)}</span>
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                type="button"
-                size="touch"
-                variant={vm.method === 'cash' ? 'default' : 'outline'}
-                onClick={() => {
-                  vm.setMethod('cash');
-                }}
-              >
-                {t('pos.payment.methodCash')}
-              </Button>
-              {vm.showCard ? (
-                <Button
-                  type="button"
-                  size="touch"
-                  variant={vm.method === 'card' ? 'default' : 'outline'}
-                  onClick={() => {
-                    vm.setMethod('card');
-                  }}
-                >
-                  {t('pos.payment.methodCard')}
-                </Button>
-              ) : null}
+          <DialogBody className="gap-5">
+            <div className="bg-muted/50 flex flex-col items-center gap-1 rounded-xl py-5">
+              <span className="text-muted-foreground text-sm">{t('pos.bills.due')}</span>
+              <span className="text-4xl font-semibold tabular-nums">
+                {vm.formatTotal(vm.payMinor)}
+              </span>
             </div>
+            <SegmentedControl
+              label={t('pos.bills.payTitle')}
+              value={vm.method}
+              onValueChange={vm.setMethod}
+              options={[
+                { value: 'cash', label: t('pos.payment.methodCash') },
+                ...(vm.showCard
+                  ? [{ value: 'card' as const, label: t('pos.payment.methodCard') }]
+                  : []),
+              ]}
+            />
             {vm.method === 'cash' ? (
               <div className="space-y-3">
                 <div className="space-y-1">
