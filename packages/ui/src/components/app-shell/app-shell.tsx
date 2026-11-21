@@ -98,7 +98,7 @@ export function AppShell({
   labels,
 }: AppShellProps) {
   return (
-    <div className="flex h-dvh overflow-hidden bg-muted">
+    <div className="flex h-dvh overflow-hidden bg-shell md:gap-3 md:p-3">
       <Sidebar
         label={labels.sidebar}
         closeLabel={labels.closeSidebar}
@@ -186,7 +186,7 @@ export function AppShell({
           </div>
         </SidebarFooter>
       </Sidebar>
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-card md:rounded-2xl">
         <div className="mx-3 mt-3 flex h-14 shrink-0 items-center gap-2 rounded-lg border bg-background px-3 md:hidden">
           <SidebarTrigger label={labels.sidebar} onClick={onOpenMobile} />
           <span dir="auto" className="min-w-0 flex-1 truncate font-semibold">

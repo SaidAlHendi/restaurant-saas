@@ -16,6 +16,9 @@ All notable user-facing changes to Sahtain. Format follows [Keep a Changelog](ht
 - Edit the modifiers of a line already in the cart.
 
 ### Changed
+- Sidebar and main screen are now separate rounded panels instead of square-edged blocks.
+- Rounder corners across the app: buttons, cards, inputs and panels now have softer, larger radii.
+- Dark mode is now a deep black and gray with the same paprika accent as light mode, instead of the blue and pink palette.
 - Printed receipt redesigned: bold restaurant name, black order-number bar, itemised lines with quantities, a ruled grand total and a clear payment block.
 - Dashboard Orders: every filter now has a label above it (Status, Order type, Payment method, Date), so "All" is no longer ambiguous.
 - Numbers always use English digits (0-9), also in Arabic: prices, totals, dates, times, counts, and any number you type (Arabic-Indic digits are converted as you type).

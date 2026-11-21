@@ -7,7 +7,7 @@ as the source of the two color themes.
 
 ## Themes
 - `cupcake` (light, default; own green palette tuned to the POS design reference, name kept so saved
-  preferences still work) and `forest` (dark, daisyUI v5), defined in
+  preferences still work) and `forest` (dark, black and gray with the paprika accent), defined in
   `packages/ui/src/styles/themes.css` and mapped to shadcn tokens (`--background`, `--primary`, ...)
   plus extra tokens `success`, `warning`, `info` and `highlight` (warm surface, e.g. open order cards).
 - Applied with `<html data-theme="cupcake|forest">`. First visit follows `prefers-color-scheme`;

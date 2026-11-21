@@ -47,7 +47,7 @@ export function Sidebar({
           data-collapsed={collapsed}
           aria-label={label}
           className={cn(
-            'hidden h-full shrink-0 flex-col border-e bg-sidebar text-sidebar-foreground transition-[width] duration-200 md:flex',
+            'hidden h-full shrink-0 flex-col bg-sidebar text-sidebar-foreground transition-[width] duration-200 md:flex md:rounded-2xl',
             collapsed ? 'w-[4.5rem]' : 'w-64',
             className,
           )}

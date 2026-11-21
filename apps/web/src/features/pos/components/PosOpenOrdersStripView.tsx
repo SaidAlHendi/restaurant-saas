@@ -24,7 +24,7 @@ export function PosOpenOrdersStripView({ orders, isLoading, labels }: PosOpenOrd
   return (
     <section
       aria-label={labels.title}
-      className="flex shrink-0 items-center gap-3 border-t bg-background px-4 py-3"
+      className="flex shrink-0 items-center gap-3 border-t bg-card px-4 py-3"
     >
       <h2 className="sr-only">{labels.title}</h2>
       {isLoading ? (

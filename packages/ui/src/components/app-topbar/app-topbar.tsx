@@ -16,7 +16,7 @@ export function AppTopbar({ breadcrumb, title, actions, className, ...props }: A
     <header
       data-slot="app-topbar"
       className={cn(
-        'hidden h-[5.375rem] shrink-0 items-center justify-between gap-4 border-b bg-background px-8 md:flex',
+        'hidden h-[5.375rem] shrink-0 items-center justify-between gap-4 border-b bg-card px-8 md:flex',
         className,
       )}
       {...props}

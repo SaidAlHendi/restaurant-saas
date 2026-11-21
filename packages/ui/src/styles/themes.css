@@ -1,14 +1,14 @@
 /*
  * Themes: "cupcake" (light, default) and "forest" (dark), mapped onto shadcn/ui tokens.
  * Theme ids are kept for saved preferences; the palette is the Sahtain design (sahtain-design):
- * Cosmic Latte light palette (mocha cream surfaces, paprika orange brand (from staging); dark theme unchanged), and 1px borders. Radii stay rounded (set in the restyle).
+ * Cosmic Latte light palette (mocha cream surfaces, paprika orange brand (from staging)), and 1px borders. Radii stay rounded (set in the restyle).
  * Apply with <html data-theme="cupcake|forest">.
  * Components must use these tokens through Tailwind classes (bg-background, text-primary, ...),
  * never raw colors.
  */
 
 /* Warm kitchen palette. Light: cream canvas, ivory cards, paprika brand, saffron highlight, tinted
-   secondary. Dark: espresso surfaces with the same hues lifted for contrast. The brand is no longer
+   secondary. Dark: black and gray surfaces with the same paprika accent. The brand is no longer
    green, so success/ready states (green) stay distinct from primary actions. */
 :root,
 [data-theme='cupcake'] {
@@ -39,7 +39,7 @@
   --state-warning-content: #3a2606;
   --state-error: #c0463a;
   --state-error-content: #ffffff;
-  --radius: 0.375rem;
+  --radius: 0.875rem;
   --border-width: 1px;
   --border-mix: 14%;
   --input-mix: 24%;
@@ -50,42 +50,41 @@
 
 [data-theme='forest'] {
   color-scheme: dark;
-  /* DaisyUI "dark" palette: slate-blue surfaces, indigo primary, pink secondary, teal accent. Also
-     base-200 here is the raised/muted tone (lighter than the
-     card); the page canvas is daisy's darkest base-300. */
-  --canvas: oklch(21.15% 0.012 254.09);
-  --base-100: oklch(25.33% 0.016 252.42);
-  --base-200: oklch(29.5% 0.017 252.42);
-  --base-300: oklch(19% 0.011 254.09);
-  --base-content: oklch(97.807% 0.029 256.847);
-  --brand-primary: oklch(58% 0.233 277.117);
-  --brand-primary-content: oklch(96% 0.018 272.314);
-  --brand-secondary: oklch(65% 0.241 354.308);
-  --brand-secondary-content: oklch(94% 0.028 342.258);
-  --brand-accent: oklch(77% 0.152 181.912);
-  --brand-accent-content: oklch(38% 0.063 188.416);
-  --brand-accent-2: oklch(77% 0.152 181.912);
-  --brand-accent-2-content: oklch(38% 0.063 188.416);
-  /* Warm surface for highlighted cards (open orders). */
-  --brand-highlight: oklch(34% 0.05 70);
-  --brand-highlight-content: oklch(85% 0.12 80);
-  --brand-neutral: oklch(14% 0.005 285.823);
-  --brand-neutral-content: oklch(92% 0.004 286.32);
-  --state-info: oklch(74% 0.16 232.661);
-  --state-info-content: oklch(29% 0.066 243.157);
-  --state-success: oklch(76% 0.177 163.223);
-  --state-success-content: oklch(37% 0.077 168.94);
-  --state-warning: oklch(82% 0.189 84.429);
-  --state-warning-content: oklch(41% 0.112 45.904);
-  --state-error: oklch(71% 0.194 13.428);
-  --state-error-content: oklch(27% 0.105 12.094);
-  --radius: 0.375rem;
+  /* Ink palette: two surface tones (base #111419, raised #1a1e25) plus a hover step, cream text, paprika accent. Surfaces step up in
+     tone from the canvas (darkest) to base-100 (cards) to base-200 (raised/muted). */
+  --canvas: #111419;
+  --base-100: #1a1e25;
+  --base-200: #232830;
+  --base-300: #0c0e12;
+  --base-content: #f4f3ef;
+  --brand-primary: oklch(55% 0.15 38);
+  --brand-primary-content: #ffffff;
+  --brand-secondary: #232830;
+  --brand-secondary-content: #f4f3ef;
+  --brand-accent: #2a1c17;
+  --brand-accent-content: oklch(78% 0.1 45);
+  --brand-accent-2: #91969e;
+  --brand-accent-2-content: #111419;
+  /* Raised surface for highlighted cards (open orders). */
+  --brand-highlight: #2a1c17;
+  --brand-highlight-content: oklch(78% 0.1 45);
+  --brand-neutral: #0c0e12;
+  --brand-neutral-content: #f4f3ef;
+  --state-info: oklch(74% 0.08 235);
+  --state-info-content: oklch(22% 0.04 240);
+  --state-success: oklch(74% 0.14 155);
+  --state-success-content: oklch(22% 0.05 160);
+  --state-warning: oklch(82% 0.15 85);
+  --state-warning-content: oklch(28% 0.07 70);
+  --state-error: oklch(70% 0.17 25);
+  --state-error-content: oklch(22% 0.07 25);
+  --radius: 0.875rem;
   --border-width: 1px;
   --border-mix: 14%;
   --input-mix: 24%;
-  --table-head-bg: oklch(29.5% 0.017 252.42);
-  --table-row-alt: oklch(27% 0.016 252.42);
-  --table-row-hover: oklch(32% 0.018 252.42);
+  --table-head-bg: #232830;
+  --table-row-alt: #161a20;
+  --table-row-hover: #20252d;
 }
 
 /* shadcn/ui tokens derived from the palette above (same for both themes) */
@@ -125,6 +124,7 @@
   --chart-3: var(--brand-accent);
   --chart-4: var(--state-info);
   --chart-5: var(--state-warning);
+  --shell: var(--base-200);
   --sidebar: var(--base-100);
   --sidebar-foreground: var(--base-content);
   --sidebar-primary: var(--brand-primary);
@@ -174,6 +174,7 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-shell: var(--shell);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -186,4 +187,9 @@
   --radius-md: var(--radius);
   --radius-lg: calc(var(--radius) + 2px);
   --radius-xl: calc(var(--radius) + 6px);
+}
+
+/* Dark: the frame is the base tone; the sidebar and main panel float on it as rounded raised panels. */
+[data-theme='forest'] {
+  --shell: var(--canvas);
 }
