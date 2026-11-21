@@ -17,6 +17,7 @@ All notable user-facing changes to Sahtain. Format follows [Keep a Changelog](ht
 - Edit the modifiers of a line already in the cart.
 
 ### Changed
+- Landing page: new first screen with a bigger headline, the trial button beside it, and a staggered photo layout with the cashier screen, dining room and kitchen.
 - QR codes page redesigned: the menu QR is a large featured panel, each table gets its own sign-style card, and every code has Download and Copy link buttons.
 - POS bill sheet and payment dialog redesigned: the action buttons no longer overlap, the amount due is shown large, and payment method is a simple toggle.
 - Rotating a table QR code now shows a spinner on the button and a success or error message.

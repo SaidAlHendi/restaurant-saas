@@ -26,6 +26,35 @@ html[dir='rtl'] .lp-root {
   color: var(--primary);
 }
 
+.lp-hero {
+  font-size: clamp(64px, 11vw, 190px);
+  line-height: 0.95;
+}
+
+html[lang='en'] .lp-hero {
+  font-size: clamp(64px, 10vw, 170px);
+  line-height: 0.92;
+  /* Narrow enough that each sentence breaks after its first word: Serve / more. / Stress / less. */
+  max-width: 4em;
+}
+
+.lp-sub {
+  font-size: clamp(32px, 3.3vw, 52px);
+  line-height: 1.1;
+}
+
+/* A neutral scrim keeps white type readable over any photo. */
+.lp-cap {
+  font-size: clamp(26px, 2.8vw, 44px);
+  line-height: 1.1;
+  background: linear-gradient(to top, rgb(20 12 9 / 0.75), transparent);
+}
+
+.lp-tilemark {
+  font-size: clamp(64px, 9.4vw, 150px);
+  line-height: 0.95;
+}
+
 .lp-stm {
   font-size: clamp(36px, 4.6vw, 76px);
   line-height: 1.08;

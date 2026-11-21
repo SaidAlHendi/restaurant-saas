@@ -15,14 +15,14 @@ export type SiteShellProps = {
 export function SiteShell({ shell, children }: SiteShellProps) {
   const { content } = shell;
   return (
-    <div ref={shell.rootRef} id="top" className="lp-root min-h-screen bg-foreground p-2 text-foreground">
+    <div ref={shell.rootRef} id="top" className="lp-root min-h-screen bg-foreground p-2.5 text-foreground">
       <a
         href="#content"
         className="sr-only focus:not-sr-only focus:fixed focus:start-4 focus:top-4 focus:z-[60] focus:rounded-md focus:bg-background focus:px-4 focus:py-2"
       >
         {content.skipLink}
       </a>
-      <div className="mx-auto grid max-w-[1600px] grid-cols-12 gap-2">
+      <div className="mx-auto grid max-w-[1600px] grid-cols-12 gap-2.5">
         <LandingNav content={content.nav} nav={shell.nav} navLinks={shell.navLinks} links={shell.links} />
         <main id="content" className="contents">
           {children}

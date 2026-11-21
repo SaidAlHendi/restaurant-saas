@@ -63,11 +63,13 @@ export type LandingContent = {
   hero: {
     wordmark: string;
     h1: string;
-    statement: string;
     body: string;
     cta: string;
     tabletTitle: string;
     tabletBody: string;
+    lead: string;
+    points: string[];
+    roomCaption: string;
   };
   photos: Record<PhotoKey, { alt: string; caption: string }>;
   flow: { tag: string; title: string; lead: string; stops: FlowStop[] };

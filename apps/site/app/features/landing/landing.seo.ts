@@ -25,7 +25,7 @@ function fontPreloadTags(locale: LandingLocale) {
 }
 
 /** The tablet photo is the largest element on the first screen: fetch it before the body is parsed. */
-export const TABLET_IMAGE_SIZES = '(min-width: 768px) 58vw, 100vw';
+export const TABLET_IMAGE_SIZES = '(min-width: 768px) 66vw, 100vw';
 
 function lcpImagePreload() {
   return {

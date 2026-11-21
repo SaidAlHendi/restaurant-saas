@@ -26,13 +26,15 @@ export const landingEn: LandingContent = {
   },
   hero: {
     wordmark: 'Sahtain',
-    h1: 'The restaurant system that speaks Arabic.',
-    statement: 'Write the order once. It reaches the kitchen instantly.',
-    body: 'A till, a kitchen display and an owner dashboard. Designed right to left first.',
+    h1: 'Serve more. Stress less.',
+    body: 'Orders arrive clearly, reach the kitchen instantly and stay in sync until the bill is closed.',
     cta: 'Start your free trial',
-    tabletTitle: 'From the till to the kitchen, without shouting.',
+    tabletTitle: 'A smoother shift, from front to back.',
     tabletBody:
-      'A point of sale, a kitchen display and an owner dashboard in one system, designed for Arabic first.',
+      'Every order is clear, timed and visible. Your team spends less time checking screens and more time looking after guests.',
+    lead: 'One calm command center for orders, tables, kitchen tickets and payments, built for the people who make service happen.',
+    points: ['One shared order view', 'Live kitchen status', 'Fast, flexible checkout'],
+    roomCaption: 'Made for hospitality, not spreadsheets.',
   },
   photos: {
     tablet: {
