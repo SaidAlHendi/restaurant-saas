@@ -33,9 +33,6 @@ export type TicketContent = {
 
 export type PlanKey = 'free' | 'menu' | 'restaurant' | 'business';
 
-/** `key` ties the line to an entitlement so the "Soon" badge comes from `isFeatureSoon`. */
-export type PlanFeature = { text: string; key?: FeatureKey | LimitKey };
-
 export type PlanContent = {
   key: PlanKey;
   name: string;
@@ -45,7 +42,16 @@ export type PlanContent = {
   /** Text after the price, e.g. "/ month". Empty for the free plan. */
   unit: string;
   highlight: boolean;
-  features: PlanFeature[];
+};
+
+/**
+ * One service in the plan table. Whether a plan has it comes from `PLAN_FEATURE_SEED`; `values`
+ * gives the text for limits ("Up to 40", "10"). A limit with no value for a plan is not included.
+ */
+export type PlanRow = {
+  key: FeatureKey | LimitKey;
+  label: string;
+  values?: Partial<Record<PlanKey, string>>;
 };
 
 export type PhotoKey = 'tablet' | 'room' | 'pasta' | 'pass' | 'tiramisu';
@@ -78,7 +84,11 @@ export type LandingContent = {
   photos: Record<PhotoKey, { alt: string; caption: string }>;
   flow: { tag: string; title: string; lead: string; stops: FlowStop[] };
   kitchen: { title: string; tickets: TicketContent[] };
-  plans: { title: string; lead: string; recommendedLabel: string; soonLabel: string; items: PlanContent[] };
+  plans: { title: string; lead: string; recommendedLabel: string;
+    soonLabel: string;
+    items: PlanContent[];
+    rows: PlanRow[];
+  };
   faq: { title: string; lead: string; items: Array<{ q: string; a: string }> };
   contact: { title: string; lead: string; emailLabel: string; emailCta: string };
   whatsapp: { label: string; message: string };

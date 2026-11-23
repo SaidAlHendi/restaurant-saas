@@ -19,7 +19,7 @@ export type HeroSectionProps = {
 export function HeroSection({ hero, photos, ctaHref }: HeroSectionProps) {
   return (
     <>
-      <Tile tone="paper" className="md:col-span-7 md:min-h-[clamp(560px,57vw,880px)]">
+      <Tile tone="paper" className="lp-torn md:col-span-7 md:min-h-[clamp(560px,57vw,880px)]">
         <h1 className="lp-display lp-hero text-primary">{hero.h1}</h1>
         <div className="flex flex-col gap-5">
           <p className="max-w-[30em] text-lg md:text-xl">{hero.lead}</p>
@@ -30,7 +30,7 @@ export function HeroSection({ hero, photos, ctaHref }: HeroSectionProps) {
       </Tile>
 
       <div className="contents md:col-span-5 md:grid md:grid-rows-[auto_1fr] md:gap-2.5">
-        <Tile tone="brand" className="md:min-h-[300px]">
+        <Tile tone="brand" className="lp-torn md:min-h-[300px]">
           <p aria-hidden className="lp-display lp-tilemark">
             {hero.wordmark}
           </p>
@@ -45,7 +45,7 @@ export function HeroSection({ hero, photos, ctaHref }: HeroSectionProps) {
         />
       </div>
 
-      <Tile tone="highlight" className="md:col-span-4 md:min-h-[clamp(480px,44vw,680px)]">
+      <Tile tone="highlight" className="lp-torn md:col-span-4 md:min-h-[clamp(480px,44vw,680px)]">
         <h2 className="lp-display lp-sub">{hero.tabletTitle}</h2>
         <div className="flex flex-col gap-5">
           <p className="max-w-[26em] text-base md:text-lg">{hero.tabletBody}</p>

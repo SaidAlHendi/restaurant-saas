@@ -94,6 +94,13 @@ html[lang='en'] .lp-ghost {
   font-size: clamp(110px, 19vw, 290px);
 }
 
+/* Same torn top edge as the kitchen tickets, for the brand tile in the hero. */
+.lp-torn {
+  border-radius: 0 0 12px 12px;
+  padding-top: calc(1.5rem + 8px);
+  clip-path: polygon(0 0, 5% 8px, 10% 0, 15% 8px, 20% 0, 25% 8px, 30% 0, 35% 8px, 40% 0, 45% 8px, 50% 0, 55% 8px, 60% 0, 65% 8px, 70% 0, 75% 8px, 80% 0, 85% 8px, 90% 0, 95% 8px, 100% 0, 100% 100%, 0 100%);
+}
+
 /* Kitchen tickets with a torn top edge. */
 .lp-ticket {
   position: relative;
@@ -158,12 +165,6 @@ html[lang='en'] .lp-ghost {
   content: '✓';
   margin-inline-end: 0.5rem;
   font-weight: 700;
-}
-
-/* Not available yet: an empty mark instead of a tick, so the list reads as built vs coming. */
-.lp-check-soon::before {
-  content: '○';
-  font-weight: 400;
 }
 
 .lp-burger-line {

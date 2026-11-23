@@ -25,7 +25,7 @@ export function ContactSection({
 }: ContactSectionProps) {
   return (
     <>
-      <Tile as="section" tone="paper" className="md:col-span-5 md:min-h-[420px]">
+      <Tile as="section" tone="paper" className="lp-torn md:col-span-5 md:min-h-[420px]">
         <div>
           <h1 className="lp-display lp-stm">{contact.title}</h1>
           <p className="mt-4 max-w-[26em] text-lg text-foreground/75">{contact.lead}</p>
@@ -37,7 +37,7 @@ export function ContactSection({
           </a>
         </p>
       </Tile>
-      <Tile as="section" tone="accent" className="justify-start md:col-span-7 md:min-h-[420px]">
+      <Tile as="section" tone="accent" className="lp-torn justify-start md:col-span-7 md:min-h-[420px]">
         <ContactForm content={form} form={formState} privacyHref={privacyHref} />
       </Tile>
       <PhotoTile

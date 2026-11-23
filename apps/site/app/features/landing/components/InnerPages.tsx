@@ -17,7 +17,7 @@ export function PlansPage({ locale, tracking }: InnerPageProps) {
   const vm = useInnerPage(locale, tracking, 'plans');
   return (
     <SiteShell shell={vm.shell}>
-      <PlansSection title={vm.content.plans.title} lead={vm.content.plans.lead} recommendedLabel={vm.content.plans.recommendedLabel} soonLabel={vm.content.plans.soonLabel} plans={vm.plans} />
+      <PlansSection content={vm.content.plans} plans={vm.plans} table={vm.planTable} />
       <CtaSection closing={vm.content.closing} href={vm.links.contact} />
     </SiteShell>
   );

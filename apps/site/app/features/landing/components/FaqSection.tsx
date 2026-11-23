@@ -9,7 +9,7 @@ export type FaqSectionProps = {
 export function FaqSection({ faq }: FaqSectionProps) {
   return (
     <>
-      <Tile as="section" tone="paper" className="md:col-span-4 md:row-span-2">
+      <Tile as="section" tone="paper" className="lp-torn md:col-span-4 md:row-span-2">
         <h1 className="lp-display lp-stm">{faq.title}</h1>
         <p className="max-w-[26em] text-base text-foreground/75">{faq.lead}</p>
       </Tile>

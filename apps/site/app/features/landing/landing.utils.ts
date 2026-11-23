@@ -1,6 +1,6 @@
-import { intlLocaleForUi, isFeatureSoon } from '@app/shared';
+import { intlLocaleForUi, isFeatureSoon, PLAN_FEATURE_SEED } from '@app/shared';
 import { landingPath, type LandingLocale, type PageKey } from '../../lib/locale.js';
-import type { LandingContent, NavKey, NavSectionId } from './content/types.js';
+import type { LandingContent, NavKey, NavSectionId, PlanKey, PlanRow } from './content/types.js';
 import { LANDING_IMAGES, type LandingImageName } from './landing-media.generated.js';
 
 export type ImageFormat = 'avif' | 'webp' | 'jpg';
@@ -100,12 +100,47 @@ export function switchLocalePath(target: LandingLocale, current: CurrentPage): s
 export function buildPlanViews(plans: LandingContent['plans']['items'], locale: LandingLocale) {
   return plans.map((plan) => ({
     ...plan,
-    features: plan.features.map((feature) => ({
-      text: feature.text,
-      soon: feature.key !== undefined && isFeatureSoon(feature.key),
-    })),
     price: formatPlanPrice(plan.priceMinor, plan.currency, locale),
   }));
 }
 
 export type PlanView = ReturnType<typeof buildPlanViews>[number];
+
+/** What one plan offers for one service: a tick, a value ("10"), or nothing. */
+export type PlanCell = { kind: 'yes' } | { kind: 'value'; text: string } | { kind: 'no' };
+
+export type PlanTableRow = { key: string; label: string; soon: boolean; cells: Record<PlanKey, PlanCell> };
+
+const TABLE_PLANS: readonly PlanKey[] = ['free', 'menu', 'restaurant', 'business'];
+
+function cellFor(row: PlanRow, plan: PlanKey): PlanCell {
+  const value = row.values?.[plan];
+  if (value !== undefined) {
+    return { kind: 'value', text: value };
+  }
+  const included = PLAN_FEATURE_SEED[plan].some((seed) => seed.key === row.key);
+  return included && row.values === undefined ? { kind: 'yes' } : { kind: 'no' };
+}
+
+/** Plan x service matrix. Inclusion comes from the plan seed; "Soon" from `isFeatureSoon`. */
+export function buildPlanTable(rows: PlanRow[]): PlanTableRow[] {
+  return rows.map((row) => ({
+    key: row.key,
+    label: row.label,
+    soon: isFeatureSoon(row.key),
+    cells: Object.fromEntries(TABLE_PLANS.map((plan) => [plan, cellFor(row, plan)])) as Record<
+      PlanKey,
+      PlanCell
+    >,
+  }));
+}
+
+/** The services one plan includes, in table order (used by the stacked mobile layout). */
+export function servicesOfPlan(table: PlanTableRow[], plan: PlanKey) {
+  return table.flatMap((row) => {
+    const cell = row.cells[plan];
+    return cell.kind === 'no'
+      ? []
+      : [{ key: row.key, label: row.label, soon: row.soon, value: cell.kind === 'value' ? cell.text : null }];
+  });
+}

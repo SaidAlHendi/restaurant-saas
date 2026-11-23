@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildCurvePath,
+  buildPlanTable,
   buildPlanViews,
+  servicesOfPlan,
   contactHref,
   curveProgress,
   formatPlanPrice,
@@ -100,11 +102,15 @@ describe('buildPlanViews', () => {
     expect(views.map((p) => p.price)).toEqual(['$0', '$12', '$39', '$79']);
   });
 
-  it('marks only unbuilt services as soon, in both languages', () => {
+  it('builds the plan table from the seed and marks unbuilt services as soon, in both languages', () => {
     for (const locale of ['en', 'ar'] as const) {
-      const views = buildPlanViews(getLandingContent(locale).plans.items, locale);
-      const soon = Object.fromEntries(views.map((p) => [p.key, p.features.filter((f) => f.soon).length]));
-      expect(soon).toEqual({ free: 0, menu: 0, restaurant: 1, business: 7 });
+      const table = buildPlanTable(getLandingContent(locale).plans.rows);
+      const soonCount = (plan: 'free' | 'menu' | 'restaurant' | 'business') =>
+        servicesOfPlan(table, plan).filter((s) => s.soon).length;
+      expect([soonCount('free'), soonCount('menu'), soonCount('restaurant'), soonCount('business')]).toEqual([
+        0, 0, 1, 7,
+      ]);
+      expect(servicesOfPlan(table, 'free')).toHaveLength(2);
     }
   });
 });
