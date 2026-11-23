@@ -5,6 +5,8 @@ All notable user-facing changes to Sahtain. Format follows [Keep a Changelog](ht
 ## Unreleased
 
 ### Fixed
+- Settings → Menu look: the page no longer shows a second scrollbar.
+- Settings → Menu look: the live preview now stays fully visible while you scroll through the options, and scrolls on its own if it is taller than the screen.
 - Landing page: the tablet photo in the "smoother shift" section is no longer cropped so tightly, so the whole POS screen shows.
 
 ### Added

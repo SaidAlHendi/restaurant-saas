@@ -272,7 +272,7 @@ export function MenuLookPageView(props: MenuLookPageViewModel) {
         <p className="text-muted-foreground text-xs">{labels.scopeNote}</p>
       </fieldset>
 
-      <div className="xl:sticky xl:top-6">
+      <div className="xl:sticky xl:top-0 xl:max-h-[calc(100dvh-12rem)] xl:overflow-y-auto xl:rounded-xl">
         <SettingsSection title={labels.previewTitle}>
           <SegmentedControl
             label={labels.previewLanguage}

@@ -66,7 +66,7 @@ export function ImageUpload({
     typeof progress === 'number' ? Math.min(100, Math.max(0, progress)) : null;
 
   return (
-    <div data-slot="image-upload" className={cn('flex flex-col gap-2', className)}>
+    <div data-slot="image-upload" className={cn('relative flex flex-col gap-2', className)}>
       <input
         ref={inputRef}
         type="file"
