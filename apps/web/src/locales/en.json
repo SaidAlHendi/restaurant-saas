@@ -342,7 +342,8 @@
     "tabs": {
       "restaurant": "Restaurant",
       "branch": "Branch",
-      "staff": "Staff & roles"
+      "staff": "Staff & roles",
+      "menuLook": "Menu look"
     },
     "restaurant": {
       "title": "Restaurant",
@@ -568,6 +569,70 @@
       "totalStepHint": "Used for the amount the customer pays.",
       "noRounding": "No rounding",
       "preview": "Example: an item saved at {{base}} shows as {{price}}. An order total of {{base}} is charged as {{total}}."
+    },
+    "menuLook": {
+      "title": "Menu look",
+      "description": "Choose how your public QR menu looks. The preview updates as you edit.",
+      "preset": "Colour style",
+      "layout": "Dish layout",
+      "heroSection": "Banner",
+      "heroEnabled": "Show a banner",
+      "heroEnabledHint": "A large headline at the top of the menu.",
+      "headlineEn": "Headline (English)",
+      "headlineAr": "Headline (Arabic)",
+      "sublineEn": "Subline (English)",
+      "sublineAr": "Subline (Arabic)",
+      "heroHeadlineRequired": "Add a headline in at least one language, or turn the banner off.",
+      "showSearch": "Search box",
+      "showSearchHint": "Guests can search dishes by name.",
+      "lockedMessage": "Your plan uses the default menu look. Upgrade to the {{plan}} plan or higher to choose colours, a banner, a cover photo and your brand colour. Your guests see the default look until then.",
+      "notInPlan": "The menu look is not part of your plan. Upgrade to change it.",
+      "brandColor": "Brand colour",
+      "brandColorHint": "Buttons, tags and the banner use this colour. Text on it is chosen automatically so it stays readable.",
+      "brandColorClear": "Use the style's colours",
+      "brandColorAdjusted": "Adjusted for readability",
+      "brandColorInvalid": "Enter a colour like #1f4a37.",
+      "cover": "Cover photo",
+      "coverHint": "Shown in an arch next to the headline. Use a portrait photo; it is cropped to 4:5.",
+      "coverChoose": "Upload cover photo",
+      "coverUploading": "Uploading…",
+      "coverRemove": "Remove cover photo",
+      "coverPreviewAlt": "Cover photo preview",
+      "coverTypeError": "Use a JPEG, PNG or WebP image.",
+      "coverNeedsHero": "The cover photo shows only while the banner is on.",
+      "showTicker": "Category ticker",
+      "showTickerHint": "A slowly moving band of your category names under the banner.",
+      "closingEn": "Closing line (English)",
+      "closingAr": "Closing line (Arabic)",
+      "closingHint": "A large line in the footer of the menu. Leave empty for none.",
+      "previewTitle": "Preview",
+      "previewLabel": "Preview of your public menu",
+      "previewLanguage": "Preview language",
+      "searchPlaceholder": "Search the menu",
+      "scopeNote": "This look applies to the menus of all your branches. Changes reach guests within a few minutes.",
+      "saved": "Menu look saved.",
+      "loadError": "Could not load the menu look.",
+      "presets": {
+        "classic": "Classic",
+        "forest": "Forest",
+        "espresso": "Espresso",
+        "midnight": "Midnight"
+      },
+      "layouts": {
+        "grid": "Photo grid",
+        "list": "List",
+        "compact": "Text only"
+      },
+      "sample": {
+        "category1": "Starters",
+        "category2": "Mains",
+        "category3": "Drinks",
+        "dish1": "Lentil soup",
+        "dish2": "Grilled chicken",
+        "dish3": "Beef burger",
+        "dish4": "Mint lemonade",
+        "description": "Fresh, made to order"
+      }
     }
   },
   "pos": {

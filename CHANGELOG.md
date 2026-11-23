@@ -5,6 +5,8 @@ All notable user-facing changes to Sahtain. Format follows [Keep a Changelog](ht
 ## Unreleased
 
 ### Added
+- Menu look is part of the Menu plan and above: Free restaurants keep the default look. Owners can set a brand colour; Sahtain picks readable text and adjusts colours that are too close to the background. Downgrading keeps your saved look and brings it back when you upgrade.
+- Settings → Menu look: owners choose the colour style, dish layout, banner headline (English and Arabic), a cover photo shown in an arch next to the banner, an optional category ticker, a closing line in the footer and the search box of the public QR menu, with a live preview. Saving updates the menu for guests within minutes.
 - Restaurant and branch settings now warn before you leave the page with unsaved changes, so edits are no longer lost by accident.
 - Branch setting for **Dine-in (tables)** and **Takeaway**: switch off what a branch doesn't offer. The POS then shows only the available order type, and new tables and QR codes are blocked when dine-in is off. At least one must stay on, and a type can't be turned off while it has open orders (dine-in: or open table bills).
 - Reopen a completed order: managers and owners (and anyone the owner grants **Reopen completed orders**) can send a wrongly handed-over order back to Ready from the order sheet. Payment is unchanged; not possible once the table bill is closed.
@@ -17,6 +19,7 @@ All notable user-facing changes to Sahtain. Format follows [Keep a Changelog](ht
 - Edit the modifiers of a line already in the cart.
 
 ### Changed
+- The public QR menu has a new look: larger restaurant name, tappable dish rows with photo and price, and a cleaner category bar and language switch. It now supports four colour presets, three dish layouts (photo grid, list, text only), an optional hero headline and menu search.
 - Landing page: new first screen with a bigger headline, the trial button beside it, and a staggered photo layout with the cashier screen, dining room and kitchen.
 - QR codes page redesigned: the menu QR is a large featured panel, each table gets its own sign-style card, and every code has Download and Copy link buttons.
 - POS bill sheet and payment dialog redesigned: the action buttons no longer overlap, the amount due is shown large, and payment method is a simple toggle.

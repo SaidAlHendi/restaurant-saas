@@ -81,6 +81,8 @@ export class PublicMenuRepository {
         displayItemStep: organizations.displayItemStep,
         displayTotalStep: organizations.displayTotalStep,
         logoKey: organizations.logoKey,
+        menuTheme: organizations.menuTheme,
+        menuCoverKey: organizations.menuCoverKey,
       })
       .from(organizations)
       .where(eq(organizations.id, orgId))

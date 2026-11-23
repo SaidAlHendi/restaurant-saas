@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { orgLocaleCodeSchema } from '../i18n/org-locales.js';
 import { displayRoundingStepSchema, exchangeRateSchema } from '../money/display-currency.js';
+import { DEFAULT_MENU_THEME, menuCoverUrlsSchema, menuThemeSchema } from '../public-menu/menu-theme.js';
 
 function isKnownCurrencyCode(code: string): boolean {
   try {
@@ -33,6 +34,12 @@ export const orgSettingsResponseSchema = z.object({
   /** Rounding steps in whole display-currency units (0 = no rounding). */
   displayItemStep: displayRoundingStepSchema,
   displayTotalStep: displayRoundingStepSchema,
+  /** Look of the public QR menu. Per organization, shared by all its branches. */
+  menuTheme: menuThemeSchema.default(DEFAULT_MENU_THEME),
+  /** Hero cover photo of the public menu; changed by the cover upload/delete endpoints, not by PATCH. */
+  menuCoverUrls: menuCoverUrlsSchema.nullable().default(null),
+  /** False on plans without `menu.branding`: only the default look is allowed and shown to guests. */
+  menuLookAllowed: z.boolean().default(true),
 });
 
 export type OrgSettingsResponse = z.infer<typeof orgSettingsResponseSchema>;
@@ -49,6 +56,8 @@ export const patchOrgSettingsBodySchema = z
     exchangeRate: exchangeRateSchema.optional(),
     displayItemStep: displayRoundingStepSchema.optional(),
     displayTotalStep: displayRoundingStepSchema.optional(),
+    /** The whole theme, replaced on save. */
+    menuTheme: menuThemeSchema.optional(),
   })
   .strict()
   .superRefine((body, ctx) => {
@@ -86,3 +95,15 @@ export const orgLogoDeleteResponseSchema = z.object({
 });
 
 export type OrgLogoDeleteResponse = z.infer<typeof orgLogoDeleteResponseSchema>;
+
+export const orgMenuCoverUploadResponseSchema = z.object({
+  menuCoverUrls: menuCoverUrlsSchema,
+});
+
+export type OrgMenuCoverUploadResponse = z.infer<typeof orgMenuCoverUploadResponseSchema>;
+
+export const orgMenuCoverDeleteResponseSchema = z.object({
+  menuCoverUrls: z.null(),
+});
+
+export type OrgMenuCoverDeleteResponse = z.infer<typeof orgMenuCoverDeleteResponseSchema>;

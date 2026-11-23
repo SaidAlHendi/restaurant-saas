@@ -11,6 +11,8 @@ import {
 } from '@app/ui';
 
 import { LanguageSwitcher } from './LanguageSwitcher.js';
+import { menuThemeStyle } from './menu-theme.js';
+import { MenuSearch } from './MenuSearch.js';
 import type { MenuPageViewProps } from './menu-page.types.js';
 import { useProductSheet } from './use-product-sheet.js';
 
@@ -57,6 +59,7 @@ export function MenuHydration({ locale, menu, orgSlug, branchSlug, products }: M
   }
 
   const langSlot = document.getElementById('menu-lang-slot');
+  const searchSlot = document.getElementById('menu-search-slot');
 
   return (
     <>
@@ -71,6 +74,7 @@ export function MenuHydration({ locale, menu, orgSlug, branchSlug, products }: M
             langSlot,
           )
         : null}
+      {searchSlot ? createPortal(<MenuSearch locale={locale} />, searchSlot) : null}
       <Sheet
         open={openProduct !== null}
         onOpenChange={(open) => {
@@ -79,12 +83,25 @@ export function MenuHydration({ locale, menu, orgSlug, branchSlug, products }: M
           }
         }}
       >
-        <SheetContent side="end" className="overflow-y-auto">
+        <SheetContent
+          side="end"
+          style={menuThemeStyle(menu.org.theme)}
+          className="overflow-y-auto bg-background text-foreground"
+        >
           {openProduct ? (
             <>
+              {openProduct.imageUrls ? (
+                <img
+                  src={openProduct.imageUrls.url800}
+                  alt={openProduct.name}
+                  width={800}
+                  height={600}
+                  className="aspect-[4/3] w-full rounded-xl object-cover"
+                />
+              ) : null}
               <SheetHeader>
                 <SheetTitle>{openProduct.name}</SheetTitle>
-                <SheetDescription>
+                <SheetDescription className="text-lg font-bold tabular-nums text-foreground">
                   {formatMoneyForDisplay(
                     openProduct.priceMinor,
                     openProduct.currency,
@@ -94,20 +111,25 @@ export function MenuHydration({ locale, menu, orgSlug, branchSlug, products }: M
                 </SheetDescription>
               </SheetHeader>
               {openProduct.description ? (
-                <p className="text-sm text-muted-foreground">{openProduct.description}</p>
+                <p className="text-base text-muted-foreground">{openProduct.description}</p>
               ) : null}
               {openProduct.modifierGroups.length > 0 ? (
-                <ul className="mt-4 space-y-3">
+                <ul className="mt-6 space-y-5">
                   {openProduct.modifierGroups.map((group) => (
                     <li key={`${openProduct.id}-${group.name}-${String(group.sortOrder)}`}>
-                      <p className="text-sm font-medium">{group.name}</p>
-                      <ul className="ms-4 mt-1 space-y-1 text-sm text-muted-foreground">
+                      <p className="text-base font-semibold">{group.name}</p>
+                      <ul className="mt-2 space-y-1 text-sm">
                         {group.modifiers.map((mod) => (
-                          <li key={`${group.name}-${mod.name}-${String(mod.sortOrder)}`}>
-                            {mod.name}
-                            {mod.priceDeltaMinor > 0
-                              ? ` (+${formatMoneyForDisplay(mod.priceDeltaMinor, openProduct.currency, locale, menu.org.display)})`
-                              : null}
+                          <li
+                            key={`${group.name}-${mod.name}-${String(mod.sortOrder)}`}
+                            className="flex justify-between gap-3 rounded-lg bg-muted/60 px-3 py-2"
+                          >
+                            <span>{mod.name}</span>
+                            {mod.priceDeltaMinor > 0 ? (
+                              <span className="tabular-nums text-muted-foreground">
+                                +{formatMoneyForDisplay(mod.priceDeltaMinor, openProduct.currency, locale, menu.org.display)}
+                              </span>
+                            ) : null}
                           </li>
                         ))}
                       </ul>

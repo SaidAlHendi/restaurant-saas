@@ -13,6 +13,7 @@ export {
   PLAN_FEATURE_SEED,
   isFeatureKey,
   isLimitKey,
+  MENU_LOOK_FEATURE,
 } from './billing/feature-keys.js';
 export type { FeatureKey, LimitKey } from './billing/feature-keys.js';
 export { entitlementsSnapshotSchema, entitlementReasonSchema } from './billing/entitlements.js';
@@ -77,11 +78,15 @@ export {
   patchOrgSettingsBodySchema,
   orgLogoUploadResponseSchema,
   orgLogoDeleteResponseSchema,
+  orgMenuCoverUploadResponseSchema,
+  orgMenuCoverDeleteResponseSchema,
 } from './org/settings.js';
 export type {
   OrgSettingsResponse,
   PatchOrgSettingsBody,
   OrgLogoUploadResponse,
+  OrgMenuCoverUploadResponse,
+  OrgMenuCoverDeleteResponse,
   OrgLogoDeleteResponse,
 } from './org/settings.js';
 
@@ -200,6 +205,30 @@ export {
   publicSitemapResponseSchema,
   publicMenuLocaleSchema,
 } from './public-menu/public-menu.js';
+export {
+  DEFAULT_MENU_THEME,
+  effectiveMenuTheme,
+  heroText,
+  isDefaultMenuTheme,
+  MENU_PRESET_BACKGROUND,
+  menuThemeVars,
+  resolveThemeBrand,
+  MENU_PRESET_VARS,
+  menuCoverUrlsSchema,
+  menuThemeLayoutSchema,
+  menuThemePresetSchema,
+  menuThemeSchema,
+} from './public-menu/menu-theme.js';
+export {
+  BRAND_COLOR_PATTERN,
+  BRAND_MIN_CONTRAST,
+  BRAND_TEXT_MIN_CONTRAST,
+  contrastRatio,
+  readableTextOn,
+  resolveBrandColor,
+} from './public-menu/brand-color.js';
+export type { ResolvedBrandColor } from './public-menu/brand-color.js';
+export type { MenuCoverUrls, MenuTheme, MenuThemeLayout, MenuThemePreset } from './public-menu/menu-theme.js';
 export type {
   PublicMenuQuery,
   PublicMenuPayload,

@@ -6,6 +6,8 @@ import {
   DEFAULT_DISPLAY_ITEM_STEP,
   DEFAULT_DISPLAY_TOTAL_STEP,
   defaultDisplaySteps,
+  isDefaultMenuTheme,
+  MENU_LOOK_FEATURE,
   type CatalogRealtimePayload,
   type MoneyDisplay,
   type OrgLocaleCode,
@@ -13,17 +15,18 @@ import {
 } from '@app/shared';
 
 import { MENU_CACHE_PURGER, type MenuCachePurger } from '../../core/cache/menu-cache-purger';
-import { ConflictError, NotFoundError, ValidationError } from '../../core/errors/app-errors';
+import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../../core/errors/app-errors';
 import { CLOCK, type Clock } from '../../core/clock/clock.tokens';
 import { DRIZZLE, type DrizzleDb } from '../../core/db/db.module';
 import type { organizations } from '../../core/db/schema/tenancy';
+import { EntitlementsService } from '../billing/entitlements.service';
 import { OutboxService } from '../../core/outbox/outbox.service';
 import type { DrizzleTx } from '../../core/db/with-org';
 import { withOrg } from '../../core/db/with-org';
 import type { RequestContext } from '../../core/context/request-context';
 import type { ObjectStorage } from '../../core/storage/object-storage';
 import { OBJECT_STORAGE } from '../../core/storage/storage.tokens';
-import { logoUrlFromKey } from '../public-menu/public-menu.mapper';
+import { coverUrlsFromKey, logoUrlFromKey, menuThemeFromRow } from '../public-menu/public-menu.mapper';
 import { scheduleMenuCachePurge } from '../public-menu/public-menu-cache.util';
 
 import { OrgLogoService } from './org-logo.service';
@@ -61,6 +64,8 @@ export function moneyDisplayForOrg(
   };
 }
 
+/** Plan feature that unlocks the public menu look (colours, layout, banner, cover, brand colour). */
+
 @Injectable()
 export class OrgSettingsService {
   private readonly logger = new Logger(OrgSettingsService.name);
@@ -73,6 +78,7 @@ export class OrgSettingsService {
     @Inject(MENU_CACHE_PURGER) private readonly menuCachePurger: MenuCachePurger,
     @Inject(CLOCK) private readonly clock: Clock,
     private readonly outbox: OutboxService,
+    private readonly entitlements: EntitlementsService,
   ) {}
 
   async getCatalogSettings(tx: DrizzleTx, orgId: string): Promise<OrgCatalogSettings> {
@@ -92,7 +98,23 @@ export class OrgSettingsService {
     return withOrg(this.db, ctx.orgId, async (tx) => this.mapOrgSettings(tx, ctx.orgId));
   }
 
+  /** Plans without `menu.branding` keep the default look; saved looks are kept but not shown. */
+  private async assertMenuLookAllowed(orgId: string): Promise<void> {
+    if (await this.entitlements.can(orgId, MENU_LOOK_FEATURE)) {
+      return;
+    }
+    throw new ForbiddenError(
+      'The menu look is not part of your plan',
+      { feature: MENU_LOOK_FEATURE },
+      'MENU_THEME_NOT_IN_PLAN',
+    );
+  }
+
   async patchSettings(ctx: RequestContext, body: PatchOrgSettingsBody) {
+    // Saving the default look is always fine, so a Free owner can still reset to it.
+    if (body.menuTheme !== undefined && !isDefaultMenuTheme(body.menuTheme)) {
+      await this.assertMenuLookAllowed(ctx.orgId);
+    }
     const result = await withOrg(this.db, ctx.orgId, async (tx) => {
       const org = await this.tenancyRepo.findOrganizationById(tx, ctx.orgId);
       if (!org) {
@@ -135,6 +157,7 @@ export class OrgSettingsService {
         defaultLocale: body.defaultLocale,
         ...(baseChanged ? { defaultCurrency: pricedOrg.defaultCurrency } : {}),
         ...currencyPatch,
+        ...(body.menuTheme !== undefined ? { menuTheme: body.menuTheme } : {}),
       };
       // Nothing to write, e.g. a save that only repeats the current base currency.
       const hasChanges = Object.values(patch as Record<string, unknown>).some(
@@ -163,6 +186,7 @@ export class OrgSettingsService {
       body.locales !== undefined ||
       body.defaultLocale !== undefined ||
       body.defaultCurrency !== undefined ||
+      body.menuTheme !== undefined ||
       displayCurrencyTouched(body)
     ) {
       this.purgeMenuCache(ctx.orgId);
@@ -229,6 +253,65 @@ export class OrgSettingsService {
     return { logoUrl: null };
   }
 
+  async uploadMenuCover(ctx: RequestContext, file: Express.Multer.File) {
+    await this.assertMenuLookAllowed(ctx.orgId);
+    this.logos.assertFileSize(file.size);
+    const orgId = ctx.orgId;
+    const { primaryKey } = await this.logos.processAndUploadCover(orgId, file.buffer);
+
+    let previousKey: string | null;
+    try {
+      previousKey = await this.swapMenuCoverKey(orgId, primaryKey);
+    } catch (err: unknown) {
+      await this.deleteCoverKeysBestEffort(primaryKey);
+      throw err;
+    }
+
+    // Purge first: a cached menu must not point at a file we are about to delete.
+    this.purgeMenuCache(orgId);
+    await this.deleteCoverKeysBestEffort(previousKey);
+
+    const menuCoverUrls = coverUrlsFromKey(this.storage, primaryKey);
+    if (!menuCoverUrls) {
+      throw new NotFoundError('Cover URL could not be resolved');
+    }
+    return { menuCoverUrls };
+  }
+
+  async deleteMenuCover(ctx: RequestContext) {
+    const previousKey = await this.swapMenuCoverKey(ctx.orgId, null);
+    this.purgeMenuCache(ctx.orgId);
+    await this.deleteCoverKeysBestEffort(previousKey);
+    return { menuCoverUrls: null };
+  }
+
+  /** Stores the new cover key and returns the one it replaced. */
+  private swapMenuCoverKey(orgId: string, key: string | null): Promise<string | null> {
+    return withOrg(this.db, orgId, async (tx) => {
+      const org = await this.tenancyRepo.findOrganizationById(tx, orgId);
+      if (!org) {
+        throw new NotFoundError();
+      }
+      const updated = await this.tenancyRepo.updateOrganization(tx, orgId, { menuCoverKey: key });
+      if (!updated) {
+        throw new NotFoundError();
+      }
+      return org.menuCoverKey;
+    });
+  }
+
+  private async deleteCoverKeysBestEffort(coverKey: string | null): Promise<void> {
+    if (!coverKey) {
+      return;
+    }
+    try {
+      await this.logos.deleteCoverKeys(coverKey);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      this.logger.warn(`Failed to delete menu cover objects for key ${coverKey}: ${message}`);
+    }
+  }
+
   private async deleteLogoKeysBestEffort(logoKey: string): Promise<void> {
     try {
       await this.logos.deleteLogoKeys(logoKey);
@@ -260,6 +343,9 @@ export class OrgSettingsService {
       exchangeRateUpdatedAt: org.exchangeRateUpdatedAt?.toISOString() ?? null,
       displayItemStep: org.displayItemStep,
       displayTotalStep: org.displayTotalStep,
+      menuTheme: menuThemeFromRow(org.menuTheme),
+      menuCoverUrls: coverUrlsFromKey(this.storage, org.menuCoverKey),
+      menuLookAllowed: await this.entitlements.can(orgId, MENU_LOOK_FEATURE, tx),
     };
   }
 

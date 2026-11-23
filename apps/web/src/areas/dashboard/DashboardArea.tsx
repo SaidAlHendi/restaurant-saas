@@ -13,6 +13,7 @@ import {
 } from '../../features/session/session.selectors.js';
 import { BranchesPage } from '../../features/branches/pages/BranchesPage.js';
 import { BranchSettingsPage } from '../../features/settings/pages/BranchSettingsPage.js';
+import { MenuLookSettingsPage } from '../../features/settings/pages/MenuLookSettingsPage.js';
 import { RestaurantSettingsPage } from '../../features/settings/pages/RestaurantSettingsPage.js';
 import { SettingsIndexRedirect } from '../../features/settings/pages/SettingsIndexRedirect.js';
 import { SettingsLayoutPage } from '../../features/settings/pages/SettingsLayoutPage.js';
@@ -69,6 +70,7 @@ export default function DashboardArea() {
         <Route path="settings" element={<SettingsLayoutPage />}>
           <Route index element={<SettingsIndexRedirect />} />
           <Route path="restaurant" element={<RestaurantSettingsPage />} />
+          <Route path="menu-look" element={<MenuLookSettingsPage />} />
           <Route path="branch" element={<Navigate to="/dashboard/branches" replace />} />
           <Route path="staff" element={<Navigate to="/dashboard/staff" replace />} />
         </Route>

@@ -18,15 +18,12 @@ export function useSettingsLayout() {
   const tabs = useMemo(() => settingsTabsForPermissions(permissions), [permissions]);
 
   const activeTab: SettingsTabId | null = useMemo(() => {
-    if (location.pathname.endsWith('/restaurant')) {
-      return 'restaurant';
-    }
-    return null;
-  }, [location.pathname]);
+    return tabs.find((tab) => location.pathname.endsWith(`/${tab}`)) ?? null;
+  }, [location.pathname, tabs]);
 
   const tabItems = tabs.map((tab) => ({
     id: tab,
-    label: t('settings.tabs.restaurant'),
+    label: t(tab === 'restaurant' ? 'settings.tabs.restaurant' : 'settings.tabs.menuLook'),
     active: tab === activeTab,
     onSelect: () => {
       void navigate(settingsTabPath(tab));

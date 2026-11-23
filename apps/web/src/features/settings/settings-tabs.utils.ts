@@ -1,11 +1,12 @@
 import type { PermissionKey } from '@app/shared';
 
-export type SettingsTabId = 'restaurant';
+export type SettingsTabId = 'restaurant' | 'menu-look';
 
-const TAB_ORDER: SettingsTabId[] = ['restaurant'];
+const TAB_ORDER: SettingsTabId[] = ['restaurant', 'menu-look'];
 
 const TAB_PERMISSION: Record<SettingsTabId, PermissionKey> = {
   restaurant: 'org.manage',
+  'menu-look': 'org.manage',
 };
 
 export function settingsTabsForPermissions(permissions: readonly string[]): SettingsTabId[] {
