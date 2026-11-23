@@ -83,8 +83,8 @@ export class OrgLogoService {
     const meta = await this.assertSupportedImage(buffer);
     // EXIF orientations 5 to 8 swap width and height once the image is rotated upright.
     const swapped = (meta.orientation ?? 1) >= 5;
-    const width = (swapped ? meta.height : meta.width) ?? 0;
-    const height = (swapped ? meta.width : meta.height) ?? 0;
+    const width = swapped ? meta.height : meta.width;
+    const height = swapped ? meta.width : meta.height;
     if (width < COVER_MIN_WIDTH || height < COVER_MIN_HEIGHT) {
       throw new ValidationError(
         'Cover image is too small',
