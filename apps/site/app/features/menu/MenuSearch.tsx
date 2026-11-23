@@ -16,6 +16,12 @@ function applySearch(query: string): void {
       }
     }
     section.hidden = inSection === 0;
+    // Keep the category pills in step: no pill for a section the search emptied.
+    for (const chip of document.querySelectorAll<HTMLElement>('[data-menu-chip]')) {
+      if (chip.getAttribute('href') === `#${section.id}`) {
+        chip.hidden = inSection === 0;
+      }
+    }
     visible += inSection;
   }
   const empty = document.getElementById('menu-no-results');

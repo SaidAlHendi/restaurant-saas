@@ -260,13 +260,14 @@ export function MenuPageView({
             <a
               key={cat.id}
               href={`#category-${cat.id}`}
+              data-menu-chip
               className="shrink-0 rounded-full bg-muted px-4 py-2 text-sm font-medium transition-colors hover:bg-primary hover:text-primary-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             >
               {cat.name}
             </a>
           ))}
         </div>
-        {theme.showSearch ? <div id="menu-search-slot" className="mx-auto max-w-4xl px-5 pb-3" /> : null}
+        {theme.showSearch ? <div id="menu-search-slot" className="mx-auto min-h-[3.5rem] max-w-4xl px-5 pb-3" /> : null}
       </nav>
 
       {theme.showTicker && menu.categories.length > 0 ? (
@@ -350,7 +351,16 @@ export function MenuPageView({
         </p>
 
         {menu.poweredBy ? (
-          <p className="text-center text-sm text-muted-foreground">{poweredByLabel}</p>
+          <p className="text-center text-sm text-muted-foreground">
+            {poweredByLabel}{' '}
+            <a
+              href="https://getsahtain.com"
+              rel="noopener"
+              className="font-semibold text-foreground underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-primary"
+            >
+              {locale === 'ar' ? 'صحتين' : 'Sahtain'}
+            </a>
+          </p>
         ) : null}
       </main>
 

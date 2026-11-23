@@ -60,7 +60,9 @@ export function menuThemeFromForm(form: MenuLookForm): MenuTheme {
     showSearch: form.showSearch,
     showTicker: form.showTicker,
     closingLine: localized(form.closingEn, form.closingAr),
-    ...(BRAND_COLOR_PATTERN.test(form.brandColor) ? { brandColor: form.brandColor.toLowerCase() } : {}),
+    ...(BRAND_COLOR_PATTERN.test(form.brandColor.trim())
+      ? { brandColor: form.brandColor.trim().toLowerCase() }
+      : {}),
   };
 }
 

@@ -12,6 +12,9 @@ const LOGO_WIDTHS = [256, 512] as const;
 /** Menu hero cover: portrait 4:5 so the arch crop on the public menu keeps the subject. */
 const COVER_WIDTHS = [480, 960] as const;
 const COVER_ASPECT = 5 / 4;
+/** Smaller uploads would be stretched to 960 px wide and look blurry. */
+const COVER_MIN_WIDTH = 480;
+const COVER_MIN_HEIGHT = 600;
 
 function logoObjectKey(prefix: string, width: (typeof LOGO_WIDTHS)[number]): string {
   return `${prefix}-${String(width)}.webp`;
@@ -31,7 +34,7 @@ export class OrgLogoService {
     }
   }
 
-  private async assertSupportedImage(buffer: Buffer): Promise<void> {
+  private async assertSupportedImage(buffer: Buffer): Promise<sharp.Metadata> {
     let meta: sharp.Metadata;
     try {
       meta = await sharp(buffer, { limitInputPixels: 40_000_000 }).metadata();
@@ -45,6 +48,7 @@ export class OrgLogoService {
     if (meta.pages !== undefined && meta.pages > 1) {
       throw new ValidationError('Animated images are not supported');
     }
+    return meta;
   }
 
   async processAndUpload(orgId: string, buffer: Buffer): Promise<{ prefix: string; primaryKey: string }> {
@@ -76,7 +80,18 @@ export class OrgLogoService {
   }
 
   async processAndUploadCover(orgId: string, buffer: Buffer): Promise<{ primaryKey: string }> {
-    await this.assertSupportedImage(buffer);
+    const meta = await this.assertSupportedImage(buffer);
+    // EXIF orientations 5 to 8 swap width and height once the image is rotated upright.
+    const swapped = (meta.orientation ?? 1) >= 5;
+    const width = (swapped ? meta.height : meta.width) ?? 0;
+    const height = (swapped ? meta.width : meta.height) ?? 0;
+    if (width < COVER_MIN_WIDTH || height < COVER_MIN_HEIGHT) {
+      throw new ValidationError(
+        'Cover image is too small',
+        { minWidth: COVER_MIN_WIDTH, minHeight: COVER_MIN_HEIGHT },
+        'IMAGE_TOO_SMALL',
+      );
+    }
     const prefix = `orgs/${orgId}/menu-cover/${newUuidV7()}`;
     const pipeline = sharp(buffer, { limitInputPixels: 40_000_000 }).rotate();
     const written: string[] = [];

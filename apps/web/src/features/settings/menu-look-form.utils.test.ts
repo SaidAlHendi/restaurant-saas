@@ -77,3 +77,11 @@ describe('menu look form', () => {
     expect(menuLookErrorKey({ ...base, brandColor: '' })).toBeNull();
   });
 });
+
+describe('brand colour whitespace', () => {
+  it('keeps a brand colour that has surrounding spaces, in step with validation', () => {
+    const form = { ...menuLookFormFromTheme(DEFAULT_MENU_THEME), brandColor: ' #1F4A37 ' };
+    expect(menuLookErrorKey(form)).toBeNull();
+    expect(menuThemeFromForm(form).brandColor).toBe('#1f4a37');
+  });
+});

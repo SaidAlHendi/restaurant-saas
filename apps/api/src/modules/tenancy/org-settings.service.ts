@@ -27,7 +27,7 @@ import type { RequestContext } from '../../core/context/request-context';
 import type { ObjectStorage } from '../../core/storage/object-storage';
 import { OBJECT_STORAGE } from '../../core/storage/storage.tokens';
 import { coverUrlsFromKey, logoUrlFromKey, menuThemeFromRow } from '../public-menu/public-menu.mapper';
-import { scheduleMenuCachePurge } from '../public-menu/public-menu-cache.util';
+import { purgeMenuCacheNow, scheduleMenuCachePurge } from '../public-menu/public-menu-cache.util';
 
 import { OrgLogoService } from './org-logo.service';
 import { TenancyRepository } from './tenancy.repository';
@@ -63,8 +63,6 @@ export function moneyDisplayForOrg(
     totalStep: org.displayTotalStep,
   };
 }
-
-/** Plan feature that unlocks the public menu look (colours, layout, banner, cover, brand colour). */
 
 @Injectable()
 export class OrgSettingsService {
@@ -111,7 +109,8 @@ export class OrgSettingsService {
   }
 
   async patchSettings(ctx: RequestContext, body: PatchOrgSettingsBody) {
-    // Saving the default look is always fine, so a Free owner can still reset to it.
+    // Saving the default look is always fine, so a Free owner can still reset to it. Note this
+    // overwrites a look saved on an earlier plan; the dashboard form is read-only without the plan.
     if (body.menuTheme !== undefined && !isDefaultMenuTheme(body.menuTheme)) {
       await this.assertMenuLookAllowed(ctx.orgId);
     }
@@ -267,8 +266,8 @@ export class OrgSettingsService {
       throw err;
     }
 
-    // Purge first: a cached menu must not point at a file we are about to delete.
-    this.purgeMenuCache(orgId);
+    // Purge first and wait: a cached menu must not point at a file we are about to delete.
+    await this.purgeMenuCacheAndWait(orgId);
     await this.deleteCoverKeysBestEffort(previousKey);
 
     const menuCoverUrls = coverUrlsFromKey(this.storage, primaryKey);
@@ -280,7 +279,7 @@ export class OrgSettingsService {
 
   async deleteMenuCover(ctx: RequestContext) {
     const previousKey = await this.swapMenuCoverKey(ctx.orgId, null);
-    this.purgeMenuCache(ctx.orgId);
+    await this.purgeMenuCacheAndWait(ctx.orgId);
     await this.deleteCoverKeysBestEffort(previousKey);
     return { menuCoverUrls: null };
   }
@@ -413,6 +412,11 @@ export class OrgSettingsService {
   /** Active branch ids of the org, for callers outside tenancy (billing quantity). */
   listActiveBranchIds(tx: DrizzleTx, orgId: string): Promise<string[]> {
     return this.tenancyRepo.listActiveBranchIds(tx, orgId);
+  }
+
+  /** Public menu CDN purge that finishes before returning (logs on failure). */
+  private purgeMenuCacheAndWait(orgId: string): Promise<void> {
+    return purgeMenuCacheNow(this.db, this.tenancyRepo, this.menuCachePurger, orgId, this.logger);
   }
 
   /** Fire-and-forget public menu CDN purge for the org (logs on failure). */

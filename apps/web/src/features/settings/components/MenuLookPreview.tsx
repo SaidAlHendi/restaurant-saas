@@ -33,6 +33,8 @@ export function MenuLookPreview(props: MenuLookPreviewProps) {
       aria-label={label}
       dir={locale === 'ar' ? 'rtl' : 'ltr'}
       lang={locale}
+      // The public menu is always light; without this the `classic` look would follow a dark dashboard.
+      data-theme="cupcake"
       style={menuThemeVars(theme)}
       className="bg-background text-foreground border-border overflow-hidden rounded-2xl border text-start"
     >

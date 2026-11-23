@@ -599,6 +599,7 @@
       "coverRemove": "Remove cover photo",
       "coverPreviewAlt": "Cover photo preview",
       "coverTypeError": "Use a JPEG, PNG or WebP image.",
+      "coverTooSmall": "This image is too small. Use one at least 480 × 600 px.",
       "coverNeedsHero": "The cover photo shows only while the banner is on.",
       "showTicker": "Category ticker",
       "showTickerHint": "A slowly moving band of your category names under the banner.",

@@ -116,9 +116,9 @@ export function heroText(
   return text[locale]?.trim() || text[other]?.trim() || fallback;
 }
 
-/** Background colour of each preset, used to check the brand colour's contrast. `classic` is the app theme's `--base-100`. */
+/** Background colour of each preset, used to check the brand colour's contrast. `classic` is the app theme's `--canvas`. */
 export const MENU_PRESET_BACKGROUND: Record<MenuThemePreset, string> = {
-  classic: '#fbf8f2',
+  classic: '#f3ecdf',
   forest: '#f3eee2',
   espresso: '#fbf7f2',
   midnight: '#101418',

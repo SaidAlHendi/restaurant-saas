@@ -125,7 +125,7 @@ export function MenuLookPageView(props: MenuLookPageViewModel) {
                 placeholder="#1f4a37"
                 className="w-32"
                 onChange={(e) => {
-                  update({ brandColor: e.target.value });
+                  update({ brandColor: withHash(e.target.value) });
                 }}
               />
               {form.brandColor !== '' ? (
@@ -328,4 +328,10 @@ function HeroField({ id, label, value, dir, onChange }: HeroFieldProps) {
       />
     </div>
   );
+}
+
+/** Owners often paste `1f4a37`; add the missing `#` so the value is a valid colour. */
+function withHash(value: string): string {
+  const v = value.trim();
+  return v !== '' && !v.startsWith('#') ? `#${v}` : v;
 }
