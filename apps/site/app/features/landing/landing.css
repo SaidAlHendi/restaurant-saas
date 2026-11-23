@@ -160,6 +160,12 @@ html[lang='en'] .lp-ghost {
   font-weight: 700;
 }
 
+/* Not available yet: an empty mark instead of a tick, so the list reads as built vs coming. */
+.lp-check-soon::before {
+  content: '○';
+  font-weight: 400;
+}
+
 .lp-burger-line {
   position: absolute;
   inset-inline-start: 12px;

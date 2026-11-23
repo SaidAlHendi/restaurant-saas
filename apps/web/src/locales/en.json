@@ -1220,6 +1220,7 @@
     "title": "Billing",
     "description": "Your plan, payment and invoices.",
     "loadError": "Could not load billing. Try again.",
+    "soon": "Soon",
     "plansTitle": "Plans",
     "checkoutDisabled": "Online payment is not set up yet. Contact support to change your plan.",
     "plans": {
@@ -1285,6 +1286,8 @@
       "productsUnlimited": "Unlimited products",
       "usersPerBranch_one": "{{count}} staff member per branch",
       "usersPerBranch_other": "{{count}} staff per branch",
+      "devicesPerBranch_one": "{{count}} device per branch",
+      "devicesPerBranch_other": "Up to {{count}} devices per branch",
       "productsReached": "Your plan allows up to {{max}} products. Upgrade to add more.",
       "usersReached": "Your plan allows up to {{max}} staff per branch. Upgrade to add more.",
       "devicesReached": "Your plan allows up to {{max}} devices per branch. Upgrade to add more.",

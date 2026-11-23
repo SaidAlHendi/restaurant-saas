@@ -119,9 +119,12 @@ export function BillingPageView({
               <CardContent className="flex-1">
                 <ul className="flex flex-col gap-2 text-sm">
                   {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-2">
+                    <li key={feature.text} className="flex items-start gap-2">
                       <CheckIcon aria-hidden className="mt-0.5 size-4 shrink-0 text-success" />
-                      <span>{feature}</span>
+                      <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        {feature.text}
+                        {feature.soon ? <Badge variant="outline">{labels.soonBadge}</Badge> : null}
+                      </span>
                     </li>
                   ))}
                 </ul>

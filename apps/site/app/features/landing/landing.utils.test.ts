@@ -99,6 +99,14 @@ describe('buildPlanViews', () => {
     const views = buildPlanViews(getLandingContent('en').plans.items, 'en');
     expect(views.map((p) => p.price)).toEqual(['$0', '$12', '$39', '$79']);
   });
+
+  it('marks only unbuilt services as soon, in both languages', () => {
+    for (const locale of ['en', 'ar'] as const) {
+      const views = buildPlanViews(getLandingContent(locale).plans.items, locale);
+      const soon = Object.fromEntries(views.map((p) => [p.key, p.features.filter((f) => f.soon).length]));
+      expect(soon).toEqual({ free: 0, menu: 0, restaurant: 1, business: 7 });
+    }
+  });
 });
 
 describe('videoUrl', () => {

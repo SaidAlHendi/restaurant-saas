@@ -1,3 +1,4 @@
+import type { FeatureKey, LimitKey } from '@app/shared';
 import type { LandingLocale } from '../../../lib/locale.js';
 import type { LandingImageName } from '../landing-media.generated.js';
 
@@ -32,6 +33,9 @@ export type TicketContent = {
 
 export type PlanKey = 'free' | 'menu' | 'restaurant' | 'business';
 
+/** `key` ties the line to an entitlement so the "Soon" badge comes from `isFeatureSoon`. */
+export type PlanFeature = { text: string; key?: FeatureKey | LimitKey };
+
 export type PlanContent = {
   key: PlanKey;
   name: string;
@@ -41,7 +45,7 @@ export type PlanContent = {
   /** Text after the price, e.g. "/ month". Empty for the free plan. */
   unit: string;
   highlight: boolean;
-  features: string[];
+  features: PlanFeature[];
 };
 
 export type PhotoKey = 'tablet' | 'room' | 'pasta' | 'pass' | 'tiramisu';
@@ -74,7 +78,7 @@ export type LandingContent = {
   photos: Record<PhotoKey, { alt: string; caption: string }>;
   flow: { tag: string; title: string; lead: string; stops: FlowStop[] };
   kitchen: { title: string; tickets: TicketContent[] };
-  plans: { title: string; lead: string; items: PlanContent[] };
+  plans: { title: string; lead: string; recommendedLabel: string; soonLabel: string; items: PlanContent[] };
   faq: { title: string; lead: string; items: Array<{ q: string; a: string }> };
   contact: { title: string; lead: string; emailLabel: string; emailCta: string };
   whatsapp: { label: string; message: string };

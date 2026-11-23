@@ -1,4 +1,4 @@
-import { intlLocaleForUi } from '@app/shared';
+import { intlLocaleForUi, isFeatureSoon } from '@app/shared';
 import { landingPath, type LandingLocale, type PageKey } from '../../lib/locale.js';
 import type { LandingContent, NavKey, NavSectionId } from './content/types.js';
 import { LANDING_IMAGES, type LandingImageName } from './landing-media.generated.js';
@@ -100,6 +100,10 @@ export function switchLocalePath(target: LandingLocale, current: CurrentPage): s
 export function buildPlanViews(plans: LandingContent['plans']['items'], locale: LandingLocale) {
   return plans.map((plan) => ({
     ...plan,
+    features: plan.features.map((feature) => ({
+      text: feature.text,
+      soon: feature.key !== undefined && isFeatureSoon(feature.key),
+    })),
     price: formatPlanPrice(plan.priceMinor, plan.currency, locale),
   }));
 }

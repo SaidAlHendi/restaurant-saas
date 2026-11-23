@@ -4,6 +4,9 @@ All notable user-facing changes to Sahtain. Format follows [Keep a Changelog](ht
 
 ## Unreleased
 
+### Changed
+- Plans now list every service on the landing page, in Billing and in the docs; services that are not available yet (multiple branches, advanced reports and export, custom roles, ordering from the table QR, API access, device limit) carry a "Soon" badge.
+
 ### Fixed
 - Settings → Menu look: the page no longer shows a second scrollbar.
 - Settings → Menu look: the live preview now stays fully visible while you scroll through the options, and scrolls on its own if it is taller than the screen.

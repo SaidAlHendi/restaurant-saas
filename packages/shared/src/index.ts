@@ -16,6 +16,8 @@ export {
   MENU_LOOK_FEATURE,
 } from './billing/feature-keys.js';
 export type { FeatureKey, LimitKey } from './billing/feature-keys.js';
+export { SOON_FEATURE_KEYS, isFeatureSoon } from './billing/soon-features.js';
+export type { SoonFeatureKey } from './billing/soon-features.js';
 export { entitlementsSnapshotSchema, entitlementReasonSchema } from './billing/entitlements.js';
 export type { EntitlementsSnapshot, EntitlementReason } from './billing/entitlements.js';
 export {

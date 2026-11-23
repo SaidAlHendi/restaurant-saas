@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { toast } from '@app/ui';
-import { intlLocaleForUi, type BillingOverviewResponse, type PlanKey } from '@app/shared';
+import { intlLocaleForUi, isFeatureSoon, type BillingOverviewResponse, type PlanKey } from '@app/shared';
 
 import { useAppDispatch, useAppSelector } from '../../../app/hooks.js';
 import { formatMoney } from '../../../lib/money.js';
@@ -218,6 +218,7 @@ export function useBillingPage() {
         const action = planAction(overview, plan.key, at);
         const products = plan.limits['limit.products'];
         const users = plan.limits['limit.users_per_branch'];
+        const devices = plan.limits['limit.devices_per_branch'];
         const limitLines = [
           products === undefined || products === null
             ? t('billing.limits.productsUnlimited')
@@ -241,8 +242,19 @@ export function useBillingPage() {
                 : t('billing.price.perMonth'),
           isCurrent: overview.entitlements.planKey === plan.key,
           features: [
-            ...planFeatureList(plan.features).map((feature) => t(`billing.features.${feature}`)),
-            ...limitLines,
+            ...planFeatureList(plan.features).map((feature) => ({
+              text: t(`billing.features.${feature}`),
+              soon: isFeatureSoon(feature),
+            })),
+            ...limitLines.map((line) => ({ text: line, soon: false })),
+            ...(devices === undefined || devices === null
+              ? []
+              : [
+                  {
+                    text: t('billing.limits.devicesPerBranch', { count: devices }),
+                    soon: isFeatureSoon('limit.devices_per_branch'),
+                  },
+                ]),
           ],
           actionLabel: actionLabel(action, plan.key),
           actionDisabled: action === 'current' || busy,
@@ -319,6 +331,7 @@ export function useBillingPage() {
       pastDueDescription: t('billing.pastDue.description'),
       plansTitle: t('billing.plansTitle'),
       currentBadge: t('billing.actions.current'),
+      soonBadge: t('billing.soon'),
       checkoutDisabled: t('billing.checkoutDisabled'),
     },
   };
