@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { moneyMinorSchema } from '../i18n/localized-text.js';
 import { moneyDisplaySchema } from '../money/display-currency.js';
 import { productImageUrlsSchema } from '../catalog/product.js';
+import { DEFAULT_MENU_THEME, menuCoverUrlsSchema, menuThemeSchema } from './menu-theme.js';
 
 export const publicMenuLocaleSchema = z.enum(['ar', 'en']);
 
@@ -62,6 +63,10 @@ export const publicMenuOrgSchema = z.object({
    */
   display: moneyDisplaySchema.nullable().default(null),
   logoUrl: z.url().nullable(),
+  /** Defaults so menus cached at the CDN from before themes existed still parse. */
+  theme: menuThemeSchema.default(DEFAULT_MENU_THEME),
+  /** Hero cover photo (portrait 4:5); null = text-only hero. */
+  coverUrls: menuCoverUrlsSchema.nullable().default(null),
 });
 
 export const publicMenuPayloadSchema = z.object({

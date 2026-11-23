@@ -1,7 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common';
 
 import type { PublicDisplayPayload, PublicMenuPayload, PublicMenuQuery, PublicSitemapResponse, PublicTablePayload } from '@app/shared';
-import { publicDisplayTokenSchema, publicMenuLocaleSchema } from '@app/shared';
+import {
+  effectiveMenuTheme,
+  MENU_LOOK_FEATURE,
+  publicDisplayTokenSchema,
+  publicMenuLocaleSchema,
+} from '@app/shared';
 
 import { GoneError, NotFoundError } from '../../core/errors/app-errors';
 import { DRIZZLE, type DrizzleDb } from '../../core/db/db.module';
@@ -11,7 +16,7 @@ import type { ObjectStorage } from '../../core/storage/object-storage';
 import { EntitlementsService } from '../billing/entitlements.service';
 
 import { assemblePublicMenuCategories } from './public-menu.assemble';
-import { logoUrlFromKey } from './public-menu.mapper';
+import { coverUrlsFromKey, logoUrlFromKey, menuThemeFromRow } from './public-menu.mapper';
 import { moneyDisplayForOrg } from '../tenancy/org-settings.service';
 import { PublicMenuRepository } from './public-menu.repository';
 
@@ -110,7 +115,7 @@ export class PublicMenuService {
 
     const orgId = resolved.org_id;
     const multilang = await this.entitlements.can(orgId, 'menu.multilang');
-    const branding = await this.entitlements.can(orgId, 'menu.branding');
+    const branding = await this.entitlements.can(orgId, MENU_LOOK_FEATURE);
 
     const requestedLocale = query.locale;
     const defaultLocale = resolved.default_locale;
@@ -189,6 +194,9 @@ export class PublicMenuService {
           currency: orgRow.defaultCurrency,
           display: moneyDisplayForOrg(orgRow),
           logoUrl: logoUrlFromKey(this.storage, orgRow.logoKey),
+          // Without the branding feature guests get the default look; the saved one is kept for an upgrade.
+          theme: effectiveMenuTheme(menuThemeFromRow(orgRow.menuTheme), branding),
+          coverUrls: branding ? coverUrlsFromKey(this.storage, orgRow.menuCoverKey) : null,
         },
         branches: branchRows.map((b) => ({
           name: b.name,

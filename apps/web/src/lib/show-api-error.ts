@@ -26,8 +26,12 @@ export function messageFromApiError(error: unknown, t: TFunction): string {
       return t('common.errors.staffAlreadyMember');
     case 'MEMBERSHIP_NOT_ACTIVE_OR_DISABLED':
       return t('common.errors.membershipNotActiveOrDisabled');
+    case 'MENU_THEME_NOT_IN_PLAN':
+      return t('settings.menuLook.notInPlan');
     case 'FILE_TOO_LARGE':
       return t('common.errors.fileTooLarge');
+    case 'IMAGE_TOO_SMALL':
+      return t('settings.menuLook.coverTooSmall');
     case 'UNSUPPORTED_IMAGE_TYPE':
       return t('common.errors.unsupportedImageType');
     default:

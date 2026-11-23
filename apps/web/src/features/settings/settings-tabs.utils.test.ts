@@ -7,8 +7,8 @@ import {
 } from './settings-tabs.utils.js';
 
 describe('settingsTabsForPermissions', () => {
-  it('only offers the restaurant tab, to those who can manage the org', () => {
-    expect(settingsTabsForPermissions(['org.manage'])).toEqual(['restaurant']);
+  it('offers the restaurant and menu look tabs to those who can manage the org', () => {
+    expect(settingsTabsForPermissions(['org.manage'])).toEqual(['restaurant', 'menu-look']);
     expect(settingsTabsForPermissions(['branches.manage', 'staff.read'])).toEqual([]);
     expect(settingsTabsForPermissions(['menu.read'])).toEqual([]);
   });

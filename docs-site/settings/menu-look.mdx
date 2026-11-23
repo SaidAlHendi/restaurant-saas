@@ -1,0 +1,63 @@
+---
+title: "Menu look"
+description: "Choose the colours, layout, banner and search of your public QR menu."
+icon: "palette"
+---
+
+**Menu look** controls how the public menu that guests open from your QR code looks. Find it in **Settings → Menu look**. Only the restaurant **owner** can change it (the `org.manage` permission).
+
+The look belongs to the restaurant, not to a branch: every branch menu and every table QR code shows the same look. The menu content (dishes, prices, availability) still follows each branch.
+
+## Options
+
+| Option | Choices | Default |
+| --- | --- | --- |
+| **Colour style** | Classic, Forest, Espresso, Midnight. Each is tested for readable contrast. | Classic |
+| **Dish layout** | **Photo grid** (large photos, two to four columns), **List** (a photo beside each dish), **Text only** (name, description and price, no photos) | List |
+| **Banner** | Off, or on with a headline and an optional subline | Off |
+| **Cover photo** | None, or one photo shown in an arch beside the banner headline | None |
+| **Brand colour** | None, or one colour for buttons, tags and the banner | None (the style's own colours) |
+| **Search box** | Off, or on so guests can search dishes by name | Off |
+| **Category ticker** | Off, or on for a slowly moving band of your category names under the banner | Off |
+| **Closing line** | Empty, or a large line (English and Arabic) in the footer of the menu | Empty |
+
+### Banner text
+
+With the banner on, enter the headline and subline in English and in Arabic. Guests see the text in their menu language. If you only fill in one language, guests who read the other language see that one instead of an empty banner. If you leave every headline empty, Sahtain asks you to add one or turn the banner off.
+
+Each text can be up to 120 characters.
+
+### Brand colour
+
+Pick a colour with the colour picker or type it as `#rrggbb`. Sahtain uses it for buttons, tags and the banner, and picks white or dark text on top so the text stays readable (at least 4.5:1 contrast).
+
+The colour itself must stand out from the menu background by at least 3:1, because it is used for shapes and not for text. If it is too close to the background, for example a pale yellow on a cream menu, Sahtain darkens it on light styles or lightens it on dark styles until it passes, and the dashboard shows the adjusted colour with "Adjusted for readability". Your chosen value is kept: switching the colour style re-checks it against the new background.
+
+### Cover photo
+
+Upload one photo (JPEG, PNG or WebP, up to 5 MB, at least 480 × 600 px so it stays sharp). Sahtain crops it to a portrait 4:5 frame, so pick a photo whose subject is in the middle. On the menu it appears in an arch under the headline on phones and beside it on larger screens. It only shows while the banner is on; without a cover photo the banner is text only.
+
+The cover photo is saved the moment you upload or remove it, separately from the other options, and the public menu is refreshed right away. Uploading a new photo replaces and deletes the old one.
+
+### Category ticker and closing line
+
+The ticker is a decorative band that scrolls the names of your categories; guests who prefer reduced motion see it still. The closing line is a large sentence at the bottom of the menu, such as "See you soon". Leave both languages empty to show no closing line; if you fill in only one, guests who read the other language see it too.
+
+## Live preview
+
+The preview beside the form shows a sample menu with your restaurant name, the colour style, layout, banner and search box you have picked. It updates as you edit and does not change anything until you save. Use the language switch above the preview to check the English and Arabic versions. The preview uses sample dishes, so photos appear as grey blocks.
+
+## Plans
+
+The menu look is part of the **Menu** plan and above (and the trial). On the Free plan the page is read-only: guests see the default look and the dashboard says which plan unlocks the options. If your plan changes to Free, your saved look and cover photo are kept and come back when you upgrade. See [Plans and pricing](/subscriptions/plans).
+
+## Saving
+
+Select **Save changes**. The look is saved for the whole restaurant, and Sahtain clears the cached copy of your public menu, exactly as it does when you edit a dish. Guests see the new look the next time they open or refresh the menu, usually within a few minutes. If you leave the page with unsaved changes, Sahtain asks before discarding them.
+
+Until an owner saves a look, every restaurant uses the defaults in the table above.
+
+## Related
+
+- [Owner role](/roles/owner)
+- [Tenancy and identity tables](/database/tenancy-identity)

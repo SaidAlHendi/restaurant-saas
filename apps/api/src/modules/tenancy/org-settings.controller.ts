@@ -62,4 +62,28 @@ export class OrgSettingsController {
   deleteLogo(@Ctx() ctx: RequestContext) {
     return this.orgSettings.deleteLogo(ctx);
   }
+
+  @RequirePermission('org.manage')
+  @Post('menu-cover')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: upload,
+      limits: { fileSize: maxImageBytes, files: 1 },
+    }),
+  )
+  uploadMenuCover(
+    @Ctx() ctx: RequestContext,
+    @UploadedFile() file: Express.Multer.File | undefined,
+  ) {
+    if (!file) {
+      throw new ValidationError('File is required');
+    }
+    return this.orgSettings.uploadMenuCover(ctx, file);
+  }
+
+  @RequirePermission('org.manage')
+  @Delete('menu-cover')
+  deleteMenuCover(@Ctx() ctx: RequestContext) {
+    return this.orgSettings.deleteMenuCover(ctx);
+  }
 }

@@ -1,5 +1,5 @@
-import type { LocalizedText, PublicMenuPayload } from '@app/shared';
-import { pickLocalizedText } from '@app/shared';
+import type { LocalizedText, MenuTheme, PublicMenuPayload } from '@app/shared';
+import { DEFAULT_MENU_THEME, menuThemeSchema, pickLocalizedText } from '@app/shared';
 
 import {
   imageUrlsFromPrefix,
@@ -83,4 +83,25 @@ export function logoUrlFromKey(storage: ObjectStorage, logoKey: string | null | 
     return null;
   }
   return storage.publicUrl(logoKey);
+}
+
+/** The stored theme, or the default look when none is saved or the stored value no longer parses. */
+export function menuThemeFromRow(value: unknown): MenuTheme {
+  const parsed = menuThemeSchema.safeParse(value ?? {});
+  return parsed.success ? parsed.data : DEFAULT_MENU_THEME;
+}
+
+/** Public URLs of the hero cover (key ends in `-960.webp`; the 480 sibling is stored beside it). */
+export function coverUrlsFromKey(
+  storage: ObjectStorage,
+  coverKey: string | null | undefined,
+): { url480: string; url960: string } | null {
+  if (!coverKey) {
+    return null;
+  }
+  const prefix = coverKey.replace(/-960\.webp$/, '');
+  return {
+    url480: storage.publicUrl(`${prefix}-480.webp`),
+    url960: storage.publicUrl(coverKey),
+  };
 }

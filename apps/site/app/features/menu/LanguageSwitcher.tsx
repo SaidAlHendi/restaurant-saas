@@ -16,12 +16,16 @@ export function LanguageSwitcher({ locale, orgSlug, branchSlug, org }: LanguageS
     return null;
   }
   return (
-    <nav aria-label={locale === 'ar' ? 'اللغة' : 'Language'} className="flex gap-2 text-sm">
+    <nav aria-label={locale === 'ar' ? 'اللغة' : 'Language'} className="flex gap-1 rounded-full bg-muted p-1 text-sm">
       {org.locales.map((loc) => (
         <a
           key={loc}
           href={menuHref(loc, orgSlug, branchSlug)}
-          className={loc === locale ? 'font-semibold underline' : 'text-muted-foreground hover:text-foreground'}
+          className={
+            loc === locale
+              ? 'rounded-full bg-background px-3 py-1 font-semibold text-foreground'
+              : 'rounded-full px-3 py-1 text-muted-foreground hover:text-foreground'
+          }
           hrefLang={loc}
           lang={loc}
         >

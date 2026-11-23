@@ -4,6 +4,8 @@ import {
   createStaffInviteResponseSchema,
   orgLogoDeleteResponseSchema,
   orgLogoUploadResponseSchema,
+  orgMenuCoverDeleteResponseSchema,
+  orgMenuCoverUploadResponseSchema,
   orgSettingsResponseSchema,
   patchOrgSettingsBodySchema,
   patchStaffMembershipBodySchema,
@@ -16,6 +18,8 @@ import {
   type CreateStaffInviteBody,
   type OrgLogoDeleteResponse,
   type OrgLogoUploadResponse,
+  type OrgMenuCoverDeleteResponse,
+  type OrgMenuCoverUploadResponse,
   type OrgSettingsResponse,
   type PatchOrgSettingsBody,
   type PatchStaffMembershipBody,
@@ -70,6 +74,20 @@ export const settingsApi = baseApi.injectEndpoints({
       }),
       transformResponse: (response: unknown) => orgLogoDeleteResponseSchema.parse(response),
       invalidatesTags: [{ type: 'OrgSettings', id: 'CURRENT' }, 'Me'],
+    }),
+    uploadOrgMenuCover: builder.mutation<OrgMenuCoverUploadResponse, File>({
+      query: (file: File) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        return { url: '/v1/org/menu-cover', method: 'POST', body: formData };
+      },
+      transformResponse: (response: unknown) => orgMenuCoverUploadResponseSchema.parse(response),
+      invalidatesTags: [{ type: 'OrgSettings', id: 'CURRENT' }],
+    }),
+    deleteOrgMenuCover: builder.mutation<OrgMenuCoverDeleteResponse, undefined>({
+      query: () => ({ url: '/v1/org/menu-cover', method: 'DELETE' }),
+      transformResponse: (response: unknown) => orgMenuCoverDeleteResponseSchema.parse(response),
+      invalidatesTags: [{ type: 'OrgSettings', id: 'CURRENT' }],
     }),
     listStaff: builder.query<StaffListResponse, undefined>({
       query: () => '/v1/staff',
@@ -156,6 +174,8 @@ export const {
   usePatchOrgSettingsMutation,
   useUploadOrgLogoMutation,
   useDeleteOrgLogoMutation,
+  useUploadOrgMenuCoverMutation,
+  useDeleteOrgMenuCoverMutation,
   useListStaffQuery,
   useGetStaffPermissionsQuery,
   usePutStaffPermissionsMutation,

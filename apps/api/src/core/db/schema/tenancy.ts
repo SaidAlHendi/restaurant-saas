@@ -4,6 +4,7 @@ import {
   check,
   foreignKey,
   integer,
+  jsonb,
   numeric,
   pgEnum,
   pgTable,
@@ -35,6 +36,10 @@ export const organizations = pgTable('organizations', {
   defaultLocale: text('default_locale').notNull(),
   locales: text('locales').array().notNull(),
   logoKey: text('logo_key'),
+  /** Public QR menu look (preset, layout, hero); null = the default look. Validated by `menuThemeSchema`. */
+  menuTheme: jsonb('menu_theme'),
+  /** Hero cover photo of the public QR menu (`...-960.webp` key); null = text-only hero. */
+  menuCoverKey: text('menu_cover_key'),
   /** Currency shown to staff and guests; null = show `defaultCurrency`. */
   displayCurrency: text('display_currency'),
   /** Display-currency units for 1 `defaultCurrency` unit. */

@@ -8,7 +8,7 @@ icon: "building"
 
 ### organizations
 
-One row per restaurant (the tenant). Holds name, unique `slug`, `country`, default currency and locale, the enabled `locales`, `logo_key`, and `status` (`trial`, `active`, `past_due`, `suspended`, `cancelled`).
+One row per restaurant (the tenant). Holds name, unique `slug`, `country`, default currency and locale, the enabled `locales`, `logo_key`, `menu_theme`, `menu_cover_key`, and `status` (`trial`, `active`, `past_due`, `suspended`, `cancelled`). `menu_theme` is a nullable JSON value with the public menu look (colour style, dish layout, banner, search box); `null` means the default look, and a value that no longer parses also falls back to the default. `menu_cover_key` is the storage key of the hero cover photo (`null` = none); it is kept outside `menu_theme` because the cover is uploaded separately from the look form. Both are per restaurant, shared by all its branches. See [Menu look](/settings/menu-look).
 
 The default currency is the base currency that all prices are stored in. The owner can change it only while the restaurant has no orders; `branches.currency` is updated with it. Optional display currency columns: `display_currency`, `exchange_rate` (numeric(18,6), display units per 1 base unit), `exchange_rate_updated_at`, `display_item_step` (default 100) and `display_total_step` (default 500). When `display_currency` is null, no conversion happens. Each order copies these values into its own `display_currency`, `exchange_rate`, `display_item_step` and `display_total_step` when it is created, and cash payments store `display_tendered_minor` and `display_change_minor`.
 

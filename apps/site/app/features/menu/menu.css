@@ -1,0 +1,22 @@
+/* Category ticker band on the public menu. Content is rendered twice; moving by half a loop is seamless. */
+@keyframes menu-ticker-ltr {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@keyframes menu-ticker-rtl {
+  to {
+    transform: translateX(50%);
+  }
+}
+.menu-ticker-track {
+  animation: menu-ticker-ltr 40s linear infinite;
+}
+[dir='rtl'] .menu-ticker-track {
+  animation-name: menu-ticker-rtl;
+}
+@media (prefers-reduced-motion: reduce) {
+  .menu-ticker-track {
+    animation: none;
+  }
+}

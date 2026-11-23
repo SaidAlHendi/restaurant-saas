@@ -17,6 +17,9 @@ export const FEATURE_KEYS = [
   'api.access',
 ] as const;
 
+/** The feature that unlocks a custom public menu look (presets, layouts, hero, cover, brand colour). */
+export const MENU_LOOK_FEATURE = 'menu.branding' satisfies (typeof FEATURE_KEYS)[number];
+
 export type FeatureKey = (typeof FEATURE_KEYS)[number];
 
 /** Numeric limits (missing row on a plan = unlimited). */

@@ -1,9 +1,10 @@
 import { sql } from 'drizzle-orm';
 import type { Agent } from 'supertest';
 
-import { PLAN_IDS, type MeResponse } from '@app/shared';
+import { DEFAULT_MENU_THEME, PLAN_IDS, type MeResponse, type OrgSettingsResponse } from '@app/shared';
 
 import { JwtAccessService } from '../src/core/auth/jwt.service';
+import { MENU_CACHE_PURGER, type MenuCachePurger } from '../src/core/cache/menu-cache-purger';
 import { CLOCK } from '../src/core/clock/clock.tokens';
 import { DRIZZLE, type DrizzleDb } from '../src/core/db/db.module';
 import { withOrg } from '../src/core/db/with-org';
@@ -310,6 +311,79 @@ describe('Billing 2b Paddle (e2e)', () => {
       await nestApp.close();
     }
   });
+
+  it('plan change switches the public menu between the saved look and the default look, and purges the CDN cache', async () => {
+    const { nestApp, jwt } = await createAppWithFakePaddle();
+    try {
+      const purgeOrg = jest.spyOn(nestApp.get<MenuCachePurger>(MENU_CACHE_PURGER), 'purgeOrg');
+      const fresh = await signupFreshOrg(nestApp, jwt);
+      const theme = {
+        preset: 'forest',
+        layout: 'grid',
+        hero: { enabled: true, headline: { en: 'Welcome' }, subline: {} },
+        showSearch: true,
+        brandColor: '#8a1c1c',
+      };
+      const saved = await fresh.ownerAgent.patch('/v1/org/settings').send({ menuTheme: theme });
+      expect(saved.status).toBe(200);
+      const slug = (saved.body as { slug: string }).slug;
+      const publicMenu = async () =>
+        (await apiAgent(nestApp).get(`/v1/public/menus/${slug}`)).body as {
+          org: { theme: { preset: string; brandColor?: string } };
+          poweredBy?: boolean;
+        };
+
+      const subId = `sub_${newUuidV7().slice(-12)}`;
+      const event = (
+        type: string,
+        status: string,
+        occurredAt: string,
+        opts: { subscriptionId?: string; periodEnd?: string } = {},
+      ) =>
+        subscriptionEventPayload({
+          eventId: `evt-${newUuidV7()}`,
+          eventType: type,
+          occurredAt,
+          orgId: fresh.orgId,
+          subscriptionId: opts.subscriptionId ?? subId,
+          status,
+          priceId: TEST_PRICE_RESTAURANT,
+          currentPeriodEnd: opts.periodEnd ?? '2026-07-01T00:00:00.000Z',
+        });
+      await postWebhook(apiAgent(nestApp), event('subscription.created', 'active', '2026-06-15T12:00:00.000Z'));
+      expect((await publicMenu()).org.theme).toMatchObject({ preset: 'forest', brandColor: '#8a1c1c' });
+
+      purgeOrg.mockClear();
+      await postWebhook(apiAgent(nestApp), event('subscription.canceled', 'canceled', '2026-06-17T12:00:00.000Z'));
+      for (let i = 0; i < 50 && purgeOrg.mock.calls.length === 0; i += 1) {
+        await new Promise((resolve) => setTimeout(resolve, 20));
+      }
+      expect(purgeOrg).toHaveBeenCalled();
+
+      // Period over: the plan is Free, so guests get the default look. No manual purge in between.
+      clockNowMs = Date.parse('2026-07-02T00:00:00.000Z');
+      const downgraded = await publicMenu();
+      expect(downgraded.org.theme).toEqual(DEFAULT_MENU_THEME);
+      expect(downgraded.poweredBy).toBe(true);
+      const settings = (await fresh.ownerAgent.get('/v1/org/settings')).body as OrgSettingsResponse;
+      expect(settings.menuLookAllowed).toBe(false);
+      expect(settings.menuTheme).toMatchObject({ preset: 'forest', brandColor: '#8a1c1c' });
+
+      // Subscribing again brings the saved look back; nothing was deleted.
+      clockNowMs = Date.parse('2026-07-03T00:00:00.000Z');
+      await postWebhook(
+        apiAgent(nestApp),
+        event('subscription.created', 'active', '2026-07-03T00:00:00.000Z', {
+          subscriptionId: `sub_${newUuidV7().slice(-12)}`,
+          periodEnd: '2026-08-03T00:00:00.000Z',
+        }),
+        { tsSeconds: Math.floor(clockNowMs / 1000) },
+      );
+      expect((await publicMenu()).org.theme).toMatchObject({ preset: 'forest', brandColor: '#8a1c1c' });
+    } finally {
+      await nestApp.close();
+    }
+  }, 20_000);
 
   it('unknown price id and unknown orgId store event with error and leave subscription unchanged', async () => {
     const { nestApp, jwt } = await createAppWithFakePaddle();

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { PublicMenuPayload } from '@app/shared';
+import { DEFAULT_MENU_THEME, type PublicMenuPayload } from '@app/shared';
 
 import {
   buildMenuJsonLd,
@@ -18,6 +18,8 @@ const sampleMenu: PublicMenuPayload = {
     currency: 'SAR',
     display: null,
     logoUrl: null,
+    theme: DEFAULT_MENU_THEME,
+    coverUrls: null,
   },
   branches: [{ name: 'Main', slug: 'main', address: null }],
   categories: [
