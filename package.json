@@ -16,6 +16,7 @@
     "db:seed": "turbo run db:seed --filter=@app/api",
     "db:seed:demo": "turbo run db:seed:demo --filter=@app/api --",
     "db:seed:images": "turbo run db:seed:images --filter=@app/api --",
+    "e2e:report": "node scripts/e2e-report/run.mjs",
     "db:reset-test": "turbo run db:reset-test --filter=@app/api"
   },
   "devDependencies": {

@@ -34,3 +34,5 @@ infra/staging/staging.env
 
 graphify-out/
 .playwright-mcp/
+# E2E report output
+scripts/e2e-report/reports/
