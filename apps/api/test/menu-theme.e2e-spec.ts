@@ -140,6 +140,17 @@ describe('Menu look (e2e)', () => {
       expect(res.status).toBe(400);
     });
 
+    it('rejects a cover image smaller than 480x600', async () => {
+      const small = await sharp({ create: { width: 400, height: 500, channels: 3, background: '#385' } })
+        .png()
+        .toBuffer();
+      const res = await fresh.ownerAgent
+        .post('/v1/org/menu-cover')
+        .attach('file', small, { filename: 'small.png', contentType: 'image/png' });
+      expect(res.status).toBe(400);
+      expect((res.body as { error: { code: string } }).error.code).toBe('IMAGE_TOO_SMALL');
+    });
+
     it('removes the cover and clears the menu cache', async () => {
       purgeOrg.mockClear();
       const del = await fresh.ownerAgent.delete('/v1/org/menu-cover');
@@ -178,7 +189,7 @@ describe('Menu look (e2e)', () => {
 
     beforeAll(async () => {
       owner = await signupFreshOrg(app, app.get(JwtAccessService));
-      png = await sharp({ create: { width: 400, height: 500, channels: 3, background: '#385' } })
+      png = await sharp({ create: { width: 800, height: 1000, channels: 3, background: '#385' } })
         .png()
         .toBuffer();
       slug = ((await owner.ownerAgent.get('/v1/org/settings')).body as OrgSettingsResponse).slug;
