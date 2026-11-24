@@ -7,6 +7,7 @@ import type { RequestContext } from '../../core/context/request-context';
 import { CreateBranchBodyDto, PatchBranchBodyDto } from './dto/branch.dto';
 import { BranchesService } from './branches.service';
 import { PageQueryDto } from '../../core/validation/page-query.dto';
+import { NotifyChange } from '../../core/realtime/notify-change.decorator';
 
 @Controller('v1/branches')
 export class BranchesController {
@@ -19,6 +20,7 @@ export class BranchesController {
   }
 
   @RequirePermission('branches.manage')
+  @NotifyChange('branch')
   @Post()
   create(@Ctx() ctx: RequestContext, @Body() body: CreateBranchBodyDto) {
     return this.branches.create(ctx, body);
@@ -38,12 +40,14 @@ export class BranchesController {
   }
 
   @RequirePermission('branches.manage')
+  @NotifyChange('branch')
   @Post(':branchId/display-link/rotate')
   rotateDisplayLink(@Ctx() ctx: RequestContext, @Param('branchId', ParseUUIDPipe) branchId: string) {
     return this.branches.rotateDisplayLink(ctx, branchId);
   }
 
   @RequirePermission('branches.manage')
+  @NotifyChange('branch')
   @Patch(':branchId')
   patch(
     @Ctx() ctx: RequestContext,

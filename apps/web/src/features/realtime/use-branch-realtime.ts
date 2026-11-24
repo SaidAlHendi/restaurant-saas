@@ -4,7 +4,7 @@ import { useStore } from 'react-redux';
 import { apiBaseUrl } from '../../app/api/base-api.js';
 import { useAppDispatch } from '../../app/hooks.js';
 import type { RootState } from '../../app/store.js';
-import type { CatalogRealtimePayload } from '@app/shared';
+import type { CatalogRealtimePayload, DataChangedPayload } from '@app/shared';
 
 import {
   createRealtimeClient,
@@ -19,6 +19,7 @@ export type UseBranchRealtimeOptions = {
   onEvent: (event: RealtimeEvent) => void;
   onResync: () => void;
   onCatalogUpdated?: (payload: CatalogRealtimePayload) => void;
+  onDataChanged?: (payload: DataChangedPayload) => void;
 };
 
 export type BranchRealtimeStatus = {
@@ -37,6 +38,7 @@ export function useBranchRealtime({
   onEvent,
   onResync,
   onCatalogUpdated,
+  onDataChanged,
 }: UseBranchRealtimeOptions): BranchRealtimeStatus {
   const store = useStore<RootState>();
   const dispatch = useAppDispatch();
@@ -45,12 +47,14 @@ export function useBranchRealtime({
   const onEventRef = useRef(onEvent);
   const onResyncRef = useRef(onResync);
   const onCatalogUpdatedRef = useRef(onCatalogUpdated);
+  const onDataChangedRef = useRef(onDataChanged);
 
   useEffect(() => {
     onEventRef.current = onEvent;
     onResyncRef.current = onResync;
     onCatalogUpdatedRef.current = onCatalogUpdated;
-  }, [onEvent, onResync, onCatalogUpdated]);
+    onDataChangedRef.current = onDataChanged;
+  }, [onEvent, onResync, onCatalogUpdated, onDataChanged]);
 
   useEffect(() => {
     const update = () => {
@@ -81,6 +85,9 @@ export function useBranchRealtime({
       },
       onCatalogUpdated: (payload) => {
         onCatalogUpdatedRef.current?.(payload);
+      },
+      onDataChanged: (payload) => {
+        onDataChangedRef.current?.(payload);
       },
     });
     return () => {

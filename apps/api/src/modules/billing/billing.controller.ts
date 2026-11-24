@@ -19,6 +19,7 @@ import { RequirePermission } from '../../core/permissions/require-permission.dec
 import { BillingService } from './billing.service';
 import { BillingChangePlanBodyDto, BillingCheckoutBodyDto } from './dto/billing.dto';
 import { PaddleWebhookService } from './paddle-webhook.service';
+import { NotifyChange } from '../../core/realtime/notify-change.decorator';
 
 @Controller('v1/billing')
 export class BillingController {
@@ -40,6 +41,7 @@ export class BillingController {
   }
 
   @RequirePermission('billing.manage')
+  @NotifyChange('plan')
   @Post('change-plan')
   changePlan(@Ctx() ctx: RequestContext, @Body() body: BillingChangePlanBodyDto) {
     return this.billing.changePlan(ctx, body);

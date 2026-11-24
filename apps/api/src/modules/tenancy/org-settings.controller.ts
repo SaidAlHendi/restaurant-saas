@@ -19,6 +19,7 @@ import type { RequestContext } from '../../core/context/request-context';
 
 import { PatchOrgSettingsBodyDto } from './dto/org-settings.dto';
 import { OrgSettingsService } from './org-settings.service';
+import { NotifyChange } from '../../core/realtime/notify-change.decorator';
 
 const upload = memoryStorage();
 const maxImageBytes = 5 * 1024 * 1024;
@@ -34,12 +35,14 @@ export class OrgSettingsController {
   }
 
   @RequirePermission('org.manage')
+  @NotifyChange('settings')
   @Patch('settings')
   patchSettings(@Ctx() ctx: RequestContext, @Body() body: PatchOrgSettingsBodyDto) {
     return this.orgSettings.patchSettings(ctx, body);
   }
 
   @RequirePermission('org.manage')
+  @NotifyChange('settings')
   @Post('logo')
   @UseInterceptors(
     FileInterceptor('file', {
@@ -58,12 +61,14 @@ export class OrgSettingsController {
   }
 
   @RequirePermission('org.manage')
+  @NotifyChange('settings')
   @Delete('logo')
   deleteLogo(@Ctx() ctx: RequestContext) {
     return this.orgSettings.deleteLogo(ctx);
   }
 
   @RequirePermission('org.manage')
+  @NotifyChange('settings')
   @Post('menu-cover')
   @UseInterceptors(
     FileInterceptor('file', {
@@ -82,6 +87,7 @@ export class OrgSettingsController {
   }
 
   @RequirePermission('org.manage')
+  @NotifyChange('settings')
   @Delete('menu-cover')
   deleteMenuCover(@Ctx() ctx: RequestContext) {
     return this.orgSettings.deleteMenuCover(ctx);

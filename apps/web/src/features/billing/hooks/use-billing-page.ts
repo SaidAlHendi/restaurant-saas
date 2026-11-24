@@ -2,7 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { toast } from '@app/ui';
-import { intlLocaleForUi, isFeatureSoon, type BillingOverviewResponse, type PlanKey } from '@app/shared';
+import {
+  intlLocaleForUi,
+  isFeatureSoon,
+  type BillingOverviewResponse,
+  type PlanKey,
+} from '@app/shared';
 
 import { useAppDispatch, useAppSelector } from '../../../app/hooks.js';
 import { formatMoney } from '../../../lib/money.js';
@@ -38,16 +43,11 @@ export function useBillingPage() {
   const canManageBilling = useAppSelector(selectCan('billing.manage'));
   const uiLocale = i18n.language;
 
-  const [pollingInterval, setPollingInterval] = useState(0);
   const query = useGetBillingOverviewQuery(undefined, {
     skip: !canManageBilling,
-    pollingInterval,
   });
   const overview = query.data;
   const poll = useActivationPoll<BillingOverviewResponse>(overview);
-  useEffect(() => {
-    setPollingInterval(poll.pollingInterval);
-  }, [poll.pollingInterval]);
 
   // Keep nav locks and the banner in step with what this page shows.
   useEffect(() => {
@@ -195,7 +195,9 @@ export function useBillingPage() {
         case 'subscribe':
           return t('billing.actions.subscribe');
         case 'change':
-          return planKey === 'free' ? t('billing.actions.downgradeFree') : t('billing.actions.change');
+          return planKey === 'free'
+            ? t('billing.actions.downgradeFree')
+            : t('billing.actions.change');
         case 'keep':
           return t('billing.actions.keep');
         case 'current':
@@ -259,7 +261,9 @@ export function useBillingPage() {
           actionLabel: actionLabel(action, plan.key),
           actionDisabled: action === 'current' || busy,
           actionVariant:
-            action === 'keep' || action === 'subscribe' ? ('default' as const) : ('outline' as const),
+            action === 'keep' || action === 'subscribe'
+              ? ('default' as const)
+              : ('outline' as const),
           onAction: () => {
             if (action === 'subscribe') {
               void onSubscribe(plan.key);

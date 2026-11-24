@@ -150,6 +150,18 @@ export class HttpExceptionFilter implements ExceptionFilter {
       return;
     }
 
+    // body-parser rejects an oversized JSON body with a plain error (status 413), not an HttpException.
+    if (
+      typeof exception === 'object' &&
+      exception !== null &&
+      (Reflect.get(exception, 'status') === 413 || Reflect.get(exception, 'statusCode') === 413)
+    ) {
+      response.status(HttpStatus.PAYLOAD_TOO_LARGE).json({
+        error: { code: 'PAYLOAD_TOO_LARGE', message: 'Request body is too large', details: {} },
+      });
+      return;
+    }
+
     // Unexpected error (the response below hides the cause), so log it, otherwise it is invisible in production.
     this.logger.error(
       exception instanceof Error ? `${exception.name}: ${exception.message}` : String(exception),

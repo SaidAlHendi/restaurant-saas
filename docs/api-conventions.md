@@ -32,5 +32,6 @@
 - Realtime: Socket.io namespace `/rt`, room `branch:{branchId}`; events `order.placed`,
   `order.updated`, `order.item_updated`, `menu.availability_changed`, `branch.settings_updated` (payload `{ branchId }` — POS invalidates menu cache), each `{ orderId, version, change, ... }` where applicable
   (`change` identifies what happened: `placed`, `status`, `items_added`, `item_voided`, `item_status`, `cancelled`, `payment`).
+- Realtime `data.changed` (`{ scope, branchId, version }`, schema in `@app/shared`): one outbox row per active branch tells open screens to refetch, so no screen polls. Scopes: `tables`, `settings`, `branch`, `staff`, `devices`, `plan`. Write endpoints opt in with `@NotifyChange(scope)` (global `NotifyChangeInterceptor`, runs after a successful response). `plan` also drops the entitlements cache at once (no 30 s wait); Paddle webhooks and plan changes send it too. Admin suspend uses `{ kick: true }`: the org's open sockets are closed (room `org:{orgId}`, joined by every socket). The web app listens once in the signed-in shell (`useAppLiveSync`) and maps each scope to RTK Query tags. A new write endpoint that changes data other screens show must carry `@NotifyChange`.
 - Naming: routes kebab-case plural nouns (`/v1/branches/:branchId/orders`), JSON camelCase,
   DB snake_case.

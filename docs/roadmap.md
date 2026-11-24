@@ -2,12 +2,13 @@
 
 ## Status
 Rewrite this section at the end of every session (max 30 lines).
-- **State:** Steps 1-9 done. 10a done; 10b (Sentry, uptime, backup restore test) open, staging deploy in progress (`docs/runbook-staging.md`). Step 12 (admin) 12a-12d merged. Menu look complete.
-- **Last task:** "Soon" labels on plans. All four plans list their full services (landing, Billing page, docs-site); unbuilt ones show Soon / قريباً. No enforcement, price or seed change.
-- **How it works:** single source `packages/shared/src/billing/soon-features.ts` (`SOON_FEATURE_KEYS`, `isFeatureSoon`). Unbuilt: `limit.devices_per_branch`, `branches.multi`, `roles.custom`, `reports.advanced`, `reports.export`, `ordering.table_qr`, `api.access`. API spec `soon-features.spec.ts` fails if one is used in `@RequireFeature` / `.can` / `assertFeature`: remove the key from the list when the feature ships. Landing plan lines are `{text, key?}`, badge comes from the key; FAQ multi-branch answer now says coming soon.
-- **Changed files:** shared (`soon-features.ts`+test, index), api spec, site landing (`content/*.ts`, `types.ts`, `landing.utils.ts`+test, `PlansSection`, `InnerPages`), web billing (`use-billing-page.ts`, `BillingPageView.tsx`, en/ar locales), `docs-site/subscriptions/plans.mdx`, CHANGELOG.
-- **Next steps:** none open. Not clicked in a browser: check Billing cards and landing /plans in ar (RTL) and en at 390/1440px. The landing "All your branches in one dashboard" tile still reads as available; decide if it needs a Soon note.
-- **Gotchas:** after shared changes run `pnpm --filter @app/shared build`. e2e: `TS_NODE_PROJECT=./test/tsconfig.e2e.json pnpm exec jest --config test/jest-e2e.config.ts <name>` from `apps/api`. Root `.env` has CRLF. Migration `0024` does not exist.
+- **State:** Steps 1-9 done. 10a done; 10b open, staging deploy in progress (`docs/runbook-staging.md`). Step 12 (admin) 12a-12d merged.
+- **Last task:** E2E report suite (`scripts/e2e-report/`, PR #96) plus the fixes it found: live `data.changed` pushes for settings/branch/tables/staff/devices/plan, instant plan cache drop, suspend closes sockets, 413 instead of 500 on oversized bodies, polling removed.
+- **How it works:** `@NotifyChange(scope)` on a write endpoint -> `NotifyChangeInterceptor` -> `DataChangedNotifier` writes an outbox row per branch -> socket `data.changed`. Web: `useAppLiveSync` in `AppShellLayout` maps scope -> RTK tags. Details in `docs/api-conventions.md` (Realtime).
+- **Changed files:** shared `realtime/data-changed.ts`; api `core/realtime/*` (decorator, interceptor, notifier, module, org room), write controllers, billing services, 413 filter; web `features/realtime/*`, `lib/realtime.ts`, billing/devices hooks; e2e tests 14-15.
+- **Polling left:** POS offline fallback (60 s, only while socket is down), anonymous Ready screen (4 s, no socket for public tokens). Clock/lock timers are not data polling. Admin app: none.
+- **Next steps:** Ready screen over a public socket; audit log for permission changes; Cloudflare Workers Builds failure on PR #96 is unrelated.
+- **Gotchas:** after shared changes run `pnpm --filter @app/shared build` (and `@app/ui` build before web tsc). e2e: needs redis + postgres + API on :3000; `node scripts/e2e-report/run.mjs [filter]` (browser tests need web on :5173). Root `.env` has CRLF.
 
 - [x] 1. Monorepo scaffold, docker compose (Postgres, Redis), CI (lint, typecheck, test), deploy to staging
 - [x] 1b. UI kit in packages/ui: shadcn/ui + Tailwind v4, themes cupcake/forest, first batch of components, /dev/ui showcase, ESLint UI-only rule (docs/ui-kit.md)

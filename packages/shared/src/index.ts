@@ -584,3 +584,12 @@ export {
   slicePage,
 } from './page-pagination.js';
 export type { PageQuery } from './page-pagination.js';
+
+export {
+  DATA_CHANGED_EVENT,
+  DATA_CHANGED_SCOPES,
+  dataChangedPayloadSchema,
+  dataChangedScopeSchema,
+  type DataChangedPayload,
+  type DataChangedScope,
+} from './realtime/data-changed.js';

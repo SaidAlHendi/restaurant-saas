@@ -7,7 +7,7 @@ import { JwtAccessService } from '../auth/jwt.service';
 import { ForbiddenError, UnauthorizedError, ValidationError } from '../errors/app-errors';
 import { AuthContextService } from '../../modules/identity/auth-context.service';
 
-import { branchRoom, userRoom } from './realtime-rooms';
+import { branchRoom, orgRoom, userRoom } from './realtime-rooms';
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -64,7 +64,7 @@ export class RealtimeGateway implements OnGatewayInit {
       throw new ForbiddenError('Branch is not in scope', {}, 'FORBIDDEN');
     }
 
-    await socket.join([branchRoom(branchIdRaw), userRoom(ctx.userId)]);
+    await socket.join([branchRoom(branchIdRaw), userRoom(ctx.userId), orgRoom(ctx.orgId)]);
     this.disconnectAtTokenExpiry(socket, payload);
   }
 
