@@ -27,8 +27,12 @@ export function FaqPage({ locale, tracking }: InnerPageProps) {
   const vm = useInnerPage(locale, tracking, 'faq');
   return (
     <SiteShell shell={vm.shell}>
-      <FaqSection faq={vm.content.faq} />
-      <CtaSection closing={vm.content.closing} href={vm.links.contact} />
+      <FaqSection
+        faq={vm.content.faq}
+        photo={vm.content.photos.pasta}
+        contactHref={vm.links.contact}
+        contactLabel={vm.content.contact.title}
+      />
     </SiteShell>
   );
 }

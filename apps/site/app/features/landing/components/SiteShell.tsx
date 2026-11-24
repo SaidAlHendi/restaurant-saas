@@ -33,7 +33,6 @@ export function SiteShell({ shell, children }: SiteShellProps) {
           whatsappHref={shell.whatsapp.href}
           switchName={content.nav.switchName}
           brand={content.nav.brand}
-          cta={content.nav.cta}
           links={shell.links}
           social={shell.social}
           onCookieSettings={shell.consent.reopen}

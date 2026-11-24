@@ -199,15 +199,59 @@ export const landingEn: LandingContent = {
     items: [
       {
         q: 'What is Sahtain?',
-        a: 'A restaurant system with a till, a kitchen display, a digital menu and an owner dashboard.',
+        a: 'A restaurant system with a till, a kitchen display, a digital menu and an owner dashboard, all in one place.',
       },
       {
         q: 'Do I need special hardware?',
         a: 'No. Sahtain runs in the browser on any tablet, computer or phone, and you do not need a dedicated till. You can start with a device you already own.',
       },
       {
+        q: 'How does the free trial work?',
+        a: 'Request a free trial and we open your account. You get 14 days to set up your menu and take real orders before you choose a plan.',
+      },
+      {
+        q: 'How much does it cost?',
+        a: 'There are four plans: Free at $0, Menu at $12 a month, Restaurant at $39 per branch a month and Business at $79 per branch a month. Prices are in US dollars.',
+      },
+      {
+        q: 'Can I use Sahtain for free?',
+        a: 'Yes. The Free plan gives you a digital menu in Arabic and English with up to 40 products, and you can upgrade whenever your restaurant needs more.',
+      },
+      {
         q: 'Do you support more than one branch?',
         a: 'Multi-branch management is coming soon on the Business plan. Today each plan runs one branch.',
+      },
+      {
+        q: 'Is the menu available in Arabic and English?',
+        a: 'Yes. Every product and category can be written in both languages, and your guests switch language on the menu page.',
+      },
+      {
+        q: 'How do guests see my menu?',
+        a: 'Print a QR code for your restaurant or for each table. Guests scan it and your menu opens on their phone, with no app to install.',
+      },
+      {
+        q: 'How does the kitchen get the orders?',
+        a: 'When the cashier sends an order, it appears on the kitchen display straight away. The kitchen marks it preparing and ready, and the cashier sees each change live.',
+      },
+      {
+        q: 'Who on my team can use it, and what can they see?',
+        a: 'You can invite owners, managers, cashiers and kitchen staff. Each role only sees what it needs, and cashiers and kitchen staff can sign in with a PIN. Cancelling an order needs a manager’s approval.',
+      },
+      {
+        q: 'Can I print receipts?',
+        a: 'Yes. The cashier prints a receipt for each order, with the header and footer you set for your branch.',
+      },
+      {
+        q: 'Does it work without internet?',
+        a: 'Not yet. Sahtain needs a connection to take orders and keep the kitchen in sync. Working offline is on our list for a later release.',
+      },
+      {
+        q: 'Is my restaurant’s data private?',
+        a: 'Yes. Every restaurant’s data is kept separate from all others, and only the people you invite can open your account.',
+      },
+      {
+        q: 'Can I change my plan later?',
+        a: 'Yes. Change plan when your restaurant changes. Contact us and we will help you move up or down.',
       },
       { q: 'How do I start?', a: 'Request a free trial and we will open your account.' },
     ],

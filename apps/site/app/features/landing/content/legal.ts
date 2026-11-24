@@ -123,6 +123,16 @@ const thanksAr: ThanksContent = {
   heading: 'شكرًا، استلمنا طلبك.',
   body: 'سنتواصل معك قريبًا لفتح حسابك.',
   back: 'العودة إلى الصفحة الرئيسية',
+  ticket: {
+    label: 'طلبك',
+    status: 'وصل',
+    steps: [
+      { qty: '١', name: 'نراجع طلبك' },
+      { qty: '٢', name: 'نتواصل معك لفتح حسابك' },
+      { qty: '٣', name: 'نجهّز قائمتك وفرعك' },
+    ],
+  },
+  photoAlt: 'طبق جاهز على طاولة التمرير في المطبخ',
 };
 
 const thanksEn: ThanksContent = {
@@ -131,6 +141,16 @@ const thanksEn: ThanksContent = {
   heading: 'Thank you, we received your request.',
   body: 'We will be in touch shortly to open your account.',
   back: 'Back to the home page',
+  ticket: {
+    label: 'Your request',
+    status: 'Received',
+    steps: [
+      { qty: '1', name: 'We review your request' },
+      { qty: '2', name: 'We contact you to open your account' },
+      { qty: '3', name: 'We set up your menu and branch' },
+    ],
+  },
+  photoAlt: 'A finished dish on the pass in the kitchen',
 };
 
 export function getLegalContent(locale: LandingLocale): LandingLegalContent {

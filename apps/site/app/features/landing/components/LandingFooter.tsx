@@ -1,4 +1,3 @@
-import { Button } from '@app/ui';
 
 import { SITE_CONTACT_EMAIL } from '../../../lib/brand.js';
 import type { SocialLinks } from '../../../lib/social.js';
@@ -13,7 +12,6 @@ export type LandingFooterProps = {
   whatsappHref: string;
   switchName: string;
   brand: string;
-  cta: string;
   onCookieSettings: () => void;
 };
 
@@ -45,7 +43,6 @@ export function LandingFooter({
   whatsappHref,
   switchName,
   brand,
-  cta,
   onCookieSettings,
 }: LandingFooterProps) {
   return (
@@ -56,9 +53,6 @@ export function LandingFooter({
             {brand}
           </a>
           <p className="mt-3 max-w-[22em] text-lg">{footer.tagline}</p>
-          <Button asChild size="lg" className="mt-5">
-            <a href={links.contact}>{cta}</a>
-          </Button>
         </div>
 
         <nav aria-label={footer.exploreTitle} className="md:col-span-2">

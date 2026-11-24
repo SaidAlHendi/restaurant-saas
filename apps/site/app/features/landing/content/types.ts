@@ -151,4 +151,6 @@ export type ThanksContent = {
   heading: string;
   body: string;
   back: string;
+  ticket: { label: string; status: string; steps: Array<{ qty: string; name: string }> };
+  photoAlt: string;
 };

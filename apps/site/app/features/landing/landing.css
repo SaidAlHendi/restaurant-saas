@@ -139,6 +139,11 @@ html[lang='en'] .lp-ghost {
   background: var(--highlight);
 }
 
+.lp-ticket[data-tone='ready'] {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
 /* The curved line behind the product screens. Hidden on phones, where the cards stack. */
 .lp-curve-path {
   fill: none;
