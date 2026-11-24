@@ -5,7 +5,7 @@ alwaysApply: false
 ---
 # Frontend rules
 
-Full structure and patterns: `docs/frontend-architecture.md`. UI kit and themes: `docs/ui-kit.md`. `.tsx` files are UI only (see `45-components-ui-only.mdc`).
+Full structure and patterns: `docs/frontend-architecture.md`. UI kit and themes: `docs/ui-kit.md`. `.tsx` files are UI only (see `45-components-ui-only.md`).
 
 - `apps/web` is a Vite SPA. `apps/site` is server-rendered (React Router framework mode) for SEO. Never put
   public, indexable pages in `apps/web`, and never add Redux to `apps/site`.

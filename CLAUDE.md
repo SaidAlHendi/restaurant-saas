@@ -24,7 +24,7 @@
 - Backend, auth, RLS → `docs/backend-architecture.md` · DB → `docs/data-model.md`
 - API → `docs/api-conventions.md` · Frontend → `docs/frontend-architecture.md`
 - UI kit → `docs/ui-kit.md` · Env → `docs/env-explained.md` · Staging → `docs/runbook-staging.md`
-- Coding rules → `.cursor/rules/*.mdc` · Done gate: `pnpm lint && pnpm typecheck && pnpm test`
+- Coding rules → `docs/rules/*.md` · Done gate: `pnpm lint && pnpm typecheck && pnpm test`
 - Published docs (auth, roles/permissions, DB, plans) are the Mintlify .mdx files in
   `docs-site/` (`roles/`, `database/`, `subscriptions/`). Read the relevant page there
   instead of exploring code. Update the matching page in the same PR as the behavior change.

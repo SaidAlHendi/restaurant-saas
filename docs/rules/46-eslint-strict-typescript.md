@@ -78,7 +78,7 @@ RTK Query endpoints with **no argument** use **`undefined`**, not **`void`**: `b
 
 ## UI-only `.tsx` (apps/web, apps/site)
 
-See `45-components-ui-only.mdc` and `ui-only.js`: every feature `.tsx` (`src/features/**/*.tsx`) must not import `useState`, RTK Query, etc. Logic lives only in `.ts` files (`hooks/*.ts`, `*.utils.ts`). Every feature `.tsx` is UI only; never move logic to a new folder to get around this.
+See `45-components-ui-only.md` and `ui-only.js`: every feature `.tsx` (`src/features/**/*.tsx`) must not import `useState`, RTK Query, etc. Logic lives only in `.ts` files (`hooks/*.ts`, `*.utils.ts`). Every feature `.tsx` is UI only; never move logic to a new folder to get around this.
 
 ## Backend (apps/api, packages/shared): mistakes seen in this repo
 

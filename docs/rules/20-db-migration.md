@@ -18,6 +18,6 @@ alwaysApply: false
   Never drop/rename a column used by the currently deployed code.
 - Never edit a migration already merged to main; create a new one.
 - Large tables (orders, order_items, order_events): create indexes `CONCURRENTLY` in their own migration.
-- Every schema change also updates the demo seed in the same PR (`21-seed-data.mdc`).
+- Every schema change also updates the demo seed in the same PR (`21-seed-data.md`).
 - After generating, read the SQL, apply with `pnpm db:migrate` locally, run the full test suite.
 - In the PR description, list the migration and whether it is safe to run while the old version is live.

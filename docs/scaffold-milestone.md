@@ -352,7 +352,7 @@ VITE_API_URL=http://localhost:3000
 ## Docs and rules (context)
 
 - Product and architecture: `docs/product.md`, `docs/architecture.md`, `docs/backend-architecture.md`, `docs/frontend-architecture.md`, `docs/api-conventions.md`, `docs/data-model.md`, `docs/ui-kit.md`, `docs/roadmap.md`.
-- Agent rules: `.cursor/rules/00-core.mdc`, `AGENTS.md`.
+- Agent rules: `docs/rules/00-core.md`, `AGENTS.md`.
 
 ---
 

@@ -130,7 +130,7 @@ Email pattern: `{role}{n}@{org-slug}.seed.local`.
 
 **Checks:** every run ends with invariants (totals, payment status, business date, no future timestamps, image files) and exits 1 on failure. `data/data.spec.ts` keeps the menus Arabic-script only and at least 8 dishes per category.
 
-**Coverage:** `apps/api/src/scripts/seed-demo/coverage.spec.ts` fails if a Drizzle table is missing from `SEED_COVERAGE` (see `.cursor/rules/21-seed-data.mdc`).
+**Coverage:** `apps/api/src/scripts/seed-demo/coverage.spec.ts` fails if a Drizzle table is missing from `SEED_COVERAGE` (see `docs/rules/21-seed-data.md`).
 
 ## Docs
 

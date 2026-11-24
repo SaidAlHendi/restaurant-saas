@@ -1,4 +1,4 @@
-// Enforces `.cursor/rules/45-components-ui-only.mdc`: feature .tsx files render props only.
+// Enforces `docs/rules/45-components-ui-only.md`: feature .tsx files render props only.
 // State, effects, Redux, RTK Query and sockets belong in .ts view-model hooks.
 
 const LOGIC_HOOKS = [
@@ -12,7 +12,7 @@ const LOGIC_HOOKS = [
 ];
 
 const HOOK_MESSAGE =
-  'Feature .tsx files are UI only. Move state and effects to a view-model hook in hooks/*.ts (see 45-components-ui-only.mdc).';
+  'Feature .tsx files are UI only. Move state and effects to a view-model hook in hooks/*.ts (see 45-components-ui-only.md).';
 
 /**
  * @param {string[]} files globs the rule applies to

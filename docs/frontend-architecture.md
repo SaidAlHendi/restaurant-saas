@@ -46,7 +46,7 @@ apps/web/src/
 ### Rules
 - **`.tsx` = UI only.** Each page is `pages/XPage.tsx` → `const vm = useXPage(); return <XView {...vm} />`.
   `use-x-page.ts` holds all logic (RTK Query hooks, dispatch, local state, derived data, handlers).
-  Components in `components/` receive props and render `@app/ui` components. Details: `.cursor/rules/45-components-ui-only.mdc`.
+  Components in `components/` receive props and render `@app/ui` components. Details: `docs/rules/45-components-ui-only.md`.
 - **UI from `@app/ui` only** (shadcn/ui + Tailwind, themes cupcake/forest). See `docs/ui-kit.md`.
 - **Server state = RTK Query only.** Every endpoint is defined with `injectEndpoints` in `features/*/*.api.ts`
   with `providesTags`/`invalidatesTags`. Components never call `fetch`/axios directly.

@@ -47,7 +47,7 @@ before any non-trivial task. The current milestone is the first unchecked item i
 10. **Secrets** never go in code, logs or commits. Do not read `.env*` files.
 11. **Frontend `.tsx` files are UI only.** Logic (state, effects, RTK Query, dispatch, calculations,
     formatting, validation) lives in `.ts` view-model hooks, selectors and utils. UI comes from `@app/ui`
-    (shadcn/ui + Tailwind) with theme tokens only. See `45-components-ui-only.mdc` and `docs/ui-kit.md`.
+    (shadcn/ui + Tailwind) with theme tokens only. See `45-components-ui-only.md` and `docs/ui-kit.md`.
 
 ## Module boundaries (modular monolith)
 `apps/api/src/modules/{identity,tenancy,catalog,ordering,kitchen,reporting,billing,notifications,admin}`.
@@ -59,4 +59,4 @@ outbox events. Do not import another module's repository directly.
   approval when the plan changes the schema, the API contract, or a rule above.
 - One feature per branch and PR. Keep PRs small. Write tests with the feature, not after.
 - When you are unsure what a restaurant needs, ask; do not invent product behavior.
-- If you notice a rule here is wrong or missing, propose the edit to `.cursor/rules/00-core.mdc`.
+- If you notice a rule here is wrong or missing, propose the edit to `docs/rules/00-core.md`.
