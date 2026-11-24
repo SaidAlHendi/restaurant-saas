@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { DEFAULT_PAGE_SIZE } from '../page-pagination.js';
+
 /** Mirrors the `org_status` database enum. */
 export const ADMIN_ORG_STATUSES = [
   'trial',
@@ -18,7 +20,7 @@ export const adminOrgListQuerySchema = z.object({
   q: z.string().trim().max(120).optional(),
   status: adminOrgStatusSchema.optional(),
   page: z.coerce.number().int().min(1).default(1),
-  pageSize: z.coerce.number().int().min(1).max(ADMIN_ORG_PAGE_SIZE_MAX).default(20),
+  pageSize: z.coerce.number().int().min(1).max(ADMIN_ORG_PAGE_SIZE_MAX).default(DEFAULT_PAGE_SIZE),
 });
 export type AdminOrgListQuery = z.infer<typeof adminOrgListQuerySchema>;
 

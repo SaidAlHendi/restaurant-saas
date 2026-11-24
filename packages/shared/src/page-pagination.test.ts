@@ -14,7 +14,7 @@ describe('page pagination', () => {
       pageSize: 2,
       total: 5,
     });
-    expect(pageWindow({ page: 3 })).toEqual({ limit: 20, offset: 40 });
+    expect(pageWindow({ page: 3 })).toEqual({ limit: 10, offset: 20 });
     expect(pageMeta({ pageSize: 10 }, 4)).toEqual({ page: 1, pageSize: 10, total: 4 });
   });
   it('validates bounds', () => {

@@ -95,7 +95,7 @@ export function useProductsScreen(): ProductsPageViewProps {
 
   const listArgs = useMemo((): ProductListQuery => {
     const args: ProductListQuery = {
-      pageSize: 20,
+      pageSize: 10,
       page,
       isActive: undefined,
     };

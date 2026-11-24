@@ -2,11 +2,11 @@ import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { adminOrgStatusSchema, type AdminOrgListItem, type AdminOrgStatus, intlLocaleForUi } from '@app/shared';
+import { adminOrgStatusSchema, DEFAULT_PAGE_SIZE, type AdminOrgListItem, type AdminOrgStatus, intlLocaleForUi } from '@app/shared';
 
 import { useListRestaurantsQuery } from './restaurants.api.js';
 
-export const RESTAURANTS_PAGE_SIZE = 20;
+export const RESTAURANTS_PAGE_SIZE = DEFAULT_PAGE_SIZE;
 export const ALL_STATUSES = 'all';
 
 function parsePage(value: string | null): number {

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { intlLocaleForUi } from '@app/shared';
+import { DEFAULT_PAGE_SIZE, intlLocaleForUi } from '@app/shared';
 
 import { useListUsersQuery } from './users.api.js';
 
@@ -24,7 +24,7 @@ export function useUsersPage() {
     isError,
     retry: () => void refetch(),
     page,
-    pageSize: data?.pageSize ?? 20,
+    pageSize: data?.pageSize ?? DEFAULT_PAGE_SIZE,
     total: data?.total ?? 0,
     onPageChange: setPage,
     onSearch: (value: string) => {

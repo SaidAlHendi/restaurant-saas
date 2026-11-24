@@ -40,7 +40,7 @@ import { usePosOrderDetail } from './use-pos-order-detail.js';
 import { usePosPaymentDialog } from './use-pos-payment-dialog.js';
 import { usePosLockRequest } from '../pos-lock-context.js';
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 export function usePosOrdersPage() {
   const { t, i18n } = useTranslation();

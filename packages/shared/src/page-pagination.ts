@@ -4,7 +4,7 @@ export const PAGE_SIZE_MAX = 100;
 
 /**
  * Opt-in `page` + `pageSize` query params. When both are omitted the endpoint returns every
- * row, so existing callers (POS menu, dropdowns) keep working; `page` alone uses a pageSize of 20.
+ * row, so existing callers (POS menu, dropdowns) keep working; `page` alone uses a pageSize of 10.
  */
 export const pageQuerySchema = z.object({
   page: z.coerce.number().int().min(1).optional(),
@@ -12,10 +12,10 @@ export const pageQuerySchema = z.object({
 });
 export type PageQuery = z.infer<typeof pageQuerySchema>;
 
-export const DEFAULT_PAGE_SIZE = 20;
+export const DEFAULT_PAGE_SIZE = 10;
 
 /**
- * Always-paged list query: `page` defaults to 1 and `pageSize` to 20, so the response always
+ * Always-paged list query: `page` defaults to 1 and `pageSize` to 10, so the response always
  * carries `{ items, page, pageSize, total }`. Used by lists that can grow without bound
  * (orders, products, admin users, audit log).
  */

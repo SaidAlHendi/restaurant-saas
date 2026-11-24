@@ -28,7 +28,7 @@ import { useListOrdersQuery } from '../orders.api.js';
 import { useBranchBusinessDate } from './use-branch-business-date.js';
 import { useOrgSwitcher } from './use-org-switcher.js';
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 export function useDashboardOrdersPage() {
   const { t, i18n } = useTranslation();
