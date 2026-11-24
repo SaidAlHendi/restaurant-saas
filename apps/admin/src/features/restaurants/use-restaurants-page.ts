@@ -54,7 +54,6 @@ export function useRestaurantsPage() {
     [setParams],
   );
 
-  const pageCount = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
   const numberFormat = useMemo(() => new Intl.NumberFormat(intlLocaleForUi(i18n.language)), [i18n.language]);
   const dateFormat = useMemo(
     () => new Intl.DateTimeFormat(intlLocaleForUi(i18n.language), { dateStyle: 'medium' }),
@@ -66,7 +65,6 @@ export function useRestaurantsPage() {
     q,
     status: status ?? ALL_STATUSES,
     page,
-    pageCount,
     items: data?.items ?? [],
     total: data?.total ?? 0,
     isLoading: isFetching && !data,

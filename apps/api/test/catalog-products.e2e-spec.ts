@@ -37,7 +37,7 @@ describe('Catalog products (e2e)', () => {
     expect(created.status).toBe(201);
     const productId = (created.body as { id: string }).id;
 
-    const list = await owner.get('/v1/products').query({ categoryId, limit: 10 });
+    const list = await owner.get('/v1/products').query({ categoryId, pageSize: 10 });
     expect(list.status).toBe(200);
     expect((list.body as { items: { id: string }[] }).items.some((p) => p.id === productId)).toBe(
       true,
@@ -79,7 +79,7 @@ describe('Catalog products (e2e)', () => {
 
   it('list never contains another org products', async () => {
     const demo = await asDemoOwner(agent);
-    const list = await demo.get('/v1/products').query({ limit: 100 });
+    const list = await demo.get('/v1/products').query({ pageSize: 100 });
     expect(list.status).toBe(200);
     const items = (list.body as { items: { orgId: string }[] }).items;
     expect(items.every((p) => p.orgId === SEED_ORG.demo.id)).toBe(true);
@@ -161,7 +161,7 @@ describe('Catalog products (e2e)', () => {
     const id1 = (p1.body as { id: string }).id;
     const id2 = (p2.body as { id: string }).id;
 
-    const beforeList = await owner.get('/v1/products').query({ categoryId, limit: 100 });
+    const beforeList = await owner.get('/v1/products').query({ categoryId, pageSize: 100 });
     const before = (beforeList.body as { items: { id: string; sortOrder: number }[] }).items;
     const beforeMap = new Map(before.map((p) => [p.id, p.sortOrder]));
 
@@ -178,7 +178,7 @@ describe('Catalog products (e2e)', () => {
     });
     expect(reorder.status).toBe(404);
 
-    const afterList = await owner.get('/v1/products').query({ categoryId, limit: 100 });
+    const afterList = await owner.get('/v1/products').query({ categoryId, pageSize: 100 });
     const after = (afterList.body as { items: { id: string; sortOrder: number }[] }).items;
     for (const row of after) {
       expect(row.sortOrder).toBe(beforeMap.get(row.id));
@@ -229,7 +229,7 @@ describe('Catalog products (e2e)', () => {
     expect((patched.body as { categoryId: string; sortOrder: number }).categoryId).toBe(catB);
     expect((patched.body as { sortOrder: number }).sortOrder).toBe(1);
 
-    const listB = await owner.get('/v1/products').query({ categoryId: catB, limit: 100 });
+    const listB = await owner.get('/v1/products').query({ categoryId: catB, pageSize: 100 });
     const items = (listB.body as { items: { id: string; sortOrder: number }[] }).items.sort(
       (a, b) => a.sortOrder - b.sortOrder,
     );

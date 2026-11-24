@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { localizedTextInputSchema, moneyMinorSchema } from '../i18n/localized-text.js';
-import { cursorListQuerySchema, cursorListResponseSchema } from './pagination.js';
+import { pagedListQuerySchema, pageResponseSchema } from '../page-pagination.js';
 import {
   BRANCH_AVAILABILITY_INPUT_MESSAGE,
   branchAvailabilityFields,
@@ -38,7 +38,7 @@ export const productDetailSchema = productSchema.extend({
 
 export type ProductDetail = z.infer<typeof productDetailSchema>;
 
-export const productListQuerySchema = cursorListQuerySchema.extend({
+export const productListQuerySchema = pagedListQuerySchema.extend({
   categoryId: z.uuid().optional(),
   isActive: z
     .enum(['true', 'false'])
@@ -58,7 +58,7 @@ export const productListItemSchema = productSchema.extend({
 
 export type ProductListItem = z.infer<typeof productListItemSchema>;
 
-export const productListResponseSchema = cursorListResponseSchema(productListItemSchema);
+export const productListResponseSchema = pageResponseSchema(productListItemSchema);
 
 export const createProductBodySchema = z
   .object({

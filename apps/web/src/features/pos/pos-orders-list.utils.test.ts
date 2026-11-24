@@ -12,12 +12,12 @@ import {
 
 describe('tabToListQuery', () => {
   it('maps active tab', () => {
-    expect(tabToListQuery('active', 20)).toEqual({ limit: 20, activeOnly: true });
+    expect(tabToListQuery('active', 20)).toEqual({ pageSize: 20, activeOnly: true });
   });
 
   it('maps awaiting payment tab', () => {
     expect(tabToListQuery('awaitingPayment', 20)).toEqual({
-      limit: 20,
+      pageSize: 20,
       status: 'draft',
     });
   });
@@ -31,8 +31,8 @@ describe('parsePosOrdersTab', () => {
 
 describe('mergeListQueryWithSearch', () => {
   it('adds trimmed q', () => {
-    expect(mergeListQueryWithSearch({ limit: 10, activeOnly: true }, '  42 ')).toEqual({
-      limit: 10,
+    expect(mergeListQueryWithSearch({ pageSize: 10, activeOnly: true }, '  42 ')).toEqual({
+      pageSize: 10,
       activeOnly: true,
       q: '42',
     });
@@ -57,26 +57,26 @@ describe('today-only switch', () => {
   });
 
   it('builds the list query for every tab and switch value', () => {
-    expect(tabToListQuery('active', 20)).toEqual({ limit: 20, activeOnly: true });
+    expect(tabToListQuery('active', 20)).toEqual({ pageSize: 20, activeOnly: true });
     expect(tabToListQuery('active', 20, true)).toEqual({
-      limit: 20,
+      pageSize: 20,
       activeOnly: true,
       todayOnly: true,
     });
-    expect(tabToListQuery('ready', 20)).toEqual({ limit: 20, status: 'ready' });
+    expect(tabToListQuery('ready', 20)).toEqual({ pageSize: 20, status: 'ready' });
     expect(tabToListQuery('ready', 20, true)).toEqual({
-      limit: 20,
+      pageSize: 20,
       status: 'ready',
       todayOnly: true,
     });
     expect(tabToListQuery('completed', 20)).toEqual({
-      limit: 20,
+      pageSize: 20,
       status: 'completed',
       todayOnly: true,
     });
-    expect(tabToListQuery('completed', 20, false)).toEqual({ limit: 20, status: 'completed' });
-    expect(tabToListQuery('allToday', 20)).toEqual({ limit: 20, todayOnly: true });
-    expect(tabToListQuery('allToday', 20, false)).toEqual({ limit: 20 });
+    expect(tabToListQuery('completed', 20, false)).toEqual({ pageSize: 20, status: 'completed' });
+    expect(tabToListQuery('allToday', 20)).toEqual({ pageSize: 20, todayOnly: true });
+    expect(tabToListQuery('allToday', 20, false)).toEqual({ pageSize: 20 });
     for (const tab of POS_ORDERS_TABS) {
       expect(tabToListQuery(tab, 20, false)).not.toHaveProperty('todayOnly');
     }

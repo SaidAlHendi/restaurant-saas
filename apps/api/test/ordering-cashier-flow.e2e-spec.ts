@@ -261,13 +261,13 @@ describe('Cashier flow (e2e)', () => {
     const { branchId } = await createIsolatedBranch(owner, { payBeforeSend: true });
     const { productId } = await seedCatalogProduct(agent);
     await draftOrderOnBranch(owner, branchId, productId);
-    const list = await owner.get(`/v1/branches/${branchId}/orders?activeOnly=true&limit=100`);
+    const list = await owner.get(`/v1/branches/${branchId}/orders?activeOnly=true&pageSize=100`);
     expect(list.status).toBe(200);
     const items = (list.body as { items: Array<{ status: string }> }).items;
     expect(items.some((row) => row.status === 'draft')).toBe(true);
   });
 
-  it('list cursor paging works with q', async () => {
+  it('list page paging works with q', async () => {
     const owner = await asDemoOwner(apiAgent(app));
     const { branchId } = await createIsolatedBranch(owner);
     const { productId } = await seedCatalogProduct(agent);
@@ -285,14 +285,13 @@ describe('Cashier flow (e2e)', () => {
         clientOrderId,
       );
     }
-    const first = await owner.get(`/v1/branches/${branchId}/orders?q=Pager&limit=1`);
+    const first = await owner.get(`/v1/branches/${branchId}/orders?q=Pager&pageSize=1`);
     expect(first.status).toBe(200);
-    const firstBody = first.body as { items: unknown[]; nextCursor: string | null };
+    const firstBody = first.body as { items: unknown[]; page: number; total: number };
     expect(firstBody.items.length).toBe(1);
-    expect(firstBody.nextCursor).not.toBeNull();
-    const second = await owner.get(
-      `/v1/branches/${branchId}/orders?q=Pager&limit=1&cursor=${encodeURIComponent(firstBody.nextCursor ?? '')}`,
-    );
+    expect(firstBody.page).toBe(1);
+    expect(firstBody.total).toBe(3);
+    const second = await owner.get(`/v1/branches/${branchId}/orders?q=Pager&pageSize=1&page=2`);
     expect(second.status).toBe(200);
     expect((second.body as { items: unknown[] }).items.length).toBe(1);
   });
@@ -315,7 +314,7 @@ describe('Cashier flow (e2e)', () => {
       clientOrderId,
     );
     expect(created.status).toBe(201);
-    const list = await owner.get(`/v1/branches/${branchId}/orders?limit=20`);
+    const list = await owner.get(`/v1/branches/${branchId}/orders?pageSize=20`);
     expect(list.status).toBe(200);
     const orderId = (created.body as { id: string }).id;
     const row = (list.body as { items: Array<{ id: string; tableLabel: string | null }> }).items.find(
@@ -460,7 +459,7 @@ describe('Cashier flow (e2e)', () => {
       orderNumber,
       createdByMembershipId: ctx.membershipId,
     });
-    const list = await owner.get(`/v1/branches/${branchId}/orders?todayOnly=true&limit=100`);
+    const list = await owner.get(`/v1/branches/${branchId}/orders?todayOnly=true&pageSize=100`);
     expect(list.status).toBe(200);
     const ids = (list.body as { items: Array<{ id: string }> }).items.map((row) => row.id);
     expect(ids).not.toContain(oldId);

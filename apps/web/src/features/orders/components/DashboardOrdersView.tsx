@@ -1,11 +1,11 @@
 import {
   Badge,
-  BoxedPagination,
   Button,
   Card,
   DataTable,
   EmptyState,
   DatePicker,
+  NumberedPagination,
   PageHeader,
   SearchInput,
   Select,
@@ -41,7 +41,7 @@ export function DashboardOrdersView(props: DashboardOrdersViewProps) {
     showEmptyState,
     isLoading,
     isError,
-    loadMore,
+    pagination,
     onRetry,
     labels,
   } = props;
@@ -286,21 +286,15 @@ export function DashboardOrdersView(props: DashboardOrdersViewProps) {
             </div>
             <div className="flex items-center justify-between gap-3">
               <span className="text-muted-foreground text-sm">{labels.showingRecords}</span>
-              <BoxedPagination
-                page={props.pagination.page}
-                pageCount={props.pagination.pageCount}
-                onPageChange={(n) => {
-                  if (n > props.pagination.page && loadMore && !loadMore.loading) {
-                    loadMore.onClick();
-                  }
-                }}
-                labels={{
-                  navigation: labels.paginationNav,
-                  previous: labels.paginationPrevious,
-                  next: labels.paginationNext,
-                  page: (n) => `${labels.paginationPage} ${String(n)}`,
-                }}
-              />
+              {pagination.pageCount > 1 ? (
+                <NumberedPagination
+                  className="mx-0 w-auto"
+                  page={pagination.page}
+                  pageCount={pagination.pageCount}
+                  onPageChange={pagination.onPageChange}
+                  labels={pagination.labels}
+                />
+              ) : null}
             </div>
           </>
         ) : null}

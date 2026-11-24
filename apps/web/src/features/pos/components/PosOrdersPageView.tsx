@@ -4,6 +4,7 @@ import {
   ConnectionBanner,
   EmptyState,
   Label,
+  NumberedPagination,
   SearchInput,
   Spinner,
   Switch,
@@ -31,7 +32,7 @@ export function PosOrdersPageView(props: PosOrdersPageViewModel) {
     isError,
     emptyLabel,
     errorLabel,
-    loadMore,
+    pagination,
     realtimeBanner,
     orderDetail,
     paymentDialog,
@@ -204,17 +205,13 @@ export function PosOrdersPageView(props: PosOrdersPageViewModel) {
                   </li>
                 ))}
               </ul>
-              {loadMore ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="touch"
-                  className="w-full"
-                  disabled={loadMore.loading}
-                  onClick={loadMore.onClick}
-                >
-                  {loadMore.label}
-                </Button>
+              {pagination.pageCount > 1 ? (
+                <NumberedPagination
+                  page={pagination.page}
+                  pageCount={pagination.pageCount}
+                  onPageChange={pagination.onPageChange}
+                  labels={pagination.labels}
+                />
               ) : null}
             </>
           ) : null}

@@ -305,9 +305,6 @@ export type {
   ReorderModifiersBody,
 } from './catalog/modifier-group.js';
 
-export { cursorListQuerySchema, cursorListResponseSchema } from './catalog/pagination.js';
-export type { CursorListQuery } from './catalog/pagination.js';
-
 export {
   orderTypeSchema,
   orderStatusSchema,
@@ -485,7 +482,6 @@ export type {
 } from './admin/orgs.js';
 
 export {
-  ADMIN_CURSOR_PAGE_SIZE,
   ADMIN_TRIAL_ENDING_DAYS,
   adminUserListQuerySchema,
   adminTenantUserSchema,
@@ -578,9 +574,10 @@ export {
   DEFAULT_PAGE_SIZE,
   PAGE_SIZE_MAX,
   pageMeta,
+  pagedListQuerySchema,
   pageQuerySchema,
   pageResponseSchema,
   pageWindow,
   slicePage,
 } from './page-pagination.js';
-export type { PageQuery } from './page-pagination.js';
+export type { PagedListQuery, PageQuery } from './page-pagination.js';

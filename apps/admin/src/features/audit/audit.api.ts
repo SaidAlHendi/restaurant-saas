@@ -6,12 +6,14 @@ import {
 
 import { baseApi } from '../../app/api/base-api.js';
 
+export type AuditListArgs = Pick<AdminAuditListQuery, 'actor' | 'action' | 'page'>;
+
 export const auditApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    listAudit: builder.query<AdminAuditListResponse, AdminAuditListQuery>({
-      query: ({ actor, action, cursor }) => ({
+    listAudit: builder.query<AdminAuditListResponse, AuditListArgs>({
+      query: ({ actor, action, page }) => ({
         url: '/v1/admin/audit',
-        params: { actor: actor || undefined, action: action || undefined, cursor },
+        params: { actor: actor || undefined, action: action || undefined, page },
       }),
       transformResponse: (response: unknown) => adminAuditListResponseSchema.parse(response),
     }),

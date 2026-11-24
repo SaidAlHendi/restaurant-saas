@@ -3,7 +3,6 @@ import { EyeIcon, MoreHorizontalIcon, XCircleIcon } from 'lucide-react';
 import {
   Badge,
   Button,
-  CursorPagination,
   DataTable,
   DataTableColumnToggle,
   DropdownMenu,
@@ -152,14 +151,6 @@ export function DataSection({ copy, idPrefix, orders }: DataSectionProps) {
           page: (n) => `${d.page} ${orders.formatPage(n)}`,
           morePages: d.morePages,
         }}
-      />
-      <CursorPagination
-        hasPrevious={orders.hasPrevious}
-        hasNext={orders.hasNext}
-        onPrevious={orders.onPrevious}
-        onNext={orders.onNext}
-        summary={d.cursorSummary}
-        labels={{ navigation: d.pagination, previous: d.previous, next: d.next }}
       />
 
       <ShowcaseRow label={d.badgeVariants}>

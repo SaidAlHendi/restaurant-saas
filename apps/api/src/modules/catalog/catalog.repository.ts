@@ -1,4 +1,4 @@
-import { and, asc, count, eq, getTableColumns, gt, inArray, isNull, or, sql } from 'drizzle-orm';
+import { and, asc, count, eq, getTableColumns, inArray, isNull, sql } from 'drizzle-orm';
 import { Injectable } from '@nestjs/common';
 
 import {
@@ -12,7 +12,6 @@ import {
 } from '../../core/db/schema/catalog';
 import type { DrizzleTx } from '../../core/db/with-org';
 import { escapeLikePattern } from '../../lib/sql-like';
-import type { ProductListCursor } from '../../lib/cursor';
 
 /** Product is shown in `branchId`: marked for all branches, or listed for that branch. */
 export function productInBranch(branchId: string) {
@@ -153,17 +152,9 @@ export class CatalogRepository {
     return result[0]?.count ?? 0;
   }
 
-  async listProducts(
-    tx: DrizzleTx,
+  private productListConditions(
     orgId: string,
-    opts: {
-      categoryId?: string;
-      isActive?: boolean;
-      search?: string;
-      branchId?: string;
-      cursor?: ProductListCursor;
-      limit: number;
-    },
+    opts: { categoryId?: string; isActive?: boolean; search?: string; branchId?: string },
   ) {
     const conditions = [eq(products.orgId, orgId), isNull(products.deletedAt)];
     if (opts.categoryId) {
@@ -184,21 +175,40 @@ export class CatalogRepository {
         )`,
       );
     }
-    if (opts.cursor) {
-      conditions.push(
-        or(
-          gt(products.sortOrder, opts.cursor.sortOrder),
-          and(eq(products.sortOrder, opts.cursor.sortOrder), gt(products.id, opts.cursor.id)),
-        ) ?? sql`true`,
-      );
-    }
+    return and(...conditions);
+  }
 
+  async listProducts(
+    tx: DrizzleTx,
+    orgId: string,
+    opts: {
+      categoryId?: string;
+      isActive?: boolean;
+      search?: string;
+      branchId?: string;
+      limit: number;
+      offset: number;
+    },
+  ) {
     return tx
       .select()
       .from(products)
-      .where(and(...conditions))
+      .where(this.productListConditions(orgId, opts))
       .orderBy(asc(products.sortOrder), asc(products.id))
-      .limit(opts.limit + 1);
+      .limit(opts.limit)
+      .offset(opts.offset);
+  }
+
+  async countListedProducts(
+    tx: DrizzleTx,
+    orgId: string,
+    opts: { categoryId?: string; isActive?: boolean; search?: string; branchId?: string },
+  ) {
+    const rows = await tx
+      .select({ count: sql<number>`count(*)::int` })
+      .from(products)
+      .where(this.productListConditions(orgId, opts));
+    return rows[0]?.count ?? 0;
   }
 
   async findProductById(tx: DrizzleTx, productId: string, includeDeleted = false) {

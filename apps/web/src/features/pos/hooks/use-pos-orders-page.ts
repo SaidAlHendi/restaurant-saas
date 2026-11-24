@@ -9,6 +9,7 @@ import { baseApi } from '../../../app/api/base-api.js';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks.js';
 import { readPrintAdditions } from '../pos-print-pref.js';
 import { intlLocaleForUi, orderMoneyFormatter } from '../../../lib/money.js';
+import { listPaginationLabels, pageCountOf } from '../../../lib/pagination.js';
 import type { RealtimeEvent } from '../../../lib/realtime.js';
 import { ordersApi, useListOrdersQuery } from '../../orders/orders.api.js';
 import { useBranchRealtime } from '../../realtime/use-branch-realtime.js';
@@ -57,22 +58,16 @@ export function usePosOrdersPage() {
   const tab = parsePosOrdersTab(searchParams.get('tab'));
   const todayOnly = parseTodayOnly(searchParams.get('today'), tab);
   const [searchQ, setSearchQ] = useState('');
-  const [cursor, setCursor] = useState<string | undefined>(undefined);
-  const [accumulated, setAccumulated] = useState<OrderListItem[]>([]);
+  const [page, setPage] = useState(1);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const beforePaymentStatusRef = useRef<OrderStatus | null>(null);
   const handoverAfterPayRef = useRef<string | null>(null);
   /** Row whose handover is being prepared (fetching the order or completing it): its button shows a spinner. */
   const [handoverBusyId, setHandoverBusyId] = useState<string | null>(null);
 
-  const reloadFirstPage = useCallback(() => {
-    setCursor(undefined);
-    setAccumulated([]);
-  }, []);
-
   useEffect(() => {
-    reloadFirstPage();
-  }, [tab, todayOnly, branchId, searchQ, reloadFirstPage]);
+    setPage(1);
+  }, [tab, todayOnly, branchId, searchQ]);
 
   const locale = i18n.language.startsWith('ar') ? 'ar' : 'en';
   const uiLocale = intlLocaleForUi(i18n.language);
@@ -84,45 +79,30 @@ export function usePosOrdersPage() {
   );
 
   const { data, isLoading, isError, isFetching, refetch } = useListOrdersQuery(
-    { branchId: branchId ?? '', query: { ...listQuery, cursor } },
+    { branchId: branchId ?? '', query: { ...listQuery, page } },
     { skip: !branchId },
   );
 
-  useEffect(() => {
-    if (!data) {
-      return;
-    }
-    if (cursor === undefined) {
-      setAccumulated(data.items);
-      return;
-    }
-    setAccumulated((prev) => {
-      const ids = new Set(prev.map((row) => row.id));
-      const next = data.items.filter((row) => !ids.has(row.id));
-      return [...prev, ...next];
-    });
-  }, [cursor, data]);
+  const items = useMemo(() => data?.items ?? [], [data]);
 
   const onRealtimeEvent = useCallback(
     ({ payload }: RealtimeEvent) => {
       if (!branchId || payload.branchId !== branchId) {
         return;
       }
-      reloadFirstPage();
       const tags = posOrderTagsForEvent([], payload, branchId);
       if (tags.length > 0) {
         dispatch(baseApi.util.invalidateTags(tags));
       }
       dispatch(baseApi.util.invalidateTags([{ type: 'Order', id: 'LIST' }]));
     },
-    [branchId, dispatch, reloadFirstPage],
+    [branchId, dispatch],
   );
 
   const realtime = useBranchRealtime({
     branchId,
     onEvent: onRealtimeEvent,
     onResync: () => {
-      reloadFirstPage();
       dispatch(baseApi.util.invalidateTags(['Order']));
     },
   });
@@ -269,7 +249,7 @@ export function usePosOrdersPage() {
 
   const rows = useMemo(() => {
     const takeawayLabel = t('pos.orderType.takeaway');
-    return accumulated.map((order) => ({
+    return items.map((order) => ({
       id: order.id,
       orderNumber: order.orderNumber,
       timeLabel: new Intl.DateTimeFormat(intlLocaleForUi(uiLocale), {
@@ -306,7 +286,7 @@ export function usePosOrdersPage() {
             }
           : null,
     }));
-  }, [accumulated, handoverBusyId, handoverRow, menu?.branch.timezone, t, tableLabelById, uiLocale]);
+  }, [items, handoverBusyId, handoverRow, menu?.branch.timezone, t, tableLabelById, uiLocale]);
 
   return {
     tab,
@@ -353,16 +333,12 @@ export function usePosOrdersPage() {
     isFetching,
     emptyLabel: t('pos.orders.empty'),
     errorLabel: t('pos.orders.error'),
-    loadMore:
-      data?.nextCursor !== null && data?.nextCursor !== undefined
-        ? {
-            label: t('pos.orders.loadMore'),
-            loading: isFetching,
-            onClick: () => {
-              setCursor(data.nextCursor ?? undefined);
-            },
-          }
-        : null,
+    pagination: {
+      page,
+      pageCount: pageCountOf(data?.total, data?.pageSize),
+      onPageChange: setPage,
+      labels: listPaginationLabels(t),
+    },
     realtimeBanner: {
       visible: !realtime.isOnline && realtime.state !== 'connecting',
       message: t('pos.realtimeDisconnected'),

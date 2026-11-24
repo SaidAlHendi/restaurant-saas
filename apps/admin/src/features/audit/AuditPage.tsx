@@ -10,7 +10,7 @@ import {
   type DataTableColumn,
 } from '@app/ui';
 
-import { CursorPager } from '../../lib/CursorPager.js';
+import { AdminPagination } from '../../lib/AdminPagination.js';
 import { useAuditPage } from './use-audit-page.js';
 
 export default function AuditPage() {
@@ -119,15 +119,11 @@ export default function AuditPage() {
         }
         labels={{ actions: t('common.actions'), sortBy: t('common.sortBy') }}
       />
-      <CursorPager
-        pageLabel={t('common.page', { page: vm.pageNumber })}
-        previousLabel={t('common.previous')}
-        nextLabel={t('common.next')}
-        hasPrevious={vm.hasPrevious}
-        hasNext={vm.hasNext}
-        disabled={vm.isFetching}
-        onPrevious={vm.onPrevious}
-        onNext={vm.onNext}
+      <AdminPagination
+        page={vm.page}
+        pageSize={vm.pageSize}
+        total={vm.total}
+        onPageChange={vm.onPageChange}
       />
     </div>
   );

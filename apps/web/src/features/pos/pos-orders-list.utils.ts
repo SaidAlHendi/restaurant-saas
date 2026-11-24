@@ -44,10 +44,10 @@ export function parseTodayOnly(value: string | null, tab: PosOrdersTab): boolean
 
 export function tabToListQuery(
   tab: PosOrdersTab,
-  limit: number,
+  pageSize: number,
   todayOnly: boolean = defaultTodayOnly(tab),
 ): OrderListQueryInput {
-  const base: OrderListQueryInput = { limit, ...(todayOnly ? { todayOnly: true } : {}) };
+  const base: OrderListQueryInput = { pageSize, ...(todayOnly ? { todayOnly: true } : {}) };
   switch (tab) {
     case 'active':
       return { ...base, activeOnly: true };

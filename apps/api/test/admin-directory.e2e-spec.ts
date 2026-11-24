@@ -112,7 +112,7 @@ describe('Admin users, subscriptions, plans and audit (e2e)', () => {
         email: string;
         memberships: { orgId: string; orgName: string; roleKey: string }[];
       }[];
-      nextCursor: string | null;
+      total: number;
     };
     expect(body.items).toHaveLength(1);
     expect(body.items[0]?.memberships[0]).toMatchObject({
@@ -124,7 +124,7 @@ describe('Admin users, subscriptions, plans and audit (e2e)', () => {
     expect((await as('support').get('/v1/admin/users').query({ search: '%' })).body).toMatchObject({
       items: [],
     });
-    expect((await as('support').get('/v1/admin/users').query({ cursor: 'garbage' })).status).toBe(
+    expect((await as('support').get('/v1/admin/users').query({ page: '0' })).status).toBe(
       400,
     );
   });
@@ -179,7 +179,7 @@ describe('Admin users, subscriptions, plans and audit (e2e)', () => {
     const all = await as('super').get('/v1/admin/audit').query(q);
     const body = all.body as {
       items: { action: string; actorEmail: string }[];
-      nextCursor: string | null;
+      total: number;
     };
     expect(body.items.map((i) => i.action)).toEqual(
       [2, 1, 0].map((i) => `dir.test.${runId}.${String(i)}`),
@@ -194,6 +194,6 @@ describe('Admin users, subscriptions, plans and audit (e2e)', () => {
       .get('/v1/admin/audit')
       .query({ ...q, actor: `dir-super-${runId}` });
     expect((byActorOk.body as { items: unknown[] }).items).toHaveLength(3);
-    expect((await as('super').get('/v1/admin/audit').query({ cursor: '!!' })).status).toBe(400);
+    expect((await as('super').get('/v1/admin/audit').query({ pageSize: '1000' })).status).toBe(400);
   });
 });

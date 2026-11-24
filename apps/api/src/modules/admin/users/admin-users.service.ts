@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { and, desc, eq, ilike, inArray, lt, or, type SQL } from 'drizzle-orm';
+import { and, count, desc, eq, ilike, inArray, or, type SQL } from 'drizzle-orm';
 import {
-  ADMIN_CURSOR_PAGE_SIZE,
+  pageMeta,
   type AdminTenantUser,
   type AdminUserListQuery,
   type AdminUserListResponse,
@@ -10,7 +10,7 @@ import {
 import { ADMIN_DRIZZLE, type AdminDrizzleDb } from '../../../core/db/admin-db.tokens';
 import { users } from '../../../core/db/schema/identity';
 import { memberships, organizations, roles } from '../../../core/db/schema/tenancy';
-import { decodeCursor, encodeCursor, likePattern } from '../cursor';
+import { likePattern } from '../cursor';
 
 /** Cross-tenant users. Only non-secret columns are readable by app_admin, so no password hash. */
 @Injectable()
@@ -24,16 +24,10 @@ export class AdminUsersService {
       const match = or(ilike(users.name, pattern), ilike(users.email, pattern));
       if (match) conditions.push(match);
     }
-    if (query.cursor) {
-      const c = decodeCursor(query.cursor);
-      const before = or(
-        lt(users.createdAt, c.createdAt),
-        and(eq(users.createdAt, c.createdAt), lt(users.id, c.id)),
-      );
-      if (before) conditions.push(before);
-    }
+    const where = conditions.length > 0 ? and(...conditions) : undefined;
 
-    const rows = await this.db
+    const [totalRow] = await this.db.select({ total: count() }).from(users).where(where);
+    const page = await this.db
       .select({
         id: users.id,
         name: users.name,
@@ -42,14 +36,10 @@ export class AdminUsersService {
         lastLoginAt: users.lastLoginAt,
       })
       .from(users)
-      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .where(where)
       .orderBy(desc(users.createdAt), desc(users.id))
-      .limit(ADMIN_CURSOR_PAGE_SIZE + 1);
-
-    const page = rows.slice(0, ADMIN_CURSOR_PAGE_SIZE);
-    const last = page[page.length - 1];
-    const nextCursor =
-      rows.length > ADMIN_CURSOR_PAGE_SIZE && last ? encodeCursor(last.createdAt, last.id) : null;
+      .limit(query.pageSize)
+      .offset((query.page - 1) * query.pageSize);
 
     const memberRows =
       page.length === 0
@@ -90,7 +80,7 @@ export class AdminUsersService {
         lastLoginAt: u.lastLoginAt?.toISOString() ?? null,
         memberships: byUser.get(u.id) ?? [],
       })),
-      nextCursor,
+      ...pageMeta(query, totalRow?.total ?? 0),
     };
   }
 }

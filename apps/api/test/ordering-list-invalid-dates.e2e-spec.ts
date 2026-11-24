@@ -31,7 +31,7 @@ describe('Ordering list invalid business dates (e2e)', () => {
   it('returns 400 for invalid dateFrom', async () => {
     const owner = withBranch(await asDemoOwner(agent), branchId);
     const res = await owner.get(
-      `/v1/branches/${branchId}/orders?limit=20&dateFrom=2026-02-30&dateTo=2026-02-28`,
+      `/v1/branches/${branchId}/orders?pageSize=20&dateFrom=2026-02-30&dateTo=2026-02-28`,
     );
     expect(res.status).toBe(400);
   });

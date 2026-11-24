@@ -8,7 +8,11 @@
     "sortBy": "Sort by",
     "previous": "Previous",
     "next": "Next",
-    "page": "Page {{page}}"
+    "page": "Page {{page}}",
+    "pagination": {
+      "navigation": "Pagination",
+      "more": "More pages"
+    }
   },
   "app": {
     "title": "Sahtain Admin"
@@ -225,13 +229,6 @@
       "manualPaid": "Manual payment",
       "manualAmount": "Amount received",
       "manualNote": "Payment note"
-    },
-    "pagination": {
-      "navigation": "Pagination",
-      "previous": "Previous",
-      "next": "Next",
-      "page": "Page {{page}}",
-      "more": "More pages"
     },
     "activate": "Activate plan",
     "activateTitle": "Activate {{name}}",

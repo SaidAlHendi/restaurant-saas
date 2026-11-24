@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { businessDateSchema, inclusiveBusinessDaySpan } from '../dates/business-date.js';
 import { moneyMinorSchema } from '../i18n/localized-text.js';
 import { moneyDisplaySchema } from '../money/display-currency.js';
-import { cursorListQuerySchema, cursorListResponseSchema } from '../catalog/pagination.js';
+import { pagedListQuerySchema, pageResponseSchema } from '../page-pagination.js';
 
 import {
   orderItemStatusSchema,
@@ -150,7 +150,7 @@ export const orderListItemSchema = orderSchema.extend({
 
 export type OrderListItem = z.infer<typeof orderListItemSchema>;
 
-export const orderListQuerySchema = cursorListQuerySchema
+export const orderListQuerySchema = pagedListQuerySchema
   .extend({
     status: orderStatusSchema.optional(),
     businessDate: businessDateSchema.optional(),
@@ -192,9 +192,9 @@ export const orderListQuerySchema = cursorListQuerySchema
 
 export type OrderListQuery = z.infer<typeof orderListQuerySchema>;
 
-export const orderListResponseSchema = cursorListResponseSchema(orderListItemSchema).extend({
+export const orderListResponseSchema = pageResponseSchema(orderListItemSchema).extend({
   /**
-   * Only on the first page of a "today only" list of open orders: how many open orders from earlier
+   * Only on page 1 of a "today only" list of open orders: how many open orders from earlier
    * business days the filter hides. Lets the POS say "N older orders hidden".
    */
   hiddenOlderCount: z.number().int().min(0).optional(),

@@ -6,7 +6,6 @@ import {
   Button,
   DataTable,
   EmptyState,
-  NumberedPagination,
   PageHeader,
   SearchInput,
   Select,
@@ -17,8 +16,9 @@ import {
   type DataTableColumn,
 } from '@app/ui';
 
+import { AdminPagination } from '../../lib/AdminPagination.js';
 import { OrgStatusBadge } from './OrgStatusBadge.js';
-import { ALL_STATUSES, useRestaurantsPage } from './use-restaurants-page.js';
+import { ALL_STATUSES, RESTAURANTS_PAGE_SIZE, useRestaurantsPage } from './use-restaurants-page.js';
 
 const STATUS_OPTIONS = ['trial', 'active', 'past_due', 'suspended', 'cancelled'] as const;
 
@@ -147,21 +147,12 @@ export default function RestaurantsPage() {
         labels={{ actions: t('restaurants.columns.actions'), sortBy: t('restaurants.sortBy') }}
       />
 
-      {vm.pageCount > 1 ? (
-        <NumberedPagination
-          page={vm.page}
-          pageCount={vm.pageCount}
-          onPageChange={vm.onPageChange}
-          formatNumber={vm.formatNumber}
-          labels={{
-            navigation: t('restaurants.pagination.navigation'),
-            previous: t('restaurants.pagination.previous'),
-            next: t('restaurants.pagination.next'),
-            page: (n) => t('restaurants.pagination.page', { page: n }),
-            morePages: t('restaurants.pagination.more'),
-          }}
-        />
-      ) : null}
+      <AdminPagination
+        page={vm.page}
+        total={vm.total}
+        pageSize={RESTAURANTS_PAGE_SIZE}
+        onPageChange={vm.onPageChange}
+      />
     </div>
   );
 }

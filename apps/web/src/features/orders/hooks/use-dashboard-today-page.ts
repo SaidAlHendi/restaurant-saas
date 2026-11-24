@@ -60,11 +60,11 @@ export function useDashboardTodayPage() {
     { skip: !branchId || previousDate === undefined },
   );
   const activeOrders = useListOrdersQuery(
-    { branchId: branchId ?? '', query: { activeOnly: true, limit: 50 } },
+    { branchId: branchId ?? '', query: { activeOnly: true, pageSize: 50 } },
     { skip: !branchId },
   );
   const recentOrders = useListOrdersQuery(
-    { branchId: branchId ?? '', query: { todayOnly: true, limit: 5 } },
+    { branchId: branchId ?? '', query: { todayOnly: true, pageSize: 5 } },
     { skip: !branchId },
   );
 

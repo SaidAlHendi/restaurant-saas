@@ -1,14 +1,14 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { and, desc, eq, ilike, lt, or, type SQL } from 'drizzle-orm';
+import { and, count, desc, eq, ilike, or, type SQL } from 'drizzle-orm';
 import {
-  ADMIN_CURSOR_PAGE_SIZE,
+  pageMeta,
   type AdminAuditListQuery,
   type AdminAuditListResponse,
 } from '@app/shared';
 
 import { ADMIN_DRIZZLE, type AdminDrizzleDb } from '../../../core/db/admin-db.tokens';
 import { adminUsers, auditLogs } from '../../../core/db/schema/admin';
-import { decodeCursor, encodeCursor, likePattern } from '../cursor';
+import { likePattern } from '../cursor';
 
 @Injectable()
 export class AdminAuditService {
@@ -22,15 +22,13 @@ export class AdminAuditService {
       if (match) conditions.push(match);
     }
     if (query.action) conditions.push(ilike(auditLogs.action, likePattern(query.action)));
-    if (query.cursor) {
-      const c = decodeCursor(query.cursor);
-      const before = or(
-        lt(auditLogs.createdAt, c.createdAt),
-        and(eq(auditLogs.createdAt, c.createdAt), lt(auditLogs.id, c.id)),
-      );
-      if (before) conditions.push(before);
-    }
+    const where = conditions.length > 0 ? and(...conditions) : undefined;
 
+    const [totalRow] = await this.db
+      .select({ total: count() })
+      .from(auditLogs)
+      .innerJoin(adminUsers, eq(adminUsers.id, auditLogs.adminUserId))
+      .where(where);
     const rows = await this.db
       .select({
         id: auditLogs.id,
@@ -47,16 +45,14 @@ export class AdminAuditService {
       })
       .from(auditLogs)
       .innerJoin(adminUsers, eq(adminUsers.id, auditLogs.adminUserId))
-      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .where(where)
       .orderBy(desc(auditLogs.createdAt), desc(auditLogs.id))
-      .limit(ADMIN_CURSOR_PAGE_SIZE + 1);
+      .limit(query.pageSize)
+      .offset((query.page - 1) * query.pageSize);
 
-    const page = rows.slice(0, ADMIN_CURSOR_PAGE_SIZE);
-    const last = page[page.length - 1];
     return {
-      items: page.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() })),
-      nextCursor:
-        rows.length > ADMIN_CURSOR_PAGE_SIZE && last ? encodeCursor(last.createdAt, last.id) : null,
+      items: rows.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() })),
+      ...pageMeta(query, totalRow?.total ?? 0),
     };
   }
 }

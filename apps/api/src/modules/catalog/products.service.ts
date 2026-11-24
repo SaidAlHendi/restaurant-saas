@@ -4,6 +4,7 @@ import type { Express } from 'express';
 import {
   assertNoDuplicateIds,
   LocalizedTextValidationError,
+  pageMeta,
   type CreateProductBody,
   type PatchProductBody,
   type ProductListQuery,
@@ -16,7 +17,6 @@ import { DRIZZLE, type DrizzleDb } from '../../core/db/db.module';
 import type { DrizzleTx } from '../../core/db/with-org';
 import { withOrg } from '../../core/db/with-org';
 import type { RequestContext } from '../../core/context/request-context';
-import { decodeProductListCursor, encodeProductListCursor } from '../../lib/cursor';
 import { newUuidV7 } from '../../lib/uuid';
 import { EntitlementsService } from '../billing/entitlements.service';
 import { OrgSettingsService } from '../tenancy/org-settings.service';
@@ -80,29 +80,20 @@ export class ProductsService {
   list(ctx: RequestContext, query: ProductListQuery) {
     return withOrg(this.db, ctx.orgId, async (tx) => {
       const org = await this.orgSettings.getCatalogSettings(tx, ctx.orgId);
-      let cursor;
-      if (query.cursor) {
-        try {
-          cursor = decodeProductListCursor(query.cursor);
-        } catch {
-          throw new ValidationError('Invalid cursor');
-        }
-      }
-      const rows = await this.repo.listProducts(tx, ctx.orgId, {
+      const filters = {
         categoryId: query.categoryId,
         isActive: query.isActive,
         search: query.search,
         branchId: query.branchId,
-        cursor,
-        limit: query.limit,
-      });
-      const hasMore = rows.length > query.limit;
-      const page = hasMore ? rows.slice(0, query.limit) : rows;
-      const last = page[page.length - 1];
-      const nextCursor =
-        hasMore && last
-          ? encodeProductListCursor({ sortOrder: last.sortOrder, id: last.id })
-          : null;
+      };
+      const [page, total] = await Promise.all([
+        this.repo.listProducts(tx, ctx.orgId, {
+          ...filters,
+          limit: query.pageSize,
+          offset: (query.page - 1) * query.pageSize,
+        }),
+        this.repo.countListedProducts(tx, ctx.orgId, filters),
+      ]);
       const branchIds = await this.branchIdsFor(
         tx,
         page.map((r) => r.id),
@@ -116,7 +107,7 @@ export class ProductsService {
           ...mapProduct(row, org.defaultCurrency, this.storage, branchIds.get(row.id) ?? []),
           modifierGroupCount: groupCounts.get(row.id) ?? 0,
         })),
-        nextCursor,
+        ...pageMeta(query, total),
       };
     });
   }
@@ -261,6 +252,7 @@ export class ProductsService {
       const rows = await this.repo.listProducts(tx, ctx.orgId, {
         categoryId: body.categoryId,
         limit: 1000,
+        offset: 0,
       });
       const branchIds = await this.branchIdsFor(
         tx,

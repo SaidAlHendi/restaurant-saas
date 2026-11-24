@@ -65,10 +65,9 @@ describe('directory pages', () => {
     vi.unstubAllGlobals();
   });
 
-  it('users: lists memberships and follows the cursor', async () => {
-    let page = 0;
+  it('users: lists memberships and pages with page numbers', async () => {
     const calls = stubFetch((url) => {
-      if (url.searchParams.get('cursor')) page = 2;
+      const page = Number(url.searchParams.get('page') ?? '1');
       return {
         items: [
           {
@@ -88,7 +87,9 @@ describe('directory pages', () => {
             ],
           },
         ],
-        nextCursor: page === 2 ? null : 'abc',
+        page,
+        pageSize: 1,
+        total: 2,
       };
     });
     renderAt('/users', <UsersPage />, '/users');
@@ -100,9 +101,11 @@ describe('directory pages', () => {
     expect(screen.getByText('Owner')).toBeInTheDocument();
     expect(calls[0]?.pathname).toBe('/v1/admin/users');
 
+    expect(calls[0]?.searchParams.get('page')).toBe('1');
+
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     expect(await screen.findByText('Second User')).toBeInTheDocument();
-    expect(calls.at(-1)?.searchParams.get('cursor')).toBe('abc');
+    expect(calls.at(-1)?.searchParams.get('page')).toBe('2');
     expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
   });
 
@@ -186,7 +189,9 @@ describe('directory pages', () => {
           ip: '10.0.0.1',
         },
       ],
-      nextCursor: null,
+      page: 1,
+      pageSize: 20,
+      total: 1,
     }));
     renderAt('/audit', <AuditPage />, '/audit');
     expect(await screen.findByText('org.suspend')).toBeInTheDocument();

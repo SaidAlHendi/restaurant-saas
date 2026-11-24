@@ -64,7 +64,7 @@ describe('Ordering list filters (e2e)', () => {
     const res = await owner.get(`/v1/branches/${branchId}/orders`).query({
       dateFrom: dayA,
       dateTo: dayB,
-      limit: 50,
+      pageSize: 50,
     });
     expect(res.status).toBe(200);
     const items = (res.body as { items: Array<{ businessDate: string }> }).items;
@@ -168,7 +168,7 @@ describe('Ordering list filters (e2e)', () => {
       dateFrom: day,
       dateTo: day,
       paymentMethod: 'card',
-      limit: 50,
+      pageSize: 50,
     });
     expect(byCard.status).toBe(200);
     const cardItems = (byCard.body as { items: Array<{ id: string }> }).items;
@@ -181,7 +181,7 @@ describe('Ordering list filters (e2e)', () => {
       dateFrom: day,
       dateTo: day,
       type: 'dine_in',
-      limit: 50,
+      pageSize: 50,
     });
     expect(byType.status).toBe(200);
     const typeItems = (byType.body as { items: Array<{ id: string }> }).items;
@@ -190,7 +190,7 @@ describe('Ordering list filters (e2e)', () => {
     const list = await owner.get(`/v1/branches/${branchId}/orders`).query({
       dateFrom: day,
       dateTo: day,
-      limit: 50,
+      pageSize: 50,
     });
     const both = (list.body as { items: Array<{ id: string; paymentMethods: string[] }> }).items.find(
       (i) => i.id === bothId,
@@ -198,7 +198,7 @@ describe('Ordering list filters (e2e)', () => {
     expect(both?.paymentMethods).toEqual(['cash', 'card']);
   });
 
-  it('combines q and cursor without duplicates across pages', async () => {
+  it('combines q and paging without duplicates across pages', async () => {
     const owner = await asDemoOwner(apiAgent(app));
     const { branchId } = await createIsolatedBranch(owner);
     const { ctx } = await demoOwnerContext(apiAgent(app), db);
@@ -220,19 +220,19 @@ describe('Ordering list filters (e2e)', () => {
       dateFrom: day,
       dateTo: day,
       q: customer,
-      limit: 5,
+      pageSize: 5,
     });
     expect(page1.status).toBe(200);
-    const body1 = page1.body as { items: Array<{ id: string }>; nextCursor: string | null };
+    const body1 = page1.body as { items: Array<{ id: string }>; total: number };
     expect(body1.items).toHaveLength(5);
-    expect(body1.nextCursor).not.toBeNull();
+    expect(body1.total).toBe(12);
 
     const page2 = await owner.get(`/v1/branches/${branchId}/orders`).query({
       dateFrom: day,
       dateTo: day,
       q: customer,
-      limit: 5,
-      cursor: body1.nextCursor ?? undefined,
+      pageSize: 5,
+      page: 2,
     });
     const body2 = page2.body as { items: Array<{ id: string }> };
     expect(body2.items.length).toBeGreaterThan(0);

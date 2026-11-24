@@ -118,7 +118,6 @@ export interface DevUiCopy {
     next: string;
     page: string;
     morePages: string;
-    cursorSummary: string;
     badgeVariants: string;
   };
   forms: {
@@ -377,7 +376,6 @@ const en: DevUiCopy = {
     next: 'Next',
     page: 'Page',
     morePages: 'More pages',
-    cursorSummary: 'Cursor pagination (no total count)',
     badgeVariants: 'Badge variants',
   },
   forms: {
@@ -646,7 +644,6 @@ const ar: DevUiCopy = {
     next: 'التالي',
     page: 'صفحة',
     morePages: 'صفحات أخرى',
-    cursorSummary: 'تنقل بالمؤشر (بدون عدد إجمالي)',
     badgeVariants: 'أنواع الشارات',
   },
   forms: {

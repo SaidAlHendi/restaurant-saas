@@ -97,14 +97,6 @@ export function useOrdersDemo(copy: DevUiCopy, locale: string) {
     page: currentPage,
     pageCount,
     onPageChange: setPage,
-    hasPrevious: currentPage > 1,
-    hasNext: currentPage < pageCount,
-    onPrevious: () => {
-      setPage(currentPage - 1);
-    },
-    onNext: () => {
-      setPage(currentPage + 1);
-    },
     onRetry: () => {
       setTableState('data');
     },

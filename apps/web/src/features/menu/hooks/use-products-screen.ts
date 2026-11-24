@@ -2,10 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import type { Product, ProductListItem, ProductListQuery } from '@app/shared';
+import type { Product, ProductListQuery } from '@app/shared';
 
 import { useAppSelector } from '../../../app/hooks.js';
 import { formatMoney, intlLocaleForUi, moneyFormatter } from '../../../lib/money.js';
+import { listPaginationLabels, pageCountOf } from '../../../lib/pagination.js';
 import { planGateFromError, planLimitMessageKey } from '../../billing/plan-gate.utils.js';
 import { selectCan } from '../../session/session.selectors.js';
 import { useGetOrgSettingsQuery } from '../../settings/settings.api.js';
@@ -85,20 +86,17 @@ export function useProductsScreen(): ProductsPageViewProps {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [branchFilter, setBranchFilter] = useState(ALL_BRANCHES_FILTER);
   const [activeFilter, setActiveFilter] = useState<ProductActiveFilter>('all');
-  const [cursor, setCursor] = useState<string | undefined>(undefined);
-  const [accumulated, setAccumulated] = useState<ProductListItem[]>([]);
+  const [page, setPage] = useState(1);
   const [togglingProductId, setTogglingProductId] = useState<string | null>(null);
 
   const resetList = useCallback(() => {
-    // Do not clear `accumulated`: the data effect below refills it from the (re)fetched first
-    // page. Clearing it raced with the refetch and left the list empty until reload.
-    setCursor(undefined);
+    setPage(1);
   }, []);
 
   const listArgs = useMemo((): ProductListQuery => {
     const args: ProductListQuery = {
-      limit: 20,
-      cursor,
+      pageSize: 20,
+      page,
       isActive: undefined,
     };
     if (categoryFilter !== 'all') {
@@ -116,9 +114,9 @@ export function useProductsScreen(): ProductsPageViewProps {
       args.isActive = false;
     }
     return args;
-  }, [activeFilter, branchFilter, categoryFilter, cursor, debouncedSearch]);
+  }, [activeFilter, branchFilter, categoryFilter, page, debouncedSearch]);
 
-  const { data, isLoading, isFetching, error } = useListProductsQuery(listArgs);
+  const { data, isLoading, error } = useListProductsQuery(listArgs);
   const { data: modifierGroupsData } = useListModifierGroupsQuery(undefined);
   const modifierGroups = modifierGroupsData?.items ?? [];
 
@@ -126,25 +124,15 @@ export function useProductsScreen(): ProductsPageViewProps {
     resetList();
   }, [categoryFilter, branchFilter, debouncedSearch, activeFilter, resetList]);
 
+  const products = useMemo(() => data?.items ?? [], [data]);
+  const pageCount = pageCountOf(data?.total, data?.pageSize);
+
   useEffect(() => {
-    if (!data) {
-      return;
+    // Deleting the last row of the last page leaves the current page past the end: step back.
+    if (data && page > pageCount) {
+      setPage(pageCount);
     }
-    if (!cursor) {
-      setAccumulated(data.items);
-    } else {
-      setAccumulated((prev) => {
-        const ids = new Set(prev.map((item) => item.id));
-        const merged = [...prev];
-        for (const item of data.items) {
-          if (!ids.has(item.id)) {
-            merged.push(item);
-          }
-        }
-        return merged;
-      });
-    }
-  }, [cursor, data]);
+  }, [data, page, pageCount]);
 
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | undefined>();
@@ -348,8 +336,8 @@ export function useProductsScreen(): ProductsPageViewProps {
     activeOnlyLabel: t('menu.status.active'),
     inactiveOnlyLabel: t('menu.status.inactive'),
     categories: categoryOptions,
-    products: accumulated,
-    isLoading: isLoading && accumulated.length === 0,
+    products,
+    isLoading: isLoading && products.length === 0,
     errorMessage: error ? t('menu.errors.loadFailed') : null,
     labelFor: (product) => productLabel(product, org.uiLocale, org.defaultLocale),
     categoryLabelFor: (product) => categoryNameById.get(product.categoryId) ?? '—',
@@ -378,14 +366,12 @@ export function useProductsScreen(): ProductsPageViewProps {
     emptyDescription: t('menu.products.emptyDescription'),
     editLabel: t('menu.actions.edit'),
     deleteLabel: t('menu.actions.delete'),
-    loadMoreLabel: t('menu.products.loadMore'),
-    hasMore: Boolean(data?.nextCursor),
-    onLoadMore: () => {
-      if (data?.nextCursor) {
-        setCursor(data.nextCursor);
-      }
+    pagination: {
+      page,
+      pageCount,
+      onPageChange: setPage,
+      labels: listPaginationLabels(t),
     },
-    isLoadingMore: isFetching && Boolean(cursor),
     onAdd: () => {
       setPlanLimitMessage(null);
       imageUpload.reset();

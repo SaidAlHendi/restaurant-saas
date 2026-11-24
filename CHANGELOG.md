@@ -5,6 +5,7 @@ All notable user-facing changes to Sahtain. Format follows [Keep a Changelog](ht
 ## Unreleased
 
 ### Changed
+- Orders (dashboard and POS), Menu → Products and the platform admin Users and Audit log lists now use page numbers (1, 2, 3 …) instead of "Load more", and show the total count.
 - Plans now list every service on the landing page, in Billing and in the docs; services that are not available yet (multiple branches, advanced reports and export, custom roles, ordering from the table QR, API access, device limit) carry a "Soon" badge.
 
 ### Fixed

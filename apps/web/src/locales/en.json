@@ -25,6 +25,13 @@
       "membershipNotActiveOrDisabled": "This member cannot be updated that way.",
       "fileTooLarge": "The file is too large.",
       "unsupportedImageType": "Choose a JPEG, PNG, or WebP image."
+    },
+    "pagination": {
+      "navigation": "Pagination",
+      "previous": "Previous page",
+      "next": "Next page",
+      "page": "Page {{page}}",
+      "more": "More pages"
     }
   },
   "app": {
@@ -204,14 +211,7 @@
       "empty": "No orders match your filters.",
       "error": "Could not load orders.",
       "branchDateError": "Could not load the branch business date.",
-      "pagination": {
-        "navigation": "Pagination",
-        "previous": "Previous page",
-        "next": "Next page",
-        "page": "Page"
-      },
       "showingRecords": "Showing {{n}} records",
-      "loadMore": "Load more",
       "filters": {
         "status": "Status",
         "type": "Order type",
@@ -665,7 +665,6 @@
       "searchPlaceholder": "Search by number, table or customer",
       "empty": "No orders match this view.",
       "error": "Could not load orders.",
-      "loadMore": "Load more",
       "todayOnly": "Today only",
       "olderHidden_one": "{{count}} older order hidden.",
       "olderHidden_other": "{{count}} older orders hidden.",
@@ -1003,7 +1002,6 @@
       "searchClear": "Clear search",
       "allCategories": "All categories",
       "allActive": "All statuses",
-      "loadMore": "Load more",
       "sortBy": "Sort by",
       "deleteConfirm": "This product will be removed from the menu (soft delete).",
       "columns": {

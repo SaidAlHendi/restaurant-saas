@@ -41,13 +41,13 @@ const sampleOrder = {
 } satisfies OrderListItem;
 
 let listQueryResult: {
-  data: { items: OrderListItem[]; nextCursor: null };
+  data: { items: OrderListItem[]; page: number; pageSize: number; total: number };
   isLoading: boolean;
   isError: boolean;
   isFetching: boolean;
   refetch: () => void;
 } = {
-  data: { items: [sampleOrder], nextCursor: null },
+  data: { items: [sampleOrder], page: 1, pageSize: 20, total: 1 },
   isLoading: false,
   isError: false,
   isFetching: false,
@@ -131,7 +131,7 @@ vi.mock('../orders.api.js', () => ({
 describe('useDashboardOrdersPage realtime', () => {
   it('keeps rows visible while refetching after a realtime event', async () => {
     listQueryResult = {
-      data: { items: [sampleOrder], nextCursor: null },
+      data: { items: [sampleOrder], page: 1, pageSize: 20, total: 1 },
       isLoading: false,
       isError: false,
       isFetching: false,
@@ -149,7 +149,7 @@ describe('useDashboardOrdersPage realtime', () => {
       ...listQueryResult,
       isLoading: true,
       isFetching: true,
-      data: undefined as unknown as { items: OrderListItem[]; nextCursor: null },
+      data: undefined as unknown as { items: OrderListItem[]; page: number; pageSize: number; total: number },
     };
 
     act(() => {

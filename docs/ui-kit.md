@@ -40,7 +40,7 @@ packages/ui/src/
 | Actions | Button (variants: default, secondary, outline, ghost, destructive, link; sizes sm/md/lg/touch), IconButton, ButtonGroup |
 | Form inputs | Input, Textarea, NumberInput, MoneyInput (minor units in/out), PasswordInput, Checkbox, Switch, RadioGroup, Select, Combobox (searchable select), MultiSelect, DatePicker, DateRangePicker, FileUpload/ImageUpload |
 | Form wiring | Form, FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription (shadcn Form on react-hook-form) |
-| Search & lists | SearchInput (debounced, clear button), FilterBar, Pagination (cursor: prev/next; and page numbers), DataTable (sorting, column visibility, empty/loading/error states, row actions, sticky header) |
+| Search & lists | SearchInput (debounced, clear button), FilterBar, NumberedPagination (page numbers), DataTable (sorting, column visibility, empty/loading/error states, row actions, sticky header) |
 | Overlays | Popover, Dialog, ConfirmDialog, Sheet (side panel), DropdownMenu, Tooltip, Command (command palette) |
 | Display | Card, Badge (incl. status variants: new, preparing, ready, completed, cancelled), Avatar, Separator, Tabs, Accordion, Skeleton, Spinner, EmptyState, Alert, KPI/StatCard, Money, DateTime |
 | Feedback | Toast (sonner), Progress |
@@ -49,7 +49,7 @@ packages/ui/src/
 ## Status after step 1b
 Built: Button, IconButton, Input, Textarea, Label, Checkbox, Switch, RadioGroup, Select, Combobox, Command,
 Popover, DropdownMenu, Tooltip, Dialog, ConfirmDialog, Sheet, Form parts, MoneyInput, NumberInput, SearchInput,
-CursorPagination, NumberedPagination, Table, DataTable (own implementation, no TanStack), Badge + OrderStatusBadge,
+NumberedPagination, Table, DataTable (own implementation, no TanStack), Badge + OrderStatusBadge,
 Skeleton, Card, Tabs, Spinner, EmptyState, Alert, StatCard, Toaster/toast, PageHeader, Sidebar, ThemeToggle.
 Later: ImageUpload, QrCard, BranchSwitcher, ProductTile (with − quantity + stepper), CategoryTile, CartLine,
 OpenOrderChip, KDS parts, SidebarUser, DialogBody/SheetBody.

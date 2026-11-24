@@ -2,18 +2,14 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { intlLocaleForUi } from '@app/shared';
 
-import { useCursorPages } from '../../lib/use-cursor-pages.js';
 import { useListUsersQuery } from './users.api.js';
 
 /** View model for the cross-tenant users list. */
 export function useUsersPage() {
   const { t, i18n } = useTranslation();
   const [search, setSearch] = useState('');
-  const pages = useCursorPages();
-  const { data, isFetching, isError, refetch } = useListUsersQuery({
-    search,
-    cursor: pages.cursor,
-  });
+  const [page, setPage] = useState(1);
+  const { data, isFetching, isError, refetch } = useListUsersQuery({ search, page });
   const dateFormat = useMemo(
     () => new Intl.DateTimeFormat(intlLocaleForUi(i18n.language), { dateStyle: 'medium' }),
     [i18n.language],
@@ -27,17 +23,14 @@ export function useUsersPage() {
     isFetching,
     isError,
     retry: () => void refetch(),
-    pageNumber: pages.pageNumber,
-    hasPrevious: pages.hasPrevious,
-    hasNext: Boolean(data?.nextCursor),
+    page,
+    pageSize: data?.pageSize ?? 20,
+    total: data?.total ?? 0,
+    onPageChange: setPage,
     onSearch: (value: string) => {
       setSearch(value);
-      pages.reset();
+      setPage(1);
     },
-    onNext: () => {
-      if (data?.nextCursor) pages.next(data.nextCursor);
-    },
-    onPrevious: pages.previous,
     formatDate: (iso: string | null) => (iso ? dateFormat.format(new Date(iso)) : null),
   };
 }

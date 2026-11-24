@@ -9,6 +9,7 @@ import {
   DataTable,
   EmptyState,
   IconButton,
+  NumberedPagination,
   PageHeader,
   SearchInput,
   Select,
@@ -21,6 +22,8 @@ import {
 import { LayersIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 
 import type { Product, ProductListItem } from '@app/shared';
+
+import type { ListPaginationViewModel } from '../../../lib/pagination.js';
 
 import type { ProductActiveFilter } from '../product-list-filters.js';
 
@@ -86,10 +89,7 @@ export interface ProductsPageViewProps {
   emptyDescription: string;
   editLabel: string;
   deleteLabel: string;
-  loadMoreLabel: string;
-  hasMore: boolean;
-  onLoadMore: () => void;
-  isLoadingMore: boolean;
+  pagination: ListPaginationViewModel;
   onAdd: () => void;
   onEdit: (product: Product) => void;
   onDelete: (product: Product) => void;
@@ -146,10 +146,7 @@ export function ProductsPageView({
   emptyDescription,
   editLabel,
   deleteLabel,
-  loadMoreLabel,
-  hasMore,
-  onLoadMore,
-  isLoadingMore,
+  pagination,
   onAdd,
   onEdit,
   onDelete,
@@ -341,10 +338,13 @@ export function ProductsPageView({
                 : undefined
             }
           />
-          {hasMore ? (
-            <Button type="button" variant="outline" onClick={onLoadMore} disabled={isLoadingMore}>
-              {loadMoreLabel}
-            </Button>
+          {pagination.pageCount > 1 ? (
+            <NumberedPagination
+              page={pagination.page}
+              pageCount={pagination.pageCount}
+              onPageChange={pagination.onPageChange}
+              labels={pagination.labels}
+            />
           ) : null}
         </>
       )}

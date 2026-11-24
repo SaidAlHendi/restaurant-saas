@@ -8,7 +8,11 @@
     "sortBy": "ترتيب حسب",
     "previous": "السابق",
     "next": "التالي",
-    "page": "الصفحة {{page}}"
+    "page": "الصفحة {{page}}",
+    "pagination": {
+      "navigation": "التنقل بين الصفحات",
+      "more": "صفحات أخرى"
+    }
   },
   "app": {
     "title": "إدارة صحتين"
@@ -233,13 +237,6 @@
       "manualPaid": "الدفع اليدوي",
       "manualAmount": "المبلغ المستلم",
       "manualNote": "ملاحظة الدفع"
-    },
-    "pagination": {
-      "navigation": "التنقل بين الصفحات",
-      "previous": "السابق",
-      "next": "التالي",
-      "page": "الصفحة {{page}}",
-      "more": "صفحات أخرى"
     },
     "activate": "تفعيل الباقة",
     "activateTitle": "تفعيل {{name}}",

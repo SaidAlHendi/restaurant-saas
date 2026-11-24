@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -7,6 +7,7 @@ import type { OrderListItem } from '@app/shared';
 import { baseApi } from '../../../app/api/base-api.js';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks.js';
 import { intlLocaleForUi, orderMoneyFormatter } from '../../../lib/money.js';
+import { listPaginationLabels, pageCountOf } from '../../../lib/pagination.js';
 import type { RealtimeEvent } from '../../../lib/realtime.js';
 import { useBranchRealtime } from '../../realtime/use-branch-realtime.js';
 import {
@@ -49,12 +50,10 @@ export function useDashboardOrdersPage() {
     [referenceBusinessDate, searchParams],
   );
 
-  const [cursor, setCursor] = useState<string | undefined>(undefined);
-  const [accumulated, setAccumulated] = useState<OrderListItem[]>([]);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
-    setCursor(undefined);
-    setAccumulated([]);
+    setPage(1);
   }, [
     filters?.dateFrom,
     filters?.dateTo,
@@ -70,8 +69,8 @@ export function useDashboardOrdersPage() {
       return undefined;
     }
     return {
-      limit: PAGE_SIZE,
-      cursor,
+      page,
+      pageSize: PAGE_SIZE,
       dateFrom: filters.dateFrom,
       dateTo: filters.dateTo,
       ...(filters.status !== 'all' ? { status: filters.status } : {}),
@@ -79,7 +78,7 @@ export function useDashboardOrdersPage() {
       ...(filters.paymentMethod !== 'all' ? { paymentMethod: filters.paymentMethod } : {}),
       ...(filters.q.trim().length > 0 ? { q: filters.q.trim() } : {}),
     };
-  }, [cursor, filters]);
+  }, [page, filters]);
 
   const skipList =
     !branchId ||
@@ -93,29 +92,15 @@ export function useDashboardOrdersPage() {
     { skip: skipList },
   );
 
-  useEffect(() => {
-    if (!data) {
-      return;
-    }
-    if (cursor === undefined) {
-      setAccumulated((prev) => {
-        if (data.items.length === 0 && prev.length > 0 && isFetching) {
-          return prev;
-        }
-        return data.items;
-      });
-      return;
-    }
-    setAccumulated((prev) => {
-      const ids = new Set(prev.map((row) => row.id));
-      const next = data.items.filter((row) => !ids.has(row.id));
-      return [...prev, ...next];
-    });
-  }, [cursor, data, isFetching]);
-
-  const resetPagination = useCallback(() => {
-    setCursor(undefined);
-  }, []);
+  // Keep the previous rows on screen while the next page (or a realtime refetch) is in flight.
+  const lastItemsRef = useRef<OrderListItem[]>([]);
+  if (data) {
+    lastItemsRef.current = data.items;
+  }
+  const items = useMemo(
+    () => (data ? data.items : isFetching ? lastItemsRef.current : []),
+    [data, isFetching],
+  );
 
   const onRealtimeEvent = useCallback(
     (_event: RealtimeEvent) => {
@@ -124,18 +109,16 @@ export function useDashboardOrdersPage() {
         referenceBusinessDate &&
         periodIncludesReferenceDay(filters, referenceBusinessDate)
       ) {
-        resetPagination();
         dispatch(baseApi.util.invalidateTags([{ type: 'Order', id: 'LIST' }]));
       }
     },
-    [dispatch, filters, referenceBusinessDate, resetPagination],
+    [dispatch, filters, referenceBusinessDate],
   );
 
   useBranchRealtime({
     branchId,
     onEvent: onRealtimeEvent,
     onResync: () => {
-      resetPagination();
       dispatch(baseApi.util.invalidateTags(['Order']));
     },
   });
@@ -161,7 +144,7 @@ export function useDashboardOrdersPage() {
 
   const rows = useMemo(() => {
     const takeawayLabel = t('dashboard.orders.takeaway');
-    return accumulated.map((order) => ({
+    return items.map((order) => ({
       id: order.id,
       orderNumber: String(order.orderNumber),
       dateTimeLabel: new Intl.DateTimeFormat(intlLocaleForUi(uiLocale), {
@@ -192,7 +175,7 @@ export function useDashboardOrdersPage() {
         );
       },
     }));
-  }, [accumulated, navigate, searchParams, t, timezone, uiLocale]);
+  }, [items, navigate, searchParams, t, timezone, uiLocale]);
 
   const setPeriod = (period: DashboardOrdersPeriod) => {
     updateFilters({ period });
@@ -295,30 +278,20 @@ export function useDashboardOrdersPage() {
     },
     rows,
     showEmptyState:
-      accumulated.length === 0 &&
+      items.length === 0 &&
       !branchContext.isLoading &&
       !isError &&
-      !(skipList ? false : (isLoading || isFetching) && cursor === undefined),
+      !(skipList ? false : isLoading || isFetching),
     isLoading:
       branchContext.isLoading ||
-      (skipList ? false : isLoading && cursor === undefined && accumulated.length === 0),
+      (skipList ? false : isLoading && items.length === 0),
     isError: branchContext.isError || isError,
     isFetching,
-    loadMore:
-      data?.nextCursor !== null && data?.nextCursor !== undefined
-        ? {
-            label: t('dashboard.orders.loadMore'),
-            loading: isFetching,
-            onClick: () => {
-              setCursor(data.nextCursor ?? undefined);
-            },
-          }
-        : null,
     pagination: {
-      page: Math.max(1, Math.ceil(accumulated.length / PAGE_SIZE)),
-      pageCount:
-        Math.max(1, Math.ceil(accumulated.length / PAGE_SIZE)) +
-        (data?.nextCursor !== null && data?.nextCursor !== undefined ? 1 : 0),
+      page,
+      pageCount: pageCountOf(data?.total, data?.pageSize),
+      onPageChange: setPage,
+      labels: listPaginationLabels(t),
     },
     onRetry: () => {
       void refetch();
@@ -326,11 +299,7 @@ export function useDashboardOrdersPage() {
     },
     labels: {
       title: t('dashboard.orders.title'),
-      paginationNav: t('dashboard.orders.pagination.navigation'),
-      paginationPrevious: t('dashboard.orders.pagination.previous'),
-      paginationNext: t('dashboard.orders.pagination.next'),
-      paginationPage: t('dashboard.orders.pagination.page'),
-      showingRecords: t('dashboard.orders.showingRecords', { n: accumulated.length }),
+      showingRecords: t('dashboard.orders.showingRecords', { n: data?.total ?? 0 }),
       loading: t('common.loading'),
       retry: t('pos.retry'),
       empty: t('dashboard.orders.empty'),

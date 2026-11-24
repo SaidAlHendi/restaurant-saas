@@ -1,8 +1,7 @@
-import { and, asc, count, desc, eq, inArray, lt, or, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, inArray, or, sql } from 'drizzle-orm';
 import { Injectable } from '@nestjs/common';
 
 import { OPEN_ORDER_STATUSES } from './state-machine';
-import type { OrderListCursor } from '../../lib/order-list-cursor';
 import { escapeLikePattern } from '../../lib/sql-like';
 import type { DrizzleTx } from '../../core/db/with-org';
 import {
@@ -23,6 +22,18 @@ function firstRow<T>(rows: T[]): T {
     throw new Error('Expected row');
   }
   return row;
+}
+
+export interface OrderListFilters {
+  status?: OrderStatus;
+  businessDate?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  type?: OrderType;
+  paymentMethod?: PaymentMethod;
+  activeOnly?: boolean;
+  todayOnlyBusinessDate?: string;
+  q?: string;
 }
 
 @Injectable()
@@ -204,23 +215,7 @@ export class OrderingRepository {
     return rows[0]?.c ?? 0;
   }
 
-  async listOrders(
-    tx: DrizzleTx,
-    branchId: string,
-    opts: {
-      status?: OrderStatus;
-      businessDate?: string;
-      dateFrom?: string;
-      dateTo?: string;
-      type?: OrderType;
-      paymentMethod?: PaymentMethod;
-      activeOnly?: boolean;
-      todayOnlyBusinessDate?: string;
-      q?: string;
-      cursor?: OrderListCursor;
-      limit: number;
-    },
-  ) {
+  private orderListConditions(branchId: string, opts: OrderListFilters) {
     const conditions = [eq(orders.branchId, branchId)];
     if (opts.activeOnly) {
       conditions.push(inArray(orders.status, [...OPEN_ORDER_STATUSES]));
@@ -268,17 +263,14 @@ export class OrderingRepository {
         );
       }
     }
-    if (opts.cursor) {
-      conditions.push(
-        or(
-          lt(orders.createdAt, new Date(opts.cursor.createdAt)),
-          and(
-            eq(orders.createdAt, new Date(opts.cursor.createdAt)),
-            lt(orders.id, opts.cursor.id),
-          ),
-        ) ?? sql`true`,
-      );
-    }
+    return and(...conditions);
+  }
+
+  async listOrders(
+    tx: DrizzleTx,
+    branchId: string,
+    opts: OrderListFilters & { limit: number; offset: number },
+  ) {
     return tx
       .select({
         order: orders,
@@ -286,9 +278,19 @@ export class OrderingRepository {
       })
       .from(orders)
       .leftJoin(diningTables, eq(orders.tableId, diningTables.id))
-      .where(and(...conditions))
+      .where(this.orderListConditions(branchId, opts))
       .orderBy(desc(orders.createdAt), desc(orders.id))
-      .limit(opts.limit + 1);
+      .limit(opts.limit)
+      .offset(opts.offset);
+  }
+
+  async countListedOrders(tx: DrizzleTx, branchId: string, opts: OrderListFilters) {
+    const rows = await tx
+      .select({ c: count() })
+      .from(orders)
+      .leftJoin(diningTables, eq(orders.tableId, diningTables.id))
+      .where(this.orderListConditions(branchId, opts));
+    return rows[0]?.c ?? 0;
   }
 
   async capturedPaymentMethodsForOrders(

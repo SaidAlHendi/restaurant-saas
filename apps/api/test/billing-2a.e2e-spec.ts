@@ -130,11 +130,11 @@ describe('Billing 2a (e2e)', () => {
       const report = await fresh.ownerAgent.get(`/v1/branches/${fresh.branchId}/reports/daily`);
       expectApiError(report, 'PLAN_FEATURE_REQUIRED');
 
-      const products = await fresh.ownerAgent.get('/v1/products?limit=10');
+      const products = await fresh.ownerAgent.get('/v1/products?pageSize=10');
       expect(products.status).toBe(200);
 
       const orders = await fresh.ownerAgent.get(
-        `/v1/branches/${fresh.branchId}/orders?limit=10`,
+        `/v1/branches/${fresh.branchId}/orders?pageSize=10`,
       );
       expect(orders.status).toBe(200);
 
@@ -191,7 +191,7 @@ describe('Billing 2a (e2e)', () => {
       provider: null,
       trialEndsAt: null,
     });
-    const list = await freshOver.ownerAgent.get('/v1/products?limit=100');
+    const list = await freshOver.ownerAgent.get('/v1/products?pageSize=100');
     const items = (list.body as { items: Array<{ id: string; isActive: boolean }> }).items;
     const target = items[0];
     expect(target).toBeDefined();

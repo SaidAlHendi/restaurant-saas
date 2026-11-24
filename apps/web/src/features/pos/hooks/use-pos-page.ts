@@ -148,7 +148,7 @@ export function usePosPage() {
   });
 
   const { data: openOrdersData, isLoading: openOrdersLoading } = useListOrdersQuery(
-    { branchId: branchId ?? '', query: { activeOnly: true, limit: 100 } },
+    { branchId: branchId ?? '', query: { activeOnly: true, pageSize: 100 } },
     // Polling is only a fallback while the socket is down.
     { skip: !branchId, pollingInterval: realtime.isOnline ? 0 : 60_000 },
   );

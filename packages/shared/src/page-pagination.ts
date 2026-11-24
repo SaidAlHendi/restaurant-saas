@@ -14,6 +14,17 @@ export type PageQuery = z.infer<typeof pageQuerySchema>;
 
 export const DEFAULT_PAGE_SIZE = 20;
 
+/**
+ * Always-paged list query: `page` defaults to 1 and `pageSize` to 20, so the response always
+ * carries `{ items, page, pageSize, total }`. Used by lists that can grow without bound
+ * (orders, products, admin users, audit log).
+ */
+export const pagedListQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(PAGE_SIZE_MAX).default(DEFAULT_PAGE_SIZE),
+});
+export type PagedListQuery = z.infer<typeof pagedListQuerySchema>;
+
 /** Response fields added to every page-capable list: `{ items, page, pageSize, total }`. */
 export const pageMetaShape = {
   page: z.number().int(),

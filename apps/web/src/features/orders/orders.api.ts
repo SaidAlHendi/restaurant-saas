@@ -25,15 +25,15 @@ import { baseApi } from '../../app/api/base-api.js';
 type OrderListResponse = z.infer<typeof orderListResponseSchema>;
 
 /** Client-side list args (Zod output makes activeOnly/todayOnly required when present). */
-export type OrderListQueryInput = Partial<Omit<OrderListQuery, 'limit'>> & { limit?: number };
+export type OrderListQueryInput = Partial<OrderListQuery>;
 
 function orderListParams(query: OrderListQueryInput | undefined): Record<string, string | number> {
   const params: Record<string, string | number> = {};
-  if (query?.limit !== undefined) {
-    params['limit'] = query.limit;
+  if (query?.page !== undefined) {
+    params['page'] = query.page;
   }
-  if (query?.cursor !== undefined) {
-    params['cursor'] = query.cursor;
+  if (query?.pageSize !== undefined) {
+    params['pageSize'] = query.pageSize;
   }
   if (query?.status !== undefined) {
     params['status'] = query.status;

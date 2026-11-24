@@ -5,6 +5,7 @@ import {
   computeLineTotalMinor,
   computeOrderTotals,
   computePaymentStatus,
+  pageMeta,
   sortPaymentMethods,
 } from '@app/shared';
 import type {
@@ -34,7 +35,6 @@ import {
 } from '../../core/errors/app-errors';
 import { OutboxService } from '../../core/outbox/outbox.service';
 import { computeBusinessDate } from '../../lib/business-date';
-import { decodeOrderListCursor, encodeOrderListCursor } from '../../lib/order-list-cursor';
 import { isPgUniqueViolation } from '../../lib/pg-errors';
 import { newUuidV7 } from '../../lib/uuid';
 import { CatalogOrderingService } from '../catalog/catalog-ordering.service';
@@ -314,14 +314,6 @@ export class OrderingService {
 
   async listOrders(ctx: RequestContext, branchId: string, query: OrderListQuery) {
     return withOrg(this.db, ctx.orgId, async (tx) => {
-      let cursor;
-      if (query.cursor) {
-        try {
-          cursor = decodeOrderListCursor(query.cursor);
-        } catch {
-          throw new ValidationError('Invalid cursor');
-        }
-      }
       const branch = await this.tenancyRepo.findBranchById(tx, branchId);
       if (!branch || branch.orgId !== ctx.orgId) {
         throw new NotFoundError();
@@ -334,7 +326,7 @@ export class OrderingService {
           dayStartHour: branch.dayStartHour,
         });
       }
-      const rows = await this.repo.listOrders(tx, branchId, {
+      const filters = {
         status: query.status,
         businessDate: query.businessDate,
         dateFrom: query.dateFrom,
@@ -344,25 +336,21 @@ export class OrderingService {
         activeOnly: query.activeOnly,
         todayOnlyBusinessDate,
         q: query.q,
-        cursor,
-        limit: query.limit,
-      });
-      const hasMore = rows.length > query.limit;
-      const page = hasMore ? rows.slice(0, query.limit) : rows;
+      };
+      const [page, total] = await Promise.all([
+        this.repo.listOrders(tx, branchId, {
+          ...filters,
+          limit: query.pageSize,
+          offset: (query.page - 1) * query.pageSize,
+        }),
+        this.repo.countListedOrders(tx, branchId, filters),
+      ]);
       const orderIds = page.map((r) => r.order.id);
       const counts = await this.repo.countItemsForOrders(tx, orderIds);
       const paidByOrder = await this.repo.sumCapturedMinorByOrderIds(tx, orderIds);
       const methodsByOrder = await this.repo.capturedPaymentMethodsForOrders(tx, orderIds);
-      const last = page[page.length - 1];
-      const nextCursor =
-        hasMore && last
-          ? encodeOrderListCursor({
-              createdAt: last.order.createdAt.toISOString(),
-              id: last.order.id,
-            })
-          : null;
       const hiddenOlderCount =
-        todayOnlyBusinessDate !== undefined && cursor === undefined && query.q === undefined
+        todayOnlyBusinessDate !== undefined && query.page === 1 && query.q === undefined
           ? await this.repo.countOlderOpenOrders(tx, branchId, {
               status: query.status,
               activeOnly: query.activeOnly,
@@ -380,7 +368,7 @@ export class OrderingService {
             sortPaymentMethods(methodsByOrder.get(row.order.id) ?? []),
           ),
         ),
-        nextCursor,
+        ...pageMeta(query, total),
       };
     });
   }

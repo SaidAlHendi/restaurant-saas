@@ -1,18 +1,12 @@
 import { z } from 'zod';
 
-import { pageMetaShape } from '../page-pagination.js';
+import { pagedListQuerySchema, pageMetaShape } from '../page-pagination.js';
 import { adminRoleSchema } from './roles.js';
-
-/** Cursor-paginated admin lists: `nextCursor` is opaque, pass it back as `cursor`. */
-export const ADMIN_CURSOR_PAGE_SIZE = 25;
-
-const cursorSchema = z.string().trim().min(1).max(300).optional();
 
 // ---- Users ----
 
-export const adminUserListQuerySchema = z.object({
+export const adminUserListQuerySchema = pagedListQuerySchema.extend({
   search: z.string().trim().max(120).optional(),
-  cursor: cursorSchema,
 });
 export type AdminUserListQuery = z.infer<typeof adminUserListQuerySchema>;
 
@@ -36,7 +30,7 @@ export type AdminTenantUser = z.infer<typeof adminTenantUserSchema>;
 
 export const adminUserListResponseSchema = z.object({
   items: z.array(adminTenantUserSchema),
-  nextCursor: z.string().nullable(),
+  ...pageMetaShape,
 });
 export type AdminUserListResponse = z.infer<typeof adminUserListResponseSchema>;
 
@@ -97,12 +91,11 @@ export type AdminPlanListResponse = z.infer<typeof adminPlanListResponseSchema>;
 
 // ---- Audit log ----
 
-export const adminAuditListQuerySchema = z.object({
+export const adminAuditListQuerySchema = pagedListQuerySchema.extend({
   /** Matches the acting admin's email or name (partial). */
   actor: z.string().trim().max(120).optional(),
   /** Matches the action name (partial), e.g. `org.suspend`. */
   action: z.string().trim().max(120).optional(),
-  cursor: cursorSchema,
 });
 export type AdminAuditListQuery = z.infer<typeof adminAuditListQuerySchema>;
 
@@ -123,6 +116,6 @@ export type AdminAuditItem = z.infer<typeof adminAuditItemSchema>;
 
 export const adminAuditListResponseSchema = z.object({
   items: z.array(adminAuditItemSchema),
-  nextCursor: z.string().nullable(),
+  ...pageMetaShape,
 });
 export type AdminAuditListResponse = z.infer<typeof adminAuditListResponseSchema>;
