@@ -6,6 +6,7 @@ import { AdminCtx, type AdminContext } from '../admin-context';
 import { RequireAdminRole } from '../require-admin-role.decorator';
 import { AdminOrgActivateDto, AdminOrgIdParamDto, AdminOrgListQueryDto } from './admin-orgs.dto';
 import { AdminOrgsService } from './admin-orgs.service';
+import { NotifyChange } from '../../../core/realtime/notify-change.decorator';
 
 /**
  * Reads are open to every admin role; suspend and reactivate need the `super` role, manual
@@ -27,6 +28,7 @@ export class AdminOrgsController {
     return this.orgs.get(params.id);
   }
 
+  @NotifyChange('plan', { org: 'param:id', kick: true })
   @Post(':id/suspend')
   @HttpCode(200)
   @RequireAdminRole('super')
@@ -34,6 +36,7 @@ export class AdminOrgsController {
     return this.orgs.suspend(params.id, admin);
   }
 
+  @NotifyChange('plan', { org: 'param:id' })
   @Post(':id/reactivate')
   @HttpCode(200)
   @RequireAdminRole('super')
@@ -41,6 +44,7 @@ export class AdminOrgsController {
     return this.orgs.reactivate(params.id, admin);
   }
 
+  @NotifyChange('plan', { org: 'param:id' })
   @Post(':id/activate')
   @HttpCode(200)
   @RequireAdminRole('billing')

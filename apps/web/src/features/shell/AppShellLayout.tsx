@@ -4,11 +4,13 @@ import { Outlet } from 'react-router-dom';
 
 import { AppShell, BannerAlert, Spinner } from '@app/ui';
 
+import { useAppLiveSync } from '../realtime/use-app-live-sync.js';
 import { usePosDeviceLockRedirect } from '../pos/hooks/use-pos-device-lock-redirect.js';
 import { useAppShell } from './use-app-shell.js';
 
 export function AppShellLayout() {
   usePosDeviceLockRedirect();
+  useAppLiveSync();
   const { banner, loadingLabel, lockedLabel, navGroups, moduleSwitch, ...shell } = useAppShell();
   return (
     <AppShell

@@ -8,6 +8,8 @@ All notable user-facing changes to Sahtain. Format follows [Keep a Changelog](ht
 - Plans now list every service on the landing page, in Billing and in the docs; services that are not available yet (multiple branches, advanced reports and export, custom roles, ordering from the table QR, API access, device limit) carry a "Soon" badge.
 
 ### Fixed
+- Changes now show up instantly on screens that are already open, without reloading: staff, devices, tables, restaurant and branch settings, and plan changes. Screens no longer refresh on a timer.
+- When a platform admin suspends a restaurant, its logged-in users are signed out right away, and a plan change takes effect at once instead of after up to 30 seconds.
 - Settings → Menu look: the page no longer shows a second scrollbar.
 - Settings → Menu look: the live preview now stays fully visible while you scroll through the options, and scrolls on its own if it is taller than the screen.
 - Landing page: the tablet photo in the "smoother shift" section is no longer cropped so tightly, so the whole POS screen shows.

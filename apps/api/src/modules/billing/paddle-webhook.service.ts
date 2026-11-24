@@ -19,6 +19,7 @@ import {
 } from './paddle-webhook.mapper';
 import { verifyPaddleWebhookSignature } from './paddle-webhook-signature';
 import { paddlePriceMapFromEnv } from './paddle-price-map';
+import { DataChangedNotifier } from '../../core/realtime/data-changed.notifier';
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -34,6 +35,7 @@ export class PaddleWebhookService implements OnModuleInit {
     private readonly billingRepo: BillingRepository,
     private readonly entitlements: EntitlementsService,
     private readonly orgSettings: OrgSettingsService,
+    private readonly dataChanged: DataChangedNotifier,
   ) {}
 
   onModuleInit(): void {
@@ -302,6 +304,7 @@ export class PaddleWebhookService implements OnModuleInit {
     if (entitlementsChanged) {
       this.entitlements.invalidate(orgId);
       this.orgSettings.purgeMenuCache(orgId);
+      void this.dataChanged.notify(orgId, 'plan');
     }
   }
 }

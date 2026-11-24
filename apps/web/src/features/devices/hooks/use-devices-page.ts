@@ -29,7 +29,6 @@ export function useDevicesPage() {
   const sessionBranches = useAppSelector(selectSessionBranches);
   const { data, isLoading, isError } = useListDevicesQuery(undefined, {
     skip: !allowed,
-    pollingInterval: 30_000,
     refetchOnFocus: true,
   });
   const [createDevice, createState] = useCreateDeviceMutation();

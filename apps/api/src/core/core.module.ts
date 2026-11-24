@@ -1,5 +1,5 @@
 import { Module, forwardRef } from '@nestjs/common';
-import { APP_FILTER, APP_GUARD, APP_PIPE } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 import Redis from 'ioredis';
@@ -17,6 +17,8 @@ import { LoggingModule } from './logging/logging.module';
 import { BranchScopeGuard } from './permissions/branch-scope.guard';
 import { PermissionsGuard } from './permissions/permissions.guard';
 import { RedisModule, REDIS } from './redis/redis.module';
+import { DataChangedModule } from './realtime/data-changed.module';
+import { NotifyChangeInterceptor } from './realtime/notify-change.interceptor';
 import { RealtimeKickService } from './realtime/realtime-kick.service';
 import { RealtimeModule } from './realtime/realtime.module';
 import { StorageModule } from './storage/storage.module';
@@ -34,6 +36,7 @@ import { OutboxService } from './outbox/outbox.service';
     StorageModule,
     RedisModule,
     RealtimeModule,
+    DataChangedModule,
     AuthModule,
     forwardRef(() => IdentityModule),
     forwardRef(() => BillingModule),
@@ -47,6 +50,7 @@ import { OutboxService } from './outbox/outbox.service';
   ],
   providers: [
     OutboxService,
+    { provide: APP_INTERCEPTOR, useClass: NotifyChangeInterceptor },
     RealtimeKickService,
     DatabaseRoleValidator,
     { provide: APP_FILTER, useClass: HttpExceptionFilter },

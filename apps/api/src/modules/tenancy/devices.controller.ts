@@ -7,6 +7,7 @@ import { RequirePermission } from '../../core/permissions/require-permission.dec
 import { CreatePosDeviceBodyDto } from './dto/devices.dto';
 import { DevicesService } from './devices.service';
 import { PageQueryDto } from '../../core/validation/page-query.dto';
+import { NotifyChange } from '../../core/realtime/notify-change.decorator';
 
 @Controller('v1/devices')
 export class DevicesController {
@@ -19,6 +20,7 @@ export class DevicesController {
   }
 
   @RequirePermission('staff.manage')
+  @NotifyChange('devices')
   @Post()
   create(@Ctx() ctx: RequestContext, @Body() body: CreatePosDeviceBodyDto) {
     return this.devices.create(ctx, body);
@@ -26,6 +28,7 @@ export class DevicesController {
 
   @RequirePermission('staff.manage')
   @HttpCode(204)
+  @NotifyChange('devices')
   @Delete(':deviceId')
   async revoke(@Ctx() ctx: RequestContext, @Param('deviceId', ParseUUIDPipe) deviceId: string) {
     await this.devices.revoke(ctx, deviceId);

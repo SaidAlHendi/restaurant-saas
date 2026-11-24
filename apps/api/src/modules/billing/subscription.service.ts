@@ -9,6 +9,7 @@ import { newUuidV7 } from '../../lib/uuid';
 
 import { BillingRepository, type SubscriptionUpdatePatch } from './billing.repository';
 import { EntitlementsService } from './entitlements.service';
+import { DataChangedNotifier } from '../../core/realtime/data-changed.notifier';
 
 const TRIAL_DAYS_MS = 14 * 24 * 60 * 60 * 1000;
 
@@ -19,6 +20,7 @@ export class SubscriptionService {
     private readonly billingRepo: BillingRepository,
     private readonly entitlements: EntitlementsService,
     @Inject(CLOCK) private readonly clock: Clock,
+    private readonly dataChanged: DataChangedNotifier,
   ) {}
 
   async createTrialSubscription(tx: DrizzleTx, orgId: string): Promise<void> {
@@ -39,5 +41,6 @@ export class SubscriptionService {
       await this.billingRepo.updateSubscription(tx, orgId, patch);
     });
     this.entitlements.invalidate(orgId);
+    void this.dataChanged.notify(orgId, 'plan');
   }
 }

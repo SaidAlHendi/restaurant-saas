@@ -3,6 +3,7 @@ import { Module, forwardRef } from '@nestjs/common';
 import { ConfigModule, ENV, type Env } from '../../config/config.module';
 import { ClockModule } from '../../core/clock/clock.module';
 import { DbModule } from '../../core/db/db.module';
+import { DataChangedModule } from '../../core/realtime/data-changed.module';
 import { IdentityModule } from '../identity/identity.module';
 import { TenancyModule } from '../tenancy/tenancy.module';
 
@@ -21,6 +22,7 @@ import { SubscriptionService } from './subscription.service';
     ConfigModule,
     DbModule,
     ClockModule,
+    DataChangedModule,
     forwardRef(() => TenancyModule),
     forwardRef(() => IdentityModule),
   ],

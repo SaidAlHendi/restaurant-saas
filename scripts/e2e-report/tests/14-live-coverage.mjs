@@ -7,9 +7,8 @@ import { orderBody, createOrder, payOrder, setStatus, getOrder, pngForm } from '
 
 // Live-update coverage: for every write endpoint, does an open screen in the right place get told?
 // "Right place" = the branch room(s) of the restaurant, never another restaurant or an unrelated branch.
-// Catalog and order writes must send their dedicated events. Everything else listed under "Settings,
-// staff, tables, plan" changes data that open POS/KDS/dashboard screens show, but today sends nothing,
-// so those checks fail on purpose until a live event exists for them.
+// Catalog and order writes send their dedicated events; settings, branch, tables, staff, devices and plan
+// writes send `data.changed`. Every check here must pass; a failure means an open screen would go stale.
 const WAIT_MS = Number(process.env.E2E_PUSH_MS ?? 1500);
 const item = (productId, quantity = 1) => ({ productId, quantity, modifierIds: [] });
 const needSockets = () => { if (!socketsAvailable()) skip('socket.io-client not found (run pnpm install)'); };

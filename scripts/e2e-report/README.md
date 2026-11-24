@@ -5,6 +5,8 @@ A zero-dependency Node script (Node 22+, built-in `fetch`) that drives the runni
 Roles covered: platform admin, owner, manager, cashier, kitchen, customer (public menu, QR, ready screen) and anonymous/attacker checks.
 Features covered: auth and signup, staff and roles (invites, PIN login, permission overrides), catalog (categories, products, modifier groups, images), settings (org, branch, tables, devices, menu look, display currency), orders and POS (modifiers, idempotency, pager, payments, bills, void/cancel approvals, reopen, reports), kitchen display, public menu and QR, billing and plan gating, platform admin (list, suspend, plan change, audit), a role x endpoint permission matrix, tenant-isolation and input-hardening checks, and "instant effects": websocket pushes (new order, status, void, catalog change) and changes that must hit already-logged-in users at once (permission or role change, disabling a user, branch scope or deactivation, plan change and suspension by the platform admin). "Live updates" checks every write endpoint for a websocket push to the right branch room (`E2E_PUSH_MS`, default 1500). Set `E2E_IMMEDIATE_MS` (default 3000) to change what counts as immediate. Socket checks use `socket.io-client` from `apps/api`, so run `pnpm install` first.
 
+Browser checks (`15-browser-screens.mjs`) open the real web app in Chromium (Playwright, skipped if missing or if the web app is not on `WEB_URL`), change data through the API and require the open screen to update without a reload. Screenshots go to `reports/screens/`.
+
 ## Run
 
 ```bash

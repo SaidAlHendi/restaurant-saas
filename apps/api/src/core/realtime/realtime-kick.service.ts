@@ -4,7 +4,7 @@ import type Redis from 'ioredis';
 
 import { REDIS } from '../redis/redis.module';
 
-import { REALTIME_NAMESPACE, branchRoom, userRoom } from './realtime-rooms';
+import { REALTIME_NAMESPACE, branchRoom, orgRoom, userRoom } from './realtime-rooms';
 
 /**
  * Sockets are only authorized at handshake. When access is taken away (member disabled,
@@ -22,6 +22,11 @@ export class RealtimeKickService {
 
   disconnectUser(userId: string): void {
     this.disconnect(userRoom(userId));
+  }
+
+  /** Restaurant suspended or cancelled: drop every open screen of the whole organization. */
+  disconnectOrg(orgId: string): void {
+    this.disconnect(orgRoom(orgId));
   }
 
   disconnectBranch(branchId: string): void {

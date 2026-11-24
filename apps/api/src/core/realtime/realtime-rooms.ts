@@ -8,3 +8,7 @@ export function branchRoom(branchId: string): string {
 export function userRoom(userId: string): string {
   return `user:${userId}`;
 }
+
+export function orgRoom(orgId: string): string {
+  return `org:${orgId}`;
+}

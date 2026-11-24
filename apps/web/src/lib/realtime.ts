@@ -2,9 +2,12 @@ import { io, type ManagerOptions, type Socket, type SocketOptions } from 'socket
 
 import {
   CATALOG_UPDATED_EVENT,
+  DATA_CHANGED_EVENT,
   catalogRealtimePayloadSchema,
+  dataChangedPayloadSchema,
   orderRealtimeClientPayloadSchema,
   type CatalogRealtimePayload,
+  type DataChangedPayload,
   type OrderRealtimeClientPayload,
 } from '@app/shared';
 
@@ -38,6 +41,8 @@ export type RealtimeClientOptions = {
   onEvent: (event: RealtimeEvent) => void;
   /** The branch menu changed: the screen refetches it (the payload is only a hint). */
   onCatalogUpdated?: (payload: CatalogRealtimePayload) => void;
+  /** Settings, tables, staff, devices, branch or plan changed: the screen refetches that data. */
+  onDataChanged?: (payload: DataChangedPayload) => void;
   /** Called on every connect after the first: the screen must refetch (events may be missed). */
   onResync: () => void;
   socketFactory?: SocketFactory;
@@ -117,6 +122,13 @@ export function createRealtimeClient(options: RealtimeClientOptions): RealtimeCl
     const parsed = catalogRealtimePayloadSchema.safeParse(raw);
     if (parsed.success) {
       options.onCatalogUpdated?.(parsed.data);
+    }
+  });
+
+  socket.on(DATA_CHANGED_EVENT, (raw: unknown) => {
+    const parsed = dataChangedPayloadSchema.safeParse(raw);
+    if (parsed.success) {
+      options.onDataChanged?.(parsed.data);
     }
   });
 

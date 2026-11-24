@@ -11,6 +11,7 @@ import { CreateDiningTableBodyDto, PatchDiningTableBodyDto } from './dto/orderin
 import { OrderingPathIdPipe } from './pipes/ordering-path-id.pipe';
 import { TablesService } from './tables.service';
 import { PageQueryDto } from '../../core/validation/page-query.dto';
+import { NotifyChange } from '../../core/realtime/notify-change.decorator';
 
 @RequireBranchScope()
 @Controller('v1/branches/:branchId/tables')
@@ -30,6 +31,7 @@ export class TablesController {
 
   @RequirePermission('tables.rotate_qr')
   @RequireFeature('menu.table_qr')
+  @NotifyChange('tables')
   @Post(':tableId/rotate-qr')
   rotateQr(
     @Ctx() ctx: RequestContext,
@@ -40,6 +42,7 @@ export class TablesController {
   }
 
   @RequirePermission('branches.manage')
+  @NotifyChange('tables')
   @Post()
   create(
     @Ctx() ctx: RequestContext,
@@ -50,6 +53,7 @@ export class TablesController {
   }
 
   @RequirePermission('branches.manage')
+  @NotifyChange('tables')
   @Patch(':tableId')
   patch(
     @Ctx() ctx: RequestContext,

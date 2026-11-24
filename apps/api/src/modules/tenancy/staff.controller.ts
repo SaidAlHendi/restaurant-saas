@@ -14,6 +14,7 @@ import {
 } from './dto/staff.dto';
 import { StaffService } from './staff.service';
 import { PageQueryDto } from '../../core/validation/page-query.dto';
+import { NotifyChange } from '../../core/realtime/notify-change.decorator';
 
 @Controller('v1/staff')
 export class StaffController {
@@ -26,30 +27,35 @@ export class StaffController {
   }
 
   @RequirePermission('staff.manage')
+  @NotifyChange('staff')
   @Post('invites')
   createInvite(@Ctx() ctx: RequestContext, @Body() body: CreateStaffInviteBodyDto) {
     return this.staff.createInvite(ctx, body);
   }
 
   @RequirePermission('staff.manage')
+  @NotifyChange('staff')
   @Post('pin-only')
   createPinOnly(@Ctx() ctx: RequestContext, @Body() body: CreatePinOnlyStaffBodyDto) {
     return this.staff.createPinOnly(ctx, body);
   }
 
   @RequirePermission('staff.manage')
+  @NotifyChange('staff')
   @Post(':membershipId/invite/regenerate')
   regenerateInvite(@Ctx() ctx: RequestContext, @Param('membershipId', ParseUUIDPipe) membershipId: string) {
     return this.staff.regenerateInvite(ctx, membershipId);
   }
 
   @RequirePermission('staff.manage')
+  @NotifyChange('staff')
   @Delete(':membershipId/invite')
   revokeInvite(@Ctx() ctx: RequestContext, @Param('membershipId', ParseUUIDPipe) membershipId: string) {
     return this.staff.revokeInvite(ctx, membershipId);
   }
 
   @RequirePermission('staff.manage')
+  @NotifyChange('staff')
   @Patch(':membershipId')
   patchMembership(
     @Ctx() ctx: RequestContext,
@@ -66,6 +72,7 @@ export class StaffController {
   }
 
   @RequirePermission('org.manage')
+  @NotifyChange('staff')
   @Put(':membershipId/permissions')
   putPermissions(
     @Ctx() ctx: RequestContext,
@@ -76,6 +83,7 @@ export class StaffController {
   }
 
   @Authenticated()
+  @NotifyChange('staff')
   @Put(':membershipId/pin')
   putPin(
     @Ctx() ctx: RequestContext,
@@ -86,6 +94,7 @@ export class StaffController {
   }
 
   @Authenticated()
+  @NotifyChange('staff')
   @Delete(':membershipId/pin')
   deletePin(@Ctx() ctx: RequestContext, @Param('membershipId', ParseUUIDPipe) membershipId: string) {
     return this.staff.deletePin(ctx, membershipId);
