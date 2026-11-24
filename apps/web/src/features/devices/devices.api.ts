@@ -10,8 +10,8 @@ import { baseApi } from '../../app/api/base-api.js';
 
 export const devicesApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    listDevices: builder.query<PosDeviceListResponse, undefined>({
-      query: () => '/v1/devices',
+    listDevices: builder.query<PosDeviceListResponse, { page: number; pageSize: number }>({
+      query: (params) => ({ url: '/v1/devices', params }),
       transformResponse: (response: unknown) => posDeviceListResponseSchema.parse(response),
       providesTags: [{ type: 'PosDevice', id: 'LIST' }],
     }),

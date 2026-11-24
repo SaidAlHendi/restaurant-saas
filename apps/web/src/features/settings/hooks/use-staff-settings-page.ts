@@ -5,6 +5,7 @@ import { z } from 'zod';
 import type { StaffListItem, SystemRoleKey } from '@app/shared';
 import { toast } from '@app/ui';
 
+import { useClientListPage } from '../../../lib/pagination.js';
 import { showApiError } from '../../../lib/show-api-error.js';
 import { useAppSelector } from '../../../app/hooks.js';
 import {
@@ -273,9 +274,9 @@ export function useStaffSettingsPage() {
     return keys.map((key) => ({ value: key, label: roleLabel(key) }));
   }, [data?.items, roleLabel]);
 
-  const rows: StaffTableRow[] = useMemo(() => {
+  const filteredMembers = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    const items = (data?.items ?? []).filter((member) => {
+    return (data?.items ?? []).filter((member) => {
       if (roleFilter !== 'all' && member.roleKey !== roleFilter) {
         return false;
       }
@@ -287,7 +288,16 @@ export function useStaffSettingsPage() {
         (member.email ?? '').toLowerCase().includes(query)
       );
     });
-    return items.map((member) => {
+  }, [data?.items, roleFilter, searchQuery]);
+  // The whole team stays loaded (owner count, "you" lookup, role filter), so the table pages locally.
+  const { pageItems, pagination } = useClientListPage(
+    filteredMembers,
+    t,
+    `${roleFilter}|${searchQuery}`,
+  );
+
+  const rows: StaffTableRow[] = useMemo(() => {
+    return pageItems.map((member) => {
       const actions = staffRowActions({
         actorMembershipId,
         actorRoleKey,
@@ -380,9 +390,7 @@ export function useStaffSettingsPage() {
     actorMembershipId,
     actorRoleKey,
     branchNameById,
-    roleFilter,
-    searchQuery,
-    data?.items,
+    pageItems,
     hasOrgManage,
     hasStaffManage,
     openEditForMember,
@@ -566,6 +574,7 @@ export function useStaffSettingsPage() {
     isLoading,
     isError,
     rows,
+    pagination,
     permissionsMember,
     onPermissionsClose: () => {
       setPermissionsMember(null);

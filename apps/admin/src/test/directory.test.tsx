@@ -124,6 +124,9 @@ describe('directory pages', () => {
           providerSubscriptionId: 'sub_123',
         },
       ],
+      page: 1,
+      pageSize: 10,
+      total: 1,
     }));
     renderAt(
       '/subscriptions?status=past_due&plan=restaurant',
@@ -137,7 +140,7 @@ describe('directory pages', () => {
   });
 
   it('subscriptions: trial_ending maps to the trialEnding flag', async () => {
-    const calls = stubFetch(() => ({ items: [] }));
+    const calls = stubFetch(() => ({ items: [], page: 1, pageSize: 10, total: 0 }));
     renderAt('/subscriptions?status=trial_ending', <SubscriptionsPage />, '/subscriptions');
     expect(await screen.findByText('No matching subscriptions')).toBeInTheDocument();
     expect(calls[0]?.searchParams.get('trialEnding')).toBe('true');

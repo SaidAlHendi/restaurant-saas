@@ -184,8 +184,12 @@ export const menuApi = baseApi.injectEndpoints({
       ],
     }),
 
-    listModifierGroups: builder.query<ModifierGroupListResponse, undefined>({
-      query: () => '/v1/modifier-groups',
+    // No args = every group (pickers); `{ page, pageSize }` = one page for the management screen.
+    listModifierGroups: builder.query<
+      ModifierGroupListResponse,
+      { page: number; pageSize: number } | undefined
+    >({
+      query: (params) => ({ url: '/v1/modifier-groups', params }),
       providesTags: (result) =>
         result
           ? [

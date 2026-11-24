@@ -5,6 +5,7 @@ import { intlLocaleForUi } from '@app/shared';
 import { toast } from '@app/ui';
 
 import { useAppSelector } from '../../../app/hooks.js';
+import { LIST_PAGE_SIZE, useListPagination } from '../../../lib/pagination.js';
 import { showApiError } from '../../../lib/show-api-error.js';
 import { selectCan, selectSessionBranches } from '../../session/session.selectors.js';
 import {
@@ -27,11 +28,12 @@ export function useDevicesPage() {
   const { t, i18n } = useTranslation();
   const allowed = useAppSelector(selectCan('staff.manage'));
   const sessionBranches = useAppSelector(selectSessionBranches);
-  const { data, isLoading, isError } = useListDevicesQuery(undefined, {
-    skip: !allowed,
-    pollingInterval: 30_000,
-    refetchOnFocus: true,
-  });
+  const [listPage, setListPage] = useState(1);
+  const { data, isLoading, isError } = useListDevicesQuery(
+    { page: listPage, pageSize: LIST_PAGE_SIZE },
+    { skip: !allowed, pollingInterval: 30_000, refetchOnFocus: true },
+  );
+  const pagination = useListPagination(listPage, setListPage, data, t);
   const [createDevice, createState] = useCreateDeviceMutation();
   const [revokeDevice, revokeState] = useRevokeDeviceMutation();
 
@@ -117,6 +119,7 @@ export function useDevicesPage() {
     isLoading,
     isError,
     rows,
+    pagination,
     branchOptions,
     createOpen,
     onCreateOpenChange: (open: boolean) => {

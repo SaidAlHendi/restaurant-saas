@@ -24,6 +24,7 @@ import {
   SelectValue,
   Spinner,
   Switch,
+  NumberedPagination,
 } from '@app/ui';
 
 import { StaffPermissionsDialog } from './StaffPermissionsDialog.js';
@@ -114,6 +115,7 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
     isLoading,
     isError,
     rows,
+    pagination,
     searchQuery,
     onSearchQueryChange,
     roleFilter,
@@ -387,6 +389,14 @@ export function StaffSettingsPageView(props: StaffSettingsPageViewModel) {
           );
         }}
       />
+      {pagination.pageCount > 1 ? (
+        <NumberedPagination
+          page={pagination.page}
+          pageCount={pagination.pageCount}
+          onPageChange={pagination.onPageChange}
+          labels={pagination.labels}
+        />
+      ) : null}
 
       {permissionsMember ? (
         <StaffPermissionsDialog

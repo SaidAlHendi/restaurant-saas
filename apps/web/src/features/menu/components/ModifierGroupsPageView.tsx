@@ -8,11 +8,14 @@ import {
   EmptyState,
   IconButton,
   InfoNote,
+  NumberedPagination,
   PageHeader,
   Spinner,
 } from '@app/ui';
 
 import type { ModifierGroup, ModifierGroupListItem } from '@app/shared';
+
+import type { ListPaginationViewModel } from '../../../lib/pagination.js';
 
 import { ModifierGroupFormDialogView } from './ModifierGroupFormDialogView.js';
 
@@ -22,6 +25,7 @@ export interface ModifierGroupsPageViewProps {
   canManage: boolean;
   isLoading: boolean;
   groups: ModifierGroupListItem[];
+  pagination: ListPaginationViewModel;
   /** "What are modifier groups?" explanation shown above the list. */
   infoNote: {
     title: string;
@@ -65,6 +69,7 @@ export function ModifierGroupsPageView({
   canManage,
   isLoading,
   groups,
+  pagination,
   infoNote,
   usageLabel,
   labelFor,
@@ -186,6 +191,14 @@ export function ModifierGroupsPageView({
           ))}
         </ul>
       )}
+      {pagination.pageCount > 1 ? (
+        <NumberedPagination
+          page={pagination.page}
+          pageCount={pagination.pageCount}
+          onPageChange={pagination.onPageChange}
+          labels={pagination.labels}
+        />
+      ) : null}
       <ModifierGroupFormDialogView
         open={formOpen}
         onOpenChange={onFormOpenChange}

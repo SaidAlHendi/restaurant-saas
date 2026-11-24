@@ -60,6 +60,18 @@ function minimalStaffVm(
     redirectTo: null,
     isLoading: false,
     isError: false,
+    pagination: {
+      page: 1,
+      pageCount: 1,
+      onPageChange: vi.fn(),
+      labels: {
+        navigation: 'Pagination',
+        previous: 'Previous',
+        next: 'Next',
+        page: (n: number) => `Page ${String(n)}`,
+        morePages: 'More pages',
+      },
+    },
     permissionsMember: null,
     onPermissionsClose: () => {},
     searchQuery: '',

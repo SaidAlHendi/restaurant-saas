@@ -6,7 +6,7 @@ All notable user-facing changes to Sahtain. Format follows [Keep a Changelog](ht
 
 ### Changed
 - The landing page footer no longer repeats the "Start your free trial" button; it stays in the top bar.
-- Orders (dashboard and POS), Menu → Products and the platform admin Users and Audit log lists now use page numbers (1, 2, 3 …) instead of "Load more", show 10 rows per page, and show the total count.
+- Orders (dashboard and POS), Menu → Products and the platform admin Users and Audit log lists now use page numbers (1, 2, 3 …) instead of "Load more", show 10 rows per page, and show the total count. Settings → Staff, Devices, Menu → Modifier groups and the admin Subscriptions list now have page numbers too.
 - Plans now list every service on the landing page, in Billing and in the docs; services that are not available yet (multiple branches, advanced reports and export, custom roles, ordering from the table QR, API access, device limit) carry a "Soon" badge.
 - The thank-you page on the landing site has a new look: your request shows as a kitchen ticket with the next three steps, beside a photo of the pass.
 - The FAQ page has a new look (every question is a kitchen ticket on a dark rail, next to a photo) and now answers 15 questions about pricing, the trial, the menu, the kitchen, staff, receipts and data.

@@ -1,9 +1,15 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 
-import { adminSubscriptionStatusSchema, type AdminSubscriptionStatus, intlLocaleForUi } from '@app/shared';
+import {
+  adminSubscriptionStatusSchema,
+  DEFAULT_PAGE_SIZE,
+  intlLocaleForUi,
+  type AdminSubscriptionStatus,
+} from '@app/shared';
 
+import { useListPlansQuery } from '../plans/plans.api.js';
 import { useListSubscriptionsQuery } from './subscriptions.api.js';
 
 export const ALL = 'all';
@@ -23,19 +29,21 @@ export function useSubscriptionsPage() {
     : undefined;
   const plan = params.get('plan') ?? undefined;
 
+  const [page, setPage] = useState(1);
   const { data, isFetching, isError, refetch } = useListSubscriptionsQuery({
     status,
     plan,
     trialEnding,
+    page,
   });
 
-  // Plan options come from the unfiltered-by-plan keys seen so far plus the active filter.
+  // Plan options come from the plans list, since one page of subscriptions need not show every plan.
+  const { data: plansData } = useListPlansQuery(undefined);
   const planOptions = useMemo(() => {
-    const seen = new Map<string, string>();
-    for (const item of data?.items ?? []) seen.set(item.planKey, item.planName);
-    if (plan && !seen.has(plan)) seen.set(plan, plan);
-    return [...seen.entries()].map(([key, name]) => ({ key, name }));
-  }, [data, plan]);
+    const options = (plansData?.items ?? []).map((p) => ({ key: p.key, name: p.name }));
+    if (plan && !options.some((o) => o.key === plan)) options.push({ key: plan, name: plan });
+    return options;
+  }, [plansData, plan]);
 
   const dateFormat = useMemo(
     () => new Intl.DateTimeFormat(intlLocaleForUi(i18n.language), { dateStyle: 'medium' }),
@@ -52,6 +60,7 @@ export function useSubscriptionsPage() {
       },
       { replace: true },
     );
+    setPage(1);
   };
 
   return {
@@ -60,6 +69,10 @@ export function useSubscriptionsPage() {
     planValue: plan ?? ALL,
     planOptions,
     items: data?.items ?? [],
+    page,
+    pageSize: data?.pageSize ?? DEFAULT_PAGE_SIZE,
+    total: data?.total ?? 0,
+    onPageChange: setPage,
     isLoading: isFetching && !data,
     isError,
     isFiltered: Boolean(status || plan || trialEnding),

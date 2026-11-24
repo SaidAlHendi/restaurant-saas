@@ -1,7 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { and, asc, eq, gte, lte, sql, type SQL } from 'drizzle-orm';
+import { and, asc, count, eq, gte, lte, sql, type SQL } from 'drizzle-orm';
 import {
   ADMIN_TRIAL_ENDING_DAYS,
+  pageMeta,
   type AdminSubscriptionListQuery,
   type AdminSubscriptionListResponse,
 } from '@app/shared';
@@ -9,8 +10,6 @@ import {
 import { ADMIN_DRIZZLE, type AdminDrizzleDb } from '../../../core/db/admin-db.tokens';
 import { plans, subscriptions } from '../../../core/db/schema/billing';
 import { organizations } from '../../../core/db/schema/tenancy';
-
-const MAX_ROWS = 500;
 
 @Injectable()
 export class AdminSubscriptionsService {
@@ -31,6 +30,13 @@ export class AdminSubscriptionsService {
       );
     }
 
+    const where = conditions.length > 0 ? and(...conditions) : undefined;
+
+    const [totalRow] = await this.db
+      .select({ total: count() })
+      .from(subscriptions)
+      .innerJoin(plans, eq(plans.id, subscriptions.planId))
+      .where(where);
     const rows = await this.db
       .select({
         id: subscriptions.id,
@@ -46,9 +52,10 @@ export class AdminSubscriptionsService {
       .from(subscriptions)
       .innerJoin(organizations, eq(organizations.id, subscriptions.orgId))
       .innerJoin(plans, eq(plans.id, subscriptions.planId))
-      .where(conditions.length > 0 ? and(...conditions) : undefined)
-      .orderBy(asc(subscriptions.trialEndsAt), asc(organizations.name))
-      .limit(MAX_ROWS);
+      .where(where)
+      .orderBy(asc(subscriptions.trialEndsAt), asc(organizations.name), asc(subscriptions.id))
+      .limit(query.pageSize)
+      .offset((query.page - 1) * query.pageSize);
 
     return {
       items: rows.map((r) => ({
@@ -56,6 +63,7 @@ export class AdminSubscriptionsService {
         trialEndsAt: r.trialEndsAt?.toISOString() ?? null,
         currentPeriodEnd: r.currentPeriodEnd?.toISOString() ?? null,
       })),
+      ...pageMeta(query, totalRow?.total ?? 0),
     };
   }
 }

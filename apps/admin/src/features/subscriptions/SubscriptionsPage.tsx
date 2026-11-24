@@ -16,6 +16,7 @@ import {
   type DataTableColumn,
 } from '@app/ui';
 
+import { AdminPagination } from '../../lib/AdminPagination.js';
 import { ALL, TRIAL_ENDING, useSubscriptionsPage } from './use-subscriptions-page.js';
 
 const STATUSES: AdminSubscriptionStatus[] = ['trialing', 'active', 'past_due', 'canceled'];
@@ -140,6 +141,12 @@ export default function SubscriptionsPage() {
           />
         }
         labels={{ actions: t('common.actions'), sortBy: t('common.sortBy') }}
+      />
+      <AdminPagination
+        page={vm.page}
+        pageSize={vm.pageSize}
+        total={vm.total}
+        onPageChange={vm.onPageChange}
       />
     </div>
   );

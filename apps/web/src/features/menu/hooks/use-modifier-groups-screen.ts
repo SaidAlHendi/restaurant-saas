@@ -5,6 +5,7 @@ import type { Modifier, ModifierGroup } from '@app/shared';
 
 import { useAppDispatch, useAppSelector } from '../../../app/hooks.js';
 import { formatMoney, intlLocaleForUi } from '../../../lib/money.js';
+import { LIST_PAGE_SIZE, useListPagination } from '../../../lib/pagination.js';
 import { selectCan } from '../../session/session.selectors.js';
 import type { ModifierFormDialogViewProps } from '../components/ModifierFormDialogView.js';
 import type { ModifierGroupDetailSheetViewProps } from '../components/ModifierGroupDetailSheetView.js';
@@ -37,8 +38,13 @@ export function useModifierGroupsScreen(): {
   const dispatch = useAppDispatch();
   const canManage = useAppSelector(selectCan('menu.manage'));
 
-  const { data, isLoading } = useListModifierGroupsQuery(undefined);
+  const [listPage, setListPage] = useState(1);
+  const { data, isLoading } = useListModifierGroupsQuery({
+    page: listPage,
+    pageSize: LIST_PAGE_SIZE,
+  });
   const groups = data?.items ?? [];
+  const pagination = useListPagination(listPage, setListPage, data, t);
 
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>();
@@ -166,6 +172,7 @@ export function useModifierGroupsScreen(): {
     canManage,
     isLoading,
     groups,
+    pagination,
     labelFor,
     addLabel: t('menu.modifierGroups.add'),
     emptyTitle: t('menu.modifierGroups.emptyTitle'),

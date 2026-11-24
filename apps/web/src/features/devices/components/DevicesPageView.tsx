@@ -18,6 +18,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  NumberedPagination,
   Spinner,
 } from '@app/ui';
 
@@ -28,6 +29,7 @@ export function DevicesPageView(props: DevicesPageViewModel) {
     isLoading,
     isError,
     rows,
+    pagination,
     branchOptions,
     createOpen,
     onCreateOpenChange,
@@ -92,6 +94,14 @@ export function DevicesPageView(props: DevicesPageViewModel) {
           </Button>
         )}
       />
+      {pagination.pageCount > 1 ? (
+        <NumberedPagination
+          page={pagination.page}
+          pageCount={pagination.pageCount}
+          onPageChange={pagination.onPageChange}
+          labels={pagination.labels}
+        />
+      ) : null}
 
       <Dialog open={createOpen} onOpenChange={onCreateOpenChange}>
         <DialogContent closeLabel={labels.close}>

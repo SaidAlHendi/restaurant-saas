@@ -41,7 +41,7 @@ export type AdminSubscriptionStatus = z.infer<typeof adminSubscriptionStatusSche
 
 export const ADMIN_TRIAL_ENDING_DAYS = 7;
 
-export const adminSubscriptionListQuerySchema = z.object({
+export const adminSubscriptionListQuerySchema = pagedListQuerySchema.extend({
   status: adminSubscriptionStatusSchema.optional(),
   /** Plan key, e.g. `restaurant`. */
   plan: z.string().trim().min(1).max(60).optional(),
@@ -68,6 +68,7 @@ export type AdminSubscriptionItem = z.infer<typeof adminSubscriptionItemSchema>;
 
 export const adminSubscriptionListResponseSchema = z.object({
   items: z.array(adminSubscriptionItemSchema),
+  ...pageMetaShape,
 });
 export type AdminSubscriptionListResponse = z.infer<typeof adminSubscriptionListResponseSchema>;
 

@@ -130,18 +130,28 @@ describe('Admin users, subscriptions, plans and audit (e2e)', () => {
   });
 
   it('lists subscriptions and filters by status, plan and trial ending', async () => {
-    const all = await as('billing').get('/v1/admin/subscriptions');
-    const items = (all.body as { items: { orgId: string; planKey: string; status: string }[] })
-      .items;
-    const mine = items.find((i) => i.orgId === orgId);
+    type Sub = { orgId: string; planKey: string; status: string };
+    type SubPage = { items: Sub[]; page: number; pageSize: number; total: number };
+    const first = await as('billing').get('/v1/admin/subscriptions');
+    const firstBody = first.body as SubPage;
+    expect(firstBody.page).toBe(1);
+    expect(firstBody.pageSize).toBe(10);
+    expect(firstBody.items.length).toBeLessThanOrEqual(10);
+    // Walk the pages (100 rows each) until this test's own subscription turns up.
+    const findMine = async (filters: Record<string, string | undefined> = {}) => {
+      for (let page = 1; ; page += 1) {
+        const res = await as('billing')
+          .get('/v1/admin/subscriptions')
+          .query({ ...filters, page, pageSize: 100 });
+        const body = res.body as SubPage;
+        const found = body.items.find((i) => i.orgId === orgId);
+        if (found !== undefined || page * body.pageSize >= body.total) return found;
+      }
+    };
+    const mine = await findMine();
     expect(mine).toBeDefined();
 
-    const byPlan = await as('billing')
-      .get('/v1/admin/subscriptions')
-      .query({ plan: mine?.planKey, status: mine?.status });
-    expect(
-      (byPlan.body as { items: { orgId: string }[] }).items.some((i) => i.orgId === orgId),
-    ).toBe(true);
+    expect(await findMine({ plan: mine?.planKey, status: mine?.status })).toBeDefined();
 
     const none = await as('billing').get('/v1/admin/subscriptions').query({ plan: 'no-such-plan' });
     expect((none.body as { items: unknown[] }).items).toHaveLength(0);
@@ -156,9 +166,7 @@ describe('Admin users, subscriptions, plans and audit (e2e)', () => {
     expect(
       (trial.body as { items: { status: string }[] }).items.every((i) => i.status === 'trialing'),
     ).toBe(true);
-    expect(
-      (trial.body as { items: { orgId: string }[] }).items.some((i) => i.orgId === orgId),
-    ).toBe(true);
+    expect(await findMine({ trialEnding: 'true' })).toBeDefined();
 
     expect(
       (await as('billing').get('/v1/admin/subscriptions').query({ status: 'nope' })).status,
