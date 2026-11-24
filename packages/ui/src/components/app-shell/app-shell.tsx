@@ -194,7 +194,8 @@ export function AppShell({
           </span>
         </div>
         {banner}
-        <div className="flex min-h-0 flex-1 flex-col">{children}</div>
+        {/* The shell is exactly one screen tall, so a page taller than that scrolls here. */}
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">{children}</div>
       </div>
     </div>
   );

@@ -9,6 +9,7 @@ All notable user-facing changes to Sahtain. Format follows [Keep a Changelog](ht
 - Plans now list every service on the landing page, in Billing and in the docs; services that are not available yet (multiple branches, advanced reports and export, custom roles, ordering from the table QR, API access, device limit) carry a "Soon" badge.
 
 ### Fixed
+- Platform admin and POS Orders, Bills and Tables: pages taller than the screen can be scrolled again, so the bottom rows and the page numbers are reachable.
 - Settings → Menu look: the page no longer shows a second scrollbar.
 - Settings → Menu look: the live preview now stays fully visible while you scroll through the options, and scrolls on its own if it is taller than the screen.
 - Landing page: the tablet photo in the "smoother shift" section is no longer cropped so tightly, so the whole POS screen shows.
