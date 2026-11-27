@@ -119,6 +119,7 @@ describe('Admin users, subscriptions, plans and audit (e2e)', () => {
       orgId,
       orgName: `Dir Cafe ${runId}`,
       roleKey: 'owner',
+      branchNames: null,
     });
     expect(JSON.stringify(res.body)).not.toMatch(/password|hash/i);
     expect((await as('support').get('/v1/admin/users').query({ search: '%' })).body).toMatchObject({
@@ -127,6 +128,24 @@ describe('Admin users, subscriptions, plans and audit (e2e)', () => {
     expect((await as('support').get('/v1/admin/users').query({ page: '0' })).status).toBe(
       400,
     );
+  });
+
+  it('filters users by role, restaurant and branch', async () => {
+    const find = async (filters: Record<string, string>) => {
+      const res = await as('support')
+        .get('/v1/admin/users')
+        .query({ search: ownerEmail, ...filters });
+      expect(res.status).toBe(200);
+      return (res.body as { total: number }).total;
+    };
+    const detail = await as('support').get(`/v1/admin/orgs/${orgId}`);
+    const branchId = (detail.body as { branches: { id: string }[] }).branches[0]?.id ?? '';
+
+    expect(await find({ role: 'owner', orgId, branchId })).toBe(1);
+    expect(await find({ role: 'cashier' })).toBe(0);
+    expect(await find({ orgId: newUuidV7() })).toBe(0);
+    expect(await find({ branchId: newUuidV7() })).toBe(0);
+    expect((await as('support').get('/v1/admin/users').query({ role: 'boss' })).status).toBe(400);
   });
 
   it('lists subscriptions and filters by status, plan and trial ending', async () => {

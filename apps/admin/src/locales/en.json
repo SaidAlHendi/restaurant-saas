@@ -365,14 +365,27 @@
     "emptyTitle": "No users yet",
     "emptyBody": "Users appear here after they sign up.",
     "emptyFilteredTitle": "No matching users",
-    "emptyFilteredBody": "Try a different name or email.",
+    "emptyFilteredBody": "Change or clear a filter to see more users.",
     "columns": {
       "name": "Name",
       "email": "Email",
       "restaurants": "Restaurant",
       "role": "Role",
       "lastLogin": "Last sign-in"
-    }
+    },
+    "allRoles": "All roles",
+    "allRestaurants": "All restaurants",
+    "restaurantSearch": "Search restaurants",
+    "restaurantNone": "No restaurant found",
+    "branch": "Branch",
+    "allBranches": "All branches",
+    "roles": {
+      "owner": "Owner",
+      "manager": "Manager",
+      "cashier": "Cashier",
+      "kitchen": "Kitchen"
+    },
+    "listSeparator": ", "
   },
   "subscriptions": {
     "title": "Subscriptions",

@@ -1,12 +1,18 @@
 import { z } from 'zod';
 
 import { pagedListQuerySchema, pageMetaShape } from '../page-pagination.js';
+import { staffRoleKeySchema } from '../staff/staff.js';
 import { adminRoleSchema } from './roles.js';
 
 // ---- Users ----
 
 export const adminUserListQuerySchema = pagedListQuerySchema.extend({
   search: z.string().trim().max(120).optional(),
+  /** `role`, `orgId` and `branchId` must all match the same membership. */
+  role: staffRoleKeySchema.optional(),
+  orgId: z.uuid().optional(),
+  /** Users who can work in this branch, including members with access to all branches. */
+  branchId: z.uuid().optional(),
 });
 export type AdminUserListQuery = z.infer<typeof adminUserListQuerySchema>;
 
@@ -16,6 +22,8 @@ export const adminTenantUserMembershipSchema = z.object({
   roleKey: z.string(),
   roleName: z.string(),
   status: z.string(),
+  /** Names of the branches this membership can work in; null = all branches. */
+  branchNames: z.array(z.string()).nullable(),
 });
 
 export const adminTenantUserSchema = z.object({

@@ -19,6 +19,7 @@ All notable user-facing changes to Sahtain. Format follows [Keep a Changelog](ht
 
 ### Added
 - Admin: the restaurant page now shows everything about a restaurant in tabs: orders and sales, branches and POS devices, team, plan limits and admin history.
+- Admin: filter the Users list by role, restaurant and branch, and see each person's branches in the table.
 - Menu look is part of the Menu plan and above: Free restaurants keep the default look. Owners can set a brand colour; Sahtain picks readable text and adjusts colours that are too close to the background. Downgrading keeps your saved look and brings it back when you upgrade.
 - Settings → Menu look: owners choose the colour style, dish layout, banner headline (English and Arabic), a cover photo shown in an arch next to the banner, an optional category ticker, a closing line in the footer and the search box of the public QR menu, with a live preview. Saving updates the menu for guests within minutes.
 - Restaurant and branch settings now warn before you leave the page with unsaved changes, so edits are no longer lost by accident.

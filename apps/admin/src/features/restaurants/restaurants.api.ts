@@ -1,4 +1,5 @@
 import {
+  ADMIN_ORG_PAGE_SIZE_MAX,
   adminOrgActivateResultSchema,
   adminOrgDetailSchema,
   adminOrgListResponseSchema,
@@ -6,6 +7,7 @@ import {
   type AdminOrgActivateInput,
   type AdminOrgActivateResult,
   type AdminOrgDetail,
+  type AdminOrgListItem,
   type AdminOrgListQuery,
   type AdminOrgListResponse,
   type AdminOrgStatusChange,
@@ -23,6 +25,26 @@ export const restaurantsApi = baseApi.injectEndpoints({
         params: { q: q || undefined, status, page, pageSize },
       }),
       transformResponse: (response: unknown) => adminOrgListResponseSchema.parse(response),
+      providesTags: [{ type: 'Restaurant', id: 'LIST' }],
+    }),
+    /** Every restaurant, for pickers: walks all pages of the list endpoint. */
+    listRestaurantOptions: builder.query<
+      Pick<AdminOrgListItem, 'id' | 'name' | 'slug'>[],
+      undefined
+    >({
+      async queryFn(_arg, _api, _extra, fetchWithBQ) {
+        const options: Pick<AdminOrgListItem, 'id' | 'name' | 'slug'>[] = [];
+        for (let page = 1; ; page += 1) {
+          const result = await fetchWithBQ({
+            url: '/v1/admin/orgs',
+            params: { page, pageSize: ADMIN_ORG_PAGE_SIZE_MAX },
+          });
+          if (result.error) return { error: result.error };
+          const { items, total } = adminOrgListResponseSchema.parse(result.data);
+          options.push(...items.map(({ id, name, slug }) => ({ id, name, slug })));
+          if (items.length === 0 || options.length >= total) return { data: options };
+        }
+      },
       providesTags: [{ type: 'Restaurant', id: 'LIST' }],
     }),
     getRestaurant: builder.query<AdminOrgDetail, string>({
@@ -69,6 +91,7 @@ export const restaurantsApi = baseApi.injectEndpoints({
 
 export const {
   useListRestaurantsQuery,
+  useListRestaurantOptionsQuery,
   useGetRestaurantQuery,
   useSuspendRestaurantMutation,
   useReactivateRestaurantMutation,

@@ -83,6 +83,7 @@ describe('directory pages', () => {
                 roleKey: 'owner',
                 roleName: 'Owner',
                 status: 'active',
+                branchNames: ['Downtown', 'Airport'],
               },
             ],
           },
@@ -99,7 +100,8 @@ describe('directory pages', () => {
       `/restaurants/${ORG}`,
     );
     expect(screen.getByText('Owner')).toBeInTheDocument();
-    expect(calls[0]?.pathname).toBe('/v1/admin/users');
+    expect(screen.getByText('Downtown, Airport')).toBeInTheDocument();
+    expect(calls.some((url) => url.pathname === '/v1/admin/users')).toBe(true);
 
     expect(calls[0]?.searchParams.get('page')).toBe('1');
 
@@ -107,6 +109,20 @@ describe('directory pages', () => {
     expect(await screen.findByText('Second User')).toBeInTheDocument();
     expect(calls.at(-1)?.searchParams.get('page')).toBe('2');
     expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
+  });
+
+  it('users: sends role, restaurant and branch filters from the URL', async () => {
+    const calls = stubFetch((url) => {
+      if (url.pathname === `/v1/admin/orgs/${ORG}`) return {};
+      return { items: [], page: 1, pageSize: 10, total: 0 };
+    });
+    renderAt(`/users?role=cashier&orgId=${ORG}&branchId=${ID}`, <UsersPage />, '/users');
+    expect(await screen.findByText('No matching users')).toBeInTheDocument();
+    const call = calls.find((url) => url.pathname === '/v1/admin/users');
+    expect(call?.searchParams.get('role')).toBe('cashier');
+    expect(call?.searchParams.get('orgId')).toBe(ORG);
+    expect(call?.searchParams.get('branchId')).toBe(ID);
+    expect(screen.getByRole('combobox', { name: 'Branch' })).toBeInTheDocument();
   });
 
   it('subscriptions: sends status and plan filters from the URL', async () => {

@@ -377,14 +377,27 @@
     "emptyTitle": "لا يوجد مستخدمون بعد",
     "emptyBody": "يظهر المستخدمون هنا بعد تسجيلهم.",
     "emptyFilteredTitle": "لا يوجد مستخدمون مطابقون",
-    "emptyFilteredBody": "جرّب اسمًا أو بريدًا آخر.",
+    "emptyFilteredBody": "غيّر أحد عوامل التصفية أو أزله لرؤية مستخدمين أكثر.",
     "columns": {
       "name": "الاسم",
       "email": "البريد الإلكتروني",
       "restaurants": "المطعم",
       "role": "الدور",
       "lastLogin": "آخر تسجيل دخول"
-    }
+    },
+    "allRoles": "كل الأدوار",
+    "allRestaurants": "كل المطاعم",
+    "restaurantSearch": "ابحث عن مطعم",
+    "restaurantNone": "لا يوجد مطعم مطابق",
+    "branch": "الفرع",
+    "allBranches": "كل الفروع",
+    "roles": {
+      "owner": "المالك",
+      "manager": "المدير",
+      "cashier": "أمين الصندوق",
+      "kitchen": "المطبخ"
+    },
+    "listSeparator": "، "
   },
   "subscriptions": {
     "title": "الاشتراكات",
