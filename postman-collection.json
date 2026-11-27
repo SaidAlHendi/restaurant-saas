@@ -16,6 +16,7 @@
     { "key": "groupId", "value": "" },
     { "key": "modifierId", "value": "" },
     { "key": "orderId", "value": "" },
+    { "key": "billId", "value": "" },
     { "key": "itemId", "value": "" },
     { "key": "tableId", "value": "" },
     { "key": "deviceId", "value": "" },
@@ -278,7 +279,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"\",\n  \"locales\": [\"ar\", \"en\"],\n  \"defaultLocale\": \"ar\",\n  \"defaultCurrency\": \"SAR\",\n  \"displayCurrency\": null,\n  \"exchangeRate\": null,\n  \"displayItemStep\": 0,\n  \"displayTotalStep\": 0\n}",
+              "raw": "{\n  \"name\": \"\",\n  \"locales\": [\n    \"ar\",\n    \"en\"\n  ],\n  \"defaultLocale\": \"ar\",\n  \"defaultCurrency\": \"SAR\",\n  \"displayCurrency\": null,\n  \"exchangeRate\": null,\n  \"displayItemStep\": 0,\n  \"displayTotalStep\": 0,\n  \"menuTheme\": {\n    \"preset\": \"classic\",\n    \"layout\": \"grid\",\n    \"hero\": {\n      \"enabled\": false,\n      \"headline\": {\n        \"ar\": \"\",\n        \"en\": \"\"\n      },\n      \"subline\": {\n        \"ar\": \"\",\n        \"en\": \"\"\n      }\n    },\n    \"showSearch\": false,\n    \"brandColor\": \"#000000\",\n    \"showTicker\": false,\n    \"closingLine\": {\n      \"ar\": \"\",\n      \"en\": \"\"\n    }\n  }\n}",
               "options": { "raw": { "language": "json" } }
             },
             "url": {
@@ -331,6 +332,47 @@
           }
         },
         {
+          "name": "Upload menu cover",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": [],
+                  "description": "Image file (max 5MB)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/org/menu-cover",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "org", "menu-cover"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('org.manage'). Multipart field: file."
+          }
+        },
+        {
+          "name": "Delete menu cover",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/org/menu-cover",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "org", "menu-cover"]
+            },
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('org.manage')."
+          }
+        },
+        {
           "name": "List branches",
           "request": {
             "method": "GET",
@@ -340,7 +382,11 @@
             "url": {
               "raw": "{{baseUrl}}/v1/branches",
               "host": ["{{baseUrl}}"],
-              "path": ["v1", "branches"]
+              "path": ["v1", "branches"],
+              "query": [
+                { "key": "page", "value": "1", "disabled": true },
+                { "key": "pageSize", "value": "10", "disabled": true }
+              ]
             },
             "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('branches.read')."
           }
@@ -421,7 +467,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"\",\n  \"timezone\": \"Asia/Riyadh\",\n  \"currency\": \"SAR\",\n  \"taxRateBp\": 0,\n  \"taxInclusive\": false,\n  \"dayStartHour\": 4,\n  \"address\": \"\",\n  \"receiptHeader\": \"\",\n  \"receiptFooter\": \"\",\n  \"payBeforeSend\": false,\n  \"acceptsCard\": true,\n  \"pagerEnabled\": false,\n  \"isActive\": true\n}",
+              "raw": "{\n  \"name\": \"\",\n  \"timezone\": \"Asia/Riyadh\",\n  \"currency\": \"SAR\",\n  \"taxRateBp\": 0,\n  \"taxInclusive\": false,\n  \"dayStartHour\": 4,\n  \"address\": \"\",\n  \"receiptHeader\": \"\",\n  \"receiptFooter\": \"\",\n  \"payBeforeSend\": false,\n  \"acceptsCard\": true,\n  \"pagerEnabled\": false,\n  \"isActive\": true,\n  \"supportsDineIn\": true,\n  \"supportsTakeaway\": true\n}",
               "options": { "raw": { "language": "json" } }
             },
             "url": {
@@ -447,7 +493,11 @@
             "url": {
               "raw": "{{baseUrl}}/v1/categories",
               "host": ["{{baseUrl}}"],
-              "path": ["v1", "categories"]
+              "path": ["v1", "categories"],
+              "query": [
+                { "key": "page", "value": "1", "disabled": true },
+                { "key": "pageSize", "value": "10", "disabled": true }
+              ]
             },
             "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('menu.read')."
           }
@@ -546,11 +596,11 @@
                 { "key": "isActive", "value": "true", "disabled": true },
                 { "key": "search", "value": "", "disabled": true },
                 { "key": "branchId", "value": "{{branchId}}", "disabled": true },
-                { "key": "limit", "value": "20", "disabled": true },
-                { "key": "cursor", "value": "", "disabled": true }
+                { "key": "page", "value": "1", "disabled": true },
+                { "key": "pageSize", "value": "10", "disabled": true }
               ]
             },
-            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('menu.read'). Query: categoryId, isActive, search, branchId, cursor, limit."
+            "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('menu.read'). Query: categoryId, isActive, search, branchId, page, pageSize."
           }
         },
         {
@@ -718,7 +768,11 @@
             "url": {
               "raw": "{{baseUrl}}/v1/modifier-groups",
               "host": ["{{baseUrl}}"],
-              "path": ["v1", "modifier-groups"]
+              "path": ["v1", "modifier-groups"],
+              "query": [
+                { "key": "page", "value": "1", "disabled": true },
+                { "key": "pageSize", "value": "10", "disabled": true }
+              ]
             },
             "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('menu.read')."
           }
@@ -904,7 +958,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"clientOrderId\": \"{{clientOrderId}}\",\n  \"type\": \"dine_in\",\n  \"tableId\": \"\",\n  \"customerName\": \"\",\n  \"pagerNumber\": 1,\n  \"notes\": \"\",\n  \"items\": [\n    {\n      \"productId\": \"\",\n      \"quantity\": 1,\n      \"notes\": \"\",\n      \"modifierIds\": []\n    }\n  ]\n}",
+              "raw": "{\n  \"clientOrderId\": \"{{clientOrderId}}\",\n  \"type\": \"dine_in\",\n  \"tableId\": \"\",\n  \"customerName\": \"\",\n  \"pagerNumber\": 1,\n  \"notes\": \"\",\n  \"items\": [\n    {\n      \"productId\": \"\",\n      \"quantity\": 1,\n      \"notes\": \"\",\n      \"modifierIds\": [],\n      \"seat\": \"\"\n    }\n  ],\n  \"billId\": \"\",\n  \"newBill\": false,\n  \"billLabel\": \"\"\n}",
               "options": { "raw": { "language": "json" } }
             },
             "url": {
@@ -936,8 +990,8 @@
                 { "key": "activeOnly", "value": "true", "disabled": true },
                 { "key": "todayOnly", "value": "true", "disabled": true },
                 { "key": "q", "value": "", "disabled": true },
-                { "key": "limit", "value": "20", "disabled": true },
-                { "key": "cursor", "value": "", "disabled": true }
+                { "key": "page", "value": "1", "disabled": true },
+                { "key": "pageSize", "value": "10", "disabled": true }
               ]
             },
             "description": "Guards: AuthGuard, BranchScopeGuard — RequireBranchScope, PermissionsGuard — RequirePermission('orders.read')."
@@ -983,7 +1037,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"to\": \"preparing\",\n  \"expectedVersion\": 1,\n  \"reason\": \"\",\n  \"approval\": {\n    \"membershipId\": \"\",\n    \"pin\": \"\"\n  }\n}",
+              "raw": "{\n  \"to\": \"preparing\",\n  \"expectedVersion\": 1,\n  \"reason\": \"\",\n  \"approval\": {\n    \"membershipId\": \"\",\n    \"pin\": \"\"\n  },\n  \"undo\": false,\n  \"reopen\": false\n}",
               "options": { "raw": { "language": "json" } }
             },
             "url": {
@@ -1004,7 +1058,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"expectedVersion\": 1,\n  \"items\": [\n    {\n      \"productId\": \"\",\n      \"quantity\": 1,\n      \"notes\": \"\",\n      \"modifierIds\": []\n    }\n  ]\n}",
+              "raw": "{\n  \"expectedVersion\": 1,\n  \"items\": [\n    {\n      \"productId\": \"\",\n      \"quantity\": 1,\n      \"notes\": \"\",\n      \"modifierIds\": [],\n      \"seat\": \"\"\n    }\n  ]\n}",
               "options": { "raw": { "language": "json" } }
             },
             "url": {
@@ -1080,6 +1134,98 @@
           }
         },
         {
+          "name": "Move order to table",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expectedVersion\": 1,\n  \"tableId\": \"{{tableId}}\",\n  \"newBill\": false\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/branches/{{branchId}}/orders/{{orderId}}/move-table",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "branches", "{{branchId}}", "orders", "{{orderId}}", "move-table"]
+            },
+            "description": "Guards: AuthGuard, BranchScopeGuard — RequireBranchScope, PermissionsGuard — RequirePermission('orders.create'), RequireFeature('pos.access')."
+          }
+        },
+        {
+          "name": "List bills",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/branches/{{branchId}}/bills",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "branches", "{{branchId}}", "bills"],
+              "query": [
+                { "key": "tableId", "value": "{{tableId}}", "disabled": true },
+                { "key": "status", "value": "open", "disabled": true }
+              ]
+            },
+            "description": "Guards: AuthGuard, BranchScopeGuard — RequireBranchScope, PermissionsGuard — RequirePermission('orders.read')."
+          }
+        },
+        {
+          "name": "Get bill",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/branches/{{branchId}}/bills/{{billId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "branches", "{{branchId}}", "bills", "{{billId}}"]
+            },
+            "description": "Guards: AuthGuard, BranchScopeGuard — RequireBranchScope, PermissionsGuard — RequirePermission('orders.read')."
+          }
+        },
+        {
+          "name": "Pay bill",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" },
+              { "key": "Idempotency-Key", "value": "{{clientPaymentId}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientPaymentId\": \"{{clientPaymentId}}\",\n  \"method\": \"cash\",\n  \"itemIds\": [],\n  \"amountMinor\": 0,\n  \"tenderedMinor\": 0,\n  \"displayTenderedMinor\": 0\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/branches/{{branchId}}/bills/{{billId}}/payments",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "branches", "{{branchId}}", "bills", "{{billId}}", "payments"]
+            },
+            "description": "Guards: AuthGuard, BranchScopeGuard — RequireBranchScope, PermissionsGuard — RequirePermission('orders.create'), RequireFeature('pos.access'). Header Idempotency-Key must equal clientPaymentId."
+          }
+        },
+        {
+          "name": "Close bill",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/branches/{{branchId}}/bills/{{billId}}/close",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "branches", "{{branchId}}", "bills", "{{billId}}", "close"]
+            },
+            "description": "Guards: AuthGuard, BranchScopeGuard — RequireBranchScope, PermissionsGuard — RequirePermission('orders.create'), RequireFeature('pos.access')."
+          }
+        },
+        {
           "name": "List tables",
           "request": {
             "method": "GET",
@@ -1089,7 +1235,11 @@
             "url": {
               "raw": "{{baseUrl}}/v1/branches/{{branchId}}/tables",
               "host": ["{{baseUrl}}"],
-              "path": ["v1", "branches", "{{branchId}}", "tables"]
+              "path": ["v1", "branches", "{{branchId}}", "tables"],
+              "query": [
+                { "key": "page", "value": "1", "disabled": true },
+                { "key": "pageSize", "value": "10", "disabled": true }
+              ]
             },
             "description": "Guards: AuthGuard, BranchScopeGuard — RequireBranchScope, PermissionsGuard — RequirePermission('branches.read')."
           }
@@ -1199,7 +1349,11 @@
             "url": {
               "raw": "{{baseUrl}}/v1/staff",
               "host": ["{{baseUrl}}"],
-              "path": ["v1", "staff"]
+              "path": ["v1", "staff"],
+              "query": [
+                { "key": "page", "value": "1", "disabled": true },
+                { "key": "pageSize", "value": "10", "disabled": true }
+              ]
             },
             "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('staff.read')."
           }
@@ -1379,7 +1533,11 @@
             "url": {
               "raw": "{{baseUrl}}/v1/memberships",
               "host": ["{{baseUrl}}"],
-              "path": ["v1", "memberships"]
+              "path": ["v1", "memberships"],
+              "query": [
+                { "key": "page", "value": "1", "disabled": true },
+                { "key": "pageSize", "value": "10", "disabled": true }
+              ]
             },
             "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('staff.read')."
           }
@@ -1394,7 +1552,11 @@
             "url": {
               "raw": "{{baseUrl}}/v1/devices",
               "host": ["{{baseUrl}}"],
-              "path": ["v1", "devices"]
+              "path": ["v1", "devices"],
+              "query": [
+                { "key": "page", "value": "1", "disabled": true },
+                { "key": "pageSize", "value": "10", "disabled": true }
+              ]
             },
             "description": "Guards: AuthGuard, PermissionsGuard — RequirePermission('staff.manage')."
           }
@@ -1643,8 +1805,8 @@
               "query": [
                 { "key": "q", "value": "", "disabled": true },
                 { "key": "status", "value": "", "disabled": true },
-                { "key": "limit", "value": "20", "disabled": true },
-                { "key": "cursor", "value": "", "disabled": true }
+                { "key": "page", "value": "1", "disabled": true },
+                { "key": "pageSize", "value": "10", "disabled": true }
               ]
             },
             "description": "Guards: AdminAuthGuard."
@@ -1705,7 +1867,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"planKey\": \"restaurant\",\n  \"until\": \"\"\n}",
+              "raw": "{\n  \"planKey\": \"restaurant\",\n  \"until\": \"\",\n  \"paid\": false,\n  \"amountMinor\": 0,\n  \"note\": \"\"\n}",
               "options": { "raw": { "language": "json" } }
             },
             "url": {
@@ -1728,9 +1890,12 @@
               "host": ["{{baseUrl}}"],
               "path": ["v1", "admin", "users"],
               "query": [
-                { "key": "q", "value": "", "disabled": true },
-                { "key": "limit", "value": "20", "disabled": true },
-                { "key": "cursor", "value": "", "disabled": true }
+                { "key": "search", "value": "", "disabled": true },
+                { "key": "role", "value": "", "disabled": true },
+                { "key": "orgId", "value": "", "disabled": true },
+                { "key": "branchId", "value": "", "disabled": true },
+                { "key": "page", "value": "1", "disabled": true },
+                { "key": "pageSize", "value": "10", "disabled": true }
               ]
             },
             "description": "Guards: AdminAuthGuard, RequireAdminRole('support')."
@@ -1748,9 +1913,11 @@
               "host": ["{{baseUrl}}"],
               "path": ["v1", "admin", "subscriptions"],
               "query": [
-                { "key": "q", "value": "", "disabled": true },
-                { "key": "limit", "value": "20", "disabled": true },
-                { "key": "cursor", "value": "", "disabled": true }
+                { "key": "status", "value": "", "disabled": true },
+                { "key": "plan", "value": "", "disabled": true },
+                { "key": "trialEnding", "value": "true", "disabled": true },
+                { "key": "page", "value": "1", "disabled": true },
+                { "key": "pageSize", "value": "10", "disabled": true }
               ]
             },
             "description": "Guards: AdminAuthGuard, RequireAdminRole('billing')."
@@ -1766,7 +1933,11 @@
             "url": {
               "raw": "{{baseUrl}}/v1/admin/plans",
               "host": ["{{baseUrl}}"],
-              "path": ["v1", "admin", "plans"]
+              "path": ["v1", "admin", "plans"],
+              "query": [
+                { "key": "page", "value": "1", "disabled": true },
+                { "key": "pageSize", "value": "10", "disabled": true }
+              ]
             },
             "description": "Guards: AdminAuthGuard, RequireAdminRole('billing')."
           }
@@ -1783,8 +1954,10 @@
               "host": ["{{baseUrl}}"],
               "path": ["v1", "admin", "audit"],
               "query": [
-                { "key": "limit", "value": "20", "disabled": true },
-                { "key": "cursor", "value": "", "disabled": true }
+                { "key": "actor", "value": "", "disabled": true },
+                { "key": "action", "value": "", "disabled": true },
+                { "key": "page", "value": "1", "disabled": true },
+                { "key": "pageSize", "value": "10", "disabled": true }
               ]
             },
             "description": "Guards: AdminAuthGuard, RequireAdminRole('super')."

@@ -17,6 +17,8 @@
 9. Changelog: every PR to `dev` adds one line to `CHANGELOG.md` under `## Unreleased`, in the
    right Keep a Changelog group (Added, Changed, Fixed, Security). Write it for users, not
    developers. Skip pure refactors, CI and test-only changes.
+10. Postman: when you add, change or remove an API route, its query params or its request body,
+    update `postman-collection.json` in the same PR.
 
 # Where to look (paths only)
 - Current state / next step → `docs/roadmap.md` (`## Status`)
