@@ -23,6 +23,7 @@ import { users } from '../../../core/db/schema/identity';
 import { ConflictError, NotFoundError } from '../../../core/errors/app-errors';
 import type { AdminContext } from '../admin-context';
 import { WithAdminService } from '../with-admin.service';
+import { loadOrgDetails } from './admin-org-details.queries';
 
 /** Escapes LIKE wildcards so a search for "50%" does not match everything. */
 function likePattern(term: string): string {
@@ -78,35 +79,29 @@ export class AdminOrgsService {
       .limit(1);
     const grantablePlans = (
       await this.db
-        .select({ key: plans.key, currency: plans.currency })
+        .select({ key: plans.key, name: plans.name, currency: plans.currency })
         .from(plans)
         .where(inArray(plans.key, [...ADMIN_GRANT_PLAN_KEYS]))
         .orderBy(plans.sortOrder)
-    ).map((p) => ({ key: p.key as (typeof ADMIN_GRANT_PLAN_KEYS)[number], currency: p.currency }));
-    const orgBranches = await this.db
-      .select({
-        id: branches.id,
-        name: branches.name,
-        slug: branches.slug,
-        isActive: branches.isActive,
-      })
-      .from(branches)
-      .where(eq(branches.orgId, id))
-      .orderBy(asc(branches.createdAt));
-    const [members] = await this.db
-      .select({ total: count() })
-      .from(memberships)
-      .where(eq(memberships.orgId, id));
+    ).map((p) => ({
+      key: p.key as (typeof ADMIN_GRANT_PLAN_KEYS)[number],
+      name: p.name,
+      currency: p.currency,
+    }));
+    const details = await loadOrgDetails(this.db, id);
 
     return {
       ...(item as AdminOrgListItem),
       defaultCurrency: org.defaultCurrency,
       defaultLocale: org.defaultLocale,
       locales: org.locales,
-      memberCount: members?.total ?? 0,
+      memberCount: details.team.length,
+      displayCurrency: org.displayCurrency,
+      exchangeRate: org.exchangeRate,
       subscription: subscription
         ? {
             status: subscription.status,
+            provider: subscription.provider,
             branchQuantity: subscription.branchQuantity,
             trialEndsAt: subscription.trialEndsAt?.toISOString() ?? null,
             currentPeriodEnd: subscription.currentPeriodEnd?.toISOString() ?? null,
@@ -117,7 +112,7 @@ export class AdminOrgsService {
           }
         : null,
       grantablePlans,
-      branches: orgBranches,
+      ...details,
     };
   }
 

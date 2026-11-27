@@ -1,58 +1,40 @@
-import type { ReactNode } from 'react';
+import { HistoryIcon, LayoutGridIcon, StoreIcon, UsersIcon, WalletIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-import { ADMIN_GRANT_PLAN_KEYS } from '@app/shared';
 
 import {
   Alert,
   AlertDescription,
   AlertTitle,
-  Badge,
   Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
   ConfirmDialog,
-  DatePicker,
-  Dialog,
-  DialogBody,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  Label,
-  MoneyInput,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  Switch,
-  Textarea,
   EmptyState,
   PageHeader,
   Skeleton,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  cn,
 } from '@app/ui';
 
+import { ActivateDialog } from './ActivateDialog.js';
+import { BillingTab } from './BillingTab.js';
+import { BranchesTab } from './BranchesTab.js';
+import { HistoryTab } from './HistoryTab.js';
 import { OrgStatusBadge } from './OrgStatusBadge.js';
+import { OverviewTab } from './OverviewTab.js';
+import { PLAN_TONE } from './plan-summary.js';
+import { PlanBanner } from './PlanBanner.js';
+import { SummaryStrip } from './SummaryStrip.js';
+import { TeamTab } from './TeamTab.js';
 import { useRestaurantDetailPage } from './use-restaurant-detail-page.js';
 
-function Field({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="flex flex-col gap-0.5">
-      <dt className="text-sm text-muted-foreground">{label}</dt>
-      <dd className="min-w-0 break-words font-medium">{children}</dd>
-    </div>
-  );
-}
+const TAB =
+  'flex-none rounded-none border-0 focus-visible:ring-inset border-b-4 border-transparent px-4 py-3 text-base text-muted-foreground data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none';
 
 export default function RestaurantDetailPage() {
   const vm = useRestaurantDetailPage();
   const { t, restaurant } = vm;
-  const none = <span className="font-normal text-muted-foreground">{t('restaurants.none')}</span>;
   const backLink = <Link to="/restaurants">{t('adminNav.restaurants')}</Link>;
 
   if (vm.isLoading) {
@@ -95,18 +77,33 @@ export default function RestaurantDetailPage() {
     );
   }
 
-  const subscription = restaurant.subscription;
-
   return (
     <div className="flex flex-col gap-6 p-6">
       <PageHeader
         title={
           <span className="flex flex-wrap items-center gap-3">
-            {restaurant.name}
+            <span
+              aria-hidden
+              className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-primary text-2xl text-primary-foreground"
+            >
+              {vm.initial}
+            </span>
+            <span className="min-w-0 break-words">{restaurant.name}</span>
             <OrgStatusBadge status={restaurant.status} />
           </span>
         }
-        description={restaurant.slug}
+        description={
+          <span className="flex flex-wrap gap-x-4 gap-y-1">
+            <span dir="ltr">{restaurant.slug}</span>
+            <span>{vm.countryName(restaurant.country)}</span>
+            {restaurant.ownerName ? <span>{restaurant.ownerName}</span> : null}
+            {restaurant.ownerEmail ? (
+              <a className="hover:underline" dir="ltr" href={`mailto:${restaurant.ownerEmail}`}>
+                {restaurant.ownerEmail}
+              </a>
+            ) : null}
+          </span>
+        }
         breadcrumbs={[backLink, restaurant.name]}
         breadcrumbLabel={t('restaurants.breadcrumb')}
         actions={
@@ -133,94 +130,7 @@ export default function RestaurantDetailPage() {
         }
       />
 
-      <Dialog open={vm.activateOpen} onOpenChange={vm.setActivateOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t('restaurants.activateTitle', { name: restaurant.name })}</DialogTitle>
-            <DialogDescription>{t('restaurants.activateBody')}</DialogDescription>
-          </DialogHeader>
-          <DialogBody className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
-              <Label>{t('restaurants.activatePlan')}</Label>
-              <Select
-                value={vm.activatePlan}
-                onValueChange={(value) => {
-                  vm.setActivatePlan(value as (typeof ADMIN_GRANT_PLAN_KEYS)[number]);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {ADMIN_GRANT_PLAN_KEYS.map((key) => (
-                    <SelectItem key={key} value={key}>
-                      {key}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="activate-until">{t('restaurants.activateUntil')}</Label>
-              <DatePicker
-                id="activate-until"
-                value={vm.activateUntil}
-                onChange={vm.setActivateUntil}
-                placeholder={t('restaurants.activateUntil')}
-                locale={vm.dateLocale}
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Switch
-                id="activate-paid"
-                checked={vm.activatePaid}
-                onCheckedChange={vm.setActivatePaid}
-              />
-              <Label htmlFor="activate-paid">{t('restaurants.activatePaid')}</Label>
-            </div>
-            {vm.activatePaid ? (
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="activate-amount">{t('restaurants.activateAmount')}</Label>
-                <MoneyInput
-                  id="activate-amount"
-                  currency={vm.activateCurrency}
-                  locale={vm.dateLocale}
-                  value={vm.activateAmount}
-                  onValueChange={vm.setActivateAmount}
-                />
-              </div>
-            ) : null}
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="activate-note">{t('restaurants.activateNote')}</Label>
-              <Textarea
-                id="activate-note"
-                rows={2}
-                maxLength={200}
-                value={vm.activateNote}
-                onChange={(event) => {
-                  vm.setActivateNote(event.target.value);
-                }}
-              />
-            </div>
-          </DialogBody>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                vm.setActivateOpen(false);
-              }}
-            >
-              {t('common.cancel')}
-            </Button>
-            <Button
-              disabled={vm.isActivating || !vm.canConfirmActivate}
-              onClick={vm.confirmActivate}
-            >
-              {t('restaurants.activate')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ActivateDialog vm={vm} name={restaurant.name} />
 
       <ConfirmDialog
         open={vm.confirmOpen}
@@ -236,106 +146,66 @@ export default function RestaurantDetailPage() {
         isConfirming={vm.isChangingStatus}
       />
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('restaurants.sections.restaurant')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <dl className="grid gap-4 sm:grid-cols-2">
-              <Field label={t('restaurants.fields.country')}>{restaurant.country}</Field>
-              <Field label={t('restaurants.fields.currency')}>{restaurant.defaultCurrency}</Field>
-              <Field label={t('restaurants.fields.locale')}>{restaurant.defaultLocale}</Field>
-              <Field label={t('restaurants.fields.created')}>
-                {vm.formatDate(restaurant.createdAt)}
-              </Field>
-              <Field label={t('restaurants.columns.branches')}>
-                {vm.formatNumber(restaurant.branchCount)}
-              </Field>
-              <Field label={t('restaurants.fields.members')}>
-                {vm.formatNumber(restaurant.memberCount)}
-              </Field>
-            </dl>
-          </CardContent>
-        </Card>
+      <PlanBanner vm={vm} restaurant={restaurant} />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('restaurants.sections.owner')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <dl className="grid gap-4 sm:grid-cols-2">
-              <Field label={t('restaurants.fields.ownerName')}>
-                {restaurant.ownerName ?? none}
-              </Field>
-              <Field label={t('restaurants.fields.ownerEmail')}>
-                {restaurant.ownerEmail ? <span dir="ltr">{restaurant.ownerEmail}</span> : none}
-              </Field>
-            </dl>
-          </CardContent>
-        </Card>
+      <SummaryStrip vm={vm} restaurant={restaurant} />
 
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle>{t('restaurants.sections.plan')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <Field label={t('restaurants.columns.plan')}>{restaurant.planName ?? none}</Field>
-              <Field label={t('restaurants.fields.subscription')}>
-                {subscription ? <Badge variant="outline">{subscription.status}</Badge> : none}
-              </Field>
-              <Field label={t('restaurants.fields.trialEnds')}>
-                {vm.formatDate(subscription?.trialEndsAt ?? null)}
-              </Field>
-              <Field label={t('restaurants.fields.periodEnd')}>
-                {vm.formatDate(subscription?.currentPeriodEnd ?? null)}
-              </Field>
-              {vm.manualPayment ? (
-                <>
-                  <Field label={t('restaurants.fields.manualPaid')}>
-                    {vm.manualPayment.paid ? t('restaurants.paidYes') : t('restaurants.paidNo')}
-                  </Field>
-                  <Field label={t('restaurants.fields.manualAmount')}>
-                    {vm.manualPayment.amount ?? none}
-                  </Field>
-                  <Field label={t('restaurants.fields.manualNote')}>
-                    {vm.manualPayment.note ?? none}
-                  </Field>
-                </>
-              ) : null}
-            </dl>
-          </CardContent>
-        </Card>
-
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle>{t('restaurants.sections.branches')}</CardTitle>
-            <CardDescription>
-              {t('restaurants.branchesCount', { count: restaurant.branches.length })}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ul className="divide-y">
-              {restaurant.branches.map((branch) => (
-                <li key={branch.id} className="flex items-center justify-between gap-3 py-2">
-                  <div className="flex min-w-0 flex-col">
-                    <span className="truncate font-medium">{branch.name}</span>
-                    <span className="truncate text-xs text-muted-foreground" dir="ltr">
-                      {branch.slug}
-                    </span>
-                  </div>
-                  <Badge variant={branch.isActive ? 'success' : 'completed'}>
-                    {branch.isActive
-                      ? t('restaurants.branchActive')
-                      : t('restaurants.branchInactive')}
-                  </Badge>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      </div>
+      <Tabs defaultValue="overview" dir={vm.direction} className="gap-4">
+        {/* Stays on screen while a long tab scrolls, with the plan still named beside it. */}
+        <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b bg-card">
+          <TabsList
+            aria-label={t('restaurants.tabsLabel')}
+            className="h-auto max-w-full justify-start overflow-x-auto overflow-y-hidden rounded-none bg-transparent p-0"
+          >
+            <TabsTrigger value="overview" className={TAB}>
+              <LayoutGridIcon aria-hidden />
+              {t('restaurants.tabs.overview')}
+            </TabsTrigger>
+            <TabsTrigger value="branches" className={TAB}>
+              <StoreIcon aria-hidden />
+              {t('restaurants.tabs.branches')}
+            </TabsTrigger>
+            <TabsTrigger value="team" className={TAB}>
+              <UsersIcon aria-hidden />
+              {t('restaurants.tabs.team')}
+            </TabsTrigger>
+            <TabsTrigger value="billing" className={TAB}>
+              <WalletIcon aria-hidden />
+              {t('restaurants.tabs.billing')}
+            </TabsTrigger>
+            <TabsTrigger value="history" className={TAB}>
+              <HistoryIcon aria-hidden />
+              {t('restaurants.tabs.history')}
+            </TabsTrigger>
+          </TabsList>
+          {vm.plan ? (
+            <span
+              className={cn(
+                'hidden shrink-0 rounded-full px-3 py-1 text-sm font-semibold md:inline',
+                PLAN_TONE[vm.plan.state],
+              )}
+            >
+              {restaurant.planName ?? t('restaurants.banner.state.none')} /{' '}
+              {t(`restaurants.banner.state.${vm.plan.state}`)}
+            </span>
+          ) : null}
+        </div>
+        <TabsContent value="overview">
+          <OverviewTab vm={vm} restaurant={restaurant} />
+        </TabsContent>
+        <TabsContent value="branches">
+          <BranchesTab vm={vm} restaurant={restaurant} />
+        </TabsContent>
+        <TabsContent value="team">
+          <TeamTab vm={vm} restaurant={restaurant} />
+        </TabsContent>
+        <TabsContent value="billing">
+          <BillingTab vm={vm} restaurant={restaurant} />
+        </TabsContent>
+        <TabsContent value="history">
+          <HistoryTab vm={vm} restaurant={restaurant} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

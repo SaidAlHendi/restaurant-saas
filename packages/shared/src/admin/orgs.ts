@@ -52,7 +52,50 @@ export const adminOrgBranchSchema = z.object({
   name: z.string(),
   slug: z.string(),
   isActive: z.boolean(),
+  address: z.string().nullable(),
+  timezone: z.string(),
+  currency: z.string(),
+  /** Tax rate in basis points (1500 = 15%). */
+  taxRateBp: z.number().int(),
+  taxInclusive: z.boolean(),
+  dayStartHour: z.number().int(),
+  payBeforeSend: z.boolean(),
+  acceptsCard: z.boolean(),
+  pagerEnabled: z.boolean(),
+  supportsDineIn: z.boolean(),
+  supportsTakeaway: z.boolean(),
+  createdAt: z.iso.datetime(),
+  /** Active dining tables. */
+  tableCount: z.number().int(),
+  devices: z.array(
+    z.object({
+      id: z.uuid(),
+      name: z.string(),
+      status: z.enum(['pending', 'active', 'revoked']),
+      lastUsedAt: z.iso.datetime().nullable(),
+    }),
+  ),
+  ordersLast30Days: z.number().int(),
+  lastOrderAt: z.iso.datetime().nullable(),
 });
+export type AdminOrgBranch = z.infer<typeof adminOrgBranchSchema>;
+
+export const adminOrgMemberSchema = z.object({
+  membershipId: z.uuid(),
+  name: z.string(),
+  email: z.string().nullable(),
+  roleKey: z.string(),
+  roleName: z.string(),
+  status: z.enum(['active', 'invited', 'disabled']),
+  lastLoginAt: z.iso.datetime().nullable(),
+  allBranches: z.boolean(),
+  /** Only filled when `allBranches` is false. */
+  branchNames: z.array(z.string()),
+});
+export type AdminOrgMember = z.infer<typeof adminOrgMemberSchema>;
+
+/** How many admin actions the restaurant page shows. */
+export const ADMIN_ORG_HISTORY_LIMIT = 20;
 
 /** Paid plans an admin can grant by hand (the free plan needs no grant). */
 export const ADMIN_GRANT_PLAN_KEYS = ['menu', 'restaurant', 'business'] as const;
@@ -65,6 +108,8 @@ export const adminOrgDetailSchema = adminOrgListItemSchema.extend({
   subscription: z
     .object({
       status: z.string(),
+      /** Billing provider; null = manual or free. */
+      provider: z.string().nullable(),
       branchQuantity: z.number().int(),
       trialEndsAt: z.iso.datetime().nullable(),
       currentPeriodEnd: z.iso.datetime().nullable(),
@@ -76,8 +121,39 @@ export const adminOrgDetailSchema = adminOrgListItemSchema.extend({
     })
     .nullable(),
   /** Currency of each plan an admin can grant, so the payment amount is entered in the right one. */
-  grantablePlans: z.array(z.object({ key: z.enum(ADMIN_GRANT_PLAN_KEYS), currency: z.string() })),
+  grantablePlans: z.array(
+    z.object({ key: z.enum(ADMIN_GRANT_PLAN_KEYS), name: z.string(), currency: z.string() }),
+  ),
   branches: z.array(adminOrgBranchSchema),
+  displayCurrency: z.string().nullable(),
+  exchangeRate: z.number().nullable(),
+  planDetail: z
+    .object({
+      priceMinor: z.number().int(),
+      currency: z.string(),
+      perBranch: z.boolean(),
+      features: z.array(z.object({ key: z.string(), limit: z.number().int().nullable() })),
+    })
+    .nullable(),
+  /** Orders that count as sales (drafts and cancelled orders are left out). */
+  orderStats: z.object({
+    total: z.number().int(),
+    last30Days: z.number().int(),
+    lastOrderAt: z.iso.datetime().nullable(),
+    /** One entry per order currency; amounts in minor units. */
+    salesLast30Days: z.array(z.object({ currency: z.string(), amountMinor: z.number().int() })),
+  }),
+  catalog: z.object({ categoryCount: z.number().int(), productCount: z.number().int() }),
+  team: z.array(adminOrgMemberSchema),
+  /** Latest admin actions on this restaurant, newest first. */
+  history: z.array(
+    z.object({
+      id: z.uuid(),
+      createdAt: z.iso.datetime(),
+      action: z.string(),
+      actorName: z.string(),
+    }),
+  ),
 });
 export type AdminOrgDetail = z.infer<typeof adminOrgDetailSchema>;
 

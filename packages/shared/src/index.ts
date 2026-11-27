@@ -230,7 +230,12 @@ export {
   resolveBrandColor,
 } from './public-menu/brand-color.js';
 export type { ResolvedBrandColor } from './public-menu/brand-color.js';
-export type { MenuCoverUrls, MenuTheme, MenuThemeLayout, MenuThemePreset } from './public-menu/menu-theme.js';
+export type {
+  MenuCoverUrls,
+  MenuTheme,
+  MenuThemeLayout,
+  MenuThemePreset,
+} from './public-menu/menu-theme.js';
 export type {
   PublicMenuQuery,
   PublicMenuPayload,
@@ -469,8 +474,13 @@ export {
   ADMIN_GRANT_PLAN_KEYS,
   ADMIN_ORG_PAGE_SIZE_MAX,
   ADMIN_ORG_STATUSES,
+  ADMIN_ORG_HISTORY_LIMIT,
+  adminOrgBranchSchema,
+  adminOrgMemberSchema,
 } from './admin/orgs.js';
 export type {
+  AdminOrgBranch,
+  AdminOrgMember,
   AdminOrgStatus,
   AdminOrgListQuery,
   AdminOrgListItem,

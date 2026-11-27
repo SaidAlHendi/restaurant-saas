@@ -219,9 +219,11 @@
     },
     "sections": {
       "restaurant": "المطعم",
-      "owner": "المالك",
       "plan": "الباقة والاشتراك",
-      "branches": "الفروع"
+      "branches": "الفروع",
+      "settings": "الإعدادات",
+      "limits": "ما تشمله هذه الخطة",
+      "setup": "خطوات البدء"
     },
     "fields": {
       "country": "الدولة",
@@ -236,7 +238,28 @@
       "periodEnd": "انتهاء الفترة الحالية",
       "manualPaid": "الدفع اليدوي",
       "manualAmount": "المبلغ المستلم",
-      "manualNote": "ملاحظة الدفع"
+      "manualNote": "ملاحظة الدفع",
+      "slug": "اسم رابط المطعم",
+      "languages": "اللغات",
+      "displayCurrency": "عملة العرض",
+      "exchangeRate": "{{rate}} {{display}} لكل 1 {{base}}",
+      "categories": "التصنيفات",
+      "products": "المنتجات",
+      "tables": "الطاولات النشطة",
+      "devices": "أجهزة الكاشير",
+      "address": "العنوان",
+      "timezone": "المنطقة الزمنية",
+      "tax": "الضريبة",
+      "dayStart": "بداية يوم العمل",
+      "orderTypes": "أنواع الطلبات",
+      "payment": "الدفع",
+      "pager": "أرقام الاستلام",
+      "orders30": "الطلبات خلال 30 يومًا",
+      "lastOrder": "آخر طلب",
+      "provider": "الفوترة عبر",
+      "price": "السعر",
+      "canceled": "تاريخ الإلغاء",
+      "branchQuantity": "الفروع المدفوعة"
     },
     "activate": "تفعيل الباقة",
     "activateTitle": "تفعيل {{name}}",
@@ -250,7 +273,99 @@
     "activateAmount": "المبلغ المستلم",
     "activateNote": "ملاحظة (اختيارية)",
     "paidYes": "مدفوع",
-    "paidNo": "غير مدفوع"
+    "paidNo": "غير مدفوع",
+    "tabsLabel": "تفاصيل المطعم",
+    "tabs": {
+      "overview": "نظرة عامة",
+      "branches": "الفروع",
+      "team": "الفريق",
+      "billing": "الفوترة",
+      "history": "السجل"
+    },
+    "stats": {
+      "orders": "الطلبات خلال 30 يومًا",
+      "sales": "المبيعات خلال 30 يومًا"
+    },
+    "values": {
+      "taxIncluded": "{{rate}}، مشمولة في الأسعار",
+      "taxAdded": "{{rate}}، تضاف إلى الأسعار",
+      "dineIn": "داخل المطعم",
+      "takeaway": "سفري",
+      "payBeforeSend": "الدفع قبل الإرسال إلى المطبخ",
+      "payAfter": "الدفع بعد الطلب",
+      "card": "يقبل البطاقة",
+      "cashOnly": "نقدًا فقط",
+      "on": "مفعّل",
+      "off": "متوقف",
+      "manual": "يدوي أو مجاني",
+      "allBranches": "كل الفروع",
+      "included": "مشمول",
+      "perMonth": "{{price}} شهريًا",
+      "perBranchMonth": "{{price}} لكل فرع شهريًا"
+    },
+    "team": {
+      "name": "الاسم",
+      "role": "الدور",
+      "branches": "الفروع",
+      "status": "الحالة",
+      "lastLogin": "آخر دخول",
+      "never": "لم يسجل الدخول",
+      "empty": "لم ينضم أحد إلى هذا المطعم بعد.",
+      "active": "نشط",
+      "invited": "مدعو",
+      "disabled": "معطّل"
+    },
+    "devices": {
+      "pending": "بانتظار الربط",
+      "active": "مربوط",
+      "revoked": "محذوف",
+      "none": "لا توجد أجهزة مربوطة",
+      "lastUsed": "آخر استخدام {{value}}",
+      "neverUsed": "لم يستخدم بعد"
+    },
+    "history": {
+      "empty": "لم يغيّر أي مسؤول هذا المطعم بعد.",
+      "limit": "أحدث {{count}} من إجراءات المسؤولين.",
+      "when": "الوقت",
+      "who": "المسؤول",
+      "action": "الإجراء",
+      "actions": {
+        "org_suspend": "أوقف المطعم",
+        "org_reactivate": "أعاد تفعيل المطعم",
+        "org_activate": "فعّل خطة"
+      }
+    },
+    "noBranches": "لا توجد فروع لهذا المطعم بعد.",
+    "banner": {
+      "label": "الخطة الحالية",
+      "daysLeft_zero": "يوم متبقٍ",
+      "daysLeft_one": "يوم متبقٍ",
+      "daysLeft_two": "يومان متبقيان",
+      "daysLeft_few": "أيام متبقية",
+      "daysLeft_many": "يومًا متبقيًا",
+      "daysLeft_other": "يوم متبقٍ",
+      "endsOn": "تنتهي في {{date}}",
+      "endedOn": "انتهت في {{date}}",
+      "noEnd": "بدون تاريخ انتهاء",
+      "state": {
+        "active": "نشطة",
+        "trial": "تجريبية",
+        "endingSoon": "تنتهي قريبًا",
+        "pastDue": "الدفع متأخر",
+        "ended": "منتهية",
+        "none": "بدون خطة"
+      }
+    },
+    "setup": {
+      "progress": "تم تجهيز {{done}} من {{total}}",
+      "missing": "ليس بعد",
+      "categories": "تصنيفات القائمة",
+      "products": "المنتجات",
+      "tables": "طاولات الطعام",
+      "devices": "أجهزة الكاشير المربوطة",
+      "staff": "موظفون غير المالك",
+      "orders": "الطلبات المسجلة"
+    }
   },
   "users": {
     "title": "المستخدمون",

@@ -211,9 +211,11 @@
     },
     "sections": {
       "restaurant": "Restaurant",
-      "owner": "Owner",
       "plan": "Plan and subscription",
-      "branches": "Branches"
+      "branches": "Branches",
+      "settings": "Settings",
+      "limits": "Included in this plan",
+      "setup": "Getting started"
     },
     "fields": {
       "country": "Country",
@@ -228,7 +230,28 @@
       "periodEnd": "Current period ends",
       "manualPaid": "Manual payment",
       "manualAmount": "Amount received",
-      "manualNote": "Payment note"
+      "manualNote": "Payment note",
+      "slug": "Web address name",
+      "languages": "Languages",
+      "displayCurrency": "Display currency",
+      "exchangeRate": "{{rate}} {{display}} per 1 {{base}}",
+      "categories": "Categories",
+      "products": "Products",
+      "tables": "Active tables",
+      "devices": "POS devices",
+      "address": "Address",
+      "timezone": "Time zone",
+      "tax": "Tax",
+      "dayStart": "Business day starts",
+      "orderTypes": "Order types",
+      "payment": "Payment",
+      "pager": "Pickup numbers",
+      "orders30": "Orders, last 30 days",
+      "lastOrder": "Last order",
+      "provider": "Billed through",
+      "price": "Price",
+      "canceled": "Canceled on",
+      "branchQuantity": "Paid branches"
     },
     "activate": "Activate plan",
     "activateTitle": "Activate {{name}}",
@@ -242,7 +265,95 @@
     "activateAmount": "Amount received",
     "activateNote": "Note (optional)",
     "paidYes": "Paid",
-    "paidNo": "Not paid"
+    "paidNo": "Not paid",
+    "tabsLabel": "Restaurant details",
+    "tabs": {
+      "overview": "Overview",
+      "branches": "Branches",
+      "team": "Team",
+      "billing": "Billing",
+      "history": "History"
+    },
+    "stats": {
+      "orders": "Orders, last 30 days",
+      "sales": "Sales, last 30 days"
+    },
+    "values": {
+      "taxIncluded": "{{rate}}, included in prices",
+      "taxAdded": "{{rate}}, added to prices",
+      "dineIn": "Dine-in",
+      "takeaway": "Takeaway",
+      "payBeforeSend": "Pay before sending to kitchen",
+      "payAfter": "Pay after ordering",
+      "card": "Card accepted",
+      "cashOnly": "Cash only",
+      "on": "On",
+      "off": "Off",
+      "manual": "Manual or free",
+      "allBranches": "All branches",
+      "included": "Included",
+      "perMonth": "{{price}} per month",
+      "perBranchMonth": "{{price}} per branch per month"
+    },
+    "team": {
+      "name": "Name",
+      "role": "Role",
+      "branches": "Branches",
+      "status": "Status",
+      "lastLogin": "Last sign-in",
+      "never": "Never",
+      "empty": "Nobody has joined this restaurant yet.",
+      "active": "Active",
+      "invited": "Invited",
+      "disabled": "Disabled"
+    },
+    "devices": {
+      "pending": "Waiting to pair",
+      "active": "Paired",
+      "revoked": "Removed",
+      "none": "No devices linked",
+      "lastUsed": "Last used {{value}}",
+      "neverUsed": "Not used yet"
+    },
+    "history": {
+      "empty": "No admin has changed this restaurant yet.",
+      "limit": "The latest {{count}} admin actions.",
+      "when": "When",
+      "who": "Admin",
+      "action": "Action",
+      "actions": {
+        "org_suspend": "Suspended the restaurant",
+        "org_reactivate": "Reactivated the restaurant",
+        "org_activate": "Activated a plan"
+      }
+    },
+    "noBranches": "This restaurant has no branches yet.",
+    "banner": {
+      "label": "Current plan",
+      "daysLeft_one": "day left",
+      "daysLeft_other": "days left",
+      "endsOn": "Ends {{date}}",
+      "endedOn": "Ended {{date}}",
+      "noEnd": "No end date",
+      "state": {
+        "active": "Active",
+        "trial": "Trial",
+        "endingSoon": "Ending soon",
+        "pastDue": "Payment overdue",
+        "ended": "Ended",
+        "none": "No plan"
+      }
+    },
+    "setup": {
+      "progress": "{{done}} of {{total}} set up",
+      "missing": "Not yet",
+      "categories": "Menu categories",
+      "products": "Products",
+      "tables": "Dining tables",
+      "devices": "Paired POS devices",
+      "staff": "Staff besides the owner",
+      "orders": "Orders taken"
+    }
   },
   "users": {
     "title": "Users",

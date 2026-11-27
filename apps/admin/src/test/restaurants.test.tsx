@@ -40,6 +40,7 @@ const detail = {
     status: 'active',
     branchQuantity: 2,
     trialEndsAt: null,
+    provider: null,
     currentPeriodEnd: '2026-12-01T00:00:00.000Z',
     canceledAt: null,
     manualPaid: true,
@@ -47,13 +48,65 @@ const detail = {
     manualNote: 'Bank transfer',
   },
   grantablePlans: [
-    { key: 'menu', currency: 'USD' },
-    { key: 'restaurant', currency: 'USD' },
-    { key: 'business', currency: 'USD' },
+    { key: 'menu', name: 'Menu', currency: 'USD' },
+    { key: 'restaurant', name: 'Restaurant', currency: 'USD' },
+    { key: 'business', name: 'Business', currency: 'USD' },
   ],
   branches: [
-    { id: '0198f1a2-0000-7000-8000-000000000002', name: 'Main', slug: 'main', isActive: true },
+    {
+      id: '0198f1a2-0000-7000-8000-000000000002',
+      name: 'Main',
+      slug: 'main',
+      isActive: true,
+      address: 'King Road 1',
+      timezone: 'Asia/Riyadh',
+      currency: 'SAR',
+      taxRateBp: 1500,
+      taxInclusive: true,
+      dayStartHour: 4,
+      payBeforeSend: false,
+      acceptsCard: true,
+      pagerEnabled: false,
+      supportsDineIn: true,
+      supportsTakeaway: true,
+      createdAt: '2026-10-01T10:00:00.000Z',
+      tableCount: 6,
+      devices: [
+        {
+          id: '0198f1a2-0000-7000-8000-000000000003',
+          name: 'Front till',
+          status: 'active',
+          lastUsedAt: null,
+        },
+      ],
+      ordersLast30Days: 12,
+      lastOrderAt: null,
+    },
   ],
+  displayCurrency: null,
+  exchangeRate: null,
+  planDetail: { priceMinor: 3900, currency: 'USD', perBranch: true, features: [] },
+  orderStats: {
+    total: 40,
+    last30Days: 12,
+    lastOrderAt: null,
+    salesLast30Days: [{ currency: 'SAR', amountMinor: 125000 }],
+  },
+  catalog: { categoryCount: 3, productCount: 24 },
+  team: [
+    {
+      membershipId: '0198f1a2-0000-7000-8000-000000000004',
+      name: 'Sami',
+      email: null,
+      roleKey: 'cashier',
+      roleName: 'Cashier',
+      status: 'active',
+      lastLoginAt: null,
+      allBranches: false,
+      branchNames: ['Main'],
+    },
+  ],
+  history: [],
 };
 
 function stubFetch(handler: (url: URL, method: string) => { status: number; body: unknown }) {
@@ -140,7 +193,19 @@ describe('restaurants pages', () => {
     expect(await screen.findByRole('heading', { name: /Olive Cafe/ })).toBeInTheDocument();
     expect(screen.getAllByText('lina@example.com').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Pro').length).toBeGreaterThan(0);
-    // The recorded manual payment shows on the plan card.
+    // Each tab shows its own part of the restaurant.
+    const openTab = (name: string) => {
+      fireEvent.mouseDown(screen.getByRole('tab', { name }), { button: 0 });
+    };
+    openTab('Branches');
+    expect(screen.getByText('King Road 1')).toBeInTheDocument();
+    expect(screen.getByText('Front till')).toBeInTheDocument();
+    openTab('Team');
+    expect(screen.getByText('Sami')).toBeInTheDocument();
+    openTab('History');
+    expect(screen.getByText('No admin has changed this restaurant yet.')).toBeInTheDocument();
+    // The recorded manual payment shows on the billing tab.
+    openTab('Billing');
     expect(screen.getByText('Paid')).toBeInTheDocument();
     expect(screen.getByText('Bank transfer')).toBeInTheDocument();
   });
@@ -197,6 +262,14 @@ describe('restaurants pages', () => {
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Suspend' })).toBeDisabled();
     });
+  });
+
+  it('opens the activate dialog on the current plan', async () => {
+    stubFetch(() => ({ status: 200, body: { ...detail, status: 'active', planKey: 'business' } }));
+    renderAt(`/restaurants/${ORG_ID}`);
+    fireEvent.click(await screen.findByRole('button', { name: 'Activate plan' }));
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('combobox')).toHaveTextContent('Business');
   });
 
   it('shows not-found for a 404', async () => {

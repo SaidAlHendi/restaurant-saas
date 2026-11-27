@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
-import { ADMIN_GRANT_PLAN_KEYS, intlLocaleForUi } from '@app/shared';
+import { ADMIN_GRANT_PLAN_KEYS, formatMoney, intlLocaleForUi } from '@app/shared';
 import { toast } from '@app/ui';
 
 import { useAppSelector } from '../../app/hooks.js';
@@ -13,17 +13,8 @@ import {
   useReactivateRestaurantMutation,
   useSuspendRestaurantMutation,
 } from './restaurants.api.js';
-
-/** Minor units to a currency string; falls back to "CODE amount" for unknown codes. */
-function formatMoney(locale: string, amountMinor: number, currency: string): string {
-  try {
-    const formatter = new Intl.NumberFormat(intlLocaleForUi(locale), { style: 'currency', currency });
-    const digits = formatter.resolvedOptions().maximumFractionDigits ?? 2;
-    return formatter.format(amountMinor / 10 ** digits);
-  } catch {
-    return `${currency} ${String(amountMinor / 100)}`;
-  }
-}
+import { defaultActivateUntil, summarizePlan } from './plan-summary.js';
+import { setupSteps } from './setup-steps.js';
 
 /** View model for one restaurant, including the confirm-then-suspend/reactivate action. */
 export function useRestaurantDetailPage() {
@@ -50,10 +41,9 @@ export function useRestaurantDetailPage() {
     data?.grantablePlans.find((plan) => plan.key === activatePlan)?.currency ?? 'USD';
 
   const openActivate = () => {
-    // Default: one month from today, the common bank-transfer cycle.
-    const next = new Date();
-    next.setMonth(next.getMonth() + 1);
-    setActivateUntil(next.toISOString().slice(0, 10));
+    // Start on the plan the restaurant has now; free (not grantable) starts on "restaurant".
+    setActivatePlan(ADMIN_GRANT_PLAN_KEYS.find((key) => key === data?.planKey) ?? 'restaurant');
+    setActivateUntil(defaultActivateUntil(data));
     setActivatePaid(false);
     setActivateAmount(null);
     setActivateNote('');
@@ -101,7 +91,19 @@ export function useRestaurantDetailPage() {
     () => new Intl.DateTimeFormat(intlLocaleForUi(i18n.language), { dateStyle: 'medium' }),
     [i18n.language],
   );
-  const numberFormat = useMemo(() => new Intl.NumberFormat(intlLocaleForUi(i18n.language)), [i18n.language]);
+  const numberFormat = useMemo(
+    () => new Intl.NumberFormat(intlLocaleForUi(i18n.language)),
+    [i18n.language],
+  );
+
+  const dateTimeFormat = useMemo(
+    () =>
+      new Intl.DateTimeFormat(intlLocaleForUi(i18n.language), {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+      }),
+    [i18n.language],
+  );
 
   const notFound =
     isError && typeof error === 'object' && 'status' in error && error.status === 404;
@@ -109,6 +111,7 @@ export function useRestaurantDetailPage() {
   return {
     t,
     dateLocale: i18n.language,
+    direction: i18n.dir(),
     restaurant: data,
     isLoading,
     isError: isError && !notFound,
@@ -133,6 +136,7 @@ export function useRestaurantDetailPage() {
     activateNote,
     setActivateNote,
     activateCurrency,
+    planOptions: data?.grantablePlans ?? [],
     canConfirmActivate: activateUntil !== '' && (!activatePaid || activateAmount !== null),
     /** What was recorded for a manual activation, ready to show; null when nothing was recorded. */
     manualPayment:
@@ -143,10 +147,10 @@ export function useRestaurantDetailPage() {
             amount:
               data.subscription.manualPaid && data.subscription.manualAmountMinor !== null
                 ? formatMoney(
-                    i18n.language,
                     data.subscription.manualAmountMinor,
                     data.grantablePlans.find((plan) => plan.key === data.planKey)?.currency ??
                       data.defaultCurrency,
+                    i18n.language,
                   )
                 : null,
             note: data.subscription.manualNote,
@@ -160,5 +164,25 @@ export function useRestaurantDetailPage() {
     formatDate: (iso: string | null) =>
       iso ? dateFormat.format(new Date(iso)) : t('restaurants.none'),
     formatNumber: (value: number) => numberFormat.format(value),
+    formatDateTime: (iso: string | null) =>
+      iso ? dateTimeFormat.format(new Date(iso)) : t('restaurants.none'),
+    money: (minor: number, currency: string) => formatMoney(minor, currency, i18n.language),
+    formatPercent: (basisPoints: number) =>
+      new Intl.NumberFormat(intlLocaleForUi(i18n.language), {
+        style: 'percent',
+        maximumFractionDigits: 2,
+      }).format(basisPoints / 10_000),
+    formatHour: (hour: number) => `${String(hour).padStart(2, '0')}:00`,
+    languageName: (code: string) =>
+      new Intl.DisplayNames([intlLocaleForUi(i18n.language)], { type: 'language' }).of(code) ??
+      code,
+    countryName: (code: string) =>
+      new Intl.DisplayNames([intlLocaleForUi(i18n.language)], { type: 'region' }).of(code) ?? code,
+    plan: data ? summarizePlan(data) : null,
+    setup: setupSteps(data),
+    initial: data?.name.trim().charAt(0).toUpperCase() ?? '',
+    activeBranchCount: data?.branches.filter((branch) => branch.isActive).length ?? 0,
   };
 }
+
+export type RestaurantDetailVm = ReturnType<typeof useRestaurantDetailPage>;

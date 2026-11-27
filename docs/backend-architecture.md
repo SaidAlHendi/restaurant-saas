@@ -97,7 +97,8 @@ apps/api/
     the admin and session from the DB on every request, so deactivation is immediate.
   - **`app_admin`** DB role (`DATABASE_ADMIN_URL`, second pool, `AdminDbModule`): `BYPASSRLS`, SELECT on most
     tables (no `users.password_hash`), UPDATE only on `organizations.status` and subscription override columns,
-    INSERT-only on `audit_logs`, no DELETE. `AdminDatabaseRoleValidator` refuses to start if the role is wrong.
+    INSERT-only on `audit_logs`, no DELETE. On `categories`, `products`, `tables` and `pos_devices` it has
+    column-level SELECT only (migration 0030; no QR tokens, pairing codes or device keys). `AdminDatabaseRoleValidator` refuses to start if the role is wrong.
     The role is created outside migrations (`01-roles.sql` locally/CI; production deploy notes) and migration
     0013 grants to it if it exists, so create the role before running `db:migrate`.
   - Every mutating admin endpoint goes through `WithAdminService.withAdmin(actor, audit, fn)`, which writes the

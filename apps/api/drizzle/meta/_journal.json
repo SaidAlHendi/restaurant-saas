@@ -204,6 +204,13 @@
       "when": 1759681000000,
       "tag": "0029_org_menu_cover",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1759682000000,
+      "tag": "0030_admin_catalog_read",
+      "breakpoints": true
     }
   ]
 }

@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import { and, eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import pg from 'pg';
+import { adminOrgDetailSchema } from '@app/shared';
 
 import { loadEnv, resetEnvCacheForTests } from '../src/config/env';
 import { ADMIN_DRIZZLE, type AdminDrizzleDb } from '../src/core/db/admin-db.tokens';
@@ -354,5 +355,18 @@ describe('Admin restaurants list and detail (e2e)', () => {
         expect.objectContaining({ paid: true, amountMinor: 3900, note: 'Bank transfer, ref 123' }),
       );
     });
+  });
+
+  it('returns branches, team and counts for that restaurant only', async () => {
+    const res = await admin().get(`/v1/admin/orgs/${orgA.id}`);
+    expect(res.status).toBe(200);
+    const body = adminOrgDetailSchema.parse(res.body);
+    expect(body.team.map((member) => member.email)).toEqual([orgA.email]);
+    expect(body.branches).toHaveLength(1);
+    expect(body.branches[0]).toMatchObject({ currency: 'SAR', tableCount: 0, devices: [] });
+    expect(body.orderStats).toMatchObject({ total: 0, last30Days: 0, salesLast30Days: [] });
+    expect(body.catalog).toEqual({ categoryCount: 0, productCount: 0 });
+    expect(body.history.map((entry) => entry.action)).toContain('org.suspend');
+    expect(JSON.stringify(res.body)).not.toContain(orgB.email);
   });
 });

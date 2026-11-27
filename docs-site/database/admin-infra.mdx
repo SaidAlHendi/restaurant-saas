@@ -8,6 +8,8 @@ icon: "shield"
 
 These tables are separate from the restaurant tables: no tenant membership, no RLS, and only the `app_admin` database role can use them.
 
+For the restaurant detail page, `app_admin` can also read a few columns of `categories`, `products`, `tables` and `pos_devices` (counts, device name, status and last use). It cannot read table QR tokens, pairing codes or device keys.
+
 | Table | Contains | Used by |
 | --- | --- | --- |
 | admin_users | Admin accounts: email, `password_hash`, name, `role` (`super`, `support`, `billing`), `is_active`, `last_login_at`. | admin auth |
