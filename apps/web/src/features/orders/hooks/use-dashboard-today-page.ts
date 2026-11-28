@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -14,10 +14,10 @@ import { useAppDispatch, useAppSelector } from '../../../app/hooks.js';
 import { intlLocaleForUi, orderMoneyFormatter } from '../../../lib/money.js';
 import type { RealtimeEvent } from '../../../lib/realtime.js';
 import { useGetDailyReportQuery } from '../../reports/reports.api.js';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useBranchRealtime } from '../../realtime/use-branch-realtime.js';
 import { selectCurrentBranchId, selectSessionOrg } from '../../session/session.selectors.js';
-import { addCalendarDays } from '../dashboard-orders-filters.utils.js';
+import { addCalendarDays, dashboardDayOrdersPath } from '../dashboard-orders-filters.utils.js';
 import { barWidthPercent } from '../report-bars.utils.js';
 import { orderTypeTableLabel } from '../order-type-table-label.utils.js';
 import { liveCounts, oldestOpenMinutes, percentDelta } from '../dashboard-overview.utils.js';
@@ -34,20 +34,13 @@ export function useDashboardTodayPage() {
   const org = useAppSelector(selectSessionOrg);
   const orgSwitcher = useOrgSwitcher();
   const branchContext = useBranchBusinessDate(branchId);
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const lastValidDateRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    if (branchContext.businessDate !== null) {
-      setSelectedDate(branchContext.businessDate);
-      lastValidDateRef.current = branchContext.businessDate;
-    }
-  }, [branchContext.businessDate, branchId]);
-
-  const activeDate =
-    selectedDate !== null && businessDateSchema.safeParse(selectedDate).success
-      ? selectedDate
-      : (branchContext.businessDate ?? undefined);
+  // The chosen day lives in the URL so that Back from the order list returns to it.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlDate = businessDateSchema.safeParse(searchParams.get('date'));
+  const activeDate = urlDate.success ? urlDate.data : (branchContext.businessDate ?? undefined);
+  const setSelectedDate = (date: string | null) => {
+    setSearchParams(date === null ? {} : { date }, { replace: true });
+  };
 
   const { data, isLoading, isError, refetch } = useGetDailyReportQuery(
     { branchId: branchId ?? '', businessDate: activeDate },
@@ -130,30 +123,21 @@ export function useDashboardTodayPage() {
       void branchContext.refetch();
     },
     dateLocale: i18n.language,
-    selectedDate: activeDate ?? lastValidDateRef.current ?? '',
+    selectedDate: activeDate ?? '',
     onSelectToday: () => {
-      if (referenceToday) {
-        setSelectedDate(referenceToday);
-        lastValidDateRef.current = referenceToday;
-      }
+      setSelectedDate(null);
     },
     onSelectYesterday: () => {
       if (referenceToday) {
-        const yesterday = addCalendarDays(referenceToday, -1);
-        setSelectedDate(yesterday);
-        lastValidDateRef.current = yesterday;
+        setSelectedDate(addCalendarDays(referenceToday, -1));
       }
     },
     onDateInputChange: (value: string) => {
-      if (value.length === 0) {
-        return;
-      }
       const parsed = businessDateSchema.safeParse(value);
       if (!parsed.success) {
         return;
       }
-      setSelectedDate(parsed.data);
-      lastValidDateRef.current = parsed.data;
+      setSelectedDate(parsed.data === referenceToday ? null : parsed.data);
     },
     stats: data
       ? {
@@ -164,6 +148,9 @@ export function useDashboardTodayPage() {
           cancelled: String(data.cancelledCount),
         }
       : null,
+    countedHref: dashboardDayOrdersPath(activeDate, 'counted'),
+    unpaidHref: dashboardDayOrdersPath(activeDate, 'unpaid'),
+    cancelledHref: dashboardDayOrdersPath(activeDate, 'cancelled'),
     paymentBars: (data?.byPaymentMethod ?? []).map((row) => ({
       id: row.method,
       label: t(`dashboard.today.paymentMethod.${row.method}`),

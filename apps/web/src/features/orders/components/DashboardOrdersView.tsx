@@ -38,6 +38,7 @@ export function DashboardOrdersView(props: DashboardOrdersViewProps) {
     period,
     dateLocale,
     rows,
+    showDue,
     showEmptyState,
     isLoading,
     isError,
@@ -93,6 +94,16 @@ export function DashboardOrdersView(props: DashboardOrdersViewProps) {
       cell: (row: (typeof rows)[number]) => row.totalLabel,
       align: 'end' as const,
     },
+    ...(showDue
+      ? [
+          {
+            id: 'due',
+            header: labels.colDue,
+            cell: (row: (typeof rows)[number]) => row.dueLabel,
+            align: 'end' as const,
+          },
+        ]
+      : []),
     {
       id: 'status',
       header: labels.colStatus,
@@ -281,6 +292,12 @@ export function DashboardOrdersView(props: DashboardOrdersViewProps) {
                     <span>{row.itemCount}</span>
                     <span>{row.totalLabel}</span>
                   </div>
+                  {showDue ? (
+                    <div className="mt-1 flex justify-between text-sm font-semibold tabular-nums">
+                      <span>{labels.colDue}</span>
+                      <span>{row.dueLabel}</span>
+                    </div>
+                  ) : null}
                 </Card>
               ))}
             </div>

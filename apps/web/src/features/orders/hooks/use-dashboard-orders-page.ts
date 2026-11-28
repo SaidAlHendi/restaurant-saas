@@ -73,7 +73,13 @@ export function useDashboardOrdersPage() {
       pageSize: PAGE_SIZE,
       dateFrom: filters.dateFrom,
       dateTo: filters.dateTo,
-      ...(filters.status !== 'all' ? { status: filters.status } : {}),
+      ...(filters.status === 'counted'
+        ? { countedOnly: true }
+        : filters.status === 'unpaid'
+          ? { unpaidOnly: true }
+          : filters.status !== 'all'
+            ? { status: filters.status }
+            : {}),
       ...(filters.type !== 'all' ? { type: filters.type } : {}),
       ...(filters.paymentMethod !== 'all' ? { paymentMethod: filters.paymentMethod } : {}),
       ...(filters.q.trim().length > 0 ? { q: filters.q.trim() } : {}),
@@ -160,6 +166,7 @@ export function useDashboardOrdersPage() {
       }),
       itemCount: String(order.itemCount),
       totalLabel: orderMoneyFormatter(order, uiLocale)(order.totalMinor, 'total'),
+      dueLabel: orderMoneyFormatter(order, uiLocale)(order.dueMinor, 'total'),
       statusTone: orderStatusBadgeTone(order.status),
       statusLabel: t(`dashboard.orders.status.${order.status}`),
       paymentLabel: t(`dashboard.orders.paymentStatus.${order.paymentStatus}`),
@@ -186,6 +193,8 @@ export function useDashboardOrdersPage() {
   const statusOptions = useMemo(
     () => [
       { value: 'all', label: filterAllLabel },
+      { value: 'counted', label: t('dashboard.orders.filters.counted') },
+      { value: 'unpaid', label: t('dashboard.orders.filters.unpaid') },
       ...(
         ['draft', 'placed', 'preparing', 'ready', 'completed', 'cancelled', 'refunded'] as const
       ).map((s) => ({
@@ -277,6 +286,7 @@ export function useDashboardOrdersPage() {
       },
     },
     rows,
+    showDue: filters?.status === 'unpaid',
     showEmptyState:
       items.length === 0 &&
       !branchContext.isLoading &&
@@ -321,6 +331,7 @@ export function useDashboardOrdersPage() {
       colCustomer: t('dashboard.orders.columns.customer'),
       colItems: t('dashboard.orders.columns.items'),
       colTotal: t('dashboard.orders.columns.total'),
+      colDue: t('dashboard.orders.columns.due'),
       colStatus: t('dashboard.orders.columns.status'),
       colPayment: t('dashboard.orders.columns.payment'),
       tableSortBy: t('dashboard.orders.columns.sortBy'),
