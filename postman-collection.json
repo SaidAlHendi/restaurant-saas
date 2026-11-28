@@ -989,6 +989,8 @@
                 { "key": "paymentMethod", "value": "", "disabled": true },
                 { "key": "activeOnly", "value": "true", "disabled": true },
                 { "key": "todayOnly", "value": "true", "disabled": true },
+                { "key": "countedOnly", "value": "true", "disabled": true },
+                { "key": "unpaidOnly", "value": "true", "disabled": true },
                 { "key": "q", "value": "", "disabled": true },
                 { "key": "page", "value": "1", "disabled": true },
                 { "key": "pageSize", "value": "10", "disabled": true }

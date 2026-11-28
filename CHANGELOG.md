@@ -5,6 +5,8 @@ All notable user-facing changes to Sahtain. Format follows [Keep a Changelog](ht
 ## Unreleased
 
 ### Changed
+- Dashboard: the Sales, Orders, Unpaid and Cancelled cards now open the matching orders of the selected day. Cards you can click have a tinted background, a brand-colour border and an arrow.
+- Orders: new status filter “Counted in sales” (all orders except drafts, cancelled and refunded) and “Unpaid”, which also shows the amount still due.
 - The landing page footer no longer repeats the "Start your free trial" button; it stays in the top bar.
 - Orders (dashboard and POS), Menu → Products and the platform admin Users and Audit log lists now use page numbers (1, 2, 3 …) instead of "Load more", show 10 rows per page, and show the total count. Settings → Staff, Devices, Menu → Modifier groups and the admin Subscriptions list now have page numbers too.
 - Plans now list every service on the landing page, in Billing and in the docs; services that are not available yet (multiple branches, advanced reports and export, custom roles, ordering from the table QR, API access, device limit) carry a "Soon" badge.
@@ -12,6 +14,8 @@ All notable user-facing changes to Sahtain. Format follows [Keep a Changelog](ht
 - The FAQ page has a new look (every question is a kitchen ticket on a dark rail, next to a photo) and now answers 15 questions about pricing, the trial, the menu, the kitchen, staff, receipts and data.
 
 ### Fixed
+- Dashboard: going back from the order list keeps the day you had selected.
+- Dashboard: clicking a row under recent orders now opens that order.
 - Platform admin and POS Orders, Bills and Tables: pages taller than the screen can be scrolled again, so the bottom rows and the page numbers are reachable.
 - Settings → Menu look: the page no longer shows a second scrollbar.
 - Settings → Menu look: the live preview now stays fully visible while you scroll through the options, and scrolls on its own if it is taller than the screen.

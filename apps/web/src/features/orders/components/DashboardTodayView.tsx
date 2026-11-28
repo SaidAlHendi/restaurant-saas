@@ -9,6 +9,7 @@ import {
   XCircleIcon,
   ZapIcon,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 import {
   Badge,
@@ -32,6 +33,9 @@ export type DashboardTodayViewProps = DashboardTodayPageViewModel;
 function OrgActions({ orgSwitcher }: { orgSwitcher: OrgSwitcherViewModel }) {
   return <DashboardOrgSwitcherActions {...orgSwitcher} />;
 }
+
+const cardLinkClass =
+  'group rounded-lg focus-visible:ring-ring outline-none focus-visible:ring-2 [&>div]:h-full';
 
 type BreakdownRow = { id: string; label: string; amountLabel: string; widthPct: string };
 
@@ -75,6 +79,9 @@ export function DashboardTodayView(props: DashboardTodayViewProps) {
     live,
     recentRows,
     onViewAllOrders,
+    countedHref,
+    cancelledHref,
+    unpaidHref,
     paymentBars,
     typeBars,
     topItems,
@@ -126,22 +133,28 @@ export function DashboardTodayView(props: DashboardTodayViewProps) {
       {!isLoading && !isError && stats ? (
         <>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-5">
-            <StatCard
-              icon={<BanknoteIcon />}
-              label={labels.sales}
-              value={stats.sales}
-              delta={deltas?.sales?.label}
-              trend={deltas?.sales?.trend}
-              deltaHint={deltas?.sales ? labels.kpiHint : undefined}
-            />
-            <StatCard
-              icon={<ReceiptTextIcon />}
-              label={labels.orders}
-              value={stats.orders}
-              delta={deltas?.orders?.label}
-              trend={deltas?.orders?.trend}
-              deltaHint={deltas?.orders ? labels.kpiHint : undefined}
-            />
+            <Link to={countedHref} className={cardLinkClass}>
+              <StatCard
+                interactive
+                icon={<BanknoteIcon />}
+                label={labels.sales}
+                value={stats.sales}
+                delta={deltas?.sales?.label}
+                trend={deltas?.sales?.trend}
+                deltaHint={deltas?.sales ? labels.kpiHint : undefined}
+              />
+            </Link>
+            <Link to={countedHref} className={cardLinkClass}>
+              <StatCard
+                interactive
+                icon={<ReceiptTextIcon />}
+                label={labels.orders}
+                value={stats.orders}
+                delta={deltas?.orders?.label}
+                trend={deltas?.orders?.trend}
+                deltaHint={deltas?.orders ? labels.kpiHint : undefined}
+              />
+            </Link>
             <StatCard
               icon={<TrendingUpIcon />}
               label={labels.averageTicket}
@@ -150,8 +163,22 @@ export function DashboardTodayView(props: DashboardTodayViewProps) {
               trend={deltas?.averageTicket?.trend}
               deltaHint={deltas?.averageTicket ? labels.kpiHint : undefined}
             />
-            <StatCard icon={<ClockIcon />} label={labels.unpaid} value={stats.unpaid} />
-            <StatCard icon={<XCircleIcon />} label={labels.cancelled} value={stats.cancelled} />
+            <Link to={unpaidHref} className={cardLinkClass}>
+              <StatCard
+                interactive
+                icon={<ClockIcon />}
+                label={labels.unpaid}
+                value={stats.unpaid}
+              />
+            </Link>
+            <Link to={cancelledHref} className={cardLinkClass}>
+              <StatCard
+                interactive
+                icon={<XCircleIcon />}
+                label={labels.cancelled}
+                value={stats.cancelled}
+              />
+            </Link>
           </div>
 
           <div className="grid gap-3 lg:grid-cols-[1.55fr_1fr]">
@@ -253,10 +280,22 @@ export function DashboardTodayView(props: DashboardTodayViewProps) {
                       {recentRows.map((row) => (
                         <tr
                           key={row.id}
-                          className="hover:bg-table-hover [&:last-child>td]:border-b-0"
+                          className="hover:bg-table-hover cursor-pointer [&:last-child>td]:border-b-0"
+                          onClick={row.onOpen}
                         >
                           <td className="border-b px-3 py-2.5 font-semibold tabular-nums">
-                            {row.number}
+                            <Button
+                              type="button"
+                              variant="link"
+                              size="sm"
+                              className="h-auto p-0 font-semibold"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                row.onOpen();
+                              }}
+                            >
+                              {row.number}
+                            </Button>
                           </td>
                           <td className="border-b px-3 py-2.5 tabular-nums">{row.time}</td>
                           <td className="border-b px-3 py-2.5">{row.where}</td>

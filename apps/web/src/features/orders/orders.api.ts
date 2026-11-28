@@ -51,6 +51,12 @@ function orderListParams(query: OrderListQueryInput | undefined): Record<string,
   } else if (query?.todayOnly === false) {
     params['todayOnly'] = 'false';
   }
+  if (query?.countedOnly === true) {
+    params['countedOnly'] = 'true';
+  }
+  if (query?.unpaidOnly === true) {
+    params['unpaidOnly'] = 'true';
+  }
   if (query?.q !== undefined) {
     params['q'] = query.q;
   }

@@ -15,6 +15,7 @@ import {
   payments,
 } from '../../core/db/schema/ordering';
 import type { OrderItemStatus, OrderStatus, OrderType, PaymentMethod } from '@app/shared';
+import { COUNTED_ORDER_STATUSES } from '../reporting/daily-report.utils';
 
 function firstRow<T>(rows: T[]): T {
   const row = rows[0];
@@ -32,6 +33,8 @@ export interface OrderListFilters {
   type?: OrderType;
   paymentMethod?: PaymentMethod;
   activeOnly?: boolean;
+  countedOnly?: boolean;
+  unpaidOnly?: boolean;
   todayOnlyBusinessDate?: string;
   q?: string;
 }
@@ -219,6 +222,18 @@ export class OrderingRepository {
     const conditions = [eq(orders.branchId, branchId)];
     if (opts.activeOnly) {
       conditions.push(inArray(orders.status, [...OPEN_ORDER_STATUSES]));
+    }
+    if (opts.countedOnly || opts.unpaidOnly) {
+      conditions.push(inArray(orders.status, [...COUNTED_ORDER_STATUSES]));
+    }
+    if (opts.unpaidOnly) {
+      conditions.push(
+        sql`${orders.totalMinor} > (
+          SELECT COALESCE(SUM(p.amount_minor), 0) FROM payments p
+          WHERE p.order_id = ${orders.id}
+            AND p.status = 'captured'
+        )`,
+      );
     }
     if (opts.status) {
       conditions.push(eq(orders.status, opts.status));

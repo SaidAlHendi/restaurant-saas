@@ -10,7 +10,8 @@ export type DashboardOrdersPeriod = 'today' | 'yesterday' | 'last7' | 'last30' |
 
 export type DashboardOrdersFilters = {
   q: string;
-  status: OrderStatus | 'all';
+  /** 'counted' = the orders the daily report counts as sales; 'unpaid' = those with money due. */
+  status: OrderStatus | 'all' | 'counted' | 'unpaid';
   type: OrderType | 'all';
   paymentMethod: PaymentMethod | 'all';
   period: DashboardOrdersPeriod;
@@ -70,7 +71,10 @@ export function periodToDateRange(
   }
 }
 
-function parseStatus(value: string | null): OrderStatus | 'all' {
+function parseStatus(value: string | null): DashboardOrdersFilters['status'] {
+  if (value === 'counted' || value === 'unpaid') {
+    return value;
+  }
   if (value === null || value === 'all') {
     return 'all';
   }
@@ -173,6 +177,26 @@ export function dashboardOrdersFiltersToSearchParams(
     params.set('to', filters.dateTo);
   }
   return params;
+}
+
+/** Orders list filtered to one business day, as linked from the today page. */
+export function dashboardDayOrdersPath(
+  businessDate: string | undefined,
+  status: DashboardOrdersFilters['status'] = 'all',
+): string {
+  if (businessDate === undefined) {
+    return '/dashboard/orders';
+  }
+  const params = dashboardOrdersFiltersToSearchParams({
+    q: '',
+    status,
+    type: 'all',
+    paymentMethod: 'all',
+    period: 'custom',
+    dateFrom: businessDate,
+    dateTo: businessDate,
+  });
+  return `/dashboard/orders?${params.toString()}`;
 }
 
 export function periodIncludesReferenceDay(

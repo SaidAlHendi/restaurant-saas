@@ -166,6 +166,16 @@ export const orderListQuerySchema = pagedListQuerySchema
       .enum(['true', 'false'])
       .optional()
       .transform((value) => (value === undefined ? undefined : value === 'true')),
+    /** Only orders the daily report counts as sales (not draft, cancelled or refunded). */
+    countedOnly: z
+      .enum(['true', 'false'])
+      .optional()
+      .transform((value) => (value === undefined ? undefined : value === 'true')),
+    /** Only counted orders that still have money due. */
+    unpaidOnly: z
+      .enum(['true', 'false'])
+      .optional()
+      .transform((value) => (value === undefined ? undefined : value === 'true')),
     q: z.string().trim().min(1).max(50).optional(),
   })
   .superRefine((query, ctx) => {

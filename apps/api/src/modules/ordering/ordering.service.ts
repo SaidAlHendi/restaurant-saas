@@ -334,6 +334,8 @@ export class OrderingService {
         type: query.type,
         paymentMethod: query.paymentMethod,
         activeOnly: query.activeOnly,
+        countedOnly: query.countedOnly,
+        unpaidOnly: query.unpaidOnly,
         todayOnlyBusinessDate,
         q: query.q,
       };

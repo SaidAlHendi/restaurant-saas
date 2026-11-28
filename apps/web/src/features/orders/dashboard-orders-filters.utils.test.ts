@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  dashboardDayOrdersPath,
   addCalendarDays,
   dashboardOrdersFiltersToSearchParams,
   parseDashboardOrdersFilters,
@@ -104,5 +105,23 @@ describe('periodToDateRange', () => {
 describe('addCalendarDays', () => {
   it('steps across month boundaries', () => {
     expect(addCalendarDays('2026-01-31', 1)).toBe('2026-02-01');
+  });
+});
+
+describe('dashboardDayOrdersPath', () => {
+  it('keeps the chosen day and status when the orders page reads it back', () => {
+    const path = dashboardDayOrdersPath('2026-03-10', 'cancelled');
+    const params = new URLSearchParams(path.split('?')[1]);
+    expect(parseDashboardOrdersFilters(params, '2026-03-15')).toMatchObject({
+      status: 'cancelled',
+      dateFrom: '2026-03-10',
+      dateTo: '2026-03-10',
+    });
+  });
+
+  it('keeps the counted-in-sales filter', () => {
+    const path = dashboardDayOrdersPath('2026-03-10', 'counted');
+    const params = new URLSearchParams(path.split('?')[1]);
+    expect(parseDashboardOrdersFilters(params, '2026-03-15').status).toBe('counted');
   });
 });

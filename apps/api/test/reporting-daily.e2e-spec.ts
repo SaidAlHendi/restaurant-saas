@@ -248,6 +248,23 @@ describe('Reporting daily (e2e)', () => {
     expect(body.topItems[0]?.productId).toBe(pB);
     expect(body.topItems[1]?.productId).toBe(pA);
     expect(body.topItems[2]?.productId).toBe(pC);
+
+    // The order list behind the dashboard cards must match the report.
+    const list = await withBranch(owner, branchId)
+      .get(`/v1/branches/${branchId}/orders`)
+      .query({ dateFrom: day, dateTo: day, countedOnly: 'true' });
+    expect(list.status).toBe(200);
+    const listed = list.body as { total: number; items: Array<{ totalMinor: number }> };
+    expect(listed.total).toBe(body.ordersCount);
+    expect(listed.items.reduce((s, o) => s + o.totalMinor, 0)).toBe(body.salesMinor);
+
+    const unpaid = await withBranch(owner, branchId)
+      .get(`/v1/branches/${branchId}/orders`)
+      .query({ dateFrom: day, dateTo: day, unpaidOnly: 'true' });
+    expect(unpaid.status).toBe(200);
+    const due = unpaid.body as { total: number; items: Array<{ dueMinor: number }> };
+    expect(due.total).toBe(2); // one partly paid, one not paid at all
+    expect(due.items.reduce((s, o) => s + o.dueMinor, 0)).toBe(body.unpaidMinor);
   });
 
   it('defaults businessDate from branch clock and accepts explicit yesterday', async () => {

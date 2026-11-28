@@ -52,6 +52,7 @@ function minimalOrdersVm(
       onCustomFromChange: () => {},
       onCustomToChange: () => {},
     },
+    showDue: false,
     showEmptyState: false,
     rows: [
       {
@@ -61,6 +62,7 @@ function minimalOrdersVm(
         typeTable: 'Takeaway',
         itemCount: '2',
         totalLabel: 'SAR 50.00',
+        dueLabel: 'SAR 0.00',
         statusTone: 'new',
         statusLabel: 'Placed',
         paymentLabel: 'Paid',
@@ -108,6 +110,7 @@ function minimalOrdersVm(
       colCustomer: 'Customer',
       colItems: 'Items',
       colTotal: 'Total',
+      colDue: 'Due',
       colStatus: 'Status',
       colPayment: 'Payment',
       tableSortBy: 'Sort by',
@@ -181,5 +184,12 @@ describe('DashboardOrdersView search', () => {
     expect(inputAfterSync).toBe(input);
     expect(inputAfterSync).toHaveValue('bur');
     expect(document.activeElement).toBe(inputAfterSync);
+  });
+
+  it('shows the amount due only when asked to', () => {
+    const { rerender } = render(<DashboardOrdersView {...minimalOrdersVm()} />);
+    expect(screen.queryByText('Due')).not.toBeInTheDocument();
+    rerender(<DashboardOrdersView {...minimalOrdersVm()} showDue />);
+    expect(screen.getAllByText('Due').length).toBeGreaterThan(0);
   });
 });

@@ -1,5 +1,5 @@
 import type * as React from 'react';
-import { MinusIcon, TrendingDownIcon, TrendingUpIcon } from 'lucide-react';
+import { ChevronRightIcon, MinusIcon, TrendingDownIcon, TrendingUpIcon } from 'lucide-react';
 
 import { cn } from '../../lib/cn.js';
 
@@ -17,6 +17,11 @@ export interface StatCardProps extends React.ComponentProps<'div'> {
   icon?: React.ReactNode;
   /** Fills the card with the brand color; use for the one headline number. */
   emphasis?: boolean;
+  /**
+   * Marks a card that opens something: brand-coloured label and icon, a chevron, a tinted fill
+   * and a brand border. The caller wraps it in a link or button with the `group` class.
+   */
+  interactive?: boolean;
 }
 
 const trendIcon = { up: TrendingUpIcon, down: TrendingDownIcon, flat: MinusIcon } as const;
@@ -31,6 +36,7 @@ export function StatCard({
   deltaHint,
   icon,
   emphasis = false,
+  interactive = false,
   className,
   ...props
 }: StatCardProps) {
@@ -44,6 +50,9 @@ export function StatCard({
         emphasis
           ? 'border-transparent bg-primary text-primary-foreground'
           : 'bg-card text-card-foreground',
+        interactive &&
+          !emphasis &&
+          'border-primary bg-primary/10 group-hover:bg-primary/20 transition-colors',
         className,
       )}
       {...props}
@@ -51,17 +60,32 @@ export function StatCard({
       <div className="flex items-center justify-between gap-3">
         <span
           className={cn(
-            'text-sm font-medium',
-            emphasis ? 'text-primary-foreground/85' : 'text-muted-foreground',
+            'inline-flex items-center gap-1 text-sm font-medium',
+            emphasis
+              ? 'text-primary-foreground/85'
+              : interactive
+                ? 'dark:text-foreground font-semibold text-[color-mix(in_oklab,var(--primary)_80%,var(--foreground))]'
+                : 'text-muted-foreground',
           )}
         >
           {label}
+          {interactive ? (
+            <ChevronRightIcon
+              data-slot="stat-card-chevron"
+              className="dark:text-primary size-4 shrink-0 transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none rtl:rotate-180 rtl:group-hover:-translate-x-0.5"
+              aria-hidden
+            />
+          ) : null}
         </span>
         {icon ? (
           <span
             className={cn(
               'flex shrink-0 items-center justify-center [&_svg]:size-[1.125rem]',
-              emphasis ? 'text-primary-foreground/85' : 'text-muted-foreground',
+              emphasis
+                ? 'text-primary-foreground/85'
+                : interactive
+                  ? 'text-primary'
+                  : 'text-muted-foreground',
             )}
             aria-hidden
           >
@@ -94,7 +118,11 @@ export function StatCard({
             />
             {delta}
           </span>
-          {deltaHint ? <span className="text-muted-foreground">{deltaHint}</span> : null}
+          {deltaHint ? (
+            <span className={interactive ? 'text-foreground/80' : 'text-muted-foreground'}>
+              {deltaHint}
+            </span>
+          ) : null}
         </div>
       ) : null}
     </div>
